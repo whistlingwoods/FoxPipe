@@ -78,6 +78,7 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
+import org.schabi.newpipe.extractor.returnyoutubedislike.ReturnYouTubeDislikeInfo
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockAction
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockCategory
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockExtractorHelper
@@ -1475,6 +1476,8 @@ class VideoDetailFragment :
     override fun handleResult(info: StreamInfo) {
         super.handleResult(info)
 
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+
         currentInfo = info
         setInitialData(info.serviceId, info.originalUrl, info.name, playQueue)
 
@@ -1491,6 +1494,11 @@ class VideoDetailFragment :
             displayBothUploaderAndSubChannel(info)
         }
 
+        val rydInfo = info.rydInfo
+        val isRydEnabled = prefs.getBoolean(getString(R.string.return_youtube_dislike_enable_key), true)
+        val overrideLikeCount = prefs.getBoolean(getString(R.string.return_youtube_dislike_override_like_count_key), true)
+        val overrideViewCount = prefs.getBoolean(getString(R.string.return_youtube_dislike_override_view_count_key), true)
+
         if (info.viewCount >= 0) {
             binding.detailViewCountView.text =
                 if (info.streamType == StreamType.AUDIO_LIVE_STREAM) {
@@ -1503,6 +1511,11 @@ class VideoDetailFragment :
             binding.detailViewCountView.visibility = View.VISIBLE
         } else {
             binding.detailViewCountView.visibility = View.GONE
+        }
+
+        // RYD override: views
+        if (rydInfo != null && isRydEnabled && overrideViewCount) {
+            binding.detailViewCountView.text = Localization.localizeViewCount(activity, rydInfo.viewCount)
         }
 
         if (info.dislikeCount == -1L && info.likeCount == -1L) {
@@ -1522,6 +1535,13 @@ class VideoDetailFragment :
                 binding.detailThumbsDownImgView.visibility = View.GONE
             }
 
+            // RYD override: dislikes
+            rydInfo?.takeIf { isRydEnabled }?.let {
+                binding.detailThumbsDownCountView.text = Localization.shortCount(activity, it.dislikes)
+                binding.detailThumbsDownCountView.visibility = View.VISIBLE
+                binding.detailThumbsDownImgView.visibility = View.VISIBLE
+            }
+
             if (info.likeCount >= 0) {
                 binding.detailThumbsUpCountView.text =
                     Localization.shortCount(activity, info.likeCount)
@@ -1531,6 +1551,16 @@ class VideoDetailFragment :
                 binding.detailThumbsUpCountView.visibility = View.GONE
                 binding.detailThumbsUpImgView.visibility = View.GONE
             }
+
+            // RYD override: likes
+            rydInfo?.takeIf { isRydEnabled && overrideLikeCount }?.let {
+                with(binding) {
+                    detailThumbsUpCountView.text = Localization.shortCount(activity, it.likes)
+                    detailThumbsUpCountView.isVisible = true
+                    detailThumbsUpImgView.isVisible = true
+                }
+            }
+
             binding.detailThumbsDisabledView.visibility = View.GONE
         }
 
