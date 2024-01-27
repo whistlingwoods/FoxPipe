@@ -1055,16 +1055,17 @@ public final class Player implements PlaybackListener, Listener {
     }
 
     public void triggerProgressUpdate() {
-        triggerProgressUpdate(false, false, false);
+        triggerProgressUpdate(false, false, false, false);
     }
 
     public void triggerProgressUpdate(final boolean isRewind) {
-        triggerProgressUpdate(isRewind, false, false);
+        triggerProgressUpdate(isRewind, false, false, false);
     }
 
     private void triggerProgressUpdate(final boolean isRewind,
                                        final boolean isGracedRewind,
-                                       final boolean bypassSecondaryMode) {
+                                       final boolean bypassSecondaryMode,
+                                       final boolean isUnSkip) {
         if (exoPlayerIsNull()) {
             return;
         }
@@ -1077,13 +1078,14 @@ public final class Player implements PlaybackListener, Listener {
                 simpleExoPlayer.getBufferedPercentage());
 
         triggerCheckForSponsorBlockSegments(currentProgress, isRewind,
-                isGracedRewind, bypassSecondaryMode);
+                isGracedRewind, bypassSecondaryMode, isUnSkip);
     }
 
     private void triggerCheckForSponsorBlockSegments(final int currentProgress,
                                                      final boolean isRewind,
                                                      final boolean isGracedRewind,
-                                                     final boolean bypassSecondaryMode) {
+                                                     final boolean bypassSecondaryMode,
+                                                     final boolean isUnSkip) {
         if (sponsorBlockMode != SponsorBlockMode.ENABLED || !isPrepared) {
             return;
         }
@@ -1157,8 +1159,14 @@ public final class Player implements PlaybackListener, Listener {
             simpleExoPlayer.setSeekParameters(seekParams);
             lastSegment = sponsorBlockSegment;
 
-            if (prefs.getBoolean(
-                    context.getString(R.string.sponsor_block_notifications_key), false)) {
+            if (isUnSkip) {
+                return;
+            }
+
+            final boolean canShowNotifications = prefs.getBoolean(
+                    context.getString(R.string.sponsor_block_notifications_key), false);
+
+            if (canShowNotifications) {
                 final String toastText =
                         SponsorBlockHelper.convertCategoryToSkipMessage(
                                 context, sponsorBlockSegment.category);
@@ -1465,12 +1473,12 @@ public final class Player implements PlaybackListener, Listener {
     }
 
     public void toggleUnskip() {
-        triggerProgressUpdate(true, true, true);
+        triggerProgressUpdate(true, true, true, true);
     }
 
     public void toggleSkip() {
         autoSkipGracePeriod = false;
-        triggerProgressUpdate(false, true, true);
+        triggerProgressUpdate(false, true, true, false);
     }
     //endregion
 
@@ -2000,7 +2008,7 @@ public final class Player implements PlaybackListener, Listener {
         seekBy(-retrieveSeekDurationFromPreferences(this));
         if (prefs.getBoolean(
                 context.getString(R.string.sponsor_block_graced_rewind_key), false)) {
-            triggerProgressUpdate(true, true, false);
+            triggerProgressUpdate(true, true, false, false);
             return;
         }
 
