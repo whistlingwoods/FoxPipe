@@ -134,6 +134,13 @@ configure<ApplicationExtension> {
             )
         }
     }
+
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
+    }
 }
 
 ksp {
@@ -152,6 +159,7 @@ checkstyle {
 }
 
 tasks.register<Checkstyle>("runCheckstyle") {
+    description = "Runs Checkstyle on the Java source code and reports any issues found"
     source("src")
     include("**/*.java")
     exclude("**/gen/**")
@@ -173,6 +181,7 @@ val outputDir = project.layout.buildDirectory.dir("reports/ktlint/")
 val inputFiles = fileTree("src") { include("**/*.kt") }
 
 tasks.register<JavaExec>("runKtlint") {
+    description = "Runs ktlint on the source code and reports any issues found"
     inputs.files(inputFiles)
     outputs.dir(outputDir)
     mainClass.set("com.pinterest.ktlint.Main")
@@ -182,6 +191,7 @@ tasks.register<JavaExec>("runKtlint") {
 }
 
 tasks.register<JavaExec>("formatKtlint") {
+    description = "Runs ktlint in format mode on the source code and formats any issues found"
     inputs.files(inputFiles)
     outputs.dir(outputDir)
     mainClass.set("com.pinterest.ktlint.Main")
@@ -191,6 +201,7 @@ tasks.register<JavaExec>("formatKtlint") {
 }
 
 tasks.register<CheckDependenciesOrder>("checkDependenciesOrder") {
+    description = "Checks that dependencies are in the correct order in the libs.versions.toml file"
     tomlFile = layout.projectDirectory.file("../gradle/libs.versions.toml")
 }
 
