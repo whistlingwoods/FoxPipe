@@ -1558,19 +1558,23 @@ class VideoDetailFragment :
 
             // RYD override: dislikes
             rydInfo?.takeIf { isRydEnabled }?.let {
-                binding.detailThumbsDownCountView.text = Localization.shortCount(activity, it.dislikes)
-                binding.detailThumbsDownCountView.visibility = View.VISIBLE
-                binding.detailThumbsDownImgView.visibility = View.VISIBLE
-            }
+                val showAsPercentage = prefs.getBoolean(
+                    activity.getString(R.string.return_youtube_dislike_show_dislikes_as_percentage_key),
+                    false
+                )
 
-            if (info.likeCount >= 0) {
-                binding.detailThumbsUpCountView.text =
-                    Localization.shortCount(activity, info.likeCount)
-                binding.detailThumbsUpCountView.visibility = View.VISIBLE
-                binding.detailThumbsUpImgView.visibility = View.VISIBLE
-            } else {
-                binding.detailThumbsUpCountView.visibility = View.GONE
-                binding.detailThumbsUpImgView.visibility = View.GONE
+                val dislikeText = if (showAsPercentage) {
+                    val percentage = it.dislikes.toDouble() / (it.likes + it.dislikes) * 100.0
+                    Localization.localizePercentage(percentage)
+                } else {
+                    Localization.shortCount(activity, it.dislikes)
+                }
+
+                with(binding) {
+                    detailThumbsDownCountView.text = dislikeText
+                    detailThumbsDownCountView.visibility = View.VISIBLE
+                    detailThumbsDownImgView.visibility = View.VISIBLE
+                }
             }
 
             // RYD override: likes
