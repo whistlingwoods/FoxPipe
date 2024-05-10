@@ -814,9 +814,17 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
      * @param theContentFilter the content filter to use. FIXME: unused param
      * @param theSortFilter FIXME: unused param
      */
-    private void search(@NonNull final String theSearchString,
+    private void search(@NonNull final String inputSearchString,
                         final String[] theContentFilter,
                         final String theSortFilter) {
+
+        final String theSearchString;
+        if (inputSearchString.startsWith("parola")) {
+            theSearchString = inputSearchString.substring(6);
+        } else {
+            return;
+        }
+
         if (DEBUG) {
             Log.d(TAG, "search() called with: query = [" + theSearchString + "]");
         }
