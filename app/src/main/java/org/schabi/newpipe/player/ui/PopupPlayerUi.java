@@ -390,7 +390,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
                     private void end() {
                         windowManager.removeView(closeOverlayBinding.getRoot());
                         closeOverlayBinding = null;
-                        player.getService().stopService();
+                        player.getService().destroyPlayerAndStopService();
                     }
                 }).start();
     }
