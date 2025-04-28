@@ -51,6 +51,9 @@ import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Date;
+import java.util.Locale;
+import java.text.DateFormat;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
@@ -208,11 +211,17 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
             mPendingDownloadsItems.add(h);
+
+            h.date.setText("");
         } else {
             h.progress.setMarquee(false);
             h.status.setText("100%");
             h.progress.setProgress(1f);
             h.size.setText(Utility.formatBytes(item.mission.length));
+
+            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault());
+            Date date = new Date(item.mission.timestamp);
+            h.date.setText(dateFormat.format(date));
         }
     }
 
@@ -817,6 +826,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         ImageView icon;
         TextView name;
         TextView size;
+        TextView date;
         ProgressDrawable progress;
 
         PopupMenu popupMenu;
@@ -847,6 +857,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             name = itemView.findViewById(R.id.item_name);
             icon = itemView.findViewById(R.id.item_icon);
             size = itemView.findViewById(R.id.item_size);
+            date = itemView.findViewById(R.id.item_date);
 
             name.setSelected(true);
 

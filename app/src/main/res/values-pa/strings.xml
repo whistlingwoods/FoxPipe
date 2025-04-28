@@ -248,6 +248,8 @@
     <string name="one_item_deleted">1 ਆਈਟਮ ਮਿਟਾਈ ਗਈ।</string>
     <string name="title_activity_recaptcha">ReCaptcha ਚੁਣੌਤੀ</string>
     <string name="recaptcha_request_toast">ReCaptcha ਚੁਣੌਤੀ ਲਈ ਬੇਨਤੀ</string>
+    <string name="clear_cookie_title">reCAPTCHA ਦੀਆਂ ਕੁਕੀਜ਼ ਸਾਫ਼ ਕਰੋ</string>
+    <string name="recaptcha_cookies_cleared">reCAPTCHA ਦੀਆਂ ਕੁਕੀਜ਼ ਸਾਫ਼ ਹੋ ਗਈਆਂ ਹਨ</string>
     <string name="settings_category_downloads_title">ਡਾਊਨਲੋਡ</string>
     <string name="settings_file_charset_title">ਫਾਈਲ ਨਾਮ ਵਿੱਚ ਪ੍ਰਵਾਨਿਤ ਅੱਖਰ</string>
     <string name="settings_file_replacement_character_summary">ਗਲਤ ਅੱਖਰ ਇਸ ਚਿੰਨ-ਅੱਖਰ ਨਾਲ ਤਬਦੀਲ ਕੀਤੇ ਜਾਣਗੇ</string>
@@ -488,7 +490,7 @@
 	<string name="comments_are_disabled">ਟਿੱਪਣੀਆਂ ਬੰਦ ਕੀਤੀਆਂ ਹੋਈਆਂ ਹਨ</string>
     <string name="error_unable_to_load_comments">ਟਿੱਪਣੀਆਂ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀਆਂ</string>
     <string name="close">ਬੰਦ ਕਰੋ</string>
-    <string name="enable_playback_resume_title">ਪਲੇਅਬੈਕ ਦੋਬਾਰਾ ਸ਼ੁਰੂ ਕਰੋ</string>
+    <string name="enable_playback_resume_title">ਪਲੇਅਬੈਕ ਫਿਰ ਚਾਲੂ ਕਰੋ</string>
     <string name="enable_playback_resume_summary">ਪਿਛਲੀ ਪਲੇਅਬੈਕ ਸਥਿਤੀ ਤੋਂ ਮੁੜ ਚਲਾਓ</string>
     <string name="enable_playback_state_lists_title">ਸੂਚੀਆਂ ਦੀ ਸਥਿਤੀ</string>
     <string name="enable_playback_state_lists_summary">ਸੂਚੀਆਂ ਵਿੱਚ ਪਲੇਅਬੈਕ ਸਥਿਤੀ ਸੂਚਕ ਵਿਖਾਓ</string>
@@ -498,20 +500,20 @@
     <string name="missing_file">ਫਾਈਲ ਤਬਦੀਲ ਕੀਤੀ ਜਾਂ ਮਿਟਾਈ ਗਈ</string>
     <string name="overwrite_unrelated_warning">ਇਸ ਨਾਮ ਵਾਲੀ ਇੱਕ ਫਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
     <string name="overwrite_finished_warning">ਇਸ ਨਾਮ ਨਾਲ ਡਾਉਨਲੋਡ ਕੀਤੀ ਫਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
-    <string name="overwrite_failed">ਫਾਈਲ Overwrite ਨਹੀਂ ਹੋ ਸਕਦੀ</string>
+    <string name="overwrite_failed">ਫਾਈਲ ਓਵਰਰਾਈਟ ਨਹੀਂ ਹੋ ਸਕਦੀ</string>
     <string name="download_already_pending">ਇਸ ਨਾਮ ਦੇ ਨਾਲ ਇੱਥੇ ਇੱਕ ਬਕਾਇਆ ਡਾਊਨਲੋਡ ਹੈ</string>
-	<string name="error_postprocessing_stopped">ਫਾਈਲ ਤੇ ਕੰਮ ਕਰਦੇ ਸਮੇਂ ਨਿਊਪਾਈਪ ਬੰਦ ਕੀਤੀ ਗਈ ਸੀ</string>
+	<string name="error_postprocessing_stopped">ਫਾਈਲ ਤੇ ਕੰਮ ਕਰਦੇ ਸਮੇਂ ਨਿਊਪਾਈਪ ਬੰਦ ਕੀਤੀ ਗਈ</string>
     <string name="error_insufficient_storage">ਡਿਵਾਈਸ ਤੇ ਕੋਈ ਜਗ੍ਹਾ ਨਹੀਂ ਬਚੀ ਹੈ</string>
-    <string name="error_progress_lost">Progress lost, ਕਿਉਂਕਿ ਫਾਈਲ ਮਿਟ ਗਈ ਸੀ</string>
-    <string name="error_timeout">ਕੁਨੈਕਸ਼ਨ ਟਾਈਮ- ਆਉਟ</string>
+    <string name="error_progress_lost">ਪ੍ਰਗਤੀ ਖਤਮ ਹੋ ਗਈ, ਕਿਉਂਕਿ ਫਾਈਲ ਮਿਟ ਗਈ ਸੀ</string>
+    <string name="error_timeout">ਕੁਨੈਕਸ਼ਨ ਦਾ ਸਮਾਂ ਸਮਾਪਤ</string>
     <string name="clear_download_history">ਡਾਊਨਲੋਡ ਇਤਿਹਾਸ ਸਾਫ਼ ਕਰੋ</string>
 	<string name="delete_downloaded_files">ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਮਿਟਾਓ</string>
     <string name="confirm_prompt">ਕੀ ਤੁਸੀਂ ਆਪਣਾ ਡਾਊਨਲੋਡ ਇਤਿਹਾਸ ਸਾਫ਼ ਕਰਨਾ ਜਾਂ ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਸਾਰੀਆਂ ਫ਼ਾਈਲਾਂ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ\?</string>
-    <string name="enable_queue_limit">ਡਾਊਨਲੋਡ ਸੀਮਾ ਕਤਾਰ ਵਿੱਚ</string>
-    <string name="enable_queue_limit_desc">ਇੱਕ ਸਮੇਂ ਇੱਕੋ ਡਾਊਨਲੋਡ ਚੱਲੇਗਾ, ਬਾਕੀ ਕਤਾਰਬੱਧ ਹੋਣਗੇ</string>
+    <string name="enable_queue_limit">ਡਾਊਨਲੋਡ ਕਤਾਰ ਸੀਮਤ ਕਰੋ</string>
+    <string name="enable_queue_limit_desc">ਇੱਕ ਸਮੇਂ ਤੇ ਇੱਕੋ ਹੀ ਡਾਊਨਲੋਡ ਚੱਲੇਗਾ, ਬਾਕੀ ਕਤਾਰਬੱਧ ਹੋਣਗੇ</string>
     <string name="start_downloads">ਡਾਊਨਲੋਡਸ ਸ਼ੁਰੂ ਕਰੋ</string>
     <string name="pause_downloads">ਡਾਊਨਲੋਡਸ ਰੋਕੋ</string>
-    <string name="downloads_storage_ask_title">ਪੁੱਛੋ ਕਿੱਥੇ ਡਾਊਨਲੋਡ ਕਰਨਾ ਹੈ</string>
+    <string name="downloads_storage_ask_title">ਡਾਊਨਲੋਡ ਕਿੱਥੇ ਕਰਨਾ ਹੈ, ਦੇ ਲਈ ਪੁੱਛੋ</string>
     <string name="downloads_storage_ask_summary">ਤੁਹਾਨੂੰ ਹਰ ਵਾਰ ਪੁੱਛਿਆ ਜਾਵੇਗਾ ਕਿ ਡਾਊਨਲੋਡ ਨੂੰ ਕਿੱਥੇ ਸਾਂਭਣਾ ਹੈ</string>
     <string name="downloads_storage_ask_summary_kitkat">ਤੁਹਾਨੂੰ ਪੁੱਛਿਆ ਜਾਵੇਗਾ ਕਿ ਡਾਊਨਲੋਡ ਨੂੰ ਕਿੱਥੇ ਸਾਂਭਣਾ ਹੈ।
 \nਜੇ ਤੁਸੀਂ ਬਾਹਰੀ SD ਕਾਰਡ ਤੇ ਡਾਊਨਲੋਡ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ ਤਾਂ ਇਸ ਨੂੰ ਚਾਲੂ ਕਰੋ</string>
@@ -589,7 +591,7 @@
     <string name="artists">ਕਲਾਕਾਰ</string>
     <string name="songs">ਗੀਤ</string>
     <string name="videos_string">ਵੀਡੀਓਜ਼</string>
-    <string name="restricted_video">ਇਹ ਵੀਡੀਓ ਉਮਰ-ਪਾਬੰਦੀਸ਼ੁਦਾ ਹੈ।
+    <string name="restricted_video">ਇਹ ਵੀਡੀਓ ਉਮਰ-ਹੱਦ ਮੁਤਾਬਕ ਪਾਬੰਦੀਸ਼ੁਦਾ ਹੈ।
 \n
 \nਜੇ ਤੁਸੀਂ ਇਸਨੂੰ ਵੇਖਣਾ ਚਾਹੁੰਦੇ ਹੋ ਤਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚੋਂ \"%1$s\" ਚਾਲੂ ਕਰੋ।</string>
     <string name="restricted_video_no_stream">ਇਹ ਵੀਡੀਓ ਉਮਰ-ਹੱਦ ਮੁਤਾਬਕ ਪਾਬੰਦੀਸ਼ੁਦਾ ਹੈ।
