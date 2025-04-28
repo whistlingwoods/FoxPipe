@@ -141,7 +141,7 @@ afterEvaluate {
 
 dependencies {
 /** Desugaring **/
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.6'
 
 /** Checkstyle **/
     ktlint "com.pinterest:ktlint:0.40.0"
@@ -224,7 +224,7 @@ dependencies {
     implementation "com.jakewharton.rxbinding2:rxbinding:2.2.0"
 
     // Date and time formatting
-    implementation "org.ocpsoft.prettytime:prettytime:5.0.8.Final"
+    implementation "org.ocpsoft.prettytime:prettytime:5.0.9.Final"
 
 /** Debugging **/
     // Memory leak detection
