@@ -496,7 +496,7 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
 
     private void toggleTitleAndDescription() {
         if (videoDescriptionRootLayout.getVisibility() == View.VISIBLE) {
-            videoTitleTextView.setMaxLines(2);
+            videoTitleTextView.setMaxLines(3);
             videoDescriptionRootLayout.setVisibility(View.GONE);
             videoDescriptionView.setFocusable(false);
             videoTitleToggleArrow.setImageResource(
@@ -1143,7 +1143,7 @@ public class VideoDetailFragment extends BaseStateFragment<StreamInfo>
         animateView(positionView, false, 50);
 
         videoTitleTextView.setText(name != null ? name : "");
-        videoTitleTextView.setMaxLines(2);
+        videoTitleTextView.setMaxLines(3);
         animateView(videoTitleTextView, true, 0);
 
         videoDescriptionRootLayout.setVisibility(View.GONE);
