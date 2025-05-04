@@ -160,7 +160,6 @@ public final class Player implements PlaybackListener, Listener {
     public static final String RESUME_PLAYBACK = "resume_playback";
     public static final String PLAY_WHEN_READY = "play_when_ready";
     public static final String PLAYER_TYPE = "player_type";
-    public static final String IS_MUTED = "is_muted";
 
     /*//////////////////////////////////////////////////////////////////////////
     // Time constants
@@ -378,7 +377,6 @@ public final class Player implements PlaybackListener, Listener {
         final boolean samePlayQueue = playQueue != null && playQueue.equalStreamsAndIndex(newQueue);
         final int repeatMode = intent.getIntExtra(REPEAT_MODE, getRepeatMode());
         final boolean playWhenReady = intent.getBooleanExtra(PLAY_WHEN_READY, true);
-        final boolean isMuted = intent.getBooleanExtra(IS_MUTED, isMuted());
 
         /*
          * TODO As seen in #7427 this does not work:
@@ -436,7 +434,7 @@ public final class Player implements PlaybackListener, Listener {
                                             state.getProgressMillis());
                                 }
                                 initPlayback(newQueue, repeatMode, playbackSpeed, playbackPitch,
-                                        playbackSkipSilence, playWhenReady, isMuted);
+                                        playbackSkipSilence, playWhenReady);
                             },
                             error -> {
                                 if (DEBUG) {
@@ -444,19 +442,19 @@ public final class Player implements PlaybackListener, Listener {
                                 }
                                 // In case any error we can start playback without history
                                 initPlayback(newQueue, repeatMode, playbackSpeed, playbackPitch,
-                                        playbackSkipSilence, playWhenReady, isMuted);
+                                        playbackSkipSilence, playWhenReady);
                             },
                             () -> {
                                 // Completed but not found in history
                                 initPlayback(newQueue, repeatMode, playbackSpeed, playbackPitch,
-                                        playbackSkipSilence, playWhenReady, isMuted);
+                                        playbackSkipSilence, playWhenReady);
                             }
                     ));
         } else {
             // Good to go...
             // In a case of equal PlayQueues we can re-init old one but only when it is disposed
             initPlayback(samePlayQueue ? playQueue : newQueue, repeatMode, playbackSpeed,
-                    playbackPitch, playbackSkipSilence, playWhenReady, isMuted);
+                    playbackPitch, playbackSkipSilence, playWhenReady);
         }
 
         if (oldPlayerType != playerType && playQueue != null) {
@@ -506,8 +504,7 @@ public final class Player implements PlaybackListener, Listener {
                               final float playbackSpeed,
                               final float playbackPitch,
                               final boolean playbackSkipSilence,
-                              final boolean playOnReady,
-                              final boolean isMuted) {
+                              final boolean playOnReady) {
         destroyPlayer();
         initPlayer(playOnReady);
         setRepeatMode(repeatMode);
@@ -519,7 +516,7 @@ public final class Player implements PlaybackListener, Listener {
 
         UIs.call(PlayerUi::initPlayback);
 
-        simpleExoPlayer.setVolume(isMuted ? 0 : 1);
+        simpleExoPlayer.setVolume(isMuted() ? 0 : 1);
         notifyQueueUpdateToListeners();
     }
 
