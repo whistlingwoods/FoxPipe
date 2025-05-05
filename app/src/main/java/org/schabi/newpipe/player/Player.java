@@ -88,8 +88,8 @@ import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorPanelHelper;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
-import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.Image;
+import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
@@ -123,9 +123,9 @@ import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.ListHelper;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.PermissionHelper;
-import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.SerializedCache;
 import org.schabi.newpipe.util.StreamTypeUtil;
+import org.schabi.newpipe.util.image.PicassoHelper;
 
 import java.util.List;
 import java.util.Optional;
@@ -396,9 +396,8 @@ public final class Player implements PlaybackListener, Listener {
                     if (newQueue == null) {
                         return;
                     }
-                    final int currentIndex = playQueue.getIndex();
-                    playQueue.append(newQueue.getStreams());
-                    playQueue.move(playQueue.size() - 1, currentIndex + 1);
+                    final PlayQueueItem newItem = newQueue.getStreams().get(0);
+                    newQueue.enqueueNext(newItem, false);
                 }
                 return;
             }
@@ -410,11 +409,43 @@ public final class Player implements PlaybackListener, Listener {
                 streamItemDisposable.add(single.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(info -> {
-                            final PlayQueue newPlayQueue =
-                                    new SinglePlayQueue(info, dat.getSeconds() * 1000L);
-                            // TODO: add back the “already playing stream” optimization here
-                            initPlayback(newPlayQueue, playWhenReady);
+                            final @Nullable PlayQueue oldPlayQueue = playQueue;
+                            info.setStartPosition(dat.getSeconds());
+                            final PlayQueueItem playQueueItem = new PlayQueueItem(info);
+
+                            // If the stream is already playing,
+                            // we can just seek to the appropriate timestamp
+                            if (oldPlayQueue != null
+                                    && playQueueItem.isSameItem(oldPlayQueue.getItem())) {
+                                // Player can have state = IDLE when playback is stopped or failed
+                                // and we should retry in this case
+                                if (simpleExoPlayer.getPlaybackState()
+                                        == com.google.android.exoplayer2.Player.STATE_IDLE) {
+                                    simpleExoPlayer.prepare();
+                                }
+                                simpleExoPlayer.seekTo(oldPlayQueue.getIndex(),
+                                        dat.getSeconds() * 1000L);
+                                simpleExoPlayer.setPlayWhenReady(playWhenReady);
+
+                            } else {
+                                final PlayQueue newPlayQueue;
+
+                                // If there is no queue yet, just add our item
+                                if (oldPlayQueue == null) {
+                                    newPlayQueue = new SinglePlayQueue(playQueueItem);
+
+                                // else we add the timestamped stream behind the current video
+                                // and start playing it.
+                                } else {
+                                    oldPlayQueue.enqueueNext(playQueueItem, true);
+                                    oldPlayQueue.offsetIndex(1);
+                                    newPlayQueue = oldPlayQueue;
+                                }
+                                initPlayback(newPlayQueue, playWhenReady);
+                            }
+
                             handleIntentPost(oldPlayerType);
+
                         }, throwable -> {
                             if (DEBUG) {
                                 Log.e(TAG, "Could not play on popup: " + dat.getUrl(), throwable);
@@ -454,7 +485,7 @@ public final class Player implements PlaybackListener, Listener {
         if (!exoPlayerIsNull()
                 && newQueue.size() == 1 && newQueue.getItem() != null
                 && playQueue != null && playQueue.size() == 1 && playQueue.getItem() != null
-                && newQueue.getItem().getUrl().equals(playQueue.getItem().getUrl())
+                && newQueue.getItem().isSameItem(playQueue.getItem())
                 && newQueue.getItem().getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET) {
             // Player can have state = IDLE when playback is stopped or failed
             // and we should retry in this case
@@ -519,6 +550,7 @@ public final class Player implements PlaybackListener, Listener {
 
         handleIntentPost(oldPlayerType);
     }
+
 
     private void handleIntentPost(final PlayerType oldPlayerType) {
         if (oldPlayerType != playerType && playQueue != null) {
