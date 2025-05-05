@@ -47,6 +47,7 @@ import static org.schabi.newpipe.util.ListHelper.getResolutionIndex;
 import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -84,6 +85,7 @@ import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.PlayerBinding;
 import org.schabi.newpipe.error.ErrorInfo;
+import org.schabi.newpipe.error.ErrorPanelHelper;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.stream.AudioStream;
@@ -107,6 +109,7 @@ import org.schabi.newpipe.player.playback.MediaSourceManager;
 import org.schabi.newpipe.player.playback.PlaybackListener;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
+import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipe.player.resolver.AudioPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver.SourceType;
@@ -116,8 +119,10 @@ import org.schabi.newpipe.player.ui.PlayerUiList;
 import org.schabi.newpipe.player.ui.PopupPlayerUi;
 import org.schabi.newpipe.player.ui.VideoPlayerUi;
 import org.schabi.newpipe.util.DependentPreferenceHelper;
+import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.ListHelper;
 import org.schabi.newpipe.util.NavigationHelper;
+import org.schabi.newpipe.util.PermissionHelper;
 import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.SerializedCache;
 import org.schabi.newpipe.util.StreamTypeUtil;
@@ -128,9 +133,11 @@ import java.util.stream.IntStream;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.disposables.SerialDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public final class Player implements PlaybackListener, Listener {
     public static final boolean DEBUG = MainActivity.DEBUG;
@@ -158,6 +165,7 @@ public final class Player implements PlaybackListener, Listener {
     public static final String PLAY_WHEN_READY = "play_when_ready";
     public static final String PLAYER_TYPE = "player_type";
     public static final String PLAYER_INTENT_TYPE = "player_intent_type";
+    public static final String PLAYER_INTENT_DATA = "player_intent_data";
 
     /*//////////////////////////////////////////////////////////////////////////
     // Time constants
@@ -242,6 +250,8 @@ public final class Player implements PlaybackListener, Listener {
     private final SerialDisposable progressUpdateDisposable = new SerialDisposable();
     @NonNull
     private final CompositeDisposable databaseUpdateDisposable = new CompositeDisposable();
+    @NonNull
+    private final CompositeDisposable streamItemDisposable = new CompositeDisposable();
 
     // This is the only listener we need for thumbnail loading, since there is always at most only
     // one thumbnail being loaded at a time. This field is also here to maintain a strong reference,
@@ -333,18 +343,31 @@ public final class Player implements PlaybackListener, Listener {
 
     @SuppressWarnings("MethodLength")
     public void handleIntent(@NonNull final Intent intent) {
-        // fail fast if no play queue was provided
-        final String queueCache = intent.getStringExtra(PLAY_QUEUE_KEY);
-        if (queueCache == null) {
+
+        final PlayerIntentType playerIntentType = intent.getParcelableExtra(PLAYER_INTENT_TYPE);
+        if (playerIntentType == null) {
             return;
         }
-        final PlayQueue newQueue = SerializedCache.getInstance().take(queueCache, PlayQueue.class);
-        if (newQueue == null) {
-            return;
+        final PlayerType newPlayerType;
+        // TODO: this should be in the second switch below, but I’m not sure whether I
+        // can move the initUIs stuff without breaking the setup for edge cases somehow.
+        switch (playerIntentType) {
+            case TimestampChange -> {
+                // TODO: this breaks out of the pattern of asking for the permission before
+                // sending the PlayerIntent, but I’m not sure yet how to combine the permissions
+                // with the new enum approach. Maybe it’s better that the player asks anyway?
+                if (!PermissionHelper.isPopupEnabledElseAsk(context)) {
+                    return;
+                }
+                newPlayerType = PlayerType.POPUP;
+            }
+            default -> {
+                newPlayerType = PlayerType.retrieveFromIntent(intent);
+            }
         }
 
         final PlayerType oldPlayerType = playerType;
-        playerType = PlayerType.retrieveFromIntent(intent);
+        playerType = newPlayerType;
         initUIsForCurrentPlayerType();
         // TODO: what does the following comment mean? Is that a relict?
         // We need to setup audioOnly before super(), see "sourceOf"
@@ -354,21 +377,55 @@ public final class Player implements PlaybackListener, Listener {
             videoResolver.setPlaybackQuality(intent.getStringExtra(PLAYBACK_QUALITY));
         }
 
-        final PlayerIntentType playerIntentType = intent.getParcelableExtra(PLAYER_INTENT_TYPE);
+        final boolean playWhenReady = intent.getBooleanExtra(PLAY_WHEN_READY, true);
 
         switch (playerIntentType) {
             case Enqueue -> {
                 if (playQueue != null) {
+                    final PlayQueue newQueue = getPlayQueueFromCache(intent);
+                    if (newQueue == null) {
+                        return;
+                    }
                     playQueue.append(newQueue.getStreams());
                 }
                 return;
             }
             case EnqueueNext -> {
                 if (playQueue != null) {
+                    final PlayQueue newQueue = getPlayQueueFromCache(intent);
+                    if (newQueue == null) {
+                        return;
+                    }
                     final int currentIndex = playQueue.getIndex();
                     playQueue.append(newQueue.getStreams());
                     playQueue.move(playQueue.size() - 1, currentIndex + 1);
                 }
+                return;
+            }
+            case TimestampChange -> {
+                final TimestampChangeData dat = intent.getParcelableExtra(PLAYER_INTENT_DATA);
+                assert dat != null;
+                final Single<StreamInfo> single =
+                        ExtractorHelper.getStreamInfo(dat.getServiceId(), dat.getUrl(), false);
+                streamItemDisposable.add(single.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(info -> {
+                            final PlayQueue newPlayQueue =
+                                    new SinglePlayQueue(info, dat.getSeconds() * 1000L);
+                            // TODO: add back the “already playing stream” optimization here
+                            initPlayback(newPlayQueue, playWhenReady);
+                            handleIntentPost(oldPlayerType);
+                        }, throwable -> {
+                            if (DEBUG) {
+                                Log.e(TAG, "Could not play on popup: " + dat.getUrl(), throwable);
+                            }
+                            new AlertDialog.Builder(context)
+                                    .setTitle(R.string.player_stream_failure)
+                                    .setMessage(
+                                            ErrorPanelHelper.Companion.getExceptionDescription(throwable))
+                                    .setPositiveButton(R.string.ok, null)
+                                    .show();
+                        }));
                 return;
             }
             case AllOthers -> {
@@ -376,7 +433,10 @@ public final class Player implements PlaybackListener, Listener {
             }
         }
 
-        final boolean playWhenReady = intent.getBooleanExtra(PLAY_WHEN_READY, true);
+        final PlayQueue newQueue = getPlayQueueFromCache(intent);
+        if (newQueue == null) {
+            return;
+        }
 
         // branching parameters for below
         final boolean samePlayQueue = playQueue != null && playQueue.equalStreamsAndIndex(newQueue);
@@ -457,6 +517,10 @@ public final class Player implements PlaybackListener, Listener {
             initPlayback(samePlayQueue ? playQueue : newQueue, playWhenReady);
         }
 
+        handleIntentPost(oldPlayerType);
+    }
+
+    private void handleIntentPost(final PlayerType oldPlayerType) {
         if (oldPlayerType != playerType && playQueue != null) {
             // If playerType changes from one to another we should reload the player
             // (to disable/enable video stream or to set quality)
@@ -465,6 +529,19 @@ public final class Player implements PlaybackListener, Listener {
 
         UIs.call(PlayerUi::setupAfterIntent);
         NavigationHelper.sendPlayerStartedEvent(context);
+    }
+
+    @Nullable
+    private static PlayQueue getPlayQueueFromCache(@NonNull final Intent intent) {
+        final String queueCache = intent.getStringExtra(PLAY_QUEUE_KEY);
+        if (queueCache == null) {
+            return null;
+        }
+        final PlayQueue newQueue = SerializedCache.getInstance().take(queueCache, PlayQueue.class);
+        if (newQueue == null) {
+            return null;
+        }
+        return newQueue;
     }
 
     private void initUIsForCurrentPlayerType() {
@@ -596,6 +673,7 @@ public final class Player implements PlaybackListener, Listener {
 
         databaseUpdateDisposable.clear();
         progressUpdateDisposable.set(null);
+        streamItemDisposable.clear();
         cancelLoadingCurrentThumbnail();
 
         UIs.destroyAll(Object.class); // destroy every UI: obviously every UI extends Object
