@@ -120,7 +120,7 @@ public final class ListHelper {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         boolean showHigherResolutions = preferences.getBoolean(
-                context.getString(R.string.show_higher_resolutions_key), false);
+                context.getString(R.string.show_higher_resolutions_key), true);
         MediaFormat defaultFormat = getDefaultFormat(context, R.string.default_video_format_key,
                 R.string.default_video_format_value);
 
