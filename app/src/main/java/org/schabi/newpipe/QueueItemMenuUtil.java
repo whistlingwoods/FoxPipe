@@ -1,5 +1,6 @@
 package org.schabi.newpipe;
 
+import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabase;
 import static org.schabi.newpipe.util.external_communication.ShareUtils.shareText;
 
 import android.content.Context;
@@ -10,11 +11,12 @@ import android.widget.PopupMenu;
 import androidx.fragment.app.FragmentManager;
 
 import org.schabi.newpipe.database.stream.model.StreamEntity;
+import org.schabi.newpipe.download.DownloadDialog;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
 import org.schabi.newpipe.util.NavigationHelper;
-import org.schabi.newpipe.util.SaveUploaderUrlHelper;
+import org.schabi.newpipe.util.SparseItemUtil;
 
 import java.util.Collections;
 
@@ -62,7 +64,8 @@ public final class QueueItemMenuUtil {
 
                     return true;
                 case R.id.menu_item_channel_details:
-                    SaveUploaderUrlHelper.saveUploaderUrlIfNeeded(context, item,
+                    SparseItemUtil.fetchUploaderUrlIfSparse(context, item.getServiceId(),
+                            item.getUrl(), item.getUploaderUrl(),
                             // An intent must be used here.
                             // Opening with FragmentManager transactions is not working,
                             // as PlayQueueActivity doesn't use fragments.
@@ -73,6 +76,13 @@ public final class QueueItemMenuUtil {
                 case R.id.menu_item_share:
                     shareText(context, item.getTitle(), item.getUrl(),
                             item.getThumbnailUrl());
+                    return true;
+                case R.id.menu_item_download:
+                    fetchStreamInfoAndSaveToDatabase(context, item.getServiceId(), item.getUrl(),
+                            info -> {
+                                final DownloadDialog downloadDialog = DownloadDialog.newInstance(context, info);
+                                downloadDialog.show(fragmentManager, "downloadDialog");
+                            });
                     return true;
             }
             return false;

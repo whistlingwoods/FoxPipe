@@ -107,7 +107,7 @@
     <string name="app_license">കോപ്പി‌ലെഫ്റ്റ് ലിബ്രെ സോഫ്റ്റ്വെയറാണ് ന്യൂ‌പൈപ്പ്: നിങ്ങൾക്ക് അത് ഉപയോഗിക്കാനും പഠിക്കാനും പങ്കിടാനും ഇഷ്ടാനുസരണം മെച്ചപ്പെടുത്താനും കഴിയും. സ്വതന്ത്ര സോഫ്റ്റ്‌വെയർ ഫൗണ്ടേഷൻ പ്രസിദ്ധീകരിച്ച ഗ്നു ജനറൽ പബ്ലിക് ലൈസൻസിന്റെ നിബന്ധനകൾ പ്രകാരം, ലൈസൻസിന്റെ മൂന്നാം പതിപ്പ് അല്ലെങ്കിൽ (നിങ്ങളുടെ ഓപ്ഷനിൽ) പിന്നീടുള്ള ഏതെങ്കിലും പതിപ്പ് പ്രകാരം നിങ്ങൾക്ക് ഇത് പുനർവിതരണം ചെയ്യാനും / അല്ലെങ്കിൽ പരിഷ്ക്കരിക്കാനും കഴിയും.</string>
     <string name="app_license_title">ന്യൂപൈപ്പിന്റെ ലൈസൻസ്</string>
     <string name="read_privacy_policy">സ്വകാര്യതാനയം വായിക്കൂ</string>
-    <string name="privacy_policy_encouragement">ദ ന്യൂപൈപ്പ് പ്രോജക്ട് നിങ്ങളുടെ സ്വകാര്യതയെ മാനിക്കുന്നു. അതുകൊണ്ടുതന്നെ, നിങ്ങളുടെ ഒരു ഡേറ്റയും ഞങ്ങൾ ശേഖരിക്കുന്നില്ല. 
+    <string name="privacy_policy_encouragement">ദ ന്യൂപൈപ്പ് പ്രോജക്ട് നിങ്ങളുടെ സ്വകാര്യതയെ മാനിക്കുന്നു. അതുകൊണ്ടുതന്നെ, നിങ്ങളുടെ ഒരു ഡേറ്റയും ഞങ്ങൾ ശേഖരിക്കുന്നില്ല.
 \nനിങ്ങൾ ഒരു ക്രാഷ് റിപ്പോർട്ട് അയക്കുമ്പോൾ അതിൻപ്രകാരം എന്ത് ഡാറ്റ ആണ് ശേഖരിക്കുന്നെന്നും സൂക്ഷിക്കുന്നതെന്നുമൊക്കെ ന്യൂപൈപ്പിന്റെ സ്വകാര്യതാനയം വ്യകതമാക്കുന്നതാണ്.</string>
     <string name="privacy_policy_title">ന്യൂപൈപ്പിന്റെ സ്വകാര്യതാനയം</string>
     <string name="website_encouragement">കൂടുതൽ വിവരങ്ങൾക്കും വാർത്തകൾക്കും ന്യൂപൈപ്പിന്റെ വെബ്സൈറ്റ് സന്ദർശിക്കുക.</string>
@@ -270,7 +270,6 @@
     <string name="best_resolution">മികച്ച റിസല്യൂഷൻ</string>
     <string name="clear">തെളിക്കുക</string>
     <string name="disabled">അസാധുവാക്കപ്പെട്ടു</string>
-    <string name="yes">അതെ</string>
     <string name="artists">കലാകാരന്മാർ</string>
     <string name="albums">ആൽബങ്ങൾ</string>
     <string name="songs">പാട്ടുകൾ</string>
@@ -588,7 +587,6 @@
 \nപ്രായ-നിയന്ത്രിത വീഡിയോകളുള്ള പുതിയ യൂട്യൂബ് നയങ്ങൾ കാരണം, ന്യൂപൈപ്പിന് അതിന്റെ വീഡിയോ സ്ട്രീമുകളിലൊന്നും ആക്സസ് ചെയ്യാൻ കഴിയില്ല, അതിനാൽ ഇത് പ്ലേ ചെയ്യാൻ കഴിയില്ല.</string>
     <string name="youtube_restricted_mode_enabled_summary">പക്വതയുള്ള ഉള്ളടക്കം മറയ്ക്കുന്ന \"നിയന്ത്രിത മോഡ്\" യൂട്യൂബ് നൽകുന്നു</string>
     <string name="show_age_restricted_content_summary">കുട്ടികൾക്ക് അനുയോജ്യമല്ലാത്ത ഉള്ളടക്കം കാണിക്കുക കാരണം അതിന് പ്രായപരിധി ഉണ്ട് (18+ പോലെ)</string>
-    <string name="settings_category_notification_title">അറിയിപ്പ്</string>
     <string name="unsupported_url_dialog_message">URL തിരിച്ചറിയാൻ കഴിഞ്ഞില്ല. മറ്റൊരു അപ്ലിക്കേഷൻ ഉപയോഗിച്ച് തുറക്കണോ\?</string>
     <string name="auto_queue_toggle">യാന്ത്രിക-ക്യൂ</string>
     <string name="show_meta_info_summary">സ്ട്രീം സ്രഷ്ടാവ്, സ്ട്രീം ഉള്ളടക്കം അല്ലെങ്കിൽ ഒരു തിരയൽ അഭ്യർത്ഥന എന്നിവയെക്കുറിച്ചുള്ള കൂടുതൽ വിവരങ്ങൾ ഉൾക്കൊള്ളുന്ന മെറ്റാ വിവര ബോക്സുകൾ മറയ്ക്കുന്നതിന് ഓഫാക്കുക</string>
@@ -612,8 +610,6 @@
     <string name="detail_heart_img_view_description">സ്നേഹത്തോടെ സൃഷ്ടാവ്</string>
     <string name="description_select_disable">ഡിസ്ക്രിപ്ഷനിലെ ടെക്സ്റ്റ്‌ സെലക്ട്‌ ചെയ്യുവാൻ അനുവദിക്കാതെ ഇരിക്കുക</string>
     <string name="description_select_enable">ഡിസ്ക്രിപ്ഷനിലെ ടെക്സ്റ്റ്‌ സെലക്ട്‌ ചെയ്യാൻ അനുവദിക്കുക</string>
-    <string name="loading_channel_details">ചാനൽ വിശദാംശങ്ങൾ ലോഡ് ചെയ്യുന്നു…</string>
-    <string name="error_show_channel_details">ചാനൽ വിശദാംശങ്ങൾ കാണിക്കുന്നതിൽ പിശക് സംഭവിച്ചു</string>
     <string name="off">ഓഫ്‌</string>
     <string name="on">ഓൺ</string>
     <string name="open_website_license">വെബ്സൈറ്റ് തുറക്കുക</string>

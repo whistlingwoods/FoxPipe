@@ -53,10 +53,6 @@ public class StoredDirectoryHelper {
             throw new IOException(e);
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            throw new IOException("Storage Access Framework with Directory API is not available");
-        }
-
         this.docTree = DocumentFile.fromTreeUri(context, path);
 
         if (this.docTree == null) {
@@ -73,7 +69,7 @@ public class StoredDirectoryHelper {
         final String[] filename = splitFilename(name);
         final String lcFilename = filename[0].toLowerCase();
 
-        if (docTree == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (docTree == null) {
             for (final File file : ioTree.listFiles()) {
                 addIfStartWith(matches, lcFilename, file.getName());
             }
@@ -275,9 +271,9 @@ public class StoredDirectoryHelper {
      * @param filename Target filename
      * @return A {@link DocumentFile} contain the reference, otherwise, null
      */
-    static DocumentFile findFileSAFHelper(@Nullable final Context context, final DocumentFile tree,
+    public static DocumentFile findFileSAFHelper(@Nullable final Context context, final DocumentFile tree,
                                           final String filename) {
-        if (context == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (context == null) {
             return tree.findFile(filename); // warning: this is very slow
         }
 
@@ -332,6 +328,61 @@ public class StoredDirectoryHelper {
                     .putExtra(FilePickerActivityHelper.EXTRA_ALLOW_CREATE_DIR, true)
                     .putExtra(FilePickerActivityHelper.EXTRA_MODE,
                             FilePickerActivityHelper.MODE_DIR);
+        }
+    }
+
+    public void remove(String fileName){
+        if (ioTree != null) {
+            File file = new File(ioTree, fileName);
+            file.delete();
+        }
+        else {
+            // use docTree
+            DocumentFile file = findFileSAFHelper(context, docTree, fileName);
+            if (file != null) {
+                file.delete();
+            }
+        }
+    }
+    public void clear(){
+        // clear *.tmp in the folder if [filename].mp4.tmp 's size > 0
+        ArrayList<String> filesToDelete = new ArrayList<>();
+        if (ioTree != null) {
+            File[] files = ioTree.listFiles();
+            try{
+                for (File file : files) {
+                    if (file.getName().endsWith(".tmp.mp4") && file.length() > 0) {
+                        filesToDelete.add(file.getName());
+                        filesToDelete.add(file.getName().replace(".tmp.mp4", ".tmp"));
+                    }
+                }
+                for (String filename : filesToDelete) {
+                    File file = new File(ioTree, filename);
+                    file.delete();
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else {
+            // use docTree
+            DocumentFile[] docFiles = docTree.listFiles();
+            try{
+                for (DocumentFile docFile : docFiles) {
+                    if (docFile.getName().endsWith(".tmp.mp4") && docFile.length() > 0) {
+                        filesToDelete.add(docFile.getName());
+                        filesToDelete.add(docFile.getName().replace(".tmp.mp4", ".tmp"));
+                    }
+                }
+                for (String filename : filesToDelete) {
+                    DocumentFile docFile = findFileSAFHelper(context, docTree, filename);
+                    if (docFile != null) {
+                        docFile.delete();
+                    }
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
         }
     }
 }

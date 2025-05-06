@@ -21,6 +21,8 @@ import org.schabi.newpipe.extractor.exceptions.AgeRestrictedContentException
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException
+import org.schabi.newpipe.extractor.exceptions.LiveNotStartException
+import org.schabi.newpipe.extractor.exceptions.NotLoginException
 import org.schabi.newpipe.extractor.exceptions.PaidContentException
 import org.schabi.newpipe.extractor.exceptions.PrivateContentException
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
@@ -180,14 +182,16 @@ class ErrorPanelHelper(
         @StringRes
         fun getExceptionDescription(throwable: Throwable?): Int {
             return when (throwable) {
-                is AgeRestrictedContentException -> R.string.restricted_video_no_stream
+                is NotLoginException -> R.string.not_login
+                is LiveNotStartException -> R.string.live_not_started
+                is AgeRestrictedContentException -> R.string.restricted_video_no_stream_new
                 is GeographicRestrictionException -> R.string.georestricted_content
-                is PaidContentException -> R.string.paid_content
-                is PrivateContentException -> R.string.private_content
-                is SoundCloudGoPlusContentException -> R.string.soundcloud_go_plus_content
-                is YoutubeMusicPremiumContentException -> R.string.youtube_music_premium_content
+                is PaidContentException -> R.string.paid_content_new
+                is PrivateContentException -> R.string.private_content_new
+                is SoundCloudGoPlusContentException -> R.string.soundcloud_go_plus_content_new
+                is YoutubeMusicPremiumContentException -> R.string.youtube_music_premium_content_new
                 is ContentNotAvailableException -> R.string.content_not_available
-                is ContentNotSupportedException -> R.string.content_not_supported
+                is ContentNotSupportedException -> R.string.content_not_supported_new
                 else -> {
                     // show retry button only for content which is not unavailable or unsupported
                     if (throwable != null && throwable.isNetworkRelated) {

@@ -22,6 +22,7 @@
 
     <string name="volume_gesture_control_key">volume_gesture_control</string>
     <string name="brightness_gesture_control_key">brightness_gesture_control</string>
+    <string name="fullscreen_gesture_control_key">fullscreen_gesture_control</string>
     <string name="resume_on_audio_focus_gain_key">resume_on_audio_focus_gain</string>
     <string name="popup_remember_size_pos_key">popup_remember_size_pos_key</string>
     <string name="use_inexact_seek_key">use_inexact_seek_key</string>
@@ -53,6 +54,24 @@
         <item>20000</item>
         <item>25000</item>
         <item>30000</item>
+    </string-array>
+
+    <string name="progressive_load_interval_key">progressive_load_interval</string>
+    <string name="progressive_load_interval_default_value">1</string>
+    <string name="progressive_load_interval_exoplayer_default_value">exoplayer_default</string>
+    <string-array name="progressive_load_interval_descriptions">
+        <item>1 KiB</item>
+        <item>16 KiB</item>
+        <item>64 KiB</item>
+        <item>256 KiB</item>
+        <item>@string/progressive_load_interval_exoplayer_default</item>
+    </string-array>
+    <string-array name="progressive_load_interval_values">
+        <item>@string/progressive_load_interval_default_value</item>
+        <item>16</item>
+        <item>64</item>
+        <item>256</item>
+        <item>@string/progressive_load_interval_exoplayer_default_value</item>
     </string-array>
 
     <string name="minimize_on_exit_key">minimize_on_exit_key</string>
@@ -185,9 +204,10 @@
     <string name="show_memory_leaks_key">show_memory_leaks_key</string>
     <string name="allow_disposed_exceptions_key">allow_disposed_exceptions_key</string>
     <string name="show_original_time_ago_key">show_original_time_ago_key</string>
-    <string name="disable_media_tunneling_key">disable_media_tunneling_key</string>
     <string name="show_image_indicators_key">show_image_indicators_key</string>
     <string name="show_crash_the_player_key">show_crash_the_player_key</string>
+    <string name="youtube_visitor_data">youtube_visitor_data</string>
+    <string name="check_new_streams_key">check_new_streams</string>
     <string name="crash_the_app_key">crash_the_app_key</string>
     <string name="show_error_snackbar_key">show_error_snackbar_key</string>
     <string name="create_error_notification_key">create_error_notification_key</string>
@@ -227,6 +247,29 @@
     <string name="caption_user_set_key">caption_user_set_key</string>
 
     <!-- Content & History -->
+    <string name="show_channel_tabs_key">channel_tabs</string>
+    <string name="show_channel_tabs_playlists">show_channel_tabs_playlists</string>
+    <string name="show_channel_tabs_livestreams">show_channel_tabs_live</string>
+    <string name="show_channel_tabs_shorts">show_channel_tabs_shorts</string>
+    <string name="show_channel_tabs_channels">show_channel_tabs_channels</string>
+    <string name="show_channel_tabs_albums">show_channel_tabs_albums</string>
+    <string name="show_channel_tabs_info">show_channel_tabs_info</string>
+    <string-array name="show_channel_tabs_value_list">
+        <item>@string/show_channel_tabs_playlists</item>
+        <item>@string/show_channel_tabs_livestreams</item>
+        <item>@string/show_channel_tabs_shorts</item>
+        <item>@string/show_channel_tabs_channels</item>
+        <item>@string/show_channel_tabs_albums</item>
+        <item>@string/show_channel_tabs_info</item>
+    </string-array>
+    <string-array name="show_channel_tabs_description_list">
+        <item>@string/channel_tab_playlists</item>
+        <item>@string/channel_tab_livestreams</item>
+        <item>@string/channel_tab_shorts</item>
+        <item>@string/channel_tab_channels</item>
+        <item>@string/channel_tab_albums</item>
+        <item>@string/channel_tab_info</item>
+    </string-array>
     <string name="show_search_suggestions_key">show_search_suggestions</string>
     <string name="show_local_search_suggestions_key">show_local_search_suggestions</string>
     <string name="show_remote_search_suggestions_key">show_remote_search_suggestions</string>
@@ -238,6 +281,7 @@
         <item>@string/local_search_suggestions</item>
         <item>@string/remote_search_suggestions</item>
     </string-array>
+    <string name="playback_adjust_by_semitones_key">playback_adjust_by_semitones_key</string>
     <string name="show_play_with_kodi_key">show_play_with_kodi</string>
     <string name="show_comments_key">show_comments</string>
     <string name="show_next_video_key">show_next_video</string>
@@ -257,6 +301,7 @@
     <string name="main_page_content_key">main_page_content</string>
     <string name="enable_playback_resume_key">enable_playback_resume</string>
     <string name="enable_playback_state_lists_key">enable_playback_state_lists</string>
+    <string name="adjustment_step_key">adjustment_step_key</string>
     <string name="playback_unhook_key">playback_unhook_key</string>
     <string name="playback_speed_key">playback_speed_key</string>
     <string name="playback_pitch_key">playback_pitch_key</string>
@@ -292,6 +337,24 @@
     </string-array>
     <string name="feed_use_dedicated_fetch_method_key">feed_use_dedicated_fetch_method</string>
 
+    <string name="feed_fetch_channel_tabs_key">feed_fetch_channel_tabs</string>
+    <string name="fetch_channel_tabs_videos">fetch_channel_tabs_videos</string>
+    <string name="fetch_channel_tabs_tracks">fetch_channel_tabs_tracks</string>
+    <string name="fetch_channel_tabs_shorts">fetch_channel_tabs_shorts</string>
+    <string name="fetch_channel_tabs_livestreams">fetch_channel_tabs_live</string>
+    <string-array name="feed_fetch_channel_tabs_value_list">
+        <item>@string/fetch_channel_tabs_videos</item>
+        <item>@string/fetch_channel_tabs_tracks</item>
+        <item>@string/fetch_channel_tabs_shorts</item>
+        <item>@string/fetch_channel_tabs_livestreams</item>
+    </string-array>
+    <string-array name="feed_fetch_channel_tabs_description_list">
+        <item>@string/channel_tab_videos</item>
+        <item>@string/channel_tab_tracks</item>
+        <item>@string/channel_tab_shorts</item>
+        <item>@string/channel_tab_livestreams</item>
+    </string-array>
+
     <string name="import_export_data_path">import_export_data_path</string>
     <string name="import_data">import_data</string>
     <string name="export_data">export_data</string>
@@ -312,6 +375,8 @@
 
     <string name="downloads_storage_ask">downloads_storage_ask</string>
     <string name="storage_use_saf">storage_use_saf</string>
+    <string name="downloads_use_default">downloads_use_default</string>
+    <string name="check_downloads_first">check_downloads_first</string>
 
     <!-- FileName Downloads  -->
     <string name="settings_file_charset_key">file_rename_charset</string>
@@ -390,6 +455,33 @@
     <string name="manual_update_key">manual_update_key</string>
     <string name="update_pref_screen_key">update_pref_screen_key</string>
     <string name="update_expiry_key">update_expiry_key</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsor_block_home_page_key" translatable="false">sponsor_block_home_page</string>
+    <string name="sponsor_block_enable_key" translatable="false">sponsor_block_enable</string>
+    <string name="sponsor_block_api_url_key" translatable="false">sponsor_block_api_url</string>
+    <string name="sponsor_block_notifications_key" translatable="false">sponsor_block_notifications</string>
+    <string name="sponsor_block_privacy_key" translatable="false">sponsor_block_privacy</string>
+    <string name="sponsor_block_categories_key" translatable="false">sponsor_block_categories</string>
+    <string name="sponsor_block_category_reset_key" translatable="false">sponsor_block_category_reset</string>
+    <string name="sponsor_block_category_sponsor_key" translatable="false">sponsor_block_category_sponsor</string>
+    <string name="sponsor_block_category_sponsor_color_key" translatable="false">sponsor_block_category_sponsor_color</string>
+    <string name="sponsor_block_category_intro_key" translatable="false">sponsor_block_category_intro</string>
+    <string name="sponsor_block_category_intro_color_key" translatable="false">sponsor_block_category_intro_color</string>
+    <string name="sponsor_block_category_outro_key" translatable="false">sponsor_block_category_outro</string>
+    <string name="sponsor_block_category_outro_color_key" translatable="false">sponsor_block_category_outro_color</string>
+    <string name="sponsor_block_category_interaction_key" translatable="false">sponsor_block_category_interaction</string>
+    <string name="sponsor_block_category_interaction_color_key" translatable="false">sponsor_block_category_interaction_color</string>
+    <string name="sponsor_block_category_self_promo_key" translatable="false">sponsor_block_category_self_promo</string>
+    <string name="sponsor_block_category_self_promo_color_key" translatable="false">sponsor_block_category_self_promo_color</string>
+    <string name="sponsor_block_category_non_music_key" translatable="false">sponsor_block_category_music</string>
+    <string name="sponsor_block_category_non_music_color_key" translatable="false">sponsor_block_category_music_color</string>
+    <string name="sponsor_block_category_preview_key" translatable="false">sponsor_block_category_preview</string>
+    <string name="sponsor_block_category_preview_color_key" translatable="false">sponsor_block_category_preview_color</string>
+    <string name="sponsor_block_category_filler_key" translatable="false">sponsor_block_category_filler</string>
+    <string name="sponsor_block_category_filler_color_key" translatable="false">sponsor_block_category_filler_color</string>
+    <string name="sponsor_block_whitelist_key" translatable="false">sponsor_block_whitelist</string>
+    <string name="sponsor_block_clear_whitelist_key" translatable="false">sponsor_block_clear_whitelist</string>
 
     <!-- Localizations   -->
     <string name="default_localization_key">system</string>
@@ -1268,4 +1360,256 @@
     </string-array>
 
     <string name="recaptcha_cookies_key">recaptcha_cookies_key</string>
+
+    <string name="enable_streams_notifications">enable_streams_notifications</string>
+    <string name="streams_notifications_interval_key">streams_notifications_interval</string>
+    <string name="streams_notifications_interval_default">14400</string>
+    <!-- Values will be localized in runtime -->
+    <string-array name="streams_notifications_interval_description">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>2 hours</item>
+        <item>4 hours</item>
+        <item>12 hours</item>
+        <item>1 day</item>
+    </string-array>
+    <!-- Notifications check frequency in seconds -->
+    <string-array name="streams_notifications_interval_values">
+        <item>900</item>
+        <item>1800</item>
+        <item>3600</item>
+        <item>7200</item>
+        <item>14400</item>
+        <item>43200</item>
+        <item>86400</item>
+    </string-array>
+    <string name="streams_notifications_network_key">streams_notifications_network</string>
+    <string name="streams_notifications_network_any">any</string>
+    <string name="streams_notifications_network_wifi">wifi</string>
+    <string name="streams_notifications_network_default">@string/streams_notifications_network_wifi</string>
+    <string-array name="streams_notifications_network_values">
+        <item>@string/streams_notifications_network_any</item>
+        <item>@string/streams_notifications_network_wifi</item>
+    </string-array>
+    <string-array name="streams_notifications_network_description">
+        <item>@string/any_network</item>
+        <item>@string/wifi_only</item>
+    </string-array>
+    <string name="streams_notifications_channels_key">streams_notifications_channels</string>
+    <string name="player_notification_screen_key">player_notification_screen</string>
+    <string name="enable_eye_protection_key">enable_eye_protection_key</string>
+    <string name="logout_key">logout_key</string>
+    <string name="login_key">login_key</string>
+    <string name="niconico_cookies_key">niconico_cookies_key</string>
+    <string name="youtube_cookies_key">youtube_cookies_key</string>
+    <string name="bilibili_cookies_key">bilibili_cookies_key</string>
+    <string name="bullet_comments_font_key">bullet_comments_font_key</string>
+    <string name="bullet_comments_opacity_key">bullet_comments_opacity_key</string>
+    <string name="toggle_show_future_items_key">toggle_show_future_items_key</string>
+    <string name="auto_background_play_key">auto_background_play_key</string>
+    <string name="override_cookies_bilibili_key">override_cookies_bilibili_key</string>
+    <string name="override_cookies_niconico_key">override_cookies_niconico_key</string>
+    <string name="override_cookies_youtube_key">override_cookies_youtube_key</string>
+    <string name="override_cookies_bilibili_value_key">override_cookies_bilibili_value_key</string>
+    <string name="override_cookies_niconico_value_key">override_cookies_niconico_value_key</string>
+    <string name="override_cookies_youtube_value_key">override_cookies_youtube_value_key</string>
+    <string name="auto_queue_partition_key">auto_queue_partition_key</string>
+    <string-array name="font_list">
+        <item>Default</item>
+        <item>sans-serif</item>
+        <item>serif</item>
+        <item>monospace</item>
+        <item>LXGW WenKai Screen</item>
+    </string-array>
+
+    <!-- ExoPlayer settings -->
+    <string name="exoplayer_settings_key">exoplayer_settings_key</string>
+    <string name="disable_media_tunneling_key">disable_media_tunneling_key</string>
+    <string name="use_exoplayer_decoder_fallback_key">use_exoplayer_decoder_fallback_key</string>
+    <string name="always_use_exoplayer_set_output_surface_workaround_key">always_use_exoplayer_set_output_surface_workaround_key</string>
+
+    <!-- Image quality -->
+    <string name="image_quality_key">image_quality_key</string>
+    <string name="image_quality_none_key">image_quality_none</string>
+    <string name="image_quality_low_key">image_quality_low</string>
+    <string name="image_quality_medium_key">image_quality_medium</string>
+    <string name="image_quality_high_key">image_quality_high</string>
+    <string name="image_quality_default">@string/image_quality_medium_key</string>
+    <string-array name="image_quality_description">
+        <item>@string/image_quality_none</item>
+        <item>@string/image_quality_low</item>
+        <item>@string/image_quality_medium</item>
+        <item>@string/image_quality_high</item>
+    </string-array>
+    <string-array name="image_quality_values">
+        <item>@string/image_quality_none_key</item>
+        <item>@string/image_quality_low_key</item>
+        <item>@string/image_quality_medium_key</item>
+        <item>@string/image_quality_high_key</item>
+    </string-array>
+
+
+
+
+    <!-- Accounts Cookies -->
+    <string name="cookie_functions_bilibili_key">cookie_functions_bilibili_key</string>
+    <string name="cookie_functions_niconico_key">cookie_functions_niconico_key</string>
+    <string-array name="cookie_functions_bilibili_entries">
+        <item>@string/high_res</item>
+        <item>@string/ai_subtitle</item>
+    </string-array>
+    <string-array name="cookie_functions_bilibili_values">
+        <item>high_res</item>
+        <item>ai_subtitle</item>
+    </string-array>
+    <string name="pref_sponsorblock_mode_key">pref_sponsorblock_mode_key</string>
+    <string name="playlist_sort_mode_key">playlist_sort_mode_key</string>
+    <string name="sleep_timer_length_key">sleep_timer_length_key</string>
+    <string-array name="sleep_timer_length_key">
+        <item>5 min</item>
+        <item>10 min</item>
+        <item>15 min</item>
+        <item>20 min</item>
+        <item>30 min</item>
+        <item>1 hour</item>
+    </string-array>
+    <string-array name="sleep_timer_length_value">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>30</item>
+        <item>60</item>
+    </string-array>
+
+    <string-array name="playlist_sorting_mode">
+        <item>@string/oldest_first</item>
+        <item>@string/newest_first</item>
+<!--        <item>@string/same_as_item_mode</item>-->
+    </string-array>
+    <string-array name="playlist_sorting_mode_value">
+        <item>0</item>
+        <item>1</item>
+<!--        <item>2</item>-->
+    </string-array>
+    <string name="playlist_sorting_key">playlist_sorting_key</string>
+    <string name="dont_auto_queue_long_key">dont_auto_queue_long_key</string>
+    <string name="random_music_play_mode_key">random_music_play_mode_key</string>
+    <string name="speeding_playback_key">speeding_playback_key</string>
+    <string-array name="speeding_playback_description">
+        <item>0.1x</item>
+        <item>0.3x</item>
+        <item>0.5x</item>
+        <item>0.75x</item>
+        <item>Disable</item>
+        <item>1.25x</item>
+        <item>1.5x</item>
+        <item>1.75x</item>
+        <item>2x</item>
+        <item>2.25x</item>
+        <item>2.5x</item>
+        <item>3x</item>
+        <item>5x</item>
+    </string-array>
+    <string-array name="speeding_playback_value">
+        <item>0.1</item>
+        <item>0.3</item>
+        <item>0.5</item>
+        <item>0.75</item>
+        <item>1</item>
+        <item>1.25</item>
+        <item>1.5</item>
+        <item>1.75</item>
+        <item>2</item>
+        <item>2.25</item>
+        <item>2.5</item>
+        <item>3</item>
+        <item>5</item>
+    </string-array>
+    <string name="speeding_playback_default_value">3</string>
+    <string name="require_audio_focus_key">require_audio_focus_key</string>
+    <string name="regular_bullet_comments_duration_key">regular_bullet_comments_duration_key</string>
+    <string name="top_bottom_bullet_comments_duration_key">top_bottom_bullet_comments_duration_key</string>
+    <string name="bullet_comments_outline_radius_key">bullet_comments_outline_radius_key</string>
+    <string name="advanced_formats_key">advanced_formats_key</string>
+    <string name="preferred_audio_language_key">preferred_audio_language_key</string>
+    <string name="comments_inner_scroll_key">comments_inner_scroll_key</string>
+    <string name="filter_by_keyword_key">filter_by_keyword_key</string>
+    <string-array name="advanced_formats_values">
+        <item>WebM</item>
+        <item>H.265</item>
+        <item>AV1</item>
+    </string-array>
+    <string-array name="audio_langs">
+        <item>@string/sort_origin</item>
+        <!-- Global -->
+        <item>English</item> <!-- English -->
+
+        <!-- Europe -->
+        <item>Français</item> <!-- French -->
+        <item>Deutsch</item> <!-- German -->
+        <item>Español</item> <!-- Spanish -->
+        <item>Português</item> <!-- Portuguese -->
+        <item>Русский</item> <!-- Russian -->
+        <item>Türkçe</item> <!-- Turkish -->
+
+        <!-- Asia -->
+        <item>简体中文</item> <!-- Chinese (Simplified) -->
+        <item>日本語</item> <!-- Japanese -->
+        <item>हिन्दी</item> <!-- Hindi -->
+        <item>한국어</item> <!-- Korean -->
+        <item>ไทย</item> <!-- Thai -->
+        <item>Tiếng Việt</item> <!-- Vietnamese -->
+        <item>বাংলা</item> <!-- Bangla -->
+        <item>Bahasa Indonesia</item> <!-- Indonesian -->
+
+        <!-- Middle East -->
+        <item>العربية</item> <!-- Arabic -->
+    </string-array>
+    <string-array name="audio_lang_values">
+        <item>original</item>
+        <item>en</item> <!-- English -->
+
+        <!-- Europe -->
+        <item>fr</item> <!-- French -->
+        <item>de</item> <!-- German -->
+        <item>es</item> <!-- Spanish -->
+        <item>pt</item> <!-- Portuguese -->
+        <item>ru</item> <!-- Russian -->
+        <item>tr</item> <!-- Turkish -->
+
+        <!-- Asia -->
+        <item>zh</item> <!-- Chinese (Simplified) -->
+        <item>ja</item> <!-- Japanese -->
+        <item>hi</item> <!-- Hindi -->
+        <item>ko</item> <!-- Korean -->
+        <item>th</item> <!-- Thai -->
+        <item>vi</item> <!-- Vietnamese -->
+        <item>bn</item> <!-- Bangla -->
+        <item>id</item> <!-- Indonesian -->
+
+        <!-- Middle East -->
+        <item>ar</item> <!-- Arabic -->
+    </string-array>
+    <string name="filter_type_key">filter_type_key</string>
+    <string name="filter_by_channel_key">filter_by_channel_key</string>
+    <string name="proxy_token_key">proxy_token_key</string>
+    <string name="enable_proxy_key">enable_proxy_key</string>
+    <string name="check_token_validity_key">check_token_validity_key</string>
+    <string name="donation_encouragement_key">donation_encouragement_key</string>
+    <string name="show_prerelease_key">show_prerelease_key</string>
+    <string name="show_dislike_key">show_dislike_key</string>
+    <string-array name="filter_type_entries">
+        <item>@string/search_result</item>
+        <item>@string/recommended_videos</item>
+        <item>@string/related_items_tab_description</item>
+        <item>@string/channel_videos</item>
+    </string-array>
+    <string-array name="filter_type_values">
+        <item>search_result</item>
+        <item>recommendations</item>
+        <item>related_item</item>
+        <item>channels</item>
+    </string-array>
 </resources>

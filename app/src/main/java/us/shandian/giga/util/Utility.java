@@ -5,15 +5,20 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-import android.widget.Toast;
 
+import android.widget.Toast;
 import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import androidx.documentfile.provider.DocumentFile;
+import com.grack.nanojson.JsonParserException;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.streams.io.SharpStream;
 
 import java.io.BufferedOutputStream;
@@ -27,9 +32,17 @@ import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
 
+import okio.ByteString;
+import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
+import us.shandian.giga.get.DownloadMission;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
+
+import static org.schabi.newpipe.streams.io.StoredDirectoryHelper.findFileSAFHelper;
 
 public class Utility {
 
@@ -42,8 +55,8 @@ public class Utility {
 
     public static String formatBytes(long bytes) {
         Locale locale = Locale.getDefault();
-        if (bytes < 1024) {
-            return String.format(locale, "%d B", bytes);
+        if (bytes < 50 * 1024) {
+            return "Unknown";
         } else if (bytes < 1024 * 1024) {
             return String.format(locale, "%.2f kB", bytes / 1024d);
         } else if (bytes < 1024 * 1024 * 1024) {
@@ -269,6 +282,28 @@ public class Utility {
         return -1;
     }
 
+    /**
+     * Get the content length of the entire file even if the HTTP response is partial
+     * (response code 206).
+     * @param connection http connection
+     * @return content length
+     */
+    public static long getTotalContentLength(final HttpURLConnection connection) {
+        try {
+            if (connection.getResponseCode() == 206) {
+                final String rangeStr = connection.getHeaderField("Content-Range");
+                final String bytesStr = rangeStr.split("/", 2)[1];
+                return Long.parseLong(bytesStr);
+            } else {
+                return getContentLength(connection);
+            }
+        } catch (Exception err) {
+            // nothing to do
+        }
+
+        return -1;
+    }
+
     private static String pad(int number) {
         return number < 10 ? ("0" + number) : String.valueOf(number);
     }
@@ -288,5 +323,50 @@ public class Utility {
         }
 
         return str + pad(s);
+    }
+    public static void setRequestPropertyIfDownloadingBilibili(String url, HttpURLConnection conn) throws IOException {
+        if(BilibiliService.isBiliBiliDownloadUrl(url)){
+            // from header map set RequestProperty
+            Map<String, List<String>> headerMap = BilibiliService.getDownloadHeaders();
+            for (Map.Entry<String, List<String>> entry : headerMap.entrySet()) {
+                String key = entry.getKey();
+                List<String> value = entry.getValue();
+                if (value.size() == 1) {
+                    conn.setRequestProperty(key, value.get(0));
+                } else {
+                    conn.setRequestProperty(key, value.toString());
+                }
+            }
+        }
+    }
+
+    public static void removeTempFileOfDownloadedVideo(StoredFileHelper storedFileHelper) {
+        if(storedFileHelper.docTree == null) {
+            // ioTree instead
+            try {
+                File ioTree = storedFileHelper.ioFile;
+                for (final File file : ioTree.listFiles()) {
+                    if (file.getName().equals(storedFileHelper.getName().replace(".mp4", ".tmp.mp4"))
+                            || file.getName().equals(storedFileHelper.getName().replace(".mp4", ".tmp"))) {
+                        file.delete();
+                    }
+                }
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        DocumentFile docTree = storedFileHelper.docTree;
+        DocumentFile[] docFiles = docTree.listFiles();
+        try{
+            for (DocumentFile docFile : docFiles) {
+                if (docFile.getName().equals(storedFileHelper.getName().replace(".mp4", ".tmp.mp4"))
+                        || docFile.getName().equals(storedFileHelper.getName().replace(".mp4", ".tmp"))) {
+                    docFile.delete();
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

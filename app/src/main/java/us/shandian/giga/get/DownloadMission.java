@@ -1,37 +1,27 @@
 package us.shandian.giga.get;
 
-import android.os.Build;
+import android.content.Context;
 import android.os.Handler;
 import android.system.ErrnoException;
 import android.system.OsConstants;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import org.schabi.newpipe.DownloaderImpl;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.io.Serializable;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.nio.channels.ClosedByInterruptException;
-import java.util.Objects;
-
-import javax.net.ssl.SSLException;
-
 import org.schabi.newpipe.streams.io.StoredFileHelper;
 import us.shandian.giga.postprocessing.Postprocessing;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.util.Utility;
 
+import javax.net.ssl.SSLException;
+import java.io.*;
+import java.net.*;
+import java.nio.channels.ClosedByInterruptException;
+import java.util.Objects;
+
 import static org.schabi.newpipe.BuildConfig.DEBUG;
+import static us.shandian.giga.postprocessing.Postprocessing.NICONICO_MUXER;
+import static us.shandian.giga.util.Utility.setRequestPropertyIfDownloadingBilibili;
 
 public class DownloadMission extends Mission {
     private static final long serialVersionUID = 6L;// last bump: 07 october 2019
@@ -154,7 +144,9 @@ public class DownloadMission extends Mission {
     public transient Thread[] threads = new Thread[0];
     public transient Thread init = null;
 
-    public DownloadMission(String[] urls, StoredFileHelper storage, char kind, Postprocessing psInstance) {
+    public Context context;
+
+    public DownloadMission(String[] urls, StoredFileHelper storage, char kind, Postprocessing psInstance, Context context) {
         if (Objects.requireNonNull(urls).length < 1)
             throw new IllegalArgumentException("urls array is empty");
         this.urls = urls;
@@ -164,6 +156,7 @@ public class DownloadMission extends Mission {
         this.maxRetry = 3;
         this.storage = storage;
         this.psAlgorithm = psInstance;
+        this.context = context;
 
         if (DEBUG && psInstance == null && urls.length > 1) {
             Log.w(TAG, "mission created with multiple urls ¿missing post-processing algorithm?");
@@ -220,9 +213,17 @@ public class DownloadMission extends Mission {
     }
 
     HttpURLConnection openConnection(String url, boolean headRequest, long rangeStart, long rangeEnd) throws IOException {
+        String cookie = null;
+        if(url.contains("#cookie=")) {
+            cookie = URLDecoder.decode(url.split("#cookie=")[1].split("&")[0]);
+            url = url.split("#cookie=")[0];
+        }
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setInstanceFollowRedirects(true);
         conn.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT);
+        setRequestPropertyIfDownloadingBilibili(url, conn);
+        if (cookie != null) conn.setRequestProperty("Cookie", cookie);
+
         conn.setRequestProperty("Accept", "*/*");
         conn.setRequestProperty("Accept-Encoding", "*");
 
@@ -316,16 +317,14 @@ public class DownloadMission extends Mission {
 
     public synchronized void notifyError(int code, Exception err) {
         Log.e(TAG, "notifyError() code = " + code, err);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (err != null && err.getCause() instanceof ErrnoException) {
-                int errno = ((ErrnoException) err.getCause()).errno;
-                if (errno == OsConstants.ENOSPC) {
-                    code = ERROR_INSUFFICIENT_STORAGE;
-                    err = null;
-                } else if (errno == OsConstants.EACCES) {
-                    code = ERROR_PERMISSION_DENIED;
-                    err = null;
-                }
+        if (err != null && err.getCause() instanceof ErrnoException) {
+            int errno = ((ErrnoException) err.getCause()).errno;
+            if (errno == OsConstants.ENOSPC) {
+                code = ERROR_INSUFFICIENT_STORAGE;
+                err = null;
+            } else if (errno == OsConstants.EACCES) {
+                code = ERROR_PERMISSION_DENIED;
+                err = null;
             }
         }
 
@@ -628,6 +627,10 @@ public class DownloadMission extends Mission {
     public long getLength() {
         long calculated;
         if (psState == 1 || psState == 3) {
+            if(psAlgorithm.name == NICONICO_MUXER) {
+                long result = (long) Math.ceil(Long.parseLong(URLDecoder.decode(urls[0].split("&length=")[1]))/6.0);
+                return result * (kind == 'v'? 2 :1);
+            }
             return length;
         }
 

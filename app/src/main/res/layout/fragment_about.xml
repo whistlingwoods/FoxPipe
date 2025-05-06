@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingBottom="5dp"
-            android:text="@string/app_description" />
+            android:text="@string/app_description_new" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:layout_width="match_parent"
@@ -64,66 +64,24 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:text="@string/view_on_github" />
+        <org.schabi.newpipe.views.NewPipeTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/donation_title"
+                android:textAppearance="@android:style/TextAppearance.Medium" />
 
         <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:text="@string/donation_title"
-            android:textAppearance="@android:style/TextAppearance.Medium" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/donation_encouragement" />
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/donation_dialog_message" />
 
         <Button
-            android:id="@+id/about_donation_link"
-            style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:text="@string/give_back" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:text="@string/website_title"
-            android:textAppearance="@android:style/TextAppearance.Medium" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/website_encouragement" />
-
-        <Button
-            android:id="@+id/about_website_link"
-            style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:text="@string/open_in_browser" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp"
-            android:text="@string/privacy_policy_title"
-            android:textAppearance="@android:style/TextAppearance.Medium" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/privacy_policy_encouragement" />
-
-        <Button
-            android:id="@+id/about_privacy_policy_link"
-            style="@style/Base.Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:text="@string/read_privacy_policy" />
-
+                android:id="@+id/about_donation_link"
+                style="@style/Base.Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/sponsor_promote" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

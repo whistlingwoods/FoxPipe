@@ -3,6 +3,7 @@ package org.schabi.newpipe.local.playlist;
 import androidx.annotation.Nullable;
 
 import org.schabi.newpipe.database.AppDatabase;
+import org.schabi.newpipe.database.playlist.PlaylistDuplicatesEntry;
 import org.schabi.newpipe.database.playlist.PlaylistMetadataEntry;
 import org.schabi.newpipe.database.playlist.PlaylistStreamEntry;
 import org.schabi.newpipe.database.playlist.dao.PlaylistDAO;
@@ -40,8 +41,12 @@ public class LocalPlaylistManager {
             return Maybe.empty();
         }
         final StreamEntity defaultStream = streams.get(0);
+
+        // Save to the database directly.
+        // Make sure the new playlist is always on the top of bookmark.
+        // The index will be reassigned to non-negative number in BookmarkFragment.
         final PlaylistEntity newPlaylist =
-                new PlaylistEntity(name, defaultStream.getThumbnailUrl());
+                new PlaylistEntity(name, defaultStream.getThumbnailUrl(), -1);
 
         return Maybe.fromCallable(() -> database.runInTransaction(() ->
                 upsertStreams(playlistTable.insert(newPlaylist), streams, 0))
@@ -82,8 +87,36 @@ public class LocalPlaylistManager {
         })).subscribeOn(Schedulers.io());
     }
 
+    public Completable updatePlaylists(final List<PlaylistMetadataEntry> updateItems,
+                                       final List<Long> deletedItems) {
+        final List<PlaylistEntity> items = new ArrayList<>(updateItems.size());
+        for (final PlaylistMetadataEntry item : updateItems) {
+            items.add(new PlaylistEntity(item));
+        }
+        return Completable.fromRunnable(() -> database.runInTransaction(() -> {
+            for (final Long uid: deletedItems) {
+                playlistTable.deletePlaylist(uid);
+            }
+            for (final PlaylistEntity item: items) {
+                playlistTable.upsertPlaylist(item);
+            }
+        })).subscribeOn(Schedulers.io());
+    }
+
     public Flowable<List<PlaylistMetadataEntry>> getPlaylists() {
         return playlistStreamTable.getPlaylistMetadata().subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Get playlists with attached information about how many times the provided stream is already
+     * contained in each playlist.
+     *
+     * @param streamUrl the stream url for which to check for duplicates
+     * @return a list of {@link PlaylistDuplicatesEntry}
+     */
+    public Flowable<List<PlaylistDuplicatesEntry>> getPlaylistDuplicates(final String streamUrl) {
+        return playlistStreamTable.getPlaylistDuplicatesMetadata(streamUrl)
+                .subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<PlaylistStreamEntry>> getPlaylistStreams(final long playlistId) {
@@ -96,12 +129,17 @@ public class LocalPlaylistManager {
     }
 
     public Maybe<Integer> renamePlaylist(final long playlistId, final String name) {
-        return modifyPlaylist(playlistId, name, null);
+        return modifyPlaylist(playlistId, name, null, -1);
     }
 
     public Maybe<Integer> changePlaylistThumbnail(final long playlistId,
                                                   final String thumbnailUrl) {
-        return modifyPlaylist(playlistId, null, thumbnailUrl);
+        return modifyPlaylist(playlistId, null, thumbnailUrl, -1);
+    }
+
+    public Maybe<Integer> updatePlaylistDisplayIndex(final long playlistId,
+                                                     final long displayIndex) {
+        return modifyPlaylist(playlistId, null, null, displayIndex);
     }
 
     public String getPlaylistThumbnail(final long playlistId) {
@@ -110,7 +148,8 @@ public class LocalPlaylistManager {
 
     private Maybe<Integer> modifyPlaylist(final long playlistId,
                                           @Nullable final String name,
-                                          @Nullable final String thumbnailUrl) {
+                                          @Nullable final String thumbnailUrl,
+                                          final long displayIndex) {
         return playlistTable.getPlaylist(playlistId)
                 .firstElement()
                 .filter(playlistEntities -> !playlistEntities.isEmpty())
@@ -121,6 +160,9 @@ public class LocalPlaylistManager {
                     }
                     if (thumbnailUrl != null) {
                         playlist.setThumbnailUrl(thumbnailUrl);
+                    }
+                    if (displayIndex != -1) {
+                        playlist.setDisplayIndex(displayIndex);
                     }
                     return playlistTable.update(playlist);
                 }).subscribeOn(Schedulers.io());

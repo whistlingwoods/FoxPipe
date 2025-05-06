@@ -8,14 +8,17 @@ import kotlinx.parcelize.Parcelize
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.Info
 import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.exceptions.AccountTerminatedException
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
+import org.schabi.newpipe.extractor.exceptions.NotLoginException
 import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor.DeobfuscateException
 import org.schabi.newpipe.ktx.isNetworkRelated
 import java.io.PrintWriter
 import java.io.StringWriter
+import kotlin.math.min
 
 @Parcelize
 class ErrorInfo(
@@ -65,7 +68,7 @@ class ErrorInfo(
     constructor(throwable: Throwable, userAction: UserAction, request: String) :
         this(throwable, userAction, SERVICE_NONE, request)
     constructor(throwable: Throwable, userAction: UserAction, request: String, serviceId: Int) :
-        this(throwable, userAction, NewPipe.getNameOfService(serviceId), request)
+        this(throwable, userAction, getServiceNameFromId(serviceId), request)
     constructor(throwable: Throwable, userAction: UserAction, request: String, info: Info?) :
         this(throwable, userAction, getInfoServiceName(info), request)
 
@@ -73,7 +76,7 @@ class ErrorInfo(
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String) :
         this(throwable, userAction, SERVICE_NONE, request)
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String, serviceId: Int) :
-        this(throwable, userAction, NewPipe.getNameOfService(serviceId), request)
+        this(throwable, userAction, getServiceNameFromId(serviceId), request)
     constructor(throwable: List<Throwable>, userAction: UserAction, request: String, info: Info?) :
         this(throwable, userAction, getInfoServiceName(info), request)
 
@@ -92,10 +95,17 @@ class ErrorInfo(
         fun throwableToStringList(throwable: Throwable) = arrayOf(getStackTrace(throwable))
 
         fun throwableListToStringList(throwable: List<Throwable>) =
-            Array(throwable.size) { i -> getStackTrace(throwable[i]) }
+            Array(min(throwable.size, 20)) { i -> getStackTrace(throwable[i]) }
 
         private fun getInfoServiceName(info: Info?) =
-            if (info == null) SERVICE_NONE else NewPipe.getNameOfService(info.serviceId)
+            if (info == null) SERVICE_NONE else getServiceNameFromId(info.serviceId)
+
+        private fun getServiceNameFromId(serviceId: Int) = NewPipe.getNameOfService(serviceId) +
+                if (serviceId != -1) {
+                    " (" + (if (ServiceList.all()[serviceId].hasTokens()) "Logged in" else "Anonymous") + ")"
+                } else {
+                    ""
+                }
 
         @StringRes
         private fun getMessageStringId(
@@ -106,13 +116,15 @@ class ErrorInfo(
                 throwable is AccountTerminatedException -> R.string.account_terminated
                 throwable is ContentNotAvailableException -> R.string.content_not_available
                 throwable != null && throwable.isNetworkRelated -> R.string.network_error
-                throwable is ContentNotSupportedException -> R.string.content_not_supported
+                throwable is ContentNotSupportedException -> R.string.content_not_supported_new
                 throwable is DeobfuscateException -> R.string.youtube_signature_deobfuscation_error
+                throwable is NotLoginException -> R.string.not_login
                 throwable is ExtractionException -> R.string.parsing_error
                 throwable is ExoPlaybackException -> {
                     when (throwable.type) {
                         ExoPlaybackException.TYPE_SOURCE -> R.string.player_stream_failure
                         ExoPlaybackException.TYPE_UNEXPECTED -> R.string.player_recoverable_failure
+                        ExoPlaybackException.TYPE_RENDERER -> R.string.decoder_init_failure
                         else -> R.string.player_unrecoverable_failure
                     }
                 }

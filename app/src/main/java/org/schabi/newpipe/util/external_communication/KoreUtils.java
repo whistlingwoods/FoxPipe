@@ -10,6 +10,10 @@ import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.util.NavigationHelper;
 
+/**
+ * Util class that provides methods which are related to the Kodi Media Center and its Kore app.
+ * @see <a href="https://kodi.tv/">Kodi website</a>
+ */
 public final class KoreUtils {
     private KoreUtils() { }
 
@@ -20,9 +24,7 @@ public final class KoreUtils {
 
     public static boolean shouldShowPlayWithKodi(@NonNull final Context context,
                                                  final int serviceId) {
-        return isServiceSupportedByKore(serviceId)
-                && PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(context.getString(R.string.show_play_with_kodi_key), false);
+        return false;
     }
 
     public static void showInstallKoreDialog(@NonNull final Context context) {

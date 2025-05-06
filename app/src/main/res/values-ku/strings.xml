@@ -86,7 +86,6 @@
     <string name="downloads_title">دابەزاندنەکان</string>
     <string name="error_report_title">ناتوانرێ سکاڵابکرێ</string>
     <string name="all">گشتی</string>
-    <string name="yes">بەڵێ</string>
     <string name="disabled">ناکارایە</string>
     <string name="clear">پاککردنەوە</string>
     <string name="best_resolution">باشترین قەبارە</string>
@@ -269,7 +268,7 @@
     <string name="app_license">ئەم ئەپە سەرچاوە کراوەیە : دەتوانی بەکاریبهێنی، بیخوێنیتەوە و هاوبەشی پێبکەیت و بەرەوپێشی ببەیت.
 \nبەتایبەتی دەتوانی دابەشیبکەیتەوە یاخوود بگۆڕیت بەپێی مەرجەکانی GNU مۆڵەتنامەی گشتی وەک ئەپێکی بڵاوی خۆڕایی!</string>
     <string name="privacy_policy_title">سیاسەتی تایبەتی ئەپ</string>
-    <string name="privacy_policy_encouragement">پڕۆژەی ئەپەکە زانیارییە تایبەتییەکانت بەوردی دەپارێزێ. هەروەها ئەپەکە هیچ داتایەک بەبێ ئاگاداری تۆ بەکارنابات. 
+    <string name="privacy_policy_encouragement">پڕۆژەی ئەپەکە زانیارییە تایبەتییەکانت بەوردی دەپارێزێ. هەروەها ئەپەکە هیچ داتایەک بەبێ ئاگاداری تۆ بەکارنابات.
 \nسیاسەتی تایبەتی ئەپ بەوردەکاری ڕوونکردنەوەت دەداتێ لەسەر ئەو داتایانەی وەریاندەگرێ و بەکاریاندەبات.</string>
     <string name="read_privacy_policy">خوێندنەوەی سیاسەتی تایبەتی</string>
     <string name="channels">کەناڵەکان</string>
@@ -539,7 +538,6 @@
     <string name="autoplay_summary">دەسپێکردنی کارپێکەر بەخۆکاری — %s</string>
     <string name="title_activity_play_queue">لێدانی ڕیز</string>
     <string name="no_playlist_bookmarked_yet">هیچ لیستەلێدانێک نیشانە نەکراوە</string>
-    <string name="settings_category_notification_title">پەیام</string>
     <string name="unsupported_url_dialog_message">بەستەرەکە نەناسرایەوە. لە ئەپێکیتردا بکرێتەوە؟</string>
     <string name="auto_queue_toggle">ڕیزبوونی خۆکار</string>
     <string name="clear_queue_confirmation_description">ڕیزی لێدەری چالاک جێیدەگیرێتەوە</string>

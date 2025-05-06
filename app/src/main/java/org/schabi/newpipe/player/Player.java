@@ -1,5 +1,6 @@
 package org.schabi.newpipe.player;
 
+import static com.google.android.exoplayer2.PlaybackException.*;
 import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_AUTO_TRANSITION;
 import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_INTERNAL;
 import static com.google.android.exoplayer2.Player.DISCONTINUITY_REASON_REMOVE;
@@ -17,46 +18,22 @@ import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_CLOSE;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_FAST_FORWARD;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_FAST_REWIND;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_PLAY_NEXT;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_PLAY_PAUSE;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_PLAY_PREVIOUS;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_RECREATE_NOTIFICATION;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_REPEAT;
-import static org.schabi.newpipe.player.MainPlayer.ACTION_SHUFFLE;
+import static org.schabi.newpipe.player.MainPlayer.*;
+import static org.schabi.newpipe.player.helper.PlayerHelper.*;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_BACKGROUND;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_NONE;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_POPUP;
-import static org.schabi.newpipe.player.helper.PlayerHelper.buildCloseOverlayLayoutParams;
-import static org.schabi.newpipe.player.helper.PlayerHelper.formatSpeed;
-import static org.schabi.newpipe.player.helper.PlayerHelper.getMinimizeOnExitAction;
-import static org.schabi.newpipe.player.helper.PlayerHelper.getMinimumVideoHeight;
-import static org.schabi.newpipe.player.helper.PlayerHelper.getTimeString;
-import static org.schabi.newpipe.player.helper.PlayerHelper.globalScreenOrientationLocked;
-import static org.schabi.newpipe.player.helper.PlayerHelper.isPlaybackResumeEnabled;
-import static org.schabi.newpipe.player.helper.PlayerHelper.nextRepeatMode;
-import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSaveToPrefs;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrievePlaybackParametersFromPrefs;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrievePlayerTypeFromIntent;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrievePopupLayoutParamsFromPrefs;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
-import static org.schabi.newpipe.player.helper.PlayerHelper.savePlaybackParametersToPrefs;
 import static org.schabi.newpipe.util.ListHelper.getPopupResolutionIndex;
 import static org.schabi.newpipe.util.ListHelper.getResolutionIndex;
 import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
-import static org.schabi.newpipe.util.Localization.containsCaseInsensitive;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.schabi.newpipe.util.SponsorBlockUtils.markSegments;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.app.AlertDialog;
+import android.content.*;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
@@ -73,7 +50,6 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -85,48 +61,38 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AnticipateInterpolator;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.PopupMenu;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.PopupMenu;
+import androidx.collection.ArraySet;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
-import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.*;
 import com.google.android.exoplayer2.Player.PositionInfo;
-import com.google.android.exoplayer2.RenderersFactory;
-import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.source.BehindLiveWindowException;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.TrackGroup;
-import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.text.CueGroup;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.CaptionStyleCompat;
 import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -136,32 +102,38 @@ import com.squareup.picasso.Target;
 import org.schabi.newpipe.DownloaderImpl;
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.databinding.PlayerBinding;
 import org.schabi.newpipe.databinding.PlayerPopupCloseOverlayBinding;
+import org.schabi.newpipe.error.ErrorActivity;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
-import org.schabi.newpipe.extractor.MediaFormat;
-import org.schabi.newpipe.extractor.stream.StreamInfo;
-import org.schabi.newpipe.extractor.stream.StreamSegment;
-import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.extractor.*;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.stream.*;
 import org.schabi.newpipe.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipe.info_list.StreamSegmentAdapter;
 import org.schabi.newpipe.ktx.AnimationType;
+import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.player.MainPlayer.PlayerType;
+import org.schabi.newpipe.player.bulletComments.MovieBulletCommentsPlayer;
 import org.schabi.newpipe.player.event.DisplayPortion;
 import org.schabi.newpipe.player.event.PlayerEventListener;
 import org.schabi.newpipe.player.event.PlayerGestureListener;
 import org.schabi.newpipe.player.event.PlayerServiceEventListener;
 import org.schabi.newpipe.player.helper.AudioReactor;
+import org.schabi.newpipe.player.helper.CustomRenderersFactory;
 import org.schabi.newpipe.player.helper.LoadController;
 import org.schabi.newpipe.player.helper.MediaSessionManager;
-import org.schabi.newpipe.player.helper.PlaybackParameterDialog;
 import org.schabi.newpipe.player.helper.PlayerDataSource;
 import org.schabi.newpipe.player.helper.PlayerHelper;
-import org.schabi.newpipe.player.playback.CustomTrackSelector;
+import org.schabi.newpipe.player.listeners.view.PlaybackSpeedClickListener;
+import org.schabi.newpipe.player.listeners.view.QualityClickListener;
+import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.playback.MediaSourceManager;
 import org.schabi.newpipe.player.playback.PlaybackListener;
 import org.schabi.newpipe.player.playback.PlayerMediaSession;
@@ -173,26 +145,27 @@ import org.schabi.newpipe.player.playqueue.PlayQueueItemBuilder;
 import org.schabi.newpipe.player.playqueue.PlayQueueItemHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueueItemTouchCallback;
 import org.schabi.newpipe.player.resolver.AudioPlaybackResolver;
-import org.schabi.newpipe.player.resolver.MediaSourceTag;
+import org.schabi.newpipe.player.resolver.QualityResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver;
+import org.schabi.newpipe.player.resolver.VideoPlaybackResolver.SourceType;
 import org.schabi.newpipe.player.seekbarpreview.SeekbarPreviewThumbnailHelper;
 import org.schabi.newpipe.player.seekbarpreview.SeekbarPreviewThumbnailHolder;
-import org.schabi.newpipe.util.DeviceUtils;
-import org.schabi.newpipe.util.ListHelper;
-import org.schabi.newpipe.util.NavigationHelper;
-import org.schabi.newpipe.util.PicassoHelper;
-import org.schabi.newpipe.util.SerializedCache;
-import org.schabi.newpipe.util.StreamTypeUtil;
+import org.schabi.newpipe.sleep.SleepTimerService;
+import org.schabi.newpipe.util.*;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.views.ExpandableSurfaceView;
 import org.schabi.newpipe.views.player.PlayerFastSeekOverlay;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -236,6 +209,7 @@ public final class Player implements
     public static final String PLAY_WHEN_READY = "play_when_ready";
     public static final String PLAYER_TYPE = "player_type";
     public static final String IS_MUTED = "is_muted";
+    public static final String VIDEO_SEGMENTS = "video_segments";
 
     /*//////////////////////////////////////////////////////////////////////////
     // Time constants
@@ -252,42 +226,54 @@ public final class Player implements
     // Other constants
     //////////////////////////////////////////////////////////////////////////*/
 
-    private static final float[] PLAYBACK_SPEEDS = {0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f};
+    private static final float[] PLAYBACK_SPEEDS = {0.1f, 0.3f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.25f, 2.5f, 2.75f, 3.0f, 5.0f, 10.0f};
 
     private static final int RENDERER_UNAVAILABLE = -1;
+    private static final int MAX_RETRY_COUNT = 2;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Playback
     //////////////////////////////////////////////////////////////////////////*/
 
     // play queue might be null e.g. while player is starting
-    @Nullable private PlayQueue playQueue;
+    @Nullable
+    private PlayQueue playQueue;
     private PlayQueueAdapter playQueueAdapter;
     private StreamSegmentAdapter segmentAdapter;
 
-    @Nullable private MediaSourceManager playQueueManager;
+    @Nullable
+    private MediaSourceManager playQueueManager;
 
-    @Nullable private PlayQueueItem currentItem;
-    @Nullable private MediaSourceTag currentMetadata;
-    @Nullable private Bitmap currentThumbnail;
+    @Nullable
+    private PlayQueueItem currentItem;
+    @Nullable
+    private MediaItemTag currentMetadata;
+    @Nullable
+    private Bitmap currentThumbnail;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Player
     //////////////////////////////////////////////////////////////////////////*/
 
-    private SimpleExoPlayer simpleExoPlayer;
+    private ExoPlayer simpleExoPlayer;
     private AudioReactor audioReactor;
     private MediaSessionManager mediaSessionManager;
-    @Nullable private SurfaceHolderCallback surfaceHolderCallback;
+    @Nullable
+    private SurfaceHolderCallback surfaceHolderCallback;
 
-    @NonNull private final CustomTrackSelector trackSelector;
-    @NonNull private final LoadController loadController;
-    @NonNull private final RenderersFactory renderFactory;
+    @NonNull
+    private final DefaultTrackSelector trackSelector;
+    @NonNull
+    private final LoadController loadController;
+    @NonNull
+    private final DefaultRenderersFactory renderFactory;
 
-    @NonNull private final VideoPlaybackResolver videoResolver;
-    @NonNull private final AudioPlaybackResolver audioResolver;
+    @NonNull
+    private final VideoPlaybackResolver videoResolver;
+    @NonNull
+    private final AudioPlaybackResolver audioResolver;
 
-    private final MainPlayer service; //TODO try to remove and replace everything with context
+    public final MainPlayer service; //TODO try to remove and replace everything with context
 
     /*//////////////////////////////////////////////////////////////////////////
     // Player states
@@ -304,6 +290,8 @@ public final class Player implements
     private boolean isFullscreen = false;
     private boolean isVerticalVideo = false;
     private boolean fragmentIsVisible = false;
+
+    private boolean isFullscreenGestureEnabled = true;
 
     private List<VideoStream> availableStreams;
     private int selectedStreamIndex;
@@ -354,8 +342,10 @@ public final class Player implements
     public static final int ONGOING_PLAYBACK_WINDOW_FLAGS = IDLE_WINDOW_FLAGS
             | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-    @Nullable private WindowManager.LayoutParams popupLayoutParams; // null if player is not popup
-    @Nullable private final WindowManager windowManager;
+    @Nullable
+    private WindowManager.LayoutParams popupLayoutParams; // null if player is not popup
+    @Nullable
+    private final WindowManager windowManager;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Gestures
@@ -373,29 +363,54 @@ public final class Player implements
 
     private BroadcastReceiver broadcastReceiver;
     private IntentFilter intentFilter;
-    private PlayerServiceEventListener fragmentListener;
+    public PlayerServiceEventListener fragmentListener;
     private PlayerEventListener activityListener;
     private ContentObserver settingsContentObserver;
 
-    @NonNull private final SerialDisposable progressUpdateDisposable = new SerialDisposable();
-    @NonNull private final CompositeDisposable databaseUpdateDisposable = new CompositeDisposable();
+    @NonNull
+    private final SerialDisposable progressUpdateDisposable = new SerialDisposable();
+    @NonNull
+    private final CompositeDisposable databaseUpdateDisposable = new CompositeDisposable();
 
     /*//////////////////////////////////////////////////////////////////////////
     // Utils
     //////////////////////////////////////////////////////////////////////////*/
 
-    @NonNull private final Context context;
-    @NonNull private final SharedPreferences prefs;
-    @NonNull private final HistoryRecordManager recordManager;
+    @NonNull
+    private final Context context;
+    @NonNull
+    private final SharedPreferences prefs;
+    @NonNull
+    private final HistoryRecordManager recordManager;
 
-    @NonNull private final SeekbarPreviewThumbnailHolder seekbarPreviewThumbnailHolder =
+    @NonNull
+    private final SeekbarPreviewThumbnailHolder seekbarPreviewThumbnailHolder =
             new SeekbarPreviewThumbnailHolder();
+
+    private Future<?> enqueueTimer;
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+    ;
 
 
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor
     //////////////////////////////////////////////////////////////////////////*/
     //region Constructor
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // SponsorBlock
+    //////////////////////////////////////////////////////////////////////////*/
+    private SponsorBlockMode sponsorBlockMode = SponsorBlockMode.DISABLED;
+    private int lastSkipTarget = -1;
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // Gesture
+    //////////////////////////////////////////////////////////////////////////*/
+    private boolean longPressSpeedingEnabled = false;
+    public float longPressSpeedingFactor = 1.0f;
+
+    private PlayerDataSource dataSource;
+
 
     public Player(@NonNull final MainPlayer service) {
         this.service = service;
@@ -405,20 +420,29 @@ public final class Player implements
 
         setupBroadcastReceiver();
 
-        trackSelector = new CustomTrackSelector(context, PlayerHelper.getQualitySelector());
-        final PlayerDataSource dataSource = new PlayerDataSource(context, DownloaderImpl.USER_AGENT,
+        trackSelector = new DefaultTrackSelector(context, PlayerHelper.getQualitySelector());
+        dataSource = new PlayerDataSource(context, DownloaderImpl.USER_AGENT,
                 new DefaultBandwidthMeter.Builder(context).build());
         loadController = new LoadController();
-        renderFactory = new DefaultRenderersFactory(context);
+
+        renderFactory = prefs.getBoolean(
+                context.getString(
+                        R.string.always_use_exoplayer_set_output_surface_workaround_key), false)
+                ? new CustomRenderersFactory(context) : new DefaultRenderersFactory(context);
+
+        renderFactory.setEnableDecoderFallback(true);
 
         videoResolver = new VideoPlaybackResolver(context, dataSource, getQualityResolver());
         audioResolver = new AudioPlaybackResolver(context, dataSource);
 
         windowManager = ContextCompat.getSystemService(context, WindowManager.class);
+        longPressSpeedingFactor = Float.parseFloat(prefs.getString(context.getString(R.string.speeding_playback_key), "3"));
+
+        isFullscreenGestureEnabled = PlayerHelper.isFullscreenGestureEnabled(context);
     }
 
-    private VideoPlaybackResolver.QualityResolver getQualityResolver() {
-        return new VideoPlaybackResolver.QualityResolver() {
+    private QualityResolver getQualityResolver() {
+        return new QualityResolver() {
             @Override
             public int getDefaultResolutionIndex(final List<VideoStream> sortedVideos) {
                 return videoPlayerSelected()
@@ -432,6 +456,11 @@ public final class Player implements
                 return videoPlayerSelected()
                         ? getResolutionIndex(context, sortedVideos, playbackQuality)
                         : getPopupResolutionIndex(context, sortedVideos, playbackQuality);
+            }
+
+            @Override
+            public int getCurrentAudioQualityIndex(List<AudioStream> audioStreams) {
+                return ListHelper.getDefaultAudioFormat(context, audioStreams);
             }
         };
     }
@@ -488,7 +517,7 @@ public final class Player implements
             Log.d(TAG, "initPlayer() called with: playOnReady = [" + playOnReady + "]");
         }
 
-        simpleExoPlayer = new SimpleExoPlayer.Builder(context, renderFactory)
+        simpleExoPlayer = new ExoPlayer.Builder(context, renderFactory)
                 .setTrackSelector(trackSelector)
                 .setLoadControl(loadController)
                 .build();
@@ -498,9 +527,10 @@ public final class Player implements
         simpleExoPlayer.setWakeMode(C.WAKE_MODE_NETWORK);
         simpleExoPlayer.setHandleAudioBecomingNoisy(true);
 
+
         audioReactor = new AudioReactor(context, simpleExoPlayer);
         mediaSessionManager = new MediaSessionManager(context, simpleExoPlayer,
-                new PlayerMediaSession(this));
+                new PlayerMediaSession(this, simpleExoPlayer));
 
         registerBroadcastReceiver();
 
@@ -508,22 +538,25 @@ public final class Player implements
         setupVideoSurface();
 
         // enable media tunneling
-        if (DEBUG && PreferenceManager.getDefaultSharedPreferences(context)
+        if (PreferenceManager.getDefaultSharedPreferences(context)
                 .getBoolean(context.getString(R.string.disable_media_tunneling_key), false)) {
             Log.d(TAG, "[" + Util.DEVICE_DEBUG_INFO + "] "
-                    + "media tunneling disabled in debug preferences");
+                    + "media tunneling disabled by user preference");
         } else if (DeviceUtils.shouldSupportMediaTunneling()) {
             trackSelector.setParameters(trackSelector.buildUponParameters()
                     .setTunnelingEnabled(true));
-        } else if (DEBUG) {
+        } else {
             Log.d(TAG, "[" + Util.DEVICE_DEBUG_INFO + "] does not support media tunneling");
         }
     }
 
     private void initListeners() {
+        binding.qualityTextView.setOnClickListener(
+                new QualityClickListener(this, qualityPopupMenu));
+        binding.playbackSpeed.setOnClickListener(
+                new PlaybackSpeedClickListener(this, playbackSpeedPopupMenu));
+
         binding.playbackSeekBar.setOnSeekBarChangeListener(this);
-        binding.playbackSpeed.setOnClickListener(this);
-        binding.qualityTextView.setOnClickListener(this);
         binding.captionTextView.setOnClickListener(this);
         binding.resizeTextView.setOnClickListener(this);
         binding.playbackLiveSync.setOnClickListener(this);
@@ -532,10 +565,15 @@ public final class Player implements
         gestureDetector = new GestureDetectorCompat(context, playerGestureListener);
         binding.getRoot().setOnTouchListener(playerGestureListener);
 
-        binding.queueButton.setOnClickListener(this);
-        binding.segmentsButton.setOnClickListener(this);
-        binding.repeatButton.setOnClickListener(this);
-        binding.shuffleButton.setOnClickListener(this);
+        binding.queueButton.setOnClickListener(v -> onQueueClicked());
+        binding.segmentsButton.setOnClickListener(v -> onSegmentsClicked());
+        binding.repeatButton.setOnClickListener(v -> onRepeatClicked());
+        binding.shuffleButton.setOnClickListener(v -> onShuffleClicked());
+        binding.addToPlaylistButton.setOnClickListener(v -> {
+            if (getParentActivity() != null) {
+                onAddToPlaylistClicked(getParentActivity().getSupportFragmentManager());
+            }
+        });
 
         binding.playPauseButton.setOnClickListener(this);
         binding.playPreviousButton.setOnClickListener(this);
@@ -547,10 +585,15 @@ public final class Player implements
         binding.share.setOnLongClickListener(this);
         binding.fullScreenButton.setOnClickListener(this);
         binding.screenRotationButton.setOnClickListener(this);
+        binding.switchCommentsVisibility.setOnClickListener(this);
         binding.playWithKodi.setOnClickListener(this);
         binding.openInBrowser.setOnClickListener(this);
         binding.playerCloseButton.setOnClickListener(this);
         binding.switchMute.setOnClickListener(this);
+        binding.switchSponsorBlocking.setOnClickListener(this);
+        binding.switchSponsorBlocking.setOnLongClickListener(this);
+        binding.sleepTimer.setOnClickListener(this);
+        binding.sleepTimer.setOnLongClickListener(this);
 
         settingsContentObserver = new ContentObserver(new Handler()) {
             @Override
@@ -580,6 +623,16 @@ public final class Player implements
                             v.getPaddingTop(),
                             v.getPaddingRight(),
                             v.getPaddingBottom());
+                    if (v.getPaddingLeft() != 0 || v.getPaddingTop() != 0
+                            || v.getPaddingRight() != 0 || v.getPaddingBottom() != 0) {
+                        binding.playButtons.setPadding(
+                                -v.getPaddingLeft(), -v.getPaddingTop(), -v.getPaddingRight(), -v.getPaddingBottom());
+                        binding.loadingPanelWrapper.setPadding(
+                                -v.getPaddingLeft(), -v.getPaddingTop(), -v.getPaddingRight(), -v.getPaddingBottom());
+                    } else {
+                        binding.playButtons.setPadding(0, 0, 0, 0);
+                        binding.loadingPanelWrapper.setPadding(0, 0, 0, 0);
+                    }
 
                     // If we added padding to the fast seek overlay, too, it would not go under the
                     // system ui. Instead we apply negative margins equal to the window insets of
@@ -664,6 +717,7 @@ public final class Player implements
     //////////////////////////////////////////////////////////////////////////*/
     //region Playback initialization via intent
 
+    @SuppressWarnings("MethodLength")
     public void handleIntent(@NonNull final Intent intent) {
         // fail fast if no play queue was provided
         final String queueCache = intent.getStringExtra(PLAY_QUEUE_KEY);
@@ -689,7 +743,7 @@ public final class Player implements
             playQueue.append(newQueue.getStreams());
             return;
 
-        // Resolve enqueue next intents
+            // Resolve enqueue next intents
         } else if (intent.getBooleanExtra(ENQUEUE_NEXT, false) && playQueue != null) {
             final int currentIndex = playQueue.getIndex();
             playQueue.append(newQueue.getStreams());
@@ -821,7 +875,16 @@ public final class Player implements
                 pause();
             }
         }
-        NavigationHelper.sendPlayerStartedEvent(context);
+        String title = null;
+        String uploader = null;
+        String thumbnailUrl = null;
+        if (playQueue != null && playQueue.getItem() != null) {
+            PlayQueueItem item = playQueue.getItem();
+            title = item.getTitle();
+            uploader = item.getUploader();
+            thumbnailUrl = item.getThumbnailUrl();
+        }
+        NavigationHelper.sendPlayerStartedEvent(context, title, uploader, thumbnailUrl);
     }
 
     /**
@@ -849,10 +912,6 @@ public final class Player implements
                               final boolean isMuted) {
         destroyPlayer();
         initPlayer(playOnReady);
-        setRepeatMode(repeatMode);
-        // #6825 - Ensure that the shuffle-button is in the correct state on the UI
-        setShuffleButton(binding.shuffleButton, simpleExoPlayer.getShuffleModeEnabled());
-        setPlaybackParameters(playbackSpeed, playbackPitch, playbackSkipSilence);
 
         playQueue = queue;
         playQueue.init();
@@ -865,6 +924,17 @@ public final class Player implements
         segmentAdapter = new StreamSegmentAdapter(getStreamSegmentListener());
 
         simpleExoPlayer.setVolume(isMuted ? 0 : 1);
+        if (playQueue != null) {
+            simpleExoPlayer.setShuffleModeEnabled(playQueue.isShuffled());
+            mediaSessionManager = new MediaSessionManager(context, simpleExoPlayer,
+                    new PlayerMediaSession(this, simpleExoPlayer));
+        }
+
+        setRepeatMode(repeatMode);
+        // #6825 - Ensure that the shuffle-button is in the correct state on the UI
+        setShuffleButton(binding.shuffleButton, simpleExoPlayer.getShuffleModeEnabled());
+        setPlaybackParameters(playbackSpeed, playbackPitch, playbackSkipSilence);
+
         notifyQueueUpdateToListeners();
     }
     //endregion
@@ -908,6 +978,14 @@ public final class Player implements
             playQueueAdapter.unsetSelectedListener();
             playQueueAdapter.dispose();
         }
+        if (bcPlayer != null) {
+            bcPlayer.disconnect();
+            clearBCPlayer();
+        }
+        if (enqueueTimer != null) {
+            enqueueTimer.cancel(true);
+        }
+        dataSource.disconnectWebSocketClients();
     }
 
     public void destroy() {
@@ -937,8 +1015,10 @@ public final class Player implements
         final long windowPos = simpleExoPlayer.getCurrentPosition();
         final long duration = simpleExoPlayer.getDuration();
 
-        // No checks due to https://github.com/TeamNewPipe/NewPipe/pull/7195#issuecomment-962624380
-        setRecovery(queuePos, Math.max(0, Math.min(windowPos, duration)));
+        final long newPos = Math.max(0, Math.min(windowPos, duration));
+        if (newPos > 0) {
+            setRecovery(queuePos, newPos);
+        }
     }
 
     private void setRecovery(final int queuePos, final long windowPos) {
@@ -958,7 +1038,7 @@ public final class Player implements
         }
 
         if (playQueue != null) {
-            playQueueManager = new MediaSourceManager(this, playQueue);
+            playQueueManager = new MediaSourceManager(context, this, playQueue);
         }
     }
 
@@ -1067,14 +1147,17 @@ public final class Player implements
             binding.secondaryControls.setVisibility(View.VISIBLE);
             binding.secondaryControls.setTranslationY(0);
             binding.share.setVisibility(View.GONE);
+            binding.switchCommentsVisibility.setVisibility(View.GONE);
             binding.playWithKodi.setVisibility(View.GONE);
             binding.openInBrowser.setVisibility(View.GONE);
+            binding.sleepTimer.setVisibility(View.GONE);
             binding.switchMute.setVisibility(View.GONE);
             binding.playerCloseButton.setVisibility(View.GONE);
             binding.topControls.bringToFront();
             binding.topControls.setClickable(false);
             binding.topControls.setFocusable(false);
             binding.bottomControls.bringToFront();
+            binding.switchSponsorBlocking.setVisibility(View.GONE);
             closeItemsList();
         } else if (videoPlayerSelected()) {
             binding.fullScreenButton.setVisibility(View.GONE);
@@ -1089,22 +1172,30 @@ public final class Player implements
             binding.moreOptionsButton.setImageDrawable(AppCompatResources.getDrawable(context,
                     R.drawable.ic_expand_more));
             binding.share.setVisibility(View.VISIBLE);
+            binding.switchCommentsVisibility.setVisibility(View.VISIBLE);
             binding.openInBrowser.setVisibility(View.VISIBLE);
+            binding.sleepTimer.setVisibility(View.VISIBLE);
             binding.switchMute.setVisibility(View.VISIBLE);
             binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
             // Top controls have a large minHeight which is allows to drag the player
             // down in fullscreen mode (just larger area to make easy to locate by finger)
             binding.topControls.setClickable(true);
             binding.topControls.setFocusable(true);
+            final boolean isSponsorBlockEnabled = getPrefs().getBoolean(
+                    context.getString(R.string.sponsor_block_enable_key), true);
+            binding.switchSponsorBlocking.setVisibility(
+                    isSponsorBlockEnabled ? View.VISIBLE : View.GONE);
         }
         showHideKodiButton();
 
         if (isFullscreen) {
             binding.titleTextView.setVisibility(View.VISIBLE);
             binding.channelTextView.setVisibility(View.VISIBLE);
+            binding.sleepTimer.setVisibility(View.VISIBLE);
         } else {
             binding.titleTextView.setVisibility(View.GONE);
             binding.channelTextView.setVisibility(View.GONE);
+            binding.sleepTimer.setVisibility(View.GONE);
         }
         setMuteButton(binding.switchMute, isMuted());
 
@@ -1185,6 +1276,7 @@ public final class Player implements
         intentFilter.addAction(ACTION_SHUFFLE);
         intentFilter.addAction(ACTION_RECREATE_NOTIFICATION);
 
+        intentFilter.addAction(VideoDetailFragment.ACTION_SEEK_TO);
         intentFilter.addAction(VideoDetailFragment.ACTION_VIDEO_FRAGMENT_RESUMED);
         intentFilter.addAction(VideoDetailFragment.ACTION_VIDEO_FRAGMENT_STOPPED);
 
@@ -1192,6 +1284,8 @@ public final class Player implements
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_HEADSET_PLUG);
+
+        intentFilter.addAction(VideoDetailFragment.ACTION_VIDEO_ERROR);
     }
 
     private void onBroadcastReceived(final Intent intent) {
@@ -1238,6 +1332,12 @@ public final class Player implements
                 break;
             case ACTION_RECREATE_NOTIFICATION:
                 NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, true);
+                break;
+            case VideoDetailFragment.ACTION_SEEK_TO:
+                seekTo(intent.getIntExtra("Timestamp", 0) * 1000L);
+                if (wasPlaying) {
+                    simpleExoPlayer.play();
+                }
                 break;
             case VideoDetailFragment.ACTION_VIDEO_FRAGMENT_RESUMED:
                 fragmentIsVisible = true;
@@ -1322,7 +1422,7 @@ public final class Player implements
         }
 
         // scale down the notification thumbnail for performance
-        PicassoHelper.loadScaledDownThumbnail(context, url).into(new Target() {
+        PicassoHelper.loadScaledDownThumbnail(context, url, true).into(new Target() {
             @Override
             public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
                 if (DEBUG) {
@@ -1482,6 +1582,7 @@ public final class Player implements
 
     /**
      * Changes the size of the popup based on the width.
+     *
      * @param width the new width, height is calculated with
      *              {@link PlayerHelper#getMinimumVideoHeight(float)}
      */
@@ -1614,7 +1715,7 @@ public final class Player implements
         return getPlaybackParameters().speed;
     }
 
-    private void setPlaybackSpeed(final float speed) {
+    public void setPlaybackSpeed(final float speed) {
         setPlaybackParameters(speed, getPlaybackPitch(), getPlaybackSkipSilence());
     }
 
@@ -1623,8 +1724,7 @@ public final class Player implements
     }
 
     public boolean getPlaybackSkipSilence() {
-        return !exoPlayerIsNull() && simpleExoPlayer.getAudioComponent() != null
-                && simpleExoPlayer.getAudioComponent().getSkipSilenceEnabled();
+        return !exoPlayerIsNull() && simpleExoPlayer.getSkipSilenceEnabled();
     }
 
     public PlaybackParameters getPlaybackParameters() {
@@ -1650,9 +1750,7 @@ public final class Player implements
         savePlaybackParametersToPrefs(this, roundedSpeed, roundedPitch, skipSilence);
         simpleExoPlayer.setPlaybackParameters(
                 new PlaybackParameters(roundedSpeed, roundedPitch));
-        if (simpleExoPlayer.getAudioComponent() != null) {
-            simpleExoPlayer.getAudioComponent().setSkipSilenceEnabled(skipSilence);
-        }
+        simpleExoPlayer.setSkipSilenceEnabled(skipSilence);
     }
     //endregion
 
@@ -1711,7 +1809,11 @@ public final class Player implements
         return progressUpdateDisposable.get() != null;
     }
 
-    private void triggerProgressUpdate() {
+    public void triggerProgressUpdate() {
+        triggerProgressUpdate(false);
+    }
+
+    private void triggerProgressUpdate(final boolean isRewind) {
         if (exoPlayerIsNull()) {
             return;
         }
@@ -1728,18 +1830,96 @@ public final class Player implements
         } else {
             duration = (int) simpleExoPlayer.getDuration();
         }
+        final int currentProgress = Math.max((int) simpleExoPlayer.getCurrentPosition(), 0);
+
         onUpdateProgress(
-                Math.max((int) simpleExoPlayer.getCurrentPosition(), 0),
-                duration,
-                simpleExoPlayer.getBufferedPercentage()
-        );
+                currentProgress,
+                (int) simpleExoPlayer.getDuration(),
+                simpleExoPlayer.getBufferedPercentage());
+
+        if (sponsorBlockMode == SponsorBlockMode.ENABLED && isPrepared) {
+            final VideoSegment segment = getSkippableSegment(currentProgress);
+            if (segment == null) {
+                lastSkipTarget = -1;
+                return;
+            }
+
+            int skipTarget = isRewind
+                    ? (int) Math.ceil((segment.startTime)) - 1
+                    : (int) Math.ceil((segment.endTime));
+
+            if (skipTarget < 0) {
+                skipTarget = 0;
+            }
+
+            if (lastSkipTarget == skipTarget) {
+                return;
+            }
+
+            lastSkipTarget = skipTarget;
+
+            // temporarily force EXACT seek parameters to prevent infinite skip looping
+            final SeekParameters seekParams = simpleExoPlayer.getSeekParameters();
+            simpleExoPlayer.setSeekParameters(SeekParameters.EXACT);
+
+            seekTo(skipTarget);
+
+            simpleExoPlayer.setSeekParameters(seekParams);
+
+            if (prefs.getBoolean(
+                    context.getString(R.string.sponsor_block_notifications_key), false)) {
+                String toastText = "";
+
+                switch (segment.category) {
+                    case "sponsor":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_sponsor_toast);
+                        break;
+                    case "intro":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_intro_toast);
+                        break;
+                    case "outro":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_outro_toast);
+                        break;
+                    case "interaction":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_interaction_toast);
+                        break;
+                    case "selfpromo":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_self_promo_toast);
+                        break;
+                    case "music_offtopic":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_non_music_toast);
+                        break;
+                    case "preview":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_preview_toast);
+                        break;
+                    case "filler":
+                        toastText = context
+                                .getString(R.string.sponsor_block_skip_filler_toast);
+                        break;
+                }
+
+                Toast.makeText(context, toastText, Toast.LENGTH_SHORT).show();
+            }
+
+            if (DEBUG) {
+                Log.d("SPONSOR_BLOCK", "Skipped segment: currentProgress = ["
+                        + currentProgress + "], skipped to = [" + skipTarget + "]");
+            }
+        }
     }
 
     private Disposable getProgressUpdateDisposable() {
         return Observable.interval(PROGRESS_LOOP_INTERVAL_MILLIS, MILLISECONDS,
-                AndroidSchedulers.mainThread())
+                        AndroidSchedulers.mainThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(ignored -> triggerProgressUpdate(),
+                .subscribe(ignored -> triggerProgressUpdate(false),
                         error -> Log.e(TAG, "Progress update failure: ", error));
     }
 
@@ -1916,7 +2096,7 @@ public final class Player implements
         }, delay);
     }
 
-    private void showHideShadow(final boolean show, final long duration) {
+    public void showHideShadow(final boolean show, final long duration) {
         animate(binding.playbackControlsShadow, show, duration, AnimationType.ALPHA, 0, null);
         animate(binding.playerTopShadow, show, duration, AnimationType.ALPHA, 0, null);
         animate(binding.playerBottomShadow, show, duration, AnimationType.ALPHA, 0, null);
@@ -1930,11 +2110,12 @@ public final class Player implements
         final boolean showPrev = playQueue.getIndex() != 0;
         final boolean showNext = playQueue.getIndex() + 1 != playQueue.getStreams().size();
         final boolean showQueue = playQueue.getStreams().size() > 1 && !popupPlayerSelected();
-        boolean showSegment = false;
-        if (currentMetadata != null) {
-            showSegment = !currentMetadata.getMetadata().getStreamSegments().isEmpty()
-                    && !popupPlayerSelected();
-        }
+        /* only when stream has segments and is not playing in popup player */
+        final boolean showSegment = !popupPlayerSelected()
+                && !getCurrentStreamInfo()
+                .map(StreamInfo::getStreamSegments)
+                .map(List::isEmpty)
+                .orElse(/*no stream info=*/true);
 
         binding.playPreviousButton.setVisibility(showPrev ? View.VISIBLE : View.INVISIBLE);
         binding.playPreviousButton.setAlpha(showPrev ? 1.0f : 0.0f);
@@ -1949,10 +2130,8 @@ public final class Player implements
     private void showSystemUIPartially() {
         final AppCompatActivity activity = getParentActivity();
         if (isFullscreen && activity != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
-                activity.getWindow().setNavigationBarColor(Color.TRANSPARENT);
-            }
+            activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
+            activity.getWindow().setNavigationBarColor(Color.TRANSPARENT);
             final int visibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
@@ -1969,14 +2148,33 @@ public final class Player implements
     //endregion
 
 
-
     /*//////////////////////////////////////////////////////////////////////////
     // Playback states
     //////////////////////////////////////////////////////////////////////////*/
     //region Playback states
+    @Override
+    public void onPlayWhenReadyChanged(final boolean playWhenReady, final int reason) {
+        if (DEBUG) {
+            Log.d(TAG, "ExoPlayer - onPlayWhenReadyChanged() called with: "
+                    + "playWhenReady = [" + playWhenReady + "], "
+                    + "reason = [" + reason + "]");
+        }
+        final int playbackState = exoPlayerIsNull()
+                ? com.google.android.exoplayer2.Player.STATE_IDLE
+                : simpleExoPlayer.getPlaybackState();
+        updatePlaybackState(playWhenReady, playbackState);
+    }
 
-    @Override // exoplayer listener
-    public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+    @Override
+    public void onPlaybackStateChanged(final int playbackState) {
+        if (DEBUG) {
+            Log.d(TAG, "ExoPlayer - onPlaybackStateChanged() called with: "
+                    + "playbackState = [" + playbackState + "]");
+        }
+        updatePlaybackState(getPlayWhenReady(), playbackState);
+    }
+
+    private void updatePlaybackState(final boolean playWhenReady, final int playbackState) {
         if (DEBUG) {
             Log.d(TAG, "ExoPlayer - onPlayerStateChanged() called with: "
                     + "playWhenReady = [" + playWhenReady + "], "
@@ -1985,7 +2183,7 @@ public final class Player implements
 
         if (currentState == STATE_PAUSED_SEEK) {
             if (DEBUG) {
-                Log.d(TAG, "ExoPlayer - onPlayerStateChanged() is currently blocked");
+                Log.d(TAG, "updatePlaybackState() is currently blocked");
             }
             return;
         }
@@ -2000,8 +2198,6 @@ public final class Player implements
                 }
                 break;
             case com.google.android.exoplayer2.Player.STATE_READY: //3
-                maybeUpdateCurrentMetadata();
-                maybeCorrectSeekPosition();
                 if (!isPrepared) {
                     isPrepared = true;
                     onPrepared(playWhenReady);
@@ -2018,18 +2214,15 @@ public final class Player implements
 
     @Override // exoplayer listener
     public void onIsLoadingChanged(final boolean isLoading) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onLoadingChanged() called with: "
-                    + "isLoading = [" + isLoading + "]");
+        if (!isLoading) {
+            if (currentState == STATE_PAUSED && isProgressLoopRunning()) {
+                stopProgressLoop();
+            }
+        } else {
+            if (!isProgressLoopRunning()) {
+                startProgressLoop();
+            }
         }
-
-        if (!isLoading && currentState == STATE_PAUSED && isProgressLoopRunning()) {
-            stopProgressLoop();
-        } else if (isLoading && !isProgressLoopRunning()) {
-            startProgressLoop();
-        }
-
-        maybeUpdateCurrentMetadata();
     }
 
     @Override // own playback listener
@@ -2076,22 +2269,177 @@ public final class Player implements
                 break;
             case STATE_PLAYING:
                 onPlaying();
+                initBCPlayer();
+                startBCPlayer();
                 break;
             case STATE_BUFFERING:
                 onBuffering();
                 break;
             case STATE_PAUSED:
+                if (enqueueTimer != null) {
+                    enqueueTimer.cancel(true);
+                }
                 onPaused();
+                pauseBCPlayer();
                 break;
             case STATE_PAUSED_SEEK:
+                if (enqueueTimer != null) {
+                    enqueueTimer.cancel(true);
+                }
                 onPausedSeek();
+                pauseBCPlayer();
                 break;
             case STATE_COMPLETED:
                 onCompleted();
+                completeBCPlayer();
                 break;
         }
         notifyPlaybackUpdateToListeners();
     }
+
+    private MovieBulletCommentsPlayer bcPlayer = null;
+
+    private Duration getCurrentPositionDuration() {
+        if (currentItem == null) {
+            return null;
+        }
+        return Duration.ofMillis(simpleExoPlayer.getCurrentPosition());
+    }
+
+    private Duration getDurationInDuration() {
+        if (currentItem == null) {
+            return null;
+        }
+        return Duration.ofMillis(simpleExoPlayer.getDuration());
+    }
+
+    /*////////////////////////////////////////////////
+     * BulletCommentsPlayer
+     *////////////////////////////////////////////////
+    //region BulletCommentsPlayer
+    private void initBCPlayer() {
+        try {
+            if (currentMetadata != null && NewPipe.getService(currentMetadata.getServiceId())
+                    .getServiceInfo()
+                    .getMediaCapabilities()
+                    .contains(StreamingService.ServiceInfo.MediaCapability.BULLET_COMMENTS)
+                    && !audioPlayerSelected()) {
+                if (bcPlayer != null) {
+                    if (utils.DetimestampedEqual(bcPlayer.getUrl(), currentMetadata.getStreamUrl())) {
+                        return;
+                    }
+                    bcPlayer.disconnect();
+                }
+                clearBCPlayer();
+                bcPlayer = new MovieBulletCommentsPlayer(binding.bulletCommentsView);
+                bcPlayer.setInitialData(currentMetadata.getServiceId(),
+                        currentMetadata.getStreamUrl());
+                bcPlayer.init();
+                Log.d(TAG, "BulletCommentsView initialized.");
+            } else {
+                Log.i(TAG, "Current service does not have MediaCapability of BULLET_COMMENTS"
+                        + ", skipping BulletCommentsView initialization.");
+            }
+        } catch (final ExtractionException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+        }
+        isBCPlayerVisible = prefs.getBoolean("isBCPlayerVisible", true);
+        Log.i(TAG, "BulletCommentPlayer initial visibility: " + isBCPlayerVisible);
+        if (bcPlayer == null) {
+            // If set to INVISIBLE, the space remains.
+            binding.switchCommentsVisibility.setVisibility(View.GONE);
+        } else {
+            binding.switchCommentsVisibility.setVisibility(View.VISIBLE);
+            binding.switchCommentsVisibility.setImageDrawable(isBCPlayerVisible ? AppCompatResources.getDrawable(context,
+                    R.drawable.ic_bullet_comment_enabled) : AppCompatResources.getDrawable(context,
+                    R.drawable.ic_bullet_comment_disabled));
+        }
+    }
+
+    private Disposable bcPlayerDrawCommentsObservable = null;
+
+    public void startBCPlayer() {
+        if (bcPlayer == null | bcPlayerDrawCommentsObservable != null | !isBCPlayerVisible) {
+            return;
+        }
+        bcPlayer.start(getCurrentPositionDuration());
+        bcPlayerDrawCommentsObservable = Observable.interval(
+                        bcPlayer.INTERVAL.toMillis(),
+                        TimeUnit.MILLISECONDS
+                )
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(s -> {
+                    Duration ret = getCurrentPositionDuration();
+                    if (currentItem != null && currentItem.getStartAt() != -1 && currentItem.getStreamType() == StreamType.LIVE_STREAM) {
+                        ret = Duration.ofMillis(new Date().getTime() - currentItem.getStartAt());
+                    }
+                    if (ret == null) {
+                        return Duration.ofMillis(-1);
+                    }
+                    return ret;
+                })
+                .subscribe(s -> {
+                            if (isPlaying() && !audioPlayerSelected()) {
+                                bcPlayer.drawComments(s.plus(bcPlayer.INTERVAL));
+                            }
+                        },
+                        e -> Log.e(TAG, Log.getStackTraceString(e))
+                );
+        Log.d(TAG, "BulletCommentsView started.");
+    }
+
+    private void completeBCPlayer() {
+        if (bcPlayer == null | !isBCPlayerVisible | currentMetadata == null) {
+            return;
+        }
+        bcPlayer.complete(Objects.requireNonNull(getDurationInDuration()));
+        clearBCPlayer();
+        Log.d(TAG, "BulletCommentsView completed.");
+    }
+
+    public void pauseBCPlayer() {
+        if (bcPlayer == null) {
+            return;
+        }
+        if (bcPlayerDrawCommentsObservable != null) {
+            bcPlayerDrawCommentsObservable.dispose();
+            bcPlayerDrawCommentsObservable = null;
+            Log.d(TAG, "BulletCommentsView observable disposed.");
+        }
+        bcPlayer.pause();
+        Log.d(TAG, "BulletCommentsView paused.");
+    }
+
+    private void clearBCPlayer() {
+        if (bcPlayer == null) {
+            return;
+        }
+        if (bcPlayerDrawCommentsObservable != null) {
+            bcPlayerDrawCommentsObservable.dispose();
+            bcPlayerDrawCommentsObservable = null;
+            Log.d(TAG, "BulletCommentsView observable disposed.");
+        }
+        bcPlayer.clear();
+        Log.d(TAG, "BulletCommentsView cleared.");
+    }
+
+    private boolean isBCPlayerVisible;
+
+    private void onSwitchBCPlayerVisibilityClicked() {
+        isBCPlayerVisible = !isBCPlayerVisible;
+        prefs.edit().putBoolean("isBCPlayerVisible", isBCPlayerVisible).apply();
+        binding.switchCommentsVisibility.setImageDrawable(isBCPlayerVisible ? AppCompatResources.getDrawable(context,
+                R.drawable.ic_bullet_comment_enabled) : AppCompatResources.getDrawable(context,
+                R.drawable.ic_bullet_comment_disabled));
+        Log.i(TAG, "BulletCommentPlayer visibility changed to " + isBCPlayerVisible);
+        if (isBCPlayerVisible) {
+            startBCPlayer();
+        } else {
+            clearBCPlayer();
+        }
+    }
+
+    //endregion BulletCommentsPlayer
 
     private void onPrepared(final boolean playWhenReady) {
         if (DEBUG) {
@@ -2101,7 +2449,7 @@ public final class Player implements
         setVideoDurationToControls((int) simpleExoPlayer.getDuration());
 
         binding.playbackSpeed.setText(formatSpeed(getPlaybackSpeed()));
-
+        markSegments(currentItem, binding.playbackSeekBar, context, getPrefs());
         if (playWhenReady) {
             audioReactor.requestAudioFocus();
         }
@@ -2143,6 +2491,16 @@ public final class Player implements
 
         updateStreamRelatedViews();
 
+        if (getCurrentStreamInfo().isPresent()) {
+            StreamInfo streamInfo = getCurrentStreamInfo().get();
+            if (streamInfo.isRoundPlayStream() && (
+                    enqueueTimer == null || enqueueTimer.isDone() || enqueueTimer.isCancelled())) {
+                enqueueTimer = executor.schedule(() -> maybeAutoQueueNextStream(streamInfo, true),
+                        Math.max(simpleExoPlayer.getDuration()
+                                - simpleExoPlayer.getCurrentPosition() - 1000, 0), MILLISECONDS);
+            }
+        }
+
         binding.playbackSeekBar.setEnabled(true);
         binding.playbackSeekBar.getThumb()
                 .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
@@ -2175,7 +2533,6 @@ public final class Player implements
         binding.loadingPanel.setVisibility(View.VISIBLE);
 
         binding.getRoot().setKeepScreenOn(true);
-
         if (NotificationUtil.getInstance().shouldUpdateBufferingSlot()) {
             NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, false);
         }
@@ -2185,7 +2542,6 @@ public final class Player implements
         if (DEBUG) {
             Log.d(TAG, "onPaused() called");
         }
-
         if (isProgressLoopRunning()) {
             stopProgressLoop();
         }
@@ -2247,9 +2603,6 @@ public final class Player implements
         changePopupWindowFlags(IDLE_WINDOW_FLAGS);
 
         NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, false);
-        if (isFullscreen) {
-            toggleFullscreen();
-        }
 
         if (playQueue.getIndex() < playQueue.size() - 1) {
             playQueue.offsetIndex(+1);
@@ -2322,7 +2675,7 @@ public final class Player implements
         return exoPlayerIsNull() ? REPEAT_MODE_OFF : simpleExoPlayer.getRepeatMode();
     }
 
-    private void setRepeatMode(@RepeatMode final int repeatMode) {
+    public void setRepeatMode(@RepeatMode final int repeatMode) {
         if (!exoPlayerIsNull()) {
             simpleExoPlayer.setRepeatMode(repeatMode);
         }
@@ -2385,6 +2738,32 @@ public final class Player implements
 
 
     /*//////////////////////////////////////////////////////////////////////////
+    // Playlist append
+    //////////////////////////////////////////////////////////////////////////*/
+    //region Playlist append
+
+    public void onAddToPlaylistClicked(@NonNull final FragmentManager fragmentManager) {
+        if (DEBUG) {
+            Log.d(TAG, "onAddToPlaylistClicked() called");
+        }
+
+        if (getPlayQueue() != null) {
+            PlaylistDialog.createCorrespondingDialog(
+                    getContext(),
+                    getPlayQueue()
+                            .getStreams()
+                            .stream()
+                            .map(StreamEntity::new)
+                            .collect(Collectors.toList()),
+                    dialog -> dialog.show(fragmentManager, TAG)
+            );
+        }
+    }
+    //endregion
+
+
+
+    /*//////////////////////////////////////////////////////////////////////////
     // Mute / Unmute
     //////////////////////////////////////////////////////////////////////////*/
     //region Mute / Unmute
@@ -2408,6 +2787,16 @@ public final class Player implements
     }
     //endregion
 
+    public void onScreenRotationButtonClicked() {
+        if (!isVerticalVideo
+                || (service.isLandscape() && globalScreenOrientationLocked(context))) {
+            fragmentListener.onScreenRotationButtonClicked();
+        } else {
+            toggleFullscreen();
+        }
+    }
+
+
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -2415,28 +2804,61 @@ public final class Player implements
     //////////////////////////////////////////////////////////////////////////*/
     //region ExoPlayer listeners (that didn't fit in other categories)
 
+    /**
+     * <p>Listens for event or state changes on ExoPlayer. When any event happens, we check for
+     * changes in the currently-playing metadata and update the encapsulating
+     * {@link Player}. Downstream listeners are also informed.</p>
+     *
+     * <p>When the renewed metadata contains any error, it is reported as a notification.
+     * This is done because not all source resolution errors are {@link PlaybackException}, which
+     * are also captured by {@link ExoPlayer} and stops the playback.</p>
+     *
+     * @param player The {@link com.google.android.exoplayer2.Player} whose state changed.
+     * @param events The {@link com.google.android.exoplayer2.Player.Events} that has triggered
+     *               the player state changes.
+     **/
     @Override
-    public void onTimelineChanged(@NonNull final Timeline timeline, final int reason) {
-        if (DEBUG) {
-            Log.d(TAG, "ExoPlayer - onTimelineChanged() called with "
-                    + "timeline size = [" + timeline.getWindowCount() + "], "
-                    + "reason = [" + reason + "]");
-        }
+    public void onEvents(@NonNull final com.google.android.exoplayer2.Player player,
+                         @NonNull final com.google.android.exoplayer2.Player.Events events) {
+        Listener.super.onEvents(player, events);
+        MediaItemTag.from(player.getCurrentMediaItem()).ifPresent(tag -> {
+            if (tag == currentMetadata) {
+                return; // we still have the same metadata, no need to do anything
+            }
+            final StreamInfo previousInfo = Optional.ofNullable(currentMetadata)
+                    .flatMap(MediaItemTag::getMaybeStreamInfo).orElse(null);
+            currentMetadata = tag;
 
-        maybeUpdateCurrentMetadata();
-        // force recreate notification to ensure seek bar is shown when preparation finishes
-        NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, true);
+            if (!currentMetadata.getErrors().isEmpty()) {
+                // new errors might have been added even if previousInfo == tag.getMaybeStreamInfo()
+                final ErrorInfo errorInfo = new ErrorInfo(
+                        currentMetadata.getErrors(),
+                        UserAction.PLAY_STREAM,
+                        "Loading failed for [" + currentMetadata.getTitle()
+                                + "]: " + currentMetadata.getStreamUrl(),
+                        currentMetadata.getServiceId());
+                ErrorUtil.createNotification(context, errorInfo);
+            }
+
+            currentMetadata.getMaybeStreamInfo().ifPresent(info -> {
+                if (DEBUG) {
+                    Log.d(TAG, "ExoPlayer - onEvents() update stream info: " + info.getName());
+                }
+                if (previousInfo == null || !previousInfo.getUrl().equals(info.getUrl())) {
+                    // only update with the new stream info if it has actually changed
+                    updateMetadataWith(info);
+                }
+            });
+        });
     }
 
     @Override
-    public void onTracksChanged(@NonNull final TrackGroupArray trackGroups,
-                                @NonNull final TrackSelectionArray trackSelections) {
+    public void onTracksChanged(@NonNull final Tracks tracks) {
         if (DEBUG) {
             Log.d(TAG, "ExoPlayer - onTracksChanged(), "
-                    + "track group size = " + trackGroups.length);
+                    + "track group size = " + tracks.getGroups().size());
         }
-        maybeUpdateCurrentMetadata();
-        onTextTracksChanged();
+        onTextTracksChanged(tracks);
     }
 
     @Override
@@ -2449,11 +2871,15 @@ public final class Player implements
     }
 
     @Override
-    public void onPositionDiscontinuity(
-            final PositionInfo oldPosition, final PositionInfo newPosition,
-            @DiscontinuityReason final int discontinuityReason) {
+    public void onPositionDiscontinuity(@NonNull final PositionInfo oldPosition,
+                                        @NonNull final PositionInfo newPosition,
+                                        @DiscontinuityReason final int discontinuityReason) {
         if (DEBUG) {
             Log.d(TAG, "ExoPlayer - onPositionDiscontinuity() called with "
+                    + "oldPositionIndex = [" + oldPosition.mediaItemIndex + "], "
+                    + "oldPositionMs = [" + oldPosition.positionMs + "], "
+                    + "newPositionIndex = [" + newPosition.mediaItemIndex + "], "
+                    + "newPositionMs = [" + newPosition.positionMs + "], "
                     + "discontinuityReason = [" + discontinuityReason + "]");
         }
         if (playQueue == null) {
@@ -2461,13 +2887,13 @@ public final class Player implements
         }
 
         // Refresh the playback if there is a transition to the next video
-        final int newWindowIndex = simpleExoPlayer.getCurrentWindowIndex();
+        final int newIndex = newPosition.mediaItemIndex;
         switch (discontinuityReason) {
             case DISCONTINUITY_REASON_AUTO_TRANSITION:
             case DISCONTINUITY_REASON_REMOVE:
                 // When player is in single repeat mode and a period transition occurs,
                 // we need to register a view count here since no metadata has changed
-                if (getRepeatMode() == REPEAT_MODE_ONE && newWindowIndex == playQueue.getIndex()) {
+                if (getRepeatMode() == REPEAT_MODE_ONE && newIndex == playQueue.getIndex()) {
                     registerStreamViewed();
                     break;
                 }
@@ -2480,16 +2906,15 @@ public final class Player implements
                 }
             case DISCONTINUITY_REASON_SEEK_ADJUSTMENT:
             case DISCONTINUITY_REASON_INTERNAL:
-                if (playQueue.getIndex() != newWindowIndex) {
+                // Player index may be invalid when playback is blocked
+                if (getCurrentState() != STATE_BLOCKED && newIndex != playQueue.getIndex()) {
                     saveStreamProgressStateCompleted(); // current stream has ended
-                    playQueue.setIndex(newWindowIndex);
+                    playQueue.setIndex(newIndex);
                 }
                 break;
             case DISCONTINUITY_REASON_SKIP:
                 break; // only makes Android Studio linter happy, as there are no ads
         }
-
-        maybeUpdateCurrentMetadata();
     }
 
     @Override
@@ -2499,10 +2924,9 @@ public final class Player implements
     }
 
     @Override
-    public void onCues(final List<Cue> cues) {
-        binding.subtitleView.onCues(cues);
-    }
-    //endregion
+    public void onCues(@NonNull final CueGroup cueGroup) {
+        binding.subtitleView.setCues(cueGroup.cues);
+    }    //endregion
 
 
 
@@ -2510,97 +2934,133 @@ public final class Player implements
     // Errors
     //////////////////////////////////////////////////////////////////////////*/
     //region Errors
+
     /**
      * Process exceptions produced by {@link com.google.android.exoplayer2.ExoPlayer ExoPlayer}.
      * <p>There are multiple types of errors:</p>
      * <ul>
-     * <li>{@link ExoPlaybackException#TYPE_SOURCE TYPE_SOURCE}</li>
-     * <li>{@link ExoPlaybackException#TYPE_UNEXPECTED TYPE_UNEXPECTED}:
-     * If a runtime error occurred, then we can try to recover it by restarting the playback
-     * after setting the timestamp recovery.</li>
-     * <li>{@link ExoPlaybackException#TYPE_RENDERER TYPE_RENDERER}:
-     * If the renderer failed, treat the error as unrecoverable.</li>
+     * <li>{@link PlaybackException#ERROR_CODE_BEHIND_LIVE_WINDOW BEHIND_LIVE_WINDOW}:
+     * If the playback on livestreams are lagged too far behind the current playable
+     * window. Then we seek to the latest timestamp and restart the playback.
+     * This error is <b>catchable</b>.
+     * </li>
+     * <li>From {@link PlaybackException#ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE BAD_IO} to
+     * {@link PlaybackException#ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED UNSUPPORTED_FORMATS}:
+     * If the stream source is validated by the extractor but not recognized by the player,
+     * then we can try to recover playback by signalling an error on the {@link PlayQueue}.</li>
+     * <li>For {@link PlaybackException#ERROR_CODE_TIMEOUT PLAYER_TIMEOUT},
+     * {@link PlaybackException#ERROR_CODE_IO_UNSPECIFIED MEDIA_SOURCE_RESOLVER_TIMEOUT} and
+     * {@link PlaybackException#ERROR_CODE_IO_NETWORK_CONNECTION_FAILED NO_NETWORK}:
+     * We can keep set the recovery record and keep to player at the current state until
+     * it is ready to play by restarting the {@link MediaSourceManager}.</li>
+     * <li>On any ExoPlayer specific issue internal to its device interaction, such as
+     * {@link PlaybackException#ERROR_CODE_DECODER_INIT_FAILED DECODER_ERROR}:
+     * We terminate the playback.</li>
+     * <li>For any other unspecified issue internal: We set a recovery and try to restart
+     * the playback.</li>
+     * For any error above that is <b>not</b> explicitly <b>catchable</b>, the player will
+     * create a notification so users are aware.
      * </ul>
      *
-     * @see #processSourceError(IOException)
-     * @see com.google.android.exoplayer2.Player.Listener#onPlayerError(ExoPlaybackException)
+     * @see com.google.android.exoplayer2.Player.Listener#onPlayerError(PlaybackException)
      */
+    // Any error code not explicitly covered here are either unrelated to NewPipe use case
+    // (e.g. DRM) or not recoverable (e.g. Decoder error). In both cases, the player should
+    // shutdown.
+    @SuppressLint("SwitchIntDef")
     @Override
-    public void onPlayerError(@NonNull final ExoPlaybackException error) {
+    public void onPlayerError(@NonNull final PlaybackException error) {
         Log.e(TAG, "ExoPlayer - onPlayerError() called with:", error);
 
         saveStreamProgressState();
         boolean isCatchableException = false;
 
-        switch (error.type) {
-            case ExoPlaybackException.TYPE_SOURCE:
-                isCatchableException = processSourceError(error.getSourceException());
+        switch (error.errorCode) {
+            case ERROR_CODE_BEHIND_LIVE_WINDOW:
+                isCatchableException = true;
+                simpleExoPlayer.seekToDefaultPosition();
+                simpleExoPlayer.prepare();
+                // Inform the user that we are reloading the stream by
+                // switching to the buffering state
+                onBuffering();
                 break;
-            case ExoPlaybackException.TYPE_UNEXPECTED:
+            case ERROR_CODE_IO_FILE_NOT_FOUND:
+            case ERROR_CODE_IO_NO_PERMISSION:
+            case ERROR_CODE_IO_CLEARTEXT_NOT_PERMITTED:
+            case ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE:
+            case ERROR_CODE_PARSING_CONTAINER_MALFORMED:
+            case ERROR_CODE_PARSING_MANIFEST_MALFORMED:
+            case ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED:
+            case ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED:
+                // Source errors, signal on playQueue and move on:
+                if (!exoPlayerIsNull() && playQueue != null) {
+                    onBufferingFailed();
+                }
+                break;
+            case ERROR_CODE_IO_UNSPECIFIED:
+                if (error.getCause().getMessage() != null && error.getCause().getMessage().contains("403")) {
+                    try {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity())
+                                .setTitle(R.string.network_error)
+                                .setMessage(R.string.ip_blocked_summary)
+                                .setPositiveButton(R.string.ok, (dialog, which) -> {
+                                    // Handle "Yes" click
+                                });
+                        builder.show();
+                    } catch (Exception e) {
+                        e.printStackTrace(); // when there is no context, e.g. background playing
+                    }
+                    onPlaybackShutdown();
+                    break;
+                }
+            case ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE:
+            case ERROR_CODE_IO_BAD_HTTP_STATUS:
+            case ERROR_CODE_TIMEOUT:
+            case ERROR_CODE_IO_NETWORK_CONNECTION_FAILED:
+            case ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT:
+            case ERROR_CODE_UNSPECIFIED:
                 setRecovery();
                 reloadPlayQueueManager();
                 break;
-            case ExoPlaybackException.TYPE_REMOTE:
-            case ExoPlaybackException.TYPE_RENDERER:
+            case ERROR_CODE_DECODER_INIT_FAILED:
+                AlertDialog.Builder builder = new AlertDialog.Builder(getParentActivity())
+                        .setTitle(R.string.decoder_init_failure)
+                        .setMessage(R.string.unable_to_decode_summary)
+                        .setPositiveButton(R.string.ok, (dialog, which) -> {
+                            // Handle "Yes" click
+                        });
+                builder.show();
+
+                onPlaybackShutdown();
+                break;
             default:
+                // API, remote and renderer errors belong here:
                 onPlaybackShutdown();
                 break;
         }
 
-        if (isCatchableException) {
-            return;
+        if (!isCatchableException) {
+            createErrorNotification(error);
         }
 
-        createErrorNotification(error);
-
         if (fragmentListener != null) {
-            fragmentListener.onPlayerError(error);
+            fragmentListener.onPlayerError(error, isCatchableException);
         }
     }
 
-    private void createErrorNotification(@NonNull final ExoPlaybackException error) {
+    private void createErrorNotification(@NonNull final PlaybackException error) {
         final ErrorInfo errorInfo;
         if (currentMetadata == null) {
             errorInfo = new ErrorInfo(error, UserAction.PLAY_STREAM,
-                    "Player error[type=" + error.type + "] occurred, currentMetadata is null");
+                    "Player error[type=" + error.getErrorCodeName()
+                            + "] occurred, currentMetadata is null");
         } else {
             errorInfo = new ErrorInfo(error, UserAction.PLAY_STREAM,
-                    "Player error[type=" + error.type + "] occurred while playing "
-                            + currentMetadata.getMetadata().getUrl(),
-                    currentMetadata.getMetadata());
+                    "Player error[type=" + error.getErrorCodeName()
+                            + "] occurred while playing " + currentMetadata.getStreamUrl(),
+                    currentMetadata.getServiceId());
         }
         ErrorUtil.createNotification(context, errorInfo);
-    }
-
-    /**
-     * Process an {@link IOException} returned by {@link ExoPlaybackException#getSourceException()}
-     * for {@link ExoPlaybackException#TYPE_SOURCE} exceptions.
-     *
-     * <p>
-     * This method sets the recovery position and sends an error message to the play queue if the
-     * exception is not a {@link BehindLiveWindowException}.
-     * </p>
-     * @param error the source error which was thrown by ExoPlayer
-     * @return whether the exception thrown is a {@link BehindLiveWindowException} ({@code false}
-     * is always returned if ExoPlayer or the play queue is null)
-     */
-    private boolean processSourceError(final IOException error) {
-        if (exoPlayerIsNull() || playQueue == null) {
-            return false;
-        }
-
-        setRecovery();
-
-        if (error instanceof BehindLiveWindowException) {
-            simpleExoPlayer.seekToDefaultPosition();
-            simpleExoPlayer.prepare();
-            // Inform the user that we are reloading the stream by switching to the buffering state
-            onBuffering();
-            return true;
-        }
-
-        playQueue.error();
-        return false;
     }
     //endregion
 
@@ -2613,6 +3073,7 @@ public final class Player implements
 
     /**
      * Sets the current duration into the corresponding elements.
+     *
      * @param currentProgress
      */
     private void updatePlayBackElementsCurrentDuration(final int currentProgress) {
@@ -2620,7 +3081,11 @@ public final class Player implements
         if (currentState != STATE_PAUSED_SEEK) {
             binding.playbackSeekBar.setProgress(currentProgress);
         }
-        binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        if (currentItem != null && currentItem.getStartAt() != -1 && currentItem.getStreamType() == StreamType.LIVE_STREAM) {
+            binding.playbackCurrentTime.setText(getTimeString((int) (new Date().getTime() - currentItem.getStartAt())));
+        } else {
+            binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        }
     }
 
     @Override // own playback listener (this is a getter)
@@ -2648,7 +3113,7 @@ public final class Player implements
         }
 
         final Timeline currentTimeline = simpleExoPlayer.getCurrentTimeline();
-        final int currentWindowIndex = simpleExoPlayer.getCurrentWindowIndex();
+        final int currentWindowIndex = simpleExoPlayer.getCurrentMediaItemIndex();
         if (currentTimeline.isEmpty() || currentWindowIndex < 0
                 || currentWindowIndex >= currentTimeline.getWindowCount()) {
             return false;
@@ -2660,20 +3125,19 @@ public final class Player implements
     }
 
     @Override // own playback listener
-    public void onPlaybackSynchronize(@NonNull final PlayQueueItem item) {
+    public void onPlaybackSynchronize(@NonNull final PlayQueueItem item, final boolean wasBlocked) {
         if (DEBUG) {
-            Log.d(TAG, "Playback - onPlaybackSynchronize() called with "
-                    + "item=[" + item.getTitle() + "], url=[" + item.getUrl() + "]");
+            Log.d(TAG, "Playback - onPlaybackSynchronize(was blocked: " + wasBlocked
+                    + ") called with item=[" + item.getTitle() + "], url=[" + item.getUrl() + "]");
         }
         if (exoPlayerIsNull() || playQueue == null) {
             return;
         }
 
-        final boolean onPlaybackInitial = currentItem == null;
         final boolean hasPlayQueueItemChanged = currentItem != item;
 
         final int currentPlayQueueIndex = playQueue.indexOf(item);
-        final int currentPlaylistIndex = simpleExoPlayer.getCurrentWindowIndex();
+        final int currentPlaylistIndex = simpleExoPlayer.getCurrentMediaItemIndex();
         final int currentPlaylistSize = simpleExoPlayer.getCurrentTimeline().getWindowCount();
 
         // If nothing to synchronize
@@ -2695,8 +3159,7 @@ public final class Player implements
                     + "index=[" + currentPlayQueueIndex + "] with "
                     + "playlist length=[" + currentPlaylistSize + "]");
 
-        } else if (currentPlaylistIndex != currentPlayQueueIndex || onPlaybackInitial
-                || !isPlaying()) {
+        } else if (wasBlocked || currentPlaylistIndex != currentPlayQueueIndex || !isPlaying()) {
             if (DEBUG) {
                 Log.d(TAG, "Playback - Rewinding to correct "
                         + "index=[" + currentPlayQueueIndex + "], "
@@ -2710,28 +3173,6 @@ public final class Player implements
             } else {
                 simpleExoPlayer.seekToDefaultPosition(currentPlayQueueIndex);
             }
-        }
-    }
-
-    private void maybeCorrectSeekPosition() {
-        if (playQueue == null || exoPlayerIsNull() || currentMetadata == null) {
-            return;
-        }
-
-        final PlayQueueItem currentSourceItem = playQueue.getItem();
-        if (currentSourceItem == null) {
-            return;
-        }
-
-        final StreamInfo currentInfo = currentMetadata.getMetadata();
-        final long presetStartPositionMillis = currentInfo.getStartPosition() * 1000;
-        if (presetStartPositionMillis > 0L) {
-            // Has another start position?
-            if (DEBUG) {
-                Log.d(TAG, "Playback - Seeking to preset start "
-                        + "position=[" + presetStartPositionMillis + "]");
-            }
-            seekTo(presetStartPositionMillis);
         }
     }
 
@@ -2767,6 +3208,7 @@ public final class Player implements
 
     /**
      * Sets the video duration time into all control components (e.g. seekbar).
+     *
      * @param duration
      */
     private void setVideoDurationToControls(final int duration) {
@@ -2797,7 +3239,8 @@ public final class Player implements
 
         audioReactor.requestAudioFocus();
 
-        if (currentState == STATE_COMPLETED) {
+        if (currentState == STATE_COMPLETED && playQueue != null && playQueue.getItem() != null &&
+                playQueue.getItem().getRecoveryPosition() / 1000 >= playQueue.getItem().getDuration() - 5) {
             if (playQueue.getIndex() == 0) {
                 seekToDefault();
             } else {
@@ -2876,7 +3319,7 @@ public final class Player implements
             Log.d(TAG, "fastRewind() called");
         }
         seekBy(retrieveSeekDurationFromPreferences(this));
-        triggerProgressUpdate();
+        triggerProgressUpdate(true);
     }
 
     public void fastRewind() {
@@ -2884,7 +3327,7 @@ public final class Player implements
             Log.d(TAG, "fastRewind() called");
         }
         seekBy(-retrieveSeekDurationFromPreferences(this));
-        triggerProgressUpdate();
+        triggerProgressUpdate(true);
     }
     //endregion
 
@@ -2896,37 +3339,35 @@ public final class Player implements
     //region StreamInfo history: views and progress
 
     private void registerStreamViewed() {
-        if (currentMetadata != null) {
-            databaseUpdateDisposable.add(recordManager.onViewed(currentMetadata.getMetadata())
-                    .onErrorComplete().subscribe());
-        }
+        getCurrentStreamInfo().ifPresent(info -> databaseUpdateDisposable
+                .add(recordManager.onViewed(info).onErrorComplete().subscribe()));
     }
 
     private void saveStreamProgressState(final long progressMillis) {
-        if (currentMetadata == null
+        if (!getCurrentStreamInfo().isPresent()
                 || !prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true)) {
             return;
         }
         if (DEBUG) {
             Log.d(TAG, "saveStreamProgressState() called with: progressMillis=" + progressMillis
-                    + ", currentMetadata=[" + currentMetadata.getMetadata().getName() + "]");
+                    + ", currentMetadata=[" + getCurrentStreamInfo().get().getName() + "]");
         }
 
         databaseUpdateDisposable
-                .add(recordManager.saveStreamState(currentMetadata.getMetadata(), progressMillis)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(e -> {
-                    if (DEBUG) {
-                        e.printStackTrace();
-                    }
-                })
-                .onErrorComplete()
-                .subscribe());
+                .add(recordManager.saveStreamState(getCurrentStreamInfo().get(), progressMillis)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnError(e -> {
+                            if (DEBUG) {
+                                e.printStackTrace();
+                            }
+                        })
+                        .onErrorComplete()
+                        .subscribe());
     }
 
     public void saveStreamProgressState() {
         if (exoPlayerIsNull() || currentMetadata == null || playQueue == null
-                || playQueue.getIndex() != simpleExoPlayer.getCurrentWindowIndex()) {
+                || playQueue.getIndex() != simpleExoPlayer.getCurrentMediaItemIndex()) {
             // Make sure play queue and current window index are equal, to prevent saving state for
             // the wrong stream on discontinuity (e.g. when the stream just changed but the
             // playQueue index and currentMetadata still haven't updated)
@@ -2939,10 +3380,9 @@ public final class Player implements
     }
 
     public void saveStreamProgressStateCompleted() {
-        if (currentMetadata != null) {
-            // current stream has ended, so the progress is its duration (+1 to overcome rounding)
-            saveStreamProgressState((currentMetadata.getMetadata().getDuration() + 1) * 1000);
-        }
+        // current stream has ended, so the progress is its duration (+1 to overcome rounding)
+        getCurrentStreamInfo().ifPresent(info ->
+                saveStreamProgressState((info.getDuration() + 1) * 1000));
     }
     //endregion
 
@@ -2953,8 +3393,7 @@ public final class Player implements
     //////////////////////////////////////////////////////////////////////////*/
     //region Metadata
 
-    private void onMetadataChanged(@NonNull final MediaSourceTag tag) {
-        final StreamInfo info = tag.getMetadata();
+    private void onMetadataChanged(@NonNull final StreamInfo info) {
         if (DEBUG) {
             Log.d(TAG, "Playback - onMetadataChanged() called, playing: " + info.getName());
         }
@@ -2963,26 +3402,33 @@ public final class Player implements
         registerStreamViewed();
         updateStreamRelatedViews();
         showHideKodiButton();
+        initBCPlayer(); // TODO: bullet comments may be reset unexpectedly for round play streams
+        startBCPlayer();
 
-        binding.titleTextView.setText(tag.getMetadata().getName());
-        binding.channelTextView.setText(tag.getMetadata().getUploaderName());
+        binding.titleTextView.setText(info.getName());
+        binding.channelTextView.setText(info.getUploaderName());
+        if (currentMetadata.getServiceId() != ServiceList.YouTube.getServiceId()) {
+            binding.switchSponsorBlocking.setVisibility(View.GONE);
+        }
+        String sponsorBlockModePrefString = prefs.getString(context.getString(R.string.pref_sponsorblock_mode_key), "ENABLED");
+        switch (sponsorBlockModePrefString) {
+            case "ENABLED":
+                sponsorBlockMode = SponsorBlockMode.ENABLED;
+                break;
+            case "DISABLED":
+                sponsorBlockMode = SponsorBlockMode.DISABLED;
+                break;
+            case "IGNORE":
+                sponsorBlockMode = SponsorBlockMode.IGNORE;
+                break;
+        }
+        setBlockSponsorsButton(binding.switchSponsorBlocking);
 
-        this.seekbarPreviewThumbnailHolder.resetFrom(
-                this.getContext(),
-                tag.getMetadata().getPreviewFrames());
+        this.seekbarPreviewThumbnailHolder.resetFrom(this.getContext(), info.getPreviewFrames());
 
         NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, false);
 
-        final boolean showThumbnail = prefs.getBoolean(
-                context.getString(R.string.show_thumbnail_key), true);
-        mediaSessionManager.setMetadata(
-                getVideoTitle(),
-                getUploaderName(),
-                showThumbnail ? Optional.ofNullable(getThumbnail()) : Optional.empty(),
-                StreamTypeUtil.isLiveStream(tag.getMetadata().getStreamType())
-                        ? -1
-                        : tag.getMetadata().getDuration()
-        );
+        mediaSessionManager.setPlayer(this);
 
         notifyMetadataUpdateToListeners();
 
@@ -2998,39 +3444,21 @@ public final class Player implements
         }
     }
 
-    private void maybeUpdateCurrentMetadata() {
+    private void updateMetadataWith(@NonNull final StreamInfo streamInfo) {
         if (exoPlayerIsNull()) {
             return;
         }
 
-        final MediaSourceTag metadata;
-        try {
-            metadata = (MediaSourceTag) simpleExoPlayer.getCurrentTag();
-        } catch (IndexOutOfBoundsException | ClassCastException error) {
-            if (DEBUG) {
-                Log.d(TAG, "Could not update metadata: " + error.getMessage());
-                error.printStackTrace();
-            }
-            return;
-        }
-
-        if (metadata == null) {
-            return;
-        }
-        maybeAutoQueueNextStream(metadata);
-
-        if (currentMetadata == metadata) {
-            return;
-        }
-        currentMetadata = metadata;
-        onMetadataChanged(metadata);
+        maybeAutoQueueNextStream(streamInfo, false);
+        onMetadataChanged(streamInfo);
+        NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(this, true);
     }
 
     @NonNull
     private String getVideoUrl() {
         return currentMetadata == null
                 ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getUrl();
+                : currentMetadata.getStreamUrl();
     }
 
     @NonNull
@@ -3038,7 +3466,7 @@ public final class Player implements
         final int timeSeconds = binding.playbackSeekBar.getProgress() / 1000;
         String videoUrl = getVideoUrl();
         if (!isLive() && timeSeconds >= 0 && currentMetadata != null
-                && currentMetadata.getMetadata().getServiceId() == YouTube.getServiceId()) {
+                && currentMetadata.getServiceId() == YouTube.getServiceId()) {
             // Timestamp doesn't make sense in a live stream so drop it
             videoUrl += ("&t=" + timeSeconds);
         }
@@ -3049,14 +3477,14 @@ public final class Player implements
     public String getVideoTitle() {
         return currentMetadata == null
                 ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getName();
+                : currentMetadata.getTitle();
     }
 
     @NonNull
     public String getUploaderName() {
         return currentMetadata == null
                 ? context.getString(R.string.unknown_content)
-                : currentMetadata.getMetadata().getUploaderName();
+                : currentMetadata.getUploaderName();
     }
 
     @Nullable
@@ -3076,15 +3504,39 @@ public final class Player implements
     //////////////////////////////////////////////////////////////////////////*/
     //region Play queue, segments and streams
 
-    private void maybeAutoQueueNextStream(@NonNull final MediaSourceTag metadata) {
-        if (playQueue == null || playQueue.getIndex() != playQueue.size() - 1
-                || getRepeatMode() != REPEAT_MODE_OFF
-                || !PlayerHelper.isAutoQueueEnabled(context)) {
+    private void maybeAutoQueueNextStream(@NonNull final StreamInfo info, boolean forceEnqueue) {
+        if (playQueue == null) {
             return;
         }
+        List<StreamInfoItem> partitions = info.getPartitions();
+        if (partitions.size() > 1 && prefs.getBoolean(context.getString(R.string.auto_queue_partition_key), true)
+                && playQueue.getStreams().stream()
+                .map(result -> result.getUrl().split("p="))
+                .filter(parts -> parts.length == 2)
+                .map(parts -> new String[]{parts[0], parts[1]})
+                .reduce((a, b) -> Integer.parseInt(a[1]) + 1 == Integer.parseInt(b[1]) && a[0].equals(b[0]) ? b : new String[]{"", "-1"})
+                .filter(result -> !Arrays.equals(result, new String[]{"", "-1"}))
+                .isPresent()
+                && playQueue.getIndex() == playQueue.size() - 1
+        ) {
+            int p = Integer.parseInt(info.getUrl().split(Pattern.quote("?p="))[1].split("&")[0]);
+            if (partitions.size() > p) {
+                playQueue.append(getAutoQueuedSinglePlayQueue(partitions.get(p)).getStreams());
+            }
+        }
+        if (!forceEnqueue && (playQueue.getIndex() != playQueue.size() - 1
+                || getRepeatMode() != REPEAT_MODE_OFF
+                || !PlayerHelper.isAutoQueueEnabled(context))) {
+            return;
+        }
+
+        boolean dontAutoQueueLongVideos = prefs.getBoolean(
+                context.getString(R.string.dont_auto_queue_long_key), true
+        );
+
         // auto queue when starting playback on the last item when not repeating
-        final PlayQueue autoQueue = PlayerHelper.autoQueueOf(metadata.getMetadata(),
-                playQueue.getStreams());
+        final PlayQueue autoQueue = PlayerHelper.autoQueueOf(info,
+                playQueue.getStreams(), dontAutoQueueLongVideos);
         if (autoQueue != null) {
             playQueue.append(autoQueue.getStreams());
         }
@@ -3100,7 +3552,7 @@ public final class Player implements
             return;
         }
 
-        if (playQueue.getIndex() == index && simpleExoPlayer.getCurrentWindowIndex() == index) {
+        if (playQueue.getIndex() == index && simpleExoPlayer.getCurrentMediaItemIndex() == index) {
             seekToDefault();
         } else {
             saveStreamProgressState();
@@ -3125,6 +3577,7 @@ public final class Player implements
         binding.itemsListHeaderDuration.setVisibility(View.VISIBLE);
         binding.shuffleButton.setVisibility(View.VISIBLE);
         binding.repeatButton.setVisibility(View.VISIBLE);
+        binding.addToPlaylistButton.setVisibility(View.VISIBLE);
 
         hideControls(0, 0);
         binding.itemsListPanel.requestFocus();
@@ -3162,6 +3615,7 @@ public final class Player implements
         binding.itemsListHeaderDuration.setVisibility(View.GONE);
         binding.shuffleButton.setVisibility(View.GONE);
         binding.repeatButton.setVisibility(View.GONE);
+        binding.addToPlaylistButton.setVisibility(View.GONE);
 
         hideControls(0, 0);
         binding.itemsListPanel.requestFocus();
@@ -3184,12 +3638,11 @@ public final class Player implements
             itemTouchHelper.attachToRecyclerView(null);
         }
 
-        if (currentMetadata != null) {
-            segmentAdapter.setItems(currentMetadata.getMetadata());
-        }
+        getCurrentStreamInfo().ifPresent(segmentAdapter::setItems);
 
         binding.shuffleButton.setVisibility(View.GONE);
         binding.repeatButton.setVisibility(View.GONE);
+        binding.addToPlaylistButton.setVisibility(View.GONE);
         binding.itemsListClose.setOnClickListener(view -> closeItemsList());
     }
 
@@ -3209,6 +3662,9 @@ public final class Player implements
                         binding.itemsListPanel.setTranslationY(
                                 -binding.itemsListPanel.getHeight() * 5);
                     });
+
+            // clear focus, otherwise a white rectangle remains on top of the player
+            binding.itemsListClose.clearFocus();
             binding.playPauseButton.requestFocus();
         }
     }
@@ -3236,7 +3692,9 @@ public final class Player implements
 
     private int getNearestStreamSegmentPosition(final long playbackPosition) {
         int nearestPosition = 0;
-        final List<StreamSegment> segments = currentMetadata.getMetadata().getStreamSegments();
+        final List<StreamSegment> segments = getCurrentStreamInfo()
+                .map(StreamInfo::getStreamSegments)
+                .orElse(Collections.emptyList());
 
         for (int i = 0; i < segments.size(); i++) {
             if (segments.get(i).getStartTimeSeconds() * 1000L > playbackPosition) {
@@ -3292,7 +3750,27 @@ public final class Player implements
     @Override // own playback listener
     @Nullable
     public MediaSource sourceOf(final PlayQueueItem item, final StreamInfo info) {
-        return (isAudioOnly ? audioResolver : videoResolver).resolve(info);
+        if (audioPlayerSelected()) {
+            return Optional.ofNullable(audioResolver.resolve(info)).orElse(videoResolver.resolve(info));
+        }
+
+        if (isAudioOnly && videoResolver.getStreamSourceType().orElse(
+                SourceType.VIDEO_WITH_AUDIO_OR_AUDIO_ONLY)
+                == SourceType.VIDEO_WITH_AUDIO_OR_AUDIO_ONLY) {
+            // If the current info has only video streams with audio and if the stream is played as
+            // audio, we need to use the audio resolver, otherwise the video stream will be played
+            // in background.
+            return Optional.ofNullable(audioResolver.resolve(info)).orElse(videoResolver.resolve(info));
+        }
+
+        // Even if the stream is played in background, we need to use the video resolver if the
+        // info played is separated video-only and audio-only streams; otherwise, if the audio
+        // resolver was called when the app was in background, the app will only stream audio when
+        // the user come back to the app and will never fetch the video stream.
+        // Note that the video is not fetched when the app is in background because the video
+        // renderer is fully disabled (see useVideoSource method), except for HLS streams
+        // (see https://github.com/google/ExoPlayer/issues/9282).
+        return videoResolver.resolve(info);
     }
 
     public void disablePreloadingOfCurrentTrack() {
@@ -3307,10 +3785,10 @@ public final class Player implements
     }
 
     private void updateStreamRelatedViews() {
-        if (currentMetadata == null) {
+        if (!getCurrentStreamInfo().isPresent()) {
             return;
         }
-        final StreamInfo info = currentMetadata.getMetadata();
+        final StreamInfo info = getCurrentStreamInfo().get();
 
         binding.qualityTextView.setVisibility(View.GONE);
         binding.playbackSpeed.setVisibility(View.GONE);
@@ -3338,12 +3816,17 @@ public final class Player implements
                 break;
 
             case VIDEO_STREAM:
-                if (info.getVideoStreams().size() + info.getVideoOnlyStreams().size() == 0) {
+            case POST_LIVE_STREAM:
+                if (currentMetadata == null
+                        || !currentMetadata.getMaybeQuality().isPresent()
+                        || (info.getVideoStreams().isEmpty()
+                        && info.getVideoOnlyStreams().isEmpty())) {
                     break;
                 }
 
-                availableStreams = currentMetadata.getSortedAvailableVideoStreams();
-                selectedStreamIndex = currentMetadata.getSelectedVideoStreamIndex();
+                availableStreams = currentMetadata.getMaybeQuality().get().getSortedVideoStreams();
+                selectedStreamIndex =
+                        currentMetadata.getMaybeQuality().get().getSelectedVideoStreamIndex();
                 buildQualityMenu();
 
                 binding.qualityTextView.setVisibility(View.VISIBLE);
@@ -3430,17 +3913,7 @@ public final class Player implements
             return;
         }
         captionPopupMenu.getMenu().removeGroup(POPUP_MENU_ID_CAPTION);
-
-        final String userPreferredLanguage =
-                prefs.getString(context.getString(R.string.caption_user_set_key), null);
-        /*
-         * only search for autogenerated cc as fallback
-         * if "(auto-generated)" was not already selected
-         * we are only looking for "(" instead of "(auto-generated)" to hopefully get all
-         * internationalized variants such as "(automatisch-erzeugt)" and so on
-         */
-        boolean searchForAutogenerated = userPreferredLanguage != null
-                && !userPreferredLanguage.contains("(");
+        captionPopupMenu.setOnDismissListener(this);
 
         // Add option for turning off caption
         final MenuItem captionOffItem = captionPopupMenu.getMenu().add(POPUP_MENU_ID_CAPTION,
@@ -3463,30 +3936,54 @@ public final class Player implements
             captionItem.setOnMenuItemClickListener(menuItem -> {
                 final int textRendererIndex = getCaptionRendererIndex();
                 if (textRendererIndex != RENDERER_UNAVAILABLE) {
-                    trackSelector.setPreferredTextLanguage(captionLanguage);
+                    // DefaultTrackSelector will select for text tracks in the following order.
+                    // When multiple tracks share the same rank, a random track will be chosen.
+                    // 1. ANY track exactly matching preferred language name
+                    // 2. ANY track exactly matching preferred language stem
+                    // 3. ROLE_FLAG_CAPTION track matching preferred language stem
+                    // 4. ROLE_FLAG_DESCRIBES_MUSIC_AND_SOUND track matching preferred language stem
+                    // This means if a caption track of preferred language is not available,
+                    // then an auto-generated track of that language will be chosen automatically.
                     trackSelector.setParameters(trackSelector.buildUponParameters()
+                            .setPreferredTextLanguages(captionLanguage,
+                                    PlayerHelper.captionLanguageStemOf(captionLanguage))
+                            .setPreferredTextRoleFlags(C.ROLE_FLAG_CAPTION)
                             .setRendererDisabled(textRendererIndex, false));
                     prefs.edit().putString(context.getString(R.string.caption_user_set_key),
                             captionLanguage).apply();
                 }
                 return true;
             });
-            // apply caption language from previous user preference
-            if (userPreferredLanguage != null
-                    && (captionLanguage.equals(userPreferredLanguage)
-                    || (searchForAutogenerated && captionLanguage.startsWith(userPreferredLanguage))
-                    || (userPreferredLanguage.contains("(") && captionLanguage.startsWith(
-                    userPreferredLanguage.substring(0, userPreferredLanguage.indexOf('(')))))) {
-                final int textRendererIndex = getCaptionRendererIndex();
-                if (textRendererIndex != RENDERER_UNAVAILABLE) {
-                    trackSelector.setPreferredTextLanguage(captionLanguage);
-                    trackSelector.setParameters(trackSelector.buildUponParameters()
-                            .setRendererDisabled(textRendererIndex, false));
-                }
-                searchForAutogenerated = false;
-            }
         }
-        captionPopupMenu.setOnDismissListener(this);
+
+        // apply caption language from previous user preference
+        final int textRendererIndex = getCaptionRendererIndex();
+        if (textRendererIndex == RENDERER_UNAVAILABLE) {
+            return;
+        }
+
+        // If user prefers to show no caption, then disable the renderer.
+        // Otherwise, DefaultTrackSelector may automatically find an available caption
+        // and display that.
+        final String userPreferredLanguage =
+                prefs.getString(context.getString(R.string.caption_user_set_key), null);
+        if (userPreferredLanguage == null) {
+            trackSelector.setParameters(trackSelector.buildUponParameters()
+                    .setRendererDisabled(textRendererIndex, true));
+            return;
+        }
+
+        // Only set preferred language if it does not match the user preference,
+        // otherwise there might be an infinite cycle at onTextTracksChanged.
+        final List<String> selectedPreferredLanguages =
+                trackSelector.getParameters().preferredTextLanguages;
+        if (!selectedPreferredLanguages.contains(userPreferredLanguage)) {
+            trackSelector.setParameters(trackSelector.buildUponParameters()
+                    .setPreferredTextLanguages(userPreferredLanguage,
+                            PlayerHelper.captionLanguageStemOf(userPreferredLanguage))
+                    .setPreferredTextRoleFlags(C.ROLE_FLAG_CAPTION)
+                    .setRendererDisabled(textRendererIndex, false));
+        }
     }
 
     /**
@@ -3544,37 +4041,6 @@ public final class Player implements
         }
     }
 
-    private void onQualitySelectorClicked() {
-        if (DEBUG) {
-            Log.d(TAG, "onQualitySelectorClicked() called");
-        }
-        qualityPopupMenu.show();
-        isSomePopupMenuVisible = true;
-
-        final VideoStream videoStream = getSelectedVideoStream();
-        if (videoStream != null) {
-            final String qualityText = MediaFormat.getNameById(videoStream.getFormatId()) + " "
-                    + videoStream.resolution;
-            binding.qualityTextView.setText(qualityText);
-        }
-
-        saveWasPlaying();
-    }
-
-    private void onPlaybackSpeedClicked() {
-        if (DEBUG) {
-            Log.d(TAG, "onPlaybackSpeedClicked() called");
-        }
-        if (videoPlayerSelected()) {
-            PlaybackParameterDialog.newInstance(getPlaybackSpeed(), getPlaybackPitch(),
-                    getPlaybackSkipSilence(), this::setPlaybackParameters)
-                    .show(getParentActivity().getSupportFragmentManager(), null);
-        } else {
-            playbackSpeedPopupMenu.show();
-            isSomePopupMenuVisible = true;
-        }
-    }
-
     private void onCaptionClicked() {
         if (DEBUG) {
             Log.d(TAG, "onCaptionClicked() called");
@@ -3613,40 +4079,45 @@ public final class Player implements
         binding.subtitleView.setStyle(captionStyle);
     }
 
-    private void onTextTracksChanged() {
-        final int textRenderer = getCaptionRendererIndex();
-
+    private void onTextTracksChanged(@NonNull final Tracks currentTrack) {
         if (binding == null) {
             return;
         }
-        if (trackSelector.getCurrentMappedTrackInfo() == null
-                || textRenderer == RENDERER_UNAVAILABLE) {
+
+        final boolean trackTypeTextSupported = !currentTrack.containsType(C.TRACK_TYPE_TEXT)
+                || currentTrack.isTypeSupported(C.TRACK_TYPE_TEXT, false);
+        if (trackSelector.getCurrentMappedTrackInfo() == null || !trackTypeTextSupported) {
             binding.captionTextView.setVisibility(View.GONE);
             return;
         }
 
-        final TrackGroupArray textTracks = trackSelector.getCurrentMappedTrackInfo()
-                .getTrackGroups(textRenderer);
-
         // Extract all loaded languages
-        final List<String> availableLanguages = new ArrayList<>(textTracks.length);
-        for (int i = 0; i < textTracks.length; i++) {
-            final TrackGroup textTrack = textTracks.get(i);
-            if (textTrack.length > 0) {
-                availableLanguages.add(textTrack.getFormat(0).language);
-            }
-        }
+        final List<Tracks.Group> textTracks = currentTrack
+                .getGroups()
+                .stream()
+                .filter(trackGroupInfo -> C.TRACK_TYPE_TEXT == trackGroupInfo.getType())
+                .collect(Collectors.toList());
+        final List<String> availableLanguages = textTracks.stream()
+                .map(Tracks.Group::getMediaTrackGroup)
+                .filter(textTrack -> textTrack.length > 0)
+                .map(textTrack -> textTrack.getFormat(0).language)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-        // Normalize mismatching language strings
-        final String preferredLanguage = trackSelector.getPreferredTextLanguage();
+        // Find selected text track
+        final Optional<Format> selectedTracks = textTracks.stream()
+                .filter(Tracks.Group::isSelected)
+                .filter(info -> info.getMediaTrackGroup().length >= 1)
+                .map(info -> info.getMediaTrackGroup().getFormat(0))
+                .findFirst();
+
         // Build UI
         buildCaptionMenu(availableLanguages);
-        if (trackSelector.getParameters().getRendererDisabled(textRenderer)
-                || preferredLanguage == null || (!availableLanguages.contains(preferredLanguage)
-                && !containsCaseInsensitive(availableLanguages, preferredLanguage))) {
+        if (trackSelector.getParameters().getRendererDisabled(getCaptionRendererIndex())
+                || !selectedTracks.isPresent()) {
             binding.captionTextView.setText(R.string.caption_none);
         } else {
-            binding.captionTextView.setText(preferredLanguage);
+            binding.captionTextView.setText(selectedTracks.get().language);
         }
         binding.captionTextView.setVisibility(
                 availableLanguages.isEmpty() ? View.GONE : View.VISIBLE);
@@ -3679,11 +4150,7 @@ public final class Player implements
         if (DEBUG) {
             Log.d(TAG, "onClick() called with: v = [" + v + "]");
         }
-        if (v.getId() == binding.qualityTextView.getId()) {
-            onQualitySelectorClicked();
-        } else if (v.getId() == binding.playbackSpeed.getId()) {
-            onPlaybackSpeedClicked();
-        } else if (v.getId() == binding.resizeTextView.getId()) {
+        if (v.getId() == binding.resizeTextView.getId()) {
             onResizeClicked();
         } else if (v.getId() == binding.captionTextView.getId()) {
             onCaptionClicked();
@@ -3695,27 +4162,19 @@ public final class Player implements
             playPrevious();
         } else if (v.getId() == binding.playNextButton.getId()) {
             playNext();
-        } else if (v.getId() == binding.queueButton.getId()) {
-            onQueueClicked();
-            return;
-        } else if (v.getId() == binding.segmentsButton.getId()) {
-            onSegmentsClicked();
-            return;
-        } else if (v.getId() == binding.repeatButton.getId()) {
-            onRepeatClicked();
-            return;
-        } else if (v.getId() == binding.shuffleButton.getId()) {
-            onShuffleClicked();
-            return;
         } else if (v.getId() == binding.moreOptionsButton.getId()) {
             onMoreOptionsClicked();
         } else if (v.getId() == binding.share.getId()) {
             ShareUtils.shareText(context, getVideoTitle(), getVideoUrlAtCurrentTime(),
-                            currentItem.getThumbnailUrl());
+                    currentItem.getThumbnailUrl());
+        } else if (v.getId() == binding.switchCommentsVisibility.getId()) {
+            onSwitchBCPlayerVisibilityClicked();
         } else if (v.getId() == binding.playWithKodi.getId()) {
             onPlayWithKodiClicked();
         } else if (v.getId() == binding.openInBrowser.getId()) {
             onOpenInBrowserClicked();
+        } else if (v.getId() == binding.sleepTimer.getId()) {
+            onSleepTimerClicked();
         } else if (v.getId() == binding.fullScreenButton.getId()) {
             setRecovery();
             NavigationHelper.playOnMainPlayer(context, playQueue, true);
@@ -3723,35 +4182,43 @@ public final class Player implements
         } else if (v.getId() == binding.screenRotationButton.getId()) {
             // Only if it's not a vertical video or vertical video but in landscape with locked
             // orientation a screen orientation can be changed automatically
-            if (!isVerticalVideo
-                    || (service.isLandscape() && globalScreenOrientationLocked(context))) {
-                fragmentListener.onScreenRotationButtonClicked();
-            } else {
-                toggleFullscreen();
-            }
+            onScreenRotationButtonClicked();
         } else if (v.getId() == binding.switchMute.getId()) {
             onMuteUnmuteButtonClicked();
         } else if (v.getId() == binding.playerCloseButton.getId()) {
             context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_HIDE_MAIN_PLAYER));
+        } else if (v.getId() == binding.switchSponsorBlocking.getId()) {
+            onSponsorBlockButtonClicked();
         }
 
-        if (currentState != STATE_COMPLETED) {
-            controlsVisibilityHandler.removeCallbacksAndMessages(null);
-            showHideShadow(true, DEFAULT_CONTROLS_DURATION);
-            animate(binding.playbackControlRoot, true, DEFAULT_CONTROLS_DURATION,
-                    AnimationType.ALPHA, 0, () -> {
-                        if (currentState == STATE_PLAYING && !isSomePopupMenuVisible) {
-                            if (v.getId() == binding.playPauseButton.getId()
-                                    // Hide controls in fullscreen immediately
-                                    || (v.getId() == binding.screenRotationButton.getId()
-                                    && isFullscreen)) {
-                                hideControls(0, 0);
-                            } else {
-                                hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
-                            }
-                        }
-                    });
+        manageControlsAfterOnClick(v);
+    }
+
+    /**
+     * Manages the controls after a click occurred on the player UI.
+     *
+     * @param v – The view that was clicked
+     */
+    public void manageControlsAfterOnClick(@NonNull final View v) {
+        if (currentState == STATE_COMPLETED) {
+            return;
         }
+
+        controlsVisibilityHandler.removeCallbacksAndMessages(null);
+        showHideShadow(true, DEFAULT_CONTROLS_DURATION);
+        animate(binding.playbackControlRoot, true, DEFAULT_CONTROLS_DURATION,
+                AnimationType.ALPHA, 0, () -> {
+                    if (currentState == STATE_PLAYING && !isSomePopupMenuVisible) {
+                        if (v.getId() == binding.playPauseButton.getId()
+                                // Hide controls in fullscreen immediately
+                                || (v.getId() == binding.screenRotationButton.getId()
+                                && isFullscreen)) {
+                            hideControls(0, 0);
+                        } else {
+                            hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -3762,6 +4229,10 @@ public final class Player implements
             hideSystemUIIfNeeded();
         } else if (v.getId() == binding.share.getId()) {
             ShareUtils.copyToClipboard(context, getVideoUrlAtCurrentTime());
+        } else if (v.getId() == binding.switchSponsorBlocking.getId()) {
+            onBlockingSponsorsButtonLongClicked();
+        } else if (v.getId() == binding.sleepTimer.getId()) {
+            onSleepTimerLongClicked();
         }
         return true;
     }
@@ -3773,6 +4244,10 @@ public final class Player implements
             case KeyEvent.KEYCODE_SPACE:
                 if (isFullscreen) {
                     playPause();
+                    if (isPlaying()) {
+                        hideControls(0, 0);
+                    }
+                    return true;
                 }
                 break;
             case KeyEvent.KEYCODE_BACK:
@@ -3786,8 +4261,9 @@ public final class Player implements
             case KeyEvent.KEYCODE_DPAD_DOWN:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
             case KeyEvent.KEYCODE_DPAD_CENTER:
-                if (binding.getRoot().hasFocus() && !binding.playbackControlRoot.hasFocus()) {
-                    // do not interfere with focus in playlist etc.
+                if ((binding.getRoot().hasFocus() && !binding.playbackControlRoot.hasFocus())
+                        || isQueueVisible) {
+                    // do not interfere with focus in playlist and play queue etc.
                     return false;
                 }
 
@@ -3795,15 +4271,13 @@ public final class Player implements
                     return true;
                 }
 
-                if (!isControlsVisible()) {
-                    if (!isQueueVisible) {
-                        binding.playPauseButton.requestFocus();
-                    }
+                if (isControlsVisible()) {
+                    hideControls(DEFAULT_CONTROLS_DURATION, DPAD_CONTROLS_HIDE_TIME);
+                } else {
+                    binding.playPauseButton.requestFocus();
                     showControlsThenHide();
                     showSystemUIPartially();
                     return true;
-                } else {
-                    hideControls(DEFAULT_CONTROLS_DURATION, DPAD_CONTROLS_HIDE_TIME);
                 }
                 break;
         }
@@ -3848,10 +4322,33 @@ public final class Player implements
     }
 
     private void onOpenInBrowserClicked() {
-        if (currentMetadata != null) {
-            ShareUtils.openUrlInBrowser(getParentActivity(),
-                    currentMetadata.getMetadata().getOriginalUrl());
-        }
+        getCurrentStreamInfo()
+                .map(Info::getOriginalUrl)
+                .ifPresent(originalUrl -> ShareUtils.openUrlInBrowser(
+                        Objects.requireNonNull(getParentActivity()), originalUrl));
+    }
+
+    private void onSleepTimerClicked() {
+        AppCompatActivity activity = getParentActivity();
+        assert activity != null;
+        Intent serviceIntent = new Intent(activity, SleepTimerService.class);
+        serviceIntent.setAction(SleepTimerService.ACTION_START_TIMER);
+        // get time from shared preferences
+        int time = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(activity).getString(
+                activity.getString(R.string.sleep_timer_length_key), String.valueOf(15)
+        ));
+        serviceIntent.putExtra("timeInMillis", time * 60000); // 60 seconds
+        activity.startService(serviceIntent);
+        binding.sleepTimer.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_timer));
+    }
+
+    private void onSleepTimerLongClicked() {
+        AppCompatActivity activity = getParentActivity();
+        assert activity != null;
+        Intent serviceIntent = new Intent(activity, SleepTimerService.class);
+        serviceIntent.setAction(SleepTimerService.ACTION_STOP_TIMER);
+        activity.startService(serviceIntent);
+        binding.sleepTimer.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_timer_off));
     }
     //endregion
 
@@ -3865,11 +4362,11 @@ public final class Player implements
     private void setupScreenRotationButton() {
         binding.screenRotationButton.setVisibility(videoPlayerSelected()
                 && (globalScreenOrientationLocked(context) || isVerticalVideo
-                        || DeviceUtils.isTablet(context))
+                || DeviceUtils.isTablet(context))
                 ? View.VISIBLE : View.GONE);
         binding.screenRotationButton.setImageDrawable(AppCompatResources.getDrawable(context,
                 isFullscreen ? R.drawable.ic_fullscreen_exit
-                : R.drawable.ic_fullscreen));
+                        : R.drawable.ic_fullscreen));
     }
 
     private void setResizeMode(@AspectRatioFrameLayout.ResizeMode final int resizeMode) {
@@ -3934,11 +4431,13 @@ public final class Player implements
             binding.titleTextView.setVisibility(View.VISIBLE);
             binding.channelTextView.setVisibility(View.VISIBLE);
             binding.playerCloseButton.setVisibility(View.GONE);
+            binding.sleepTimer.setVisibility(View.VISIBLE);
         } else {
             binding.titleTextView.setVisibility(View.GONE);
             binding.channelTextView.setVisibility(View.GONE);
             binding.playerCloseButton.setVisibility(
                     videoPlayerSelected() ? View.VISIBLE : View.GONE);
+            binding.sleepTimer.setVisibility(View.GONE);
         }
         setupScreenRotationButton();
     }
@@ -4090,7 +4589,8 @@ public final class Player implements
                     setRecovery();
                     NavigationHelper.playOnPopupPlayer(getParentActivity(), playQueue, true);
                     break;
-                case MINIMIZE_ON_EXIT_MODE_NONE: default:
+                case MINIMIZE_ON_EXIT_MODE_NONE:
+                default:
                     pause();
                     break;
             }
@@ -4107,12 +4607,14 @@ public final class Player implements
     }
 
     private void notifyMetadataUpdateToListeners() {
-        if (fragmentListener != null && currentMetadata != null) {
-            fragmentListener.onMetadataUpdate(currentMetadata.getMetadata(), playQueue);
-        }
-        if (activityListener != null && currentMetadata != null) {
-            activityListener.onMetadataUpdate(currentMetadata.getMetadata(), playQueue);
-        }
+        getCurrentStreamInfo().ifPresent(info -> {
+            if (fragmentListener != null) {
+                fragmentListener.onMetadataUpdate(info, playQueue);
+            }
+            if (activityListener != null) {
+                activityListener.onMetadataUpdate(info, playQueue);
+            }
+        });
     }
 
     private void notifyPlaybackUpdateToListeners() {
@@ -4147,19 +4649,120 @@ public final class Player implements
         return (AppCompatActivity) ((ViewGroup) binding.getRoot().getParent()).getContext();
     }
 
-    private void useVideoSource(final boolean video) {
-        if (playQueue == null || isAudioOnly == !video || audioPlayerSelected()) {
+    private void useVideoSource(final boolean videoEnabled) {
+        if (playQueue == null || isAudioOnly == !videoEnabled || audioPlayerSelected()) {
             return;
         }
 
-        isAudioOnly = !video;
-        // When a user returns from background controls could be hidden
-        // but systemUI will be shown 100%. Hide it
+        isAudioOnly = !videoEnabled;
+        // When a user returns from background, controls could be hidden but SystemUI will be shown
+        // 100%. Hide it.
         if (!isAudioOnly && !isControlsVisible()) {
             hideSystemUIIfNeeded();
         }
+
+        // The current metadata may be null sometimes (for e.g. when using an unstable connection
+        // in livestreams) so we will be not able to execute the block below.
+        // Reload the play queue manager in this case, which is the behavior when we don't know the
+        // index of the video renderer or playQueueManagerReloadingNeeded returns true.
+        final Optional<StreamInfo> optCurrentStreamInfo = getCurrentStreamInfo();
+        if (!optCurrentStreamInfo.isPresent()) {
+            reloadPlayQueueManager();
+            setRecovery();
+            return;
+        }
+
+        final StreamInfo info = optCurrentStreamInfo.get();
+
+        // In the case we don't know the source type, fallback to the one with video with audio or
+        // audio-only source.
+        final SourceType sourceType = videoResolver.getStreamSourceType().orElse(
+                SourceType.VIDEO_WITH_AUDIO_OR_AUDIO_ONLY);
+
+        if (playQueueManagerReloadingNeeded(sourceType, info, getVideoRendererIndex())) {
+            reloadPlayQueueManager();
+        } else {
+            final StreamType streamType = info.getStreamType();
+            if (streamType == StreamType.AUDIO_STREAM
+                    || streamType == StreamType.AUDIO_LIVE_STREAM) {
+                // Nothing to do more than setting the recovery position
+                setRecovery();
+                return;
+            }
+
+            final DefaultTrackSelector.Parameters.Builder parametersBuilder =
+                    trackSelector.buildUponParameters();
+
+            // Enable/disable the video track and the ability to select subtitles
+            parametersBuilder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !videoEnabled);
+            parametersBuilder.setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !videoEnabled);
+
+            trackSelector.setParameters(parametersBuilder);
+        }
+
         setRecovery();
-        reloadPlayQueueManager();
+    }
+
+    /**
+     * Return whether the play queue manager needs to be reloaded when switching player type.
+     *
+     * <p>
+     * The play queue manager needs to be reloaded if the video renderer index is not known and if
+     * the content is not an audio content, but also if none of the following cases is met:
+     *
+     * <ul>
+     *     <li>the content is an {@link StreamType#AUDIO_STREAM audio stream} or an
+     *     {@link StreamType#AUDIO_LIVE_STREAM audio live stream};</li>
+     *     <li>the content is a {@link StreamType#LIVE_STREAM live stream} and the source type is a
+     *     {@link SourceType#LIVE_STREAM live source};</li>
+     *     <li>the content's source is {@link SourceType#VIDEO_WITH_SEPARATED_AUDIO a video stream
+     *     with a separated audio source} or has no audio-only streams available <b>and</b> is a
+     *     {@link StreamType#LIVE_STREAM live stream} or a
+     *     {@link StreamType#LIVE_STREAM live stream}.
+     *     </li>
+     * </ul>
+     * </p>
+     *
+     * @param sourceType         the {@link SourceType} of the stream
+     * @param streamInfo         the {@link StreamInfo} of the stream
+     * @param videoRendererIndex the video renderer index of the video source, if that's a video
+     *                           source (or {@link #RENDERER_UNAVAILABLE})
+     * @return whether the play queue manager needs to be reloaded
+     */
+    private boolean playQueueManagerReloadingNeeded(final SourceType sourceType,
+                                                    @NonNull final StreamInfo streamInfo,
+                                                    final int videoRendererIndex) {
+        final StreamType streamType = streamInfo.getStreamType();
+
+        if (videoRendererIndex == RENDERER_UNAVAILABLE && streamType != StreamType.AUDIO_STREAM
+                && streamType != StreamType.AUDIO_LIVE_STREAM) {
+            return true;
+        }
+
+        // The content is an audio stream, an audio live stream, or a live stream with a live
+        // source: it's not needed to reload the play queue manager because the stream source will
+        // be the same
+        if ((streamType == StreamType.AUDIO_STREAM || streamType == StreamType.AUDIO_LIVE_STREAM)
+                || (streamType == StreamType.LIVE_STREAM
+                && sourceType == SourceType.LIVE_STREAM)) {
+            return false;
+        }
+
+        // The content's source is a video with separated audio or a video with audio -> the video
+        // and its fetch may be disabled
+        // The content's source is a video with embedded audio and the content has no separated
+        // audio stream available: it's probably not needed to reload the play queue manager
+        // because the stream source will be probably the same as the current played
+        if (sourceType == SourceType.VIDEO_WITH_SEPARATED_AUDIO
+                || (sourceType == SourceType.VIDEO_WITH_AUDIO_OR_AUDIO_ONLY
+                && isNullOrEmpty(streamInfo.getAudioStreams()))) {
+            // It's not needed to reload the play queue manager only if the content's stream type
+            // is a video stream or a live stream
+            return streamType != StreamType.VIDEO_STREAM && streamType != StreamType.LIVE_STREAM;
+        }
+
+        // Other cases: the play queue manager reload is needed
+        return true;
     }
     //endregion
 
@@ -4168,6 +4771,10 @@ public final class Player implements
     // Getters
     //////////////////////////////////////////////////////////////////////////*/
     //region Getters
+
+    public Optional<StreamInfo> getCurrentStreamInfo() {
+        return Optional.ofNullable(currentMetadata).flatMap(MediaItemTag::getMaybeStreamInfo);
+    }
 
     public int getCurrentState() {
         return currentState;
@@ -4178,8 +4785,7 @@ public final class Player implements
     }
 
     public boolean isStopped() {
-        return exoPlayerIsNull()
-                || simpleExoPlayer.getPlaybackState() == SimpleExoPlayer.STATE_IDLE;
+        return exoPlayerIsNull() || simpleExoPlayer.getPlaybackState() == ExoPlayer.STATE_IDLE;
     }
 
     public boolean isPlaying() {
@@ -4196,8 +4802,8 @@ public final class Player implements
 
     private boolean isLive() {
         try {
-            return !exoPlayerIsNull() && simpleExoPlayer.isCurrentWindowDynamic();
-        } catch (@NonNull final IndexOutOfBoundsException e) {
+            return !exoPlayerIsNull() && simpleExoPlayer.isCurrentMediaItemDynamic();
+        } catch (final IndexOutOfBoundsException e) {
             // Why would this even happen =(... but lets log it anyway, better safe than sorry
             if (DEBUG) {
                 Log.d(TAG, "player.isCurrentWindowDynamic() failed: ", e);
@@ -4267,6 +4873,14 @@ public final class Player implements
 
     public boolean isSomePopupMenuVisible() {
         return isSomePopupMenuVisible;
+    }
+
+    public boolean isFullscreenGestureEnabled() {
+        return isFullscreenGestureEnabled;
+    }
+
+    public void setSomePopupMenuVisible(final boolean somePopupMenuVisible) {
+        isSomePopupMenuVisible = somePopupMenuVisible;
     }
 
     public ImageButton getPlayPauseButton() {
@@ -4350,6 +4964,11 @@ public final class Player implements
     public PlayQueueAdapter getPlayQueueAdapter() {
         return playQueueAdapter;
     }
+
+    public PlayerBinding getBinding() {
+        return binding;
+    }
+
     //endregion
 
 
@@ -4366,24 +4985,199 @@ public final class Player implements
             surfaceHolderCallback = new SurfaceHolderCallback(context, simpleExoPlayer);
             binding.surfaceView.getHolder().addCallback(surfaceHolderCallback);
             final Surface surface = binding.surfaceView.getHolder().getSurface();
-            // initially set the surface manually otherwise
-            // onRenderedFirstFrame() will not be called
-            simpleExoPlayer.setVideoSurface(surface);
+            // ensure player is using an unreleased surface, which the surfaceView might not be
+            // when starting playback on background or during player switching
+            if (surface.isValid()) {
+                // initially set the surface manually otherwise
+                // onRenderedFirstFrame() will not be called
+                simpleExoPlayer.setVideoSurface(surface);
+            }
         } else {
             simpleExoPlayer.setVideoSurfaceView(binding.surfaceView);
         }
     }
 
     private void cleanupVideoSurface() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // >=API23
-            if (surfaceHolderCallback != null) {
-                if (binding != null) {
-                    binding.surfaceView.getHolder().removeCallback(surfaceHolderCallback);
-                }
-                surfaceHolderCallback.release();
-                surfaceHolderCallback = null;
+        // Only for API >= 23
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && surfaceHolderCallback != null) {
+            if (binding != null) {
+                binding.surfaceView.getHolder().removeCallback(surfaceHolderCallback);
             }
+            surfaceHolderCallback.release();
+            surfaceHolderCallback = null;
         }
     }
     //endregion
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // SponsorBlock
+    //////////////////////////////////////////////////////////////////////////*/
+    //region
+
+    public SponsorBlockMode getSponsorBlockMode() {
+        return sponsorBlockMode;
+    }
+
+    public void setSponsorBlockMode(final SponsorBlockMode mode) {
+        sponsorBlockMode = mode;
+        // Also set pref
+        prefs.edit().putString(context.getString(R.string.pref_sponsorblock_mode_key), mode.name()).apply();
+    }
+
+    public VideoSegment getSkippableSegment(final int progress) {
+        // currentItem may get set to something later (asynchronously)
+        if (currentItem == null) {
+            return null;
+        }
+
+        final VideoSegment[] videoSegments = currentItem.getVideoSegments();
+        if (videoSegments == null) {
+            return null;
+        }
+
+        for (final VideoSegment segment : videoSegments) {
+            if (progress < segment.startTime) {
+                continue;
+            }
+
+            if (progress > segment.endTime) {
+                continue;
+            }
+
+            return segment;
+        }
+
+        return null;
+    }
+
+    public void onSponsorBlockButtonClicked() {
+        if (DEBUG) {
+            Log.d(TAG, "onBlockingSponsorsButtonClicked() called");
+        }
+
+        switch (getSponsorBlockMode()) {
+            case DISABLED:
+                setSponsorBlockMode(SponsorBlockMode.ENABLED);
+                break;
+            case ENABLED:
+                setSponsorBlockMode(SponsorBlockMode.DISABLED);
+                break;
+            case IGNORE:
+                // ignored
+        }
+
+        setBlockSponsorsButton(binding.switchSponsorBlocking);
+    }
+
+    public void onBlockingSponsorsButtonLongClicked() {
+        if (DEBUG) {
+            Log.d(TAG, "onBlockingSponsorsButtonLongClicked() called");
+        }
+
+        final MediaItemTag metaData = currentMetadata;
+
+        if (metaData == null) {
+            return;
+        }
+
+        final Set<String> uploaderWhitelist = new HashSet<>(getPrefs().getStringSet(
+                context.getString(R.string.sponsor_block_whitelist_key),
+                new HashSet<>()));
+
+        final String toastText;
+
+        final String uploaderName = metaData.getUploaderName();
+
+        if (getSponsorBlockMode() == SponsorBlockMode.IGNORE) {
+            uploaderWhitelist.remove(uploaderName);
+            setSponsorBlockMode(SponsorBlockMode.ENABLED);
+            toastText = context
+                    .getString(R.string.sponsor_block_uploader_removed_from_whitelist_toast);
+        } else {
+            uploaderWhitelist.add(uploaderName);
+            setSponsorBlockMode(SponsorBlockMode.IGNORE);
+            toastText = context
+                    .getString(R.string.sponsor_block_uploader_added_to_whitelist_toast);
+        }
+
+        getPrefs()
+                .edit()
+                .putStringSet(
+                        context.getString(R.string.sponsor_block_whitelist_key),
+                        new HashSet<>(uploaderWhitelist))
+                .apply();
+
+        setBlockSponsorsButton(binding.switchSponsorBlocking);
+        Toast.makeText(context, toastText, Toast.LENGTH_LONG).show();
+    }
+
+    protected void setBlockSponsorsButton(final ImageButton button) {
+        if (button == null) {
+            return;
+        }
+
+        final int resId;
+
+        switch (getSponsorBlockMode()) {
+            case DISABLED:
+                resId = R.drawable.ic_sponsor_block_disable;
+                break;
+            case ENABLED:
+                resId = R.drawable.ic_sponsor_block_enable;
+                break;
+            case IGNORE:
+                resId = R.drawable.ic_sponsor_block_exclude;
+                break;
+            default:
+                return;
+        }
+
+        button.setImageDrawable(AppCompatResources.getDrawable(context, resId));
+    }
+
+    //endregion
+
+    /**
+     * Get the video renderer index of the current playing stream.
+     * <p>
+     * This method returns the video renderer index of the current
+     * {@link MappingTrackSelector.MappedTrackInfo} or {@link #RENDERER_UNAVAILABLE} if the current
+     * {@link MappingTrackSelector.MappedTrackInfo} is null or if there is no video renderer index.
+     *
+     * @return the video renderer index or {@link #RENDERER_UNAVAILABLE} if it cannot be get
+     */
+    private int getVideoRendererIndex() {
+        final MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector
+                .getCurrentMappedTrackInfo();
+
+        if (mappedTrackInfo == null) {
+            return RENDERER_UNAVAILABLE;
+        }
+
+        // Check every renderer
+        return IntStream.range(0, mappedTrackInfo.getRendererCount())
+                // Check the renderer is a video renderer and has at least one track
+                .filter(i -> !mappedTrackInfo.getTrackGroups(i).isEmpty()
+                        && simpleExoPlayer.getRendererType(i) == C.TRACK_TYPE_VIDEO)
+                // Return the first index found (there is at most one renderer per renderer type)
+                .findFirst()
+                // No video renderer index with at least one track found: return unavailable index
+                .orElse(RENDERER_UNAVAILABLE);
+    }
+
+    public void setLongPressSpeedingEnabled(boolean enabled) {
+        longPressSpeedingEnabled = enabled;
+    }
+
+    public boolean getLongPressSpeedingEnabled() {
+        return longPressSpeedingEnabled;
+    }
+
+    public void onBufferingFailed() {
+        pause();
+        pauseBCPlayer();
+        currentState = STATE_PAUSED;
+        notifyPlaybackUpdateToListeners();
+        dataSource.disconnectWebSocketClients();
+    }
 }

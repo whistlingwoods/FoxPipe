@@ -7,10 +7,9 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 
-import org.schabi.newpipe.App;
-import org.schabi.newpipe.CheckForNewAppVersion;
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.util.ReleaseVersionUtil;
 
 public class MainSettingsFragment extends BasePreferenceFragment {
     public static final boolean DEBUG = MainActivity.DEBUG;
@@ -24,12 +23,12 @@ public class MainSettingsFragment extends BasePreferenceFragment {
         setHasOptionsMenu(true); // Otherwise onCreateOptionsMenu is not called
 
         // Check if the app is updatable
-        if (!CheckForNewAppVersion.isReleaseApk(App.getApp())) {
-            getPreferenceScreen().removePreference(
-                    findPreference(getString(R.string.update_pref_screen_key)));
-
-            defaultPreferences.edit().putBoolean(getString(R.string.update_app_key), false).apply();
-        }
+//        if (!ReleaseVersionUtil.isReleaseApk()) {
+//            getPreferenceScreen().removePreference(
+//                    findPreference(getString(R.string.update_pref_screen_key)));
+//
+//            defaultPreferences.edit().putBoolean(getString(R.string.update_app_key), false).apply();
+//        }
 
         // Hide debug preferences in RELEASE build variant
         if (!DEBUG) {

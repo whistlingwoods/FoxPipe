@@ -65,9 +65,9 @@ public final class MainPlayer extends Service {
     // Notification
     //////////////////////////////////////////////////////////////////////////*/
 
-    static final String ACTION_CLOSE
+    public static final String ACTION_CLOSE
             = App.PACKAGE_NAME + ".player.MainPlayer.CLOSE";
-    static final String ACTION_PLAY_PAUSE
+    public static final String ACTION_PLAY_PAUSE
             = App.PACKAGE_NAME + ".player.MainPlayer.PLAY_PAUSE";
     static final String ACTION_REPEAT
             = App.PACKAGE_NAME + ".player.MainPlayer.REPEAT";
@@ -79,8 +79,10 @@ public final class MainPlayer extends Service {
             = App.PACKAGE_NAME + ".player.MainPlayer.ACTION_FAST_REWIND";
     static final String ACTION_FAST_FORWARD
             = App.PACKAGE_NAME + ".player.MainPlayer.ACTION_FAST_FORWARD";
-    static final String ACTION_SHUFFLE
+    public static final String ACTION_SHUFFLE
             = App.PACKAGE_NAME + ".player.MainPlayer.ACTION_SHUFFLE";
+    public static final String ACTION_CHANGE_PLAY_MODE
+            = App.PACKAGE_NAME + ".player.MainPlayer.ACTION_CHANGE_PLAY_MODE";
     public static final String ACTION_RECREATE_NOTIFICATION
             = App.PACKAGE_NAME + ".player.MainPlayer.ACTION_RECREATE_NOTIFICATION";
 
@@ -120,12 +122,15 @@ public final class MainPlayer extends Service {
             // Player is not working, no need to process media button's action
             return START_NOT_STICKY;
         }
+        // null check
+        if (player == null) {
+            player = new Player(this);
+        }
 
         if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())
                 || intent.getStringExtra(Player.PLAY_QUEUE_KEY) != null) {
             NotificationUtil.getInstance().createNotificationAndStartForeground(player, this);
         }
-
         player.handleIntent(intent);
         if (player.getMediaSessionManager() != null) {
             player.getMediaSessionManager().handleMediaButtonIntent(intent);

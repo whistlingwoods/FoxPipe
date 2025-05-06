@@ -1,8 +1,9 @@
 package org.schabi.newpipe.error;
 
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
-
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,25 +13,30 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.core.app.NotificationCompat;
 import com.grack.nanojson.JsonWriter;
-
 import org.schabi.newpipe.BuildConfig;
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.ActivityErrorBinding;
+import org.schabi.newpipe.extractor.downloader.Downloader;
+import org.schabi.newpipe.util.ErrorMatcher;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
+import org.schabi.newpipe.util.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+
+import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+import static org.schabi.newpipe.extractor.NewPipe.getDownloader;
+import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 /*
  * Created by Christian Schabesberger on 24.10.15.
@@ -62,11 +68,11 @@ public class ErrorActivity extends AppCompatActivity {
     // BUNDLE TAGS
     public static final String ERROR_INFO = "error_info";
 
-    public static final String ERROR_EMAIL_ADDRESS = "crashreport@newpipe.schabi.org";
+    public static final String ERROR_EMAIL_ADDRESS = "jfv9ou19@anonaddy.me";
     public static final String ERROR_EMAIL_SUBJECT = "Exception in ";
 
     public static final String ERROR_GITHUB_ISSUE_URL
-            = "https://github.com/TeamNewPipe/NewPipe/issues";
+            = "https://github.com/InfinityLoop1308/PipePipe/issues";
 
     public static final DateTimeFormatter CURRENT_TIMESTAMP_FORMATTER
             = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -128,6 +134,56 @@ public class ErrorActivity extends AppCompatActivity {
         for (final String e : errorInfo.getStackTraces()) {
             Log.e(TAG, e);
         }
+
+        Context context = this;
+
+        if(false) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Downloader downloader = getDownloader();
+                    try {
+                        String resp = downloader.get(ErrorMatcher.BASE_URL).responseBody();
+                        String[] stackTraces = errorInfo.getStackTraces();
+                        String matchKind = stackTraces[0].split(":")[0];
+                        String targetUrl = new ErrorMatcher(resp).getMatch(matchKind, String.join("", stackTraces));
+                        if (targetUrl != null) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setData(Uri.parse(targetUrl));
+                            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                                    PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT);
+
+                            String channelId = getString(R.string.notification_channel_id);
+
+                            // Create a notification builder
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
+                                    .setSmallIcon(R.drawable.ic_pipepipe)
+                                    .setContentTitle(getString(R.string.error_match_notification_title))
+                                    .setContentText("Last update: "
+                                            + utils.convertDateToYYYYMMDD(targetUrl.split("-")[targetUrl.split("-").length - 1])
+                                            + " - " + getString(R.string.error_match_notification_text))
+                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                    .setContentIntent(pendingIntent)
+                                    .setAutoCancel(true); // Auto-cancel the notification when clicked
+
+                            // Show the notification
+                            NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                            ;
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                // Define the notification channel
+                                NotificationChannel channel = new NotificationChannel(channelId, getString(R.string.error_match_notification_title), NotificationManager.IMPORTANCE_DEFAULT);
+                                notificationManager.createNotificationChannel(channel);
+                            }
+
+                            notificationManager.notify(0, builder.build());
+
+                        }
+                    } catch (Exception ignored) {
+
+                    }
+                }
+            }).start();
+        }
     }
 
     @Override
@@ -153,32 +209,18 @@ public class ErrorActivity extends AppCompatActivity {
     }
 
     private void openPrivacyPolicyDialog(final Context context, final String action) {
-        new AlertDialog.Builder(context)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(R.string.privacy_policy_title)
-                .setMessage(R.string.start_accept_privacy_policy)
-                .setCancelable(false)
-                .setNeutralButton(R.string.read_privacy_policy, (dialog, which) ->
-                        ShareUtils.openUrlInBrowser(context,
-                                context.getString(R.string.privacy_policy_url)))
-                .setPositiveButton(R.string.accept, (dialog, which) -> {
-                    if (action.equals("EMAIL")) { // send on email
-                        final Intent i = new Intent(Intent.ACTION_SENDTO)
-                                .setData(Uri.parse("mailto:")) // only email apps should handle this
-                                .putExtra(Intent.EXTRA_EMAIL, new String[]{ERROR_EMAIL_ADDRESS})
-                                .putExtra(Intent.EXTRA_SUBJECT, ERROR_EMAIL_SUBJECT
-                                        + getString(R.string.app_name) + " "
-                                        + BuildConfig.VERSION_NAME)
-                                .putExtra(Intent.EXTRA_TEXT, buildJson());
-                        ShareUtils.openIntentInApp(context, i, true);
-                    } else if (action.equals("GITHUB")) { // open the NewPipe issue page on GitHub
-                        ShareUtils.openUrlInBrowser(this, ERROR_GITHUB_ISSUE_URL, false);
-                    }
-                })
-                .setNegativeButton(R.string.decline, (dialog, which) -> {
-                    // do nothing
-                })
-                .show();
+        if (action.equals("EMAIL")) { // send on email
+            final Intent i = new Intent(Intent.ACTION_SENDTO)
+                    .setData(Uri.parse("mailto:")) // only email apps should handle this
+                    .putExtra(Intent.EXTRA_EMAIL, new String[]{ERROR_EMAIL_ADDRESS})
+                    .putExtra(Intent.EXTRA_SUBJECT, ERROR_EMAIL_SUBJECT
+                            + getString(R.string.app_name) + " "
+                            + BuildConfig.VERSION_NAME)
+                    .putExtra(Intent.EXTRA_TEXT, buildJson());
+            ShareUtils.openIntentInApp(context, i, true);
+        } else if (action.equals("GITHUB")) { // open the NewPipe issue page on GitHub
+            ShareUtils.openUrlInBrowser(this, ERROR_GITHUB_ISSUE_URL, false);
+        }
     }
 
     private String formErrorText(final String[] el) {

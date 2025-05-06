@@ -87,6 +87,7 @@ import static us.shandian.giga.get.DownloadMission.ERROR_SSL_EXCEPTION;
 import static us.shandian.giga.get.DownloadMission.ERROR_TIMEOUT;
 import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_EXCEPTION;
 import static us.shandian.giga.get.DownloadMission.ERROR_UNKNOWN_HOST;
+import static us.shandian.giga.postprocessing.Postprocessing.NICONICO_MUXER;
 
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final SparseArray<String> ALGORITHMS = new SparseArray<>();
@@ -250,7 +251,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         h.progress.setMarquee(mission.isRecovering() || !hasError && (!mission.isInitialized() || mission.unknownLength));
 
         double progress;
-        if (mission.unknownLength) {
+        if (mission.unknownLength && mission.psAlgorithm.name != NICONICO_MUXER) {
             progress = Double.NaN;
             h.progress.setProgress(0.0f);
         } else {
@@ -352,9 +353,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         intent.setDataAndType(resolveShareableUri(mission), mimeType);
         intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
-        }
+        intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
             intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
         }
@@ -502,7 +501,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 msg = R.string.error_connect_host;
                 break;
             case ERROR_POSTPROCESSING_STOPPED:
-                msg = R.string.error_postprocessing_stopped;
+                msg = R.string.error_postprocessing_stopped_new;
                 break;
             case ERROR_POSTPROCESSING:
             case ERROR_POSTPROCESSING_HOLD:
@@ -690,7 +689,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                         = new NotificationCompat.Builder(mContext,
                         mContext.getString(R.string.hash_channel_id))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setSmallIcon(R.drawable.ic_newpipe_triangle_white)
+                        .setSmallIcon(R.drawable.ic_pipepipe)
                         .setContentTitle(mContext.getString(R.string.msg_calculating_hash))
                         .setContentText(mContext.getString(R.string.msg_wait))
                         .setProgress(0, 0, true)

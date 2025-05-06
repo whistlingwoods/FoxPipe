@@ -20,19 +20,17 @@
 
 package org.schabi.newpipe;
 
-import static org.schabi.newpipe.CheckForNewAppVersion.startNewVersionCheckService;
 import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -40,10 +38,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
-import android.widget.Spinner;
+import android.widget.*;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -72,27 +67,27 @@ import org.schabi.newpipe.fragments.BackPressable;
 import org.schabi.newpipe.fragments.MainFragment;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipe.fragments.list.search.SearchFragment;
+import org.schabi.newpipe.local.feed.notifications.NotificationWorker;
 import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.player.event.OnKeyDownListener;
 import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
-import org.schabi.newpipe.util.Constants;
-import org.schabi.newpipe.util.DeviceUtils;
-import org.schabi.newpipe.util.KioskTranslator;
-import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.NavigationHelper;
-import org.schabi.newpipe.util.PeertubeHelper;
-import org.schabi.newpipe.util.PermissionHelper;
-import org.schabi.newpipe.util.SerializedCache;
-import org.schabi.newpipe.util.ServiceHelper;
-import org.schabi.newpipe.util.StateSaver;
-import org.schabi.newpipe.util.TLSSocketFactoryCompat;
-import org.schabi.newpipe.util.ThemeHelper;
+import org.schabi.newpipe.util.*;
+import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.views.FocusOverlayView;
 
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.X509TrustManager;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -132,9 +127,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // enable TLS1.1/1.2 for kitkat devices, to fix download and play for media.ccc.de sources
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-            TLSSocketFactoryCompat.setAsDefault();
-        }
+        trustEveryone(); //Fix random certificate issue for BiliBili
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                .permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
@@ -159,11 +155,14 @@ public class MainActivity extends AppCompatActivity {
         } catch (final Exception e) {
             ErrorUtil.showUiErrorSnackbar(this, "Setting up drawer", e);
         }
-
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
         openMiniPlayerUponPlayerStarted();
+
+        // Schedule worker for checking for new streams and creating corresponding notifications
+        // if this is enabled by the user.
+        NotificationWorker.initialize(this);
     }
 
     @Override
@@ -173,11 +172,80 @@ public class MainActivity extends AppCompatActivity {
         final App app = App.getApp();
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(app);
 
-        if (prefs.getBoolean(app.getString(R.string.update_app_key), true)) {
-            // Start the service which is checking all conditions
+        if (prefs.getBoolean(app.getString(R.string.update_app_key), false)) {
+            // Start the worker which is checking all conditions
             // and eventually searching for a new version.
-            // The service searching for a new NewPipe version must not be started in background.
-            startNewVersionCheckService();
+            NewVersionWorker.enqueueNewVersionCheckingWork(app, false);
+        }
+
+        int currentVersionCode = BuildConfig.VERSION_CODE;
+        int storedVersionCode = prefs.getInt("version_code", 0);
+        long lastShowDonationTime = prefs.getLong("last_show_donation_time", 0);
+        long currentTime = System.currentTimeMillis();
+
+// Check if the stored version code is different from the current version code
+        if (currentVersionCode > storedVersionCode) {
+            // Show the "What's New" dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.fragment_feed_title);
+            builder.setMessage(R.string.update_log);
+            builder.setPositiveButton(R.string.ok, null);
+
+            AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
+            builder2.setTitle(R.string.donation_dialog_title);
+            builder2.setMessage(R.string.donation_dialog_message);
+            // another button to copy to clipboard
+
+            builder2.setPositiveButton(R.string.sponsor_promote, (dialog, which) -> {
+                ShareUtils.openUrlInBrowser(this, getString(R.string.donation_url));
+            });
+            builder2.setNegativeButton(R.string.no, null);
+
+            final AlertDialog dialog2 = builder2.create();
+
+            final AlertDialog dialog1 = builder.create();
+            dialog1.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    // Show the second dialog when the first dialog is dismissed
+                    if((storedVersionCode / 100 < 1065 && currentTime - lastShowDonationTime > 14 * 24 * 60 * 60 * 1000)
+                            || currentTime - lastShowDonationTime > 60L * 24 * 60 * 60 * 1000) {
+                        prefs.edit().putLong("last_show_donation_time", currentTime).apply();
+                        dialog2.show();
+                    }
+                }
+            });
+
+            // Show the first dialog
+            dialog1.show();
+            // Update the stored version code
+            prefs.edit().putInt("version_code", currentVersionCode).apply();
+
+            if (currentVersionCode / 100 == 1068) {
+                AlertDialog.Builder builder3 = new AlertDialog.Builder(this);
+                builder3.setMessage(R.string.temp);
+                builder3.setPositiveButton(R.string.ok, (dialog, which) -> {
+                });
+                builder3.show();
+            }
+        }
+
+        int isFirstRun = prefs.getInt("isFirstRun", 0);
+        // if is First run and update checker is not enabled, show a dialog to ask if user want to enable update checker
+        if (isFirstRun == 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.dialog_title_enable_update_checker);
+            builder.setMessage(R.string.dialog_message_enable_update_checker);
+            builder.setPositiveButton(R.string.ok, (dialog, which) -> {
+                prefs.edit().putBoolean(app.getString(R.string.update_app_key), true).apply();
+                // Start the worker which is checking all conditions
+                // and eventually searching for a new version.
+                NewVersionWorker.enqueueNewVersionCheckingWork(app, false);
+            });
+            builder.setNegativeButton(R.string.no, (dialog, which) -> prefs.edit().putBoolean(app.getString(R.string.update_app_key), false).apply());
+            builder.show();
+            prefs.edit().putInt("isFirstRun", 1).apply();
+            PermissionChecker.checkNotificationPermission(this);
         }
     }
 
@@ -227,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
             drawerLayoutBinding.navigation.getMenu()
                     .add(R.id.menu_tabs_group, kioskId, 0, KioskTranslator
                             .getTranslatedKioskName(ks, this))
-                    .setIcon(KioskTranslator.getKioskIcon(ks, this));
+                    .setIcon(KioskTranslator.getKioskIcon(ks));
             kioskId++;
         }
 
@@ -380,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
     private void showServices() {
         for (final StreamingService s : NewPipe.getServices()) {
             final String title = s.getServiceInfo().getName()
-                    + (ServiceHelper.isBeta(s) ? " (beta)" : "");
+                    + (ServiceHelper.isBeta(s) ? " (Legacy)" : "");
 
             final MenuItem menuItem = drawerLayoutBinding.navigation.getMenu()
                     .add(R.id.menu_services_group, s.getServiceId(), ORDER, title)
@@ -398,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void enhancePeertubeMenu(final StreamingService s, final MenuItem menuItem) {
         final PeertubeInstance currentInstance = PeertubeHelper.getCurrentInstance();
-        menuItem.setTitle(currentInstance.getName() + (ServiceHelper.isBeta(s) ? " (beta)" : ""));
+        menuItem.setTitle(currentInstance.getName() + (ServiceHelper.isBeta(s) ? " (Legacy)" : ""));
         final Spinner spinner = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
                 .getRoot();
         final List<PeertubeInstance> instances = PeertubeHelper.getInstanceList(this);
@@ -719,7 +787,7 @@ public class MainActivity extends AppCompatActivity {
             if (toggle != null) {
                 toggle.syncState();
                 toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> mainBinding.getRoot()
-                        .openDrawer(GravityCompat.START));
+                        .open());
                 mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
             }
         } else {
@@ -789,14 +857,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openMiniPlayerIfMissing() {
+    private void openMiniPlayerIfMissing(final String title, final String artist, final String thumbnailUrl) {
         final Fragment fragmentPlayer = getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_player_holder);
         if (fragmentPlayer == null) {
             // We still don't have a fragment attached to the activity. It can happen when a user
             // started popup or background players without opening a stream inside the fragment.
             // Adding it in a collapsed state (only mini player will be visible).
-            NavigationHelper.showMiniPlayer(getSupportFragmentManager());
+            NavigationHelper.showMiniPlayer(getSupportFragmentManager(), title, artist, thumbnailUrl);
         }
     }
 
@@ -810,7 +878,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (PlayerHolder.getInstance().isPlayerOpen()) {
             // if the player is already open, no need for a broadcast receiver
-            openMiniPlayerIfMissing();
+            openMiniPlayerIfMissing("title", "artist", "thumbnailUrl");
+
         } else {
             // listen for player start intent being sent around
             broadcastReceiver = new BroadcastReceiver() {
@@ -818,7 +887,10 @@ public class MainActivity extends AppCompatActivity {
                 public void onReceive(final Context context, final Intent intent) {
                     if (Objects.equals(intent.getAction(),
                             VideoDetailFragment.ACTION_PLAYER_STARTED)) {
-                        openMiniPlayerIfMissing();
+                        final String title = intent.getStringExtra("title");
+                        final String artist = intent.getStringExtra("artist");
+                        final String thumbnailUrl = intent.getStringExtra("thumbnailUrl");
+                        openMiniPlayerIfMissing(title, artist, thumbnailUrl);
                         // At this point the player is added 100%, we can unregister. Other actions
                         // are useless since the fragment will not be removed after that.
                         unregisterReceiver(broadcastReceiver);
@@ -839,5 +911,27 @@ public class MainActivity extends AppCompatActivity {
         final int sheetState = bottomSheetBehavior.getState();
         return sheetState == BottomSheetBehavior.STATE_HIDDEN
                 || sheetState == BottomSheetBehavior.STATE_COLLAPSED;
+    }
+
+    public static void trustEveryone() {
+        try {
+            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier(){
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }});
+            SSLContext context = SSLContext.getInstance("TLS");
+            context.init(null, new X509TrustManager[]{new X509TrustManager(){
+                public void checkClientTrusted(X509Certificate[] chain,
+                                               String authType) throws CertificateException {}
+                public void checkServerTrusted(X509Certificate[] chain,
+                                               String authType) throws CertificateException {}
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }}}, new SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(
+                    context.getSocketFactory());
+        } catch (Exception e) { // should never happen
+            e.printStackTrace();
+        }
     }
 }

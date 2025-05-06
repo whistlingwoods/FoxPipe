@@ -5,20 +5,28 @@ import android.util.Log;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamExtractor;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.player.helper.PlayerDataSource;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.List;
+import java.util.Map;
 
 import us.shandian.giga.get.DownloadMission.HttpError;
 
 import static us.shandian.giga.get.DownloadMission.ERROR_RESOURCE_GONE;
+import static us.shandian.giga.util.Utility.setRequestPropertyIfDownloadingBilibili;
+
+import com.grack.nanojson.JsonParserException;
 
 public class DownloadMissionRecover extends Thread {
     private static final String TAG = "DownloadMissionRecover";
@@ -147,7 +155,6 @@ public class DownloadMissionRecover extends Thread {
                 for (VideoStream video : videoStreams) {
                     if (video.resolution.equals(mRecovery.getDesired()) && video.getFormat() == mRecovery.getFormat()) {
                         url = video.getUrl();
-                        break;
                     }
                 }
                 break;
@@ -183,6 +190,7 @@ public class DownloadMissionRecover extends Thread {
         try {
             mConn = mMission.openConnection(url, true, mMission.length - 10, mMission.length);
             mConn.setRequestProperty("If-Range", mRecovery.getValidateCondition());
+            setRequestPropertyIfDownloadingBilibili(url, mConn);
             mMission.establishConnection(mID, mConn);
 
             int code = mConn.getResponseCode();

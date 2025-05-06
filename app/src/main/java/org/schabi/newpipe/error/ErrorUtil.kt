@@ -1,16 +1,18 @@
 package org.schabi.newpipe.error
 
 import android.app.Activity
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import org.schabi.newpipe.R
@@ -105,13 +107,6 @@ class ErrorUtil {
          */
         @JvmStatic
         fun createNotification(context: Context, errorInfo: ErrorInfo) {
-            val notificationManager =
-                ContextCompat.getSystemService(context, NotificationManager::class.java)
-            if (notificationManager == null) {
-                // this should never happen, but just in case open error activity
-                openActivity(context, errorInfo)
-            }
-
             var pendingIntentFlags = PendingIntent.FLAG_UPDATE_CURRENT
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 pendingIntentFlags = pendingIntentFlags or PendingIntent.FLAG_IMMUTABLE
@@ -122,8 +117,11 @@ class ErrorUtil {
                     context,
                     context.getString(R.string.error_report_channel_id)
                 )
-                    .setSmallIcon(R.drawable.ic_bug_report)
-                    .setContentTitle(context.getString(R.string.error_report_notification_title))
+                    .setSmallIcon(
+                        // the vector drawable icon causes crashes on KitKat devices
+                        R.drawable.ic_bug_report
+                    )
+                    .setContentTitle(context.getString(R.string.error_report_notification_title_new))
                     .setContentText(context.getString(errorInfo.messageStringId))
                     .setAutoCancel(true)
                     .setContentIntent(
@@ -135,7 +133,8 @@ class ErrorUtil {
                         )
                     )
 
-            notificationManager!!.notify(ERROR_REPORT_NOTIFICATION_ID, notificationBuilder.build())
+            NotificationManagerCompat.from(context)
+                .notify(ERROR_REPORT_NOTIFICATION_ID, notificationBuilder.build())
 
             // since the notification is silent, also show a toast, otherwise the user is confused
             Toast.makeText(context, R.string.error_report_notification_toast, Toast.LENGTH_SHORT)
@@ -150,7 +149,7 @@ class ErrorUtil {
         }
 
         private fun showSnackbar(context: Context, rootView: View?, errorInfo: ErrorInfo) {
-            if (rootView == null) {
+            if (rootView == null || findSuitableParent(rootView) == null) {
                 // fallback to showing a notification if no root view is available
                 createNotification(context, errorInfo)
             } else {
@@ -160,6 +159,34 @@ class ErrorUtil {
                         openActivity(context, errorInfo)
                     }.show()
             }
+        }
+
+        private fun findSuitableParent(passedView: View): ViewGroup? {
+            var view: View? = passedView
+            var fallback: ViewGroup? = null
+            do {
+                if (view is CoordinatorLayout) {
+                    // We've found a CoordinatorLayout, use it
+                    return view
+                } else if (view is FrameLayout) {
+                    fallback = if (view.getId() == android.R.id.content) {
+                        // If we've hit the decor content view, then we didn't find a CoL in the
+                        // hierarchy, so use it.
+                        return view
+                    } else {
+                        // It's not the content view but we'll use it as our fallback
+                        view
+                    }
+                }
+                if (view != null) {
+                    // Else, we will loop and crawl up the view hierarchy and try to find a parent
+                    val parent = view.parent
+                    view = if (parent is View) parent else null
+                }
+            } while (view != null)
+
+            // If we reach here then we didn't find a CoL or a suitable content view so we'll fallback
+            return fallback
         }
     }
 }

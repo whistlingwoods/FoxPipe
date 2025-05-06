@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public final class SerializedCache {
     private static final boolean DEBUG = MainActivity.DEBUG;
     private static final SerializedCache INSTANCE = new SerializedCache();
     private static final int MAX_ITEMS_ON_CACHE = 5;
-    private static final LruCache<String, CacheData> LRU_CACHE =
+    private static final LruCache<String, CacheData<?>> LRU_CACHE =
             new LruCache<>(MAX_ITEMS_ON_CACHE);
     private static final String TAG = "SerializedCache";
 
@@ -47,7 +48,7 @@ public final class SerializedCache {
             Log.d(TAG, "get() called with: key = [" + key + "]");
         }
         synchronized (LRU_CACHE) {
-            final CacheData data = LRU_CACHE.get(key);
+            final CacheData<?> data = LRU_CACHE.get(key);
             return data != null ? getItem(data, type) : null;
         }
     }
@@ -91,21 +92,15 @@ public final class SerializedCache {
     }
 
     @Nullable
-    private <T> T getItem(@NonNull final CacheData data, @NonNull final Class<T> type) {
+    private <T> T getItem(@NonNull final CacheData<?> data, @NonNull final Class<T> type) {
         return type.isAssignableFrom(data.type) ? type.cast(data.item) : null;
     }
 
     @NonNull
     private <T extends Serializable> T clone(@NonNull final T item,
-                                             @NonNull final Class<T> type) throws Exception {
-        final ByteArrayOutputStream bytesOutput = new ByteArrayOutputStream();
-        try (ObjectOutputStream objectOutput = new ObjectOutputStream(bytesOutput)) {
-            objectOutput.writeObject(item);
-            objectOutput.flush();
-        }
-        final Object clone = new ObjectInputStream(
-                new ByteArrayInputStream(bytesOutput.toByteArray())).readObject();
-        return type.cast(clone);
+                                             @NonNull final Class<T> type
+    ) throws IOException, SecurityException, NullPointerException, ClassNotFoundException {
+        return SerializedUtils.clone(item, type);
     }
 
     private static final class CacheData<T> {

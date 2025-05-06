@@ -1,65 +1,25 @@
 package org.schabi.newpipe.local.playlist;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.content.*;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
-
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import org.schabi.newpipe.NewPipeDatabase;
-import org.schabi.newpipe.R;
-import org.schabi.newpipe.database.LocalItem;
-import org.schabi.newpipe.database.history.model.StreamHistoryEntry;
-import org.schabi.newpipe.database.playlist.PlaylistStreamEntry;
-import org.schabi.newpipe.database.stream.model.StreamEntity;
-import org.schabi.newpipe.database.stream.model.StreamStateEntity;
-import org.schabi.newpipe.databinding.DialogEditTextBinding;
-import org.schabi.newpipe.databinding.LocalPlaylistHeaderBinding;
-import org.schabi.newpipe.databinding.PlaylistControlBinding;
-import org.schabi.newpipe.error.ErrorInfo;
-import org.schabi.newpipe.error.UserAction;
-import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.extractor.stream.StreamType;
-import org.schabi.newpipe.info_list.InfoItemDialog;
-import org.schabi.newpipe.local.BaseLocalListFragment;
-import org.schabi.newpipe.local.history.HistoryRecordManager;
-import org.schabi.newpipe.player.MainPlayer.PlayerType;
-import org.schabi.newpipe.player.helper.PlayerHolder;
-import org.schabi.newpipe.player.playqueue.PlayQueue;
-import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
-import org.schabi.newpipe.util.external_communication.KoreUtils;
-import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.NavigationHelper;
-import org.schabi.newpipe.util.OnClickGesture;
-import org.schabi.newpipe.util.StreamDialogEntry;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import icepick.State;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Flowable;
@@ -67,11 +27,47 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subscribers.DisposableSubscriber;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.schabi.newpipe.NewPipeDatabase;
+import org.schabi.newpipe.R;
+import org.schabi.newpipe.database.LocalItem;
+import org.schabi.newpipe.database.history.model.StreamHistoryEntry;
+import org.schabi.newpipe.database.playlist.PlaylistLocalItem;
+import org.schabi.newpipe.database.playlist.PlaylistStreamEntry;
+import org.schabi.newpipe.database.stream.model.StreamEntity;
+import org.schabi.newpipe.database.stream.model.StreamStateEntity;
+import org.schabi.newpipe.databinding.DialogEditTextBinding;
+import org.schabi.newpipe.databinding.LocalPlaylistHeaderBinding;
+import org.schabi.newpipe.databinding.PlaylistControlBinding;
+import org.schabi.newpipe.download.DownloadDialog;
+import org.schabi.newpipe.error.ErrorInfo;
+import org.schabi.newpipe.error.UserAction;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipe.fragments.BackPressable;
+import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
+import org.schabi.newpipe.info_list.dialog.StreamDialogDefaultEntry;
+import org.schabi.newpipe.local.BaseLocalListFragment;
+import org.schabi.newpipe.local.history.HistoryRecordManager;
+import org.schabi.newpipe.player.MainPlayer.PlayerType;
+import org.schabi.newpipe.player.playqueue.PlayQueue;
+import org.schabi.newpipe.player.playqueue.PlayQueueItem;
+import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
+import org.schabi.newpipe.util.*;
+import us.shandian.giga.get.DirectDownloader;
 
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.schabi.newpipe.download.DownloadHelperKt.download;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
+import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabase;
+import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabaseWithoutToast;
 import static org.schabi.newpipe.util.ThemeHelper.shouldUseGridLayout;
 
-public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistStreamEntry>, Void> {
+public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistStreamEntry>, Void> implements BackPressable {
     // Save the list 10 seconds after the last change occurred
     private static final long SAVE_DEBOUNCE_MILLIS = 10000;
     private static final int MINIMUM_INITIAL_DRAG_VELOCITY = 12;
@@ -99,6 +95,29 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     private AtomicBoolean isModified;
     /* Is the playlist currently being processed to remove watched videos */
     private boolean isRemovingWatched = false;
+    /* Is the playlist currently being processed to remove duplicate streams */
+    private boolean isRemovingDuplicateStreams = false;
+    private boolean autoBackgroundPlaying = false;
+    private boolean randomBackgroundPlaying = false;
+
+    private Disposable videoDownloadDisposable;
+    private Disposable audioDownloadDisposable;
+    private EditText editText;
+    private View searchClear;
+    private TextWatcher textWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            itemListAdapter.filter(String.valueOf(editText.getText()));
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+    };
 
     public static LocalPlaylistFragment getInstance(final long playlistId, final String name) {
         final LocalPlaylistFragment instance = new LocalPlaylistFragment();
@@ -120,6 +139,10 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
 
         isLoadingComplete = new AtomicBoolean();
         isModified = new AtomicBoolean();
+        autoBackgroundPlaying = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getBoolean(getString(R.string.auto_background_play_key), false);
+        randomBackgroundPlaying = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getBoolean(getString(R.string.random_music_play_mode_key), false);
     }
 
     @Override
@@ -174,15 +197,24 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                 if (selectedItem instanceof PlaylistStreamEntry) {
                     final StreamEntity item =
                             ((PlaylistStreamEntry) selectedItem).getStreamEntity();
-                    NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
-                            item.getServiceId(), item.getUrl(), item.getTitle(), null, false);
+                    if (autoBackgroundPlaying){
+                        final PlayQueue temp = getPlayQueue();
+                        temp.setIndex(utils.getIndexInQueue((PlaylistStreamEntry) selectedItem, temp, itemListAdapter.sortMode));
+                        if (randomBackgroundPlaying){
+                            temp.shuffle();
+                        }
+                        NavigationHelper.playOnBackgroundPlayer(activity, temp, false);
+                    } else {
+                        NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
+                                item.getServiceId(), item.getUrl(), item.getTitle(), null, false);
+                    }
                 }
             }
 
             @Override
             public void held(final LocalItem selectedItem) {
                 if (selectedItem instanceof PlaylistStreamEntry) {
-                    showStreamItemDialog((PlaylistStreamEntry) selectedItem);
+                    showInfoItemDialog((PlaylistStreamEntry) selectedItem);
                 }
             }
 
@@ -264,6 +296,9 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     public void onDestroyView() {
         super.onDestroyView();
 
+        if(Objects.requireNonNull(activity.getSupportActionBar()).getCustomView() != null){
+            destroyCustomViewInActionBar();
+        }
         if (itemListAdapter != null) {
             itemListAdapter.unsetSelectedListener();
         }
@@ -271,6 +306,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             playlistControlBinding.playlistCtrlPlayBgButton.setOnClickListener(null);
             playlistControlBinding.playlistCtrlPlayAllButton.setOnClickListener(null);
             playlistControlBinding.playlistCtrlPlayPopupButton.setOnClickListener(null);
+            playlistControlBinding.playlistCtrlDownloadAllButton.setOnClickListener(null);
 
             headerBinding = null;
             playlistControlBinding = null;
@@ -355,7 +391,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                 new AlertDialog.Builder(requireContext())
                         .setMessage(R.string.remove_watched_popup_warning)
                         .setTitle(R.string.remove_watched_popup_title)
-                        .setPositiveButton(R.string.yes,
+                        .setPositiveButton(R.string.ok,
                                 (DialogInterface d, int id) -> removeWatchedStreams(false))
                         .setNeutralButton(
                                 R.string.remove_watched_popup_yes_and_partially_watched_videos,
@@ -367,10 +403,188 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             }
         } else if (item.getItemId() == R.id.menu_item_rename_playlist) {
             createRenameDialog();
-        } else {
-            return super.onOptionsItemSelected(item);
+        } else if (item.getItemId() == R.id.menu_item_remove_duplicates) {
+            if (!isRemovingDuplicateStreams) {
+                new AlertDialog.Builder(requireContext())
+                        .setMessage(R.string.remove_duplicates_popup_warning)
+                        .setTitle(R.string.remove_duplicates_popup_title)
+                        .setPositiveButton(R.string.yes,
+                                (DialogInterface d, int id) -> removeDuplicateStreams())
+                        .setNegativeButton(R.string.cancel,
+                                (DialogInterface d, int id) -> d.cancel())
+                        .create()
+                        .show();
+            } else {
+                return super.onOptionsItemSelected(item);
+            }
+        } else if (item.getItemId() == R.id.action_search_local) {
+            ActionBar actionBar = activity.getSupportActionBar();
+            View customView = getLayoutInflater().inflate(R.layout.local_playlist_search_toolbar, null, false);
+            assert actionBar != null;
+            actionBar.setCustomView(customView);
+            actionBar.setDisplayShowCustomEnabled(true);
+            editText = activity.findViewById(R.id.toolbar_search_edit_text_local);
+            editText.requestFocus();
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+            try {
+                activity.findViewById(R.id.action_search_local).setVisibility(View.GONE);
+            } catch (Exception e) {
+                // ignore
+            }
+
+            searchClear = customView.findViewById(R.id.toolbar_search_clear_local);
+            searchClear.setOnClickListener(v -> {
+                if (TextUtils.isEmpty(editText.getText())) {
+                    destroyCustomViewInActionBar();
+                    return;
+                }
+                editText.setText("");
+            });
+
+            try {
+                editText.removeTextChangedListener(textWatcher);
+            } catch (Exception e) {
+                // ignore
+            }
+            editText.addTextChangedListener(textWatcher);
+        } else if (item.getItemId() == R.id.menu_item_download_all) {
+            // add a alert of warning that this func is still beta
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+            if (itemListAdapter.getItemsList().size() > 50) {
+                builder.setTitle(getString(R.string.warning))
+                        .setMessage(getString(R.string.download_temp_warning))
+                        .setPositiveButton(getString(R.string.ok), null);
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                return true;
+            }
+
+
+
+            builder = new AlertDialog.Builder(requireContext());
+            builder.setMessage(R.string.download_all_message)
+                    .setTitle(R.string.download_all);
+            // create aa lambda
+
+            builder.setPositiveButton(R.string.video, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            videoDownloadDisposable = playlistManager.getPlaylistStreams(playlistId)
+                                    .observeOn(Schedulers.io())
+                                    .subscribe(streams -> {
+                                        videoDownloadDisposable.dispose();
+                                        for (PlaylistStreamEntry playlistStreamEntry : streams) {
+                                            StreamInfoItem infoItem = playlistStreamEntry.toStreamInfoItem();
+                                            fetchStreamInfoAndSaveToDatabaseWithoutToast(requireContext(), infoItem.getServiceId(),
+                                                    infoItem.getUrl(), info -> {
+                                                        if (info != null) {
+                                                            new DirectDownloader(requireContext(), info, DirectDownloader.DownloadType.VIDEO);
+                                                        }
+                                                    });
+                                        }
+                                    }, throwable -> {
+                                    });
+                        }
+                    }
+            );
+            builder.setNegativeButton(R.string.audio, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    audioDownloadDisposable = playlistManager.getPlaylistStreams(playlistId)
+                            .observeOn(Schedulers.io())
+                            .subscribe(streams -> {
+                                audioDownloadDisposable.dispose();
+                                for (PlaylistStreamEntry playlistStreamEntry : streams) {
+                                    StreamInfoItem infoItem = playlistStreamEntry.toStreamInfoItem();
+                                    fetchStreamInfoAndSaveToDatabaseWithoutToast(requireContext(), infoItem.getServiceId(),
+                                            infoItem.getUrl(), info -> {
+                                                if (info != null) {
+                                                    new DirectDownloader(requireContext(), info, DirectDownloader.DownloadType.AUDIO);
+                                                }
+                                            });
+                                }
+                            }, throwable -> {
+                            });
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        } else if (item.getItemId() == R.id.menu_item_sort_origin) {
+            itemListAdapter.sortMode = SortMode.ORIGIN;
+            itemListAdapter.sort(SortMode.ORIGIN);
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString(getString(R.string.playlist_sort_mode_key), SortMode.ORIGIN.name()).apply();
+        } else if (item.getItemId() == R.id.menu_item_sort_origin_reverse) {
+            itemListAdapter.sortMode = SortMode.ORIGIN_REVERSE;
+            itemListAdapter.sort(SortMode.ORIGIN_REVERSE);
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString(getString(R.string.playlist_sort_mode_key), SortMode.ORIGIN_REVERSE.name()).apply();
+        } else if (item.getItemId() == R.id.menu_item_sort_name) {
+            itemListAdapter.sortMode = SortMode.SORT_NAME;
+            itemListAdapter.sort(SortMode.SORT_NAME);
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString(getString(R.string.playlist_sort_mode_key), SortMode.SORT_NAME.name()).apply();
+        } else if (item.getItemId() == R.id.menu_item_sort_name_reverse) {
+            itemListAdapter.sortMode = SortMode.SORT_NAME_REVERSE;
+            itemListAdapter.sort(SortMode.SORT_NAME_REVERSE);
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().putString(getString(R.string.playlist_sort_mode_key), SortMode.SORT_NAME_REVERSE.name()).apply();
         }
         return true;
+    }
+
+    public void removeDuplicateStreams() {
+        if (isRemovingDuplicateStreams) {
+            return;
+        }
+        isRemovingDuplicateStreams = true;
+        showLoading();
+
+        disposables.add(playlistManager.getPlaylistStreams(playlistId)
+                .subscribeOn(Schedulers.io())
+                .map((List<PlaylistStreamEntry> playlist) -> {
+                    // Playlist data
+                    final Iterator<PlaylistStreamEntry> playlistIter = playlist.iterator();
+
+                    // Remove duplicates, Functionality data
+                    final List<PlaylistStreamEntry> uniquePlaylistItems = new ArrayList<>();
+                    final Set<Long> uniquePlaylistItemStreamIds = new HashSet<>();
+                    boolean thumbnailVideoRemoved = false;
+
+                    while (playlistIter.hasNext()) {
+                        final PlaylistStreamEntry playlistItem = playlistIter.next();
+                        final Long playlistItemStreamId = playlistItem.getStreamId();
+
+                        if (!uniquePlaylistItemStreamIds.contains(playlistItemStreamId)) {
+                            uniquePlaylistItems.add(playlistItem);
+                            uniquePlaylistItemStreamIds.add(playlistItemStreamId);
+                        } else if (!thumbnailVideoRemoved
+                                && playlistManager.getPlaylistThumbnail(playlistId)
+                                .equals(playlistItem.getStreamEntity().getThumbnailUrl())) {
+                            thumbnailVideoRemoved = true;
+                        }
+                    }
+
+                    return Flowable.just(uniquePlaylistItems, thumbnailVideoRemoved);
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(flow -> {
+                    final List<PlaylistStreamEntry> uniquePlaylistItems =
+                            (List<PlaylistStreamEntry>) flow.blockingFirst();
+                    final boolean thumbnailVideoRemoved = (Boolean) flow.blockingLast();
+
+                    itemListAdapter.clearStreamItemList();
+                    itemListAdapter.addItems(uniquePlaylistItems);
+                    saveChanges();
+
+                    if (thumbnailVideoRemoved) {
+                        updateThumbnailUrl();
+                    }
+
+                    final long videoCount = itemListAdapter.getItemsList().size();
+                    setStreamCountAndOverallDuration(itemListAdapter.getItemsList());
+                    if (videoCount == 0) {
+                        showEmptyState();
+                    }
+
+                    hideLoading();
+                    isRemovingDuplicateStreams = false;
+                }));
     }
 
     public void removeWatchedStreams(final boolean removePartiallyWatched) {
@@ -424,9 +638,11 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                             final PlaylistStreamEntry playlistItem = playlistIter.next();
                             final int indexInHistory = Collections.binarySearch(historyStreamIds,
                                     playlistItem.getStreamId());
+                            final StreamStateEntity streamStateEntity = streamStatesIter.next();
+                            final long duration = playlistItem.toStreamInfoItem().getDuration();
 
-                            final boolean hasState = streamStatesIter.next() != null;
-                            if (indexInHistory < 0 || hasState) {
+                            if (indexInHistory < 0 || (streamStateEntity != null
+                                    && !streamStateEntity.isFinished(duration))) {
                                 notWatchedItems.add(playlistItem);
                             } else if (!thumbnailVideoRemoved
                                     && playlistManager.getPlaylistThumbnail(playlistId)
@@ -454,7 +670,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
                     }
 
                     final long videoCount = itemListAdapter.getItemsList().size();
-                    setVideoCount(videoCount);
+                    setStreamCountAndOverallDuration(itemListAdapter.getItemsList());
                     if (videoCount == 0) {
                         showEmptyState();
                     }
@@ -484,14 +700,14 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             itemsList.getLayoutManager().onRestoreInstanceState(itemsListState);
             itemsListState = null;
         }
-        setVideoCount(itemListAdapter.getItemsList().size());
+        setStreamCountAndOverallDuration(itemListAdapter.getItemsList());
 
         playlistControlBinding.playlistCtrlPlayAllButton.setOnClickListener(view ->
                 NavigationHelper.playOnMainPlayer(activity, getPlayQueue()));
         playlistControlBinding.playlistCtrlPlayPopupButton.setOnClickListener(view ->
                 NavigationHelper.playOnPopupPlayer(activity, getPlayQueue(), false));
         playlistControlBinding.playlistCtrlPlayBgButton.setOnClickListener(view ->
-                NavigationHelper.playOnBackgroundPlayer(activity, getPlayQueue(), false));
+                NavigationHelper.playOnBackgroundPlayerShuffled(activity, getPlayQueue(), false));
 
         playlistControlBinding.playlistCtrlPlayPopupButton.setOnLongClickListener(view -> {
             NavigationHelper.enqueueOnPlayer(activity, getPlayQueue(), PlayerType.POPUP);
@@ -501,6 +717,10 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         playlistControlBinding.playlistCtrlPlayBgButton.setOnLongClickListener(view -> {
             NavigationHelper.enqueueOnPlayer(activity, getPlayQueue(), PlayerType.AUDIO);
             return true;
+        });
+
+        playlistControlBinding.playlistCtrlDownloadAllButton.setOnClickListener(view -> {
+            download(getPlayQueue(), activity);
         });
 
         hideLoading();
@@ -613,7 +833,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             updateThumbnailUrl();
         }
 
-        setVideoCount(itemListAdapter.getItemsList().size());
+        setStreamCountAndOverallDuration(itemListAdapter.getItemsList());
         saveChanges();
     }
 
@@ -652,12 +872,20 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             return;
         }
 
+        if(itemListAdapter.sortMode != SortMode.ORIGIN && itemListAdapter.sortMode != SortMode.ORIGIN_REVERSE) {
+            itemListAdapter.sort(SortMode.ORIGIN);
+        }
+
         final List<LocalItem> items = itemListAdapter.getItemsList();
         final List<Long> streamIds = new ArrayList<>(items.size());
         for (final LocalItem item : items) {
             if (item instanceof PlaylistStreamEntry) {
                 streamIds.add(((PlaylistStreamEntry) item).getStreamId());
             }
+        }
+
+        if(itemListAdapter.sortMode == SortMode.ORIGIN_REVERSE) {
+            Collections.reverse(streamIds);
         }
 
         if (DEBUG) {
@@ -743,70 +971,60 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         return getPlayQueue(Math.max(itemListAdapter.getItemsList().indexOf(infoItem), 0));
     }
 
-    protected void showStreamItemDialog(final PlaylistStreamEntry item) {
-        final Context context = getContext();
-        final Activity activity = getActivity();
-        if (context == null || context.getResources() == null || activity == null) {
-            return;
-        }
+    protected void showInfoItemDialog(final PlaylistStreamEntry item) {
         final StreamInfoItem infoItem = item.toStreamInfoItem();
 
-        final ArrayList<StreamDialogEntry> entries = new ArrayList<>();
+        try {
+            final Context context = getContext();
+            final InfoItemDialog.Builder dialogBuilder =
+                    new InfoItemDialog.Builder(getActivity(), context, this, infoItem);
 
-        if (PlayerHolder.getInstance().isPlayQueueReady()) {
-            entries.add(StreamDialogEntry.enqueue);
-
-            if (PlayerHolder.getInstance().getQueueSize() > 1) {
-                entries.add(StreamDialogEntry.enqueue_next);
-            }
-        }
-        if (infoItem.getStreamType() == StreamType.AUDIO_STREAM) {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.set_as_playlist_thumbnail,
-                    StreamDialogEntry.delete,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        } else {
-            entries.addAll(Arrays.asList(
-                    StreamDialogEntry.start_here_on_background,
-                    StreamDialogEntry.start_here_on_popup,
-                    StreamDialogEntry.set_as_playlist_thumbnail,
-                    StreamDialogEntry.delete,
-                    StreamDialogEntry.append_playlist,
-                    StreamDialogEntry.share
-            ));
-        }
-        entries.add(StreamDialogEntry.open_in_browser);
-        if (KoreUtils.shouldShowPlayWithKodi(context, infoItem.getServiceId())) {
-            entries.add(StreamDialogEntry.play_with_kodi);
-        }
-
-        // show "mark as watched" only when watch history is enabled
-        if (StreamDialogEntry.shouldAddMarkAsWatched(
-                item.getStreamEntity().getStreamType(),
-                context
-        )) {
-            entries.add(
-                    StreamDialogEntry.mark_as_watched
+            // add entries in the middle
+            dialogBuilder.addAllEntries(
+                    StreamDialogDefaultEntry.SET_AS_PLAYLIST_THUMBNAIL,
+                    StreamDialogDefaultEntry.DELETE
             );
+
+            final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(
+                    requireContext());
+            if (prefs.getBoolean(getString(R.string.auto_background_play_key), false)) {
+                dialogBuilder.addEntry(StreamDialogDefaultEntry.SHOW_STREAM_DETAILS);
+            }
+
+
+            if(itemListAdapter.isFilterEnabled) {
+                dialogBuilder.addEntry(StreamDialogDefaultEntry.NAVIGATE_TO);
+            }
+
+            // set custom actions
+            // all entries modified below have already been added within the builder
+            dialogBuilder
+                    .setAction(
+                            StreamDialogDefaultEntry.START_HERE_ON_BACKGROUND,
+                            (f, i) -> NavigationHelper.playOnBackgroundPlayer(
+                                    context, getPlayQueueStartingAt(item), true))
+                    .setAction(
+                            StreamDialogDefaultEntry.SET_AS_PLAYLIST_THUMBNAIL,
+                            (f, i) ->
+                                    changeThumbnailUrl(item.getStreamEntity().getThumbnailUrl()))
+                    .setAction(
+                            StreamDialogDefaultEntry.DELETE,
+                            (f, i) -> deleteItem(item))
+                    .setAction(
+                            StreamDialogDefaultEntry.NAVIGATE_TO,
+                            (f, i) -> {
+                                destroyCustomViewInActionBar();
+                                itemsList.smoothScrollToPosition(utils.getIndexInQueue(item, getPlayQueue(), itemListAdapter.sortMode) + 1);
+                            })
+                    .setAction(
+                            StreamDialogDefaultEntry.SHOW_STREAM_DETAILS,
+                            (f, i) -> NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
+                                    i.getServiceId(), i.getUrl(), i.getName(), null, false))
+                    .create()
+                    .show();
+        } catch (final IllegalArgumentException e) {
+            InfoItemDialog.Builder.reportErrorDuringInitialization(e, infoItem);
         }
-        entries.add(StreamDialogEntry.show_channel_details);
-
-        StreamDialogEntry.setEnabledEntries(entries);
-
-        StreamDialogEntry.start_here_on_background.setCustomAction((fragment, infoItemDuplicate) ->
-                NavigationHelper.playOnBackgroundPlayer(context,
-                        getPlayQueueStartingAt(item), true));
-        StreamDialogEntry.set_as_playlist_thumbnail.setCustomAction(
-                (fragment, infoItemDuplicate) ->
-                        changeThumbnailUrl(item.getStreamEntity().getThumbnailUrl()));
-        StreamDialogEntry.delete.setCustomAction((fragment, infoItemDuplicate) ->
-                deleteItem(item));
-
-        new InfoItemDialog(activity, infoItem, StreamDialogEntry.getCommands(context),
-                (dialog, which) -> StreamDialogEntry.clickOn(which, this, infoItem)).show();
     }
 
     private void setInitialData(final long pid, final String title) {
@@ -814,10 +1032,21 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         this.name = !TextUtils.isEmpty(title) ? title : "";
     }
 
-    private void setVideoCount(final long count) {
+    private void setStreamCountAndOverallDuration(final ArrayList<LocalItem> itemsList) {
         if (activity != null && headerBinding != null) {
-            headerBinding.playlistStreamCount.setText(Localization
-                    .localizeStreamCount(activity, count));
+            final long streamCount = itemsList.size();
+            final long playlistOverallDurationSeconds = itemsList.stream()
+                    .filter(PlaylistStreamEntry.class::isInstance)
+                    .map(PlaylistStreamEntry.class::cast)
+                    .map(PlaylistStreamEntry::getStreamEntity)
+                    .mapToLong(StreamEntity::getDuration)
+                    .sum();
+            headerBinding.playlistStreamCount.setText(
+                    Localization.concatenateStrings(
+                            Localization.localizeStreamCount(activity, streamCount),
+                            Localization.getDurationString(playlistOverallDurationSeconds,
+                                                            true, true))
+            );
         }
     }
 
@@ -839,5 +1068,31 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         }
         return new SinglePlayQueue(streamInfoItems, index);
     }
-}
 
+    @Override
+    public boolean onBackPressed() {
+        if(Objects.requireNonNull(activity.getSupportActionBar()).getCustomView() != null){
+            destroyCustomViewInActionBar();
+            return true;
+        }
+        return false;
+    }
+    public void destroyCustomViewInActionBar(){
+        ActionBar actionBar = activity.getSupportActionBar();
+        if (actionBar == null) {
+            return;
+        }
+        actionBar.setCustomView(null);
+        actionBar.setDisplayShowCustomEnabled(false);
+        View searchLocal = activity.findViewById(R.id.action_search_local);
+        // they will both be null if back button is pressed
+        if(searchLocal != null){
+            searchLocal.setVisibility(View.VISIBLE);
+        }
+        if(itemListAdapter != null){
+            itemListAdapter.clearFilter();
+        }
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(activity.getWindow().getDecorView().getWindowToken(), 0);
+    }
+}

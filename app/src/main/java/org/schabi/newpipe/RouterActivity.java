@@ -51,6 +51,7 @@ import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException;
+import org.schabi.newpipe.extractor.exceptions.LiveNotStartException;
 import org.schabi.newpipe.extractor.exceptions.PaidContentException;
 import org.schabi.newpipe.extractor.exceptions.PrivateContentException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
@@ -72,6 +73,7 @@ import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.ListHelper;
+import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.PermissionHelper;
 import org.schabi.newpipe.util.ThemeHelper;
@@ -127,8 +129,10 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
+        ThemeHelper.setDayNightMode(this);
         setTheme(ThemeHelper.isLightThemeSelected(this)
                 ? R.style.RouterActivityThemeLight : R.style.RouterActivityThemeDark);
+        Localization.assureCorrectAppLanguage(this);
     }
 
     @Override
@@ -198,38 +202,41 @@ public class RouterActivity extends AppCompatActivity {
      * @param errorInfo the error information
      */
     private static void handleError(final Context context, final ErrorInfo errorInfo) {
-        if (errorInfo.getThrowable() != null) {
-            errorInfo.getThrowable().printStackTrace();
+        Throwable throwable = errorInfo.getThrowable();
+        if (throwable != null) {
+            throwable.printStackTrace();
         }
 
-        if (errorInfo.getThrowable() instanceof ReCaptchaException) {
+        if (throwable instanceof ReCaptchaException) {
             Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show();
             // Starting ReCaptcha Challenge Activity
             final Intent intent = new Intent(context, ReCaptchaActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
-        } else if (errorInfo.getThrowable() != null
-                && ExceptionUtils.isNetworkRelated(errorInfo.getThrowable())) {
+        } else if (throwable != null
+                && ExceptionUtils.isNetworkRelated(throwable)) {
             Toast.makeText(context, R.string.network_error, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof AgeRestrictedContentException) {
-            Toast.makeText(context, R.string.restricted_video_no_stream,
+        } else if (throwable instanceof AgeRestrictedContentException) {
+            Toast.makeText(context, R.string.restricted_video_no_stream_new,
                     Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof GeographicRestrictionException) {
+        } else if (throwable instanceof GeographicRestrictionException) {
             Toast.makeText(context, R.string.georestricted_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof PaidContentException) {
-            Toast.makeText(context, R.string.paid_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof PrivateContentException) {
-            Toast.makeText(context, R.string.private_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof SoundCloudGoPlusContentException) {
-            Toast.makeText(context, R.string.soundcloud_go_plus_content,
+        } else if (throwable instanceof LiveNotStartException) {
+            Toast.makeText(context, R.string.live_not_started, Toast.LENGTH_LONG).show();
+        } else if (throwable instanceof PaidContentException) {
+            Toast.makeText(context, R.string.paid_content_new, Toast.LENGTH_LONG).show();
+        } else if (throwable instanceof PrivateContentException) {
+            Toast.makeText(context, R.string.private_content_new, Toast.LENGTH_LONG).show();
+        } else if (throwable instanceof SoundCloudGoPlusContentException) {
+            Toast.makeText(context, R.string.soundcloud_go_plus_content_new,
                     Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof YoutubeMusicPremiumContentException) {
-            Toast.makeText(context, R.string.youtube_music_premium_content,
+        } else if (throwable instanceof YoutubeMusicPremiumContentException) {
+            Toast.makeText(context, R.string.youtube_music_premium_content_new,
                     Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof ContentNotAvailableException) {
+        } else if (throwable instanceof ContentNotAvailableException) {
             Toast.makeText(context, R.string.content_not_available, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof ContentNotSupportedException) {
-            Toast.makeText(context, R.string.content_not_supported, Toast.LENGTH_LONG).show();
+        } else if (throwable instanceof ContentNotSupportedException) {
+            Toast.makeText(context, R.string.content_not_supported_new, Toast.LENGTH_LONG).show();
         } else {
             ErrorUtil.createNotification(context, errorInfo);
         }
@@ -288,8 +295,7 @@ public class RouterActivity extends AppCompatActivity {
         } else if (selectedChoiceKey.equals(downloadKey)) {
             handleChoice(downloadKey);
         } else {
-            final boolean isExtVideoEnabled = preferences.getBoolean(
-                    getString(R.string.use_external_video_player_key), false);
+            final boolean isExtVideoEnabled = false;
             final boolean isExtAudioEnabled = preferences.getBoolean(
                     getString(R.string.use_external_audio_player_key), false);
             final boolean isVideoPlayerSelected = selectedChoiceKey.equals(videoPlayerKey)
@@ -433,8 +439,7 @@ public class RouterActivity extends AppCompatActivity {
 
         final SharedPreferences preferences = PreferenceManager
                 .getDefaultSharedPreferences(this);
-        final boolean isExtVideoEnabled = preferences.getBoolean(
-                getString(R.string.use_external_video_player_key), false);
+        final boolean isExtVideoEnabled = false;
         final boolean isExtAudioEnabled = preferences.getBoolean(
                 getString(R.string.use_external_audio_player_key), false);
 
@@ -633,7 +638,7 @@ public class RouterActivity extends AppCompatActivity {
                 .subscribe(result -> {
                     final List<VideoStream> sortedVideoStreams = ListHelper
                             .getSortedStreamVideosList(this, result.getVideoStreams(),
-                                    result.getVideoOnlyStreams(), false);
+                                    result.getVideoOnlyStreams(), false, false);
                     final int selectedVideoStreamIndex = ListHelper
                             .getDefaultResolutionIndex(this, sortedVideoStreams);
 
@@ -773,8 +778,7 @@ public class RouterActivity extends AppCompatActivity {
 
                 final SharedPreferences preferences = PreferenceManager
                         .getDefaultSharedPreferences(this);
-                final boolean isExtVideoEnabled = preferences.getBoolean(
-                        getString(R.string.use_external_video_player_key), false);
+                final boolean isExtVideoEnabled = false;
                 final boolean isExtAudioEnabled = preferences.getBoolean(
                         getString(R.string.use_external_audio_player_key), false);
 
@@ -818,7 +822,7 @@ public class RouterActivity extends AppCompatActivity {
         private NotificationCompat.Builder createNotification() {
             return new NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
                     .setOngoing(true)
-                    .setSmallIcon(R.drawable.ic_newpipe_triangle_white)
+                    .setSmallIcon(R.drawable.ic_pipepipe)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setContentTitle(
                             getString(R.string.preferred_player_fetcher_notification_title))

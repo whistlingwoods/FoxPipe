@@ -101,7 +101,6 @@
     <string name="title_licenses">مۆڵەتنامەی لایەنی-سێیەم</string>
     <string name="app_license_title">مۆڵەتنامەی نیوپایپ</string>
     <string name="show_hold_to_append_title">پیشاندانی ڕێنمایی ”داگرتن تا پاشکۆ”</string>
-    <string name="yes">بەڵێ</string>
     <string name="msg_threads">دابەشکراوەکان</string>
     <string name="title_most_played">زۆرترین لێدراو</string>
     <string name="unbookmark_playlist">لادانی نیشانه‌كراو</string>
@@ -303,8 +302,8 @@
     <string name="detail_likes_img_view_description">بەدڵه‌كان</string>
     <string name="popup_remember_size_pos_summary">بیرهاتنه‌وه‌ی كۆتا قه‌باره‌ و شوێنی په‌نجه‌ره‌</string>
     <string name="create">سازکردن</string>
-    <string name="import_network_expensive_warning">ئەوە بزانە ئەم کردارە پێویستی بە هێڵێکی گران هەیە. 
-\n 
+    <string name="import_network_expensive_warning">ئەوە بزانە ئەم کردارە پێویستی بە هێڵێکی گران هەیە.
+\n
 \nدەتەوێ بەردەوامبیت؟</string>
     <string name="all">گشتی</string>
     <string name="close">داخستن</string>
@@ -522,11 +521,11 @@
     <string name="could_not_setup_download_menu">ناتوانرێ لیستی دابه‌زاندن دابنرێت</string>
     <string name="app_update_notification_content_title">وەشانی نوێی نیوپایپ بەردەستە!</string>
     <string name="playlist_thumbnail_change_success">وێنۆچکەی خشتەلێدان گۆڕدرا.</string>
-    <string name="import_soundcloud_instructions">هێنانەوەی پەڕەی کەسی SoundCloud بەدانانی بەستەر یاخوود ئایدی: 
-\n 
-\n1. دۆخی ”Desktop mode” لە وێبگەرەکەتدا چالاک بکە (ئەم ماڵپەڕە بۆ وێبگەری مۆبایلەکان بەردەست نییە) 
-\n2. ئەم بەستەرە بکەرەوە : %1$s 
-\n3. بچۆرە ژوورەوە گەر داواکرا 
+    <string name="import_soundcloud_instructions">هێنانەوەی پەڕەی کەسی SoundCloud بەدانانی بەستەر یاخوود ئایدی:
+\n
+\n1. دۆخی ”Desktop mode” لە وێبگەرەکەتدا چالاک بکە (ئەم ماڵپەڕە بۆ وێبگەری مۆبایلەکان بەردەست نییە)
+\n2. ئەم بەستەرە بکەرەوە : %1$s
+\n3. بچۆرە ژوورەوە گەر داواکرا
 \n4. بەستەری پەڕەی کەسییەکەت دابنێ.</string>
     <string name="charset_letters_and_digits">پیت و ژمارەکان</string>
     <string name="default_content_country_title">بابەتی وڵاتی بنەڕەتی</string>
@@ -542,7 +541,6 @@
     <string name="error_report_open_github_notice">تكایه‌ پشكنینێك بكه‌ كه‌ ئاخۆ كێشه‌یه‌ك هه‌یه‌ باسی كڕاشه‌كه‌ت بكات. له‌كاتی سازدانی پلیتی لێكچوو ، كات له‌ ئێمه‌ ده‌گریت كه‌ ئێمه‌ سه‌رقاڵی چاره‌سه‌ركردنی هه‌مان كێشه‌ ده‌كه‌یت.</string>
     <string name="error_report_open_issue_button_text">سكاڵا لەسەر GitHub</string>
     <string name="copy_for_github">له‌به‌رگرتنه‌وه‌ی سكاڵای جۆركراو</string>
-    <string name="settings_category_notification_title">پەیام</string>
     <string name="unsupported_url_dialog_message">ناتوانرێت به‌سته‌ره‌كه‌ بناسرێتەوە. بە بەرنامەیەکی دیكه‌ بکرێتەوە؟</string>
     <string name="auto_queue_toggle">خستنه‌ نۆبه‌تی-خۆكاری</string>
     <string name="clear_queue_confirmation_description">نۆبه‌ته‌كه‌ لە لێدەری چالاکەوە جێگۆڕکێی دەکرێت</string>
@@ -642,8 +640,6 @@
     <string name="tablet_mode_title">دۆخی تابلێت</string>
     <string name="open_website_license">کردنەوەی ماڵپەڕ</string>
     <string name="seekbar_preview_thumbnail_title">پێشبینینی سەروێنەی گەڕان</string>
-    <string name="loading_channel_details">وردەکارییەکانی کەناڵەکە بار دەکرێن…</string>
-    <string name="error_show_channel_details">هەڵە ڕوویدا لە پیشاندانی وردەکارییەکانی کەناڵ</string>
     <string name="detail_heart_img_view_description">بەدڵکراوە لەلایەن بڵاوکەرەوە</string>
     <string name="dont_show">پیشان نەدرێت</string>
     <string name="low_quality_smaller">کواڵێتی نزم (بچووکتر)</string>
@@ -676,7 +672,6 @@
     <string name="show_crash_the_player_title">پیشاندانی ”کڕاش کردنی لێدەرەکە“</string>
     <string name="create_error_notification">سازاندنی پەیامی کێشەیەک</string>
     <string name="manual_update_title">پشکنین بۆ نوێکردنەوە</string>
-    <string name="background_player_already_playing_toast">وا لە پاشبنەمادا لێدەدرێت</string>
     <string name="error_report_channel_name">کێشە لە سکاڵا کردنی پەیام</string>
     <string name="error_report_channel_description">پەیامەکانی سکاڵاکردن لە کێشەکان</string>
     <string name="feed_new_items">بابەتە نوێیەکانی فیید</string>

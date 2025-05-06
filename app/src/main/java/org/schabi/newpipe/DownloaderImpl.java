@@ -1,49 +1,42 @@
 package org.schabi.newpipe;
 
 import android.content.Context;
-import android.os.Build;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
-
+import com.grack.nanojson.JsonParserException;
+import okhttp3.*;
 import org.schabi.newpipe.error.ReCaptchaActivity;
+import org.schabi.newpipe.extractor.downloader.CancellableCall;
 import org.schabi.newpipe.extractor.downloader.Downloader;
 import org.schabi.newpipe.extractor.downloader.Request;
 import org.schabi.newpipe.extractor.downloader.Response;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.util.CookieUtils;
 import org.schabi.newpipe.util.InfoCache;
 import org.schabi.newpipe.util.TLSSocketFactoryCompat;
-
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
-
-import okhttp3.CipherSuite;
-import okhttp3.ConnectionSpec;
-import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.schabi.newpipe.MainActivity.DEBUG;
 
 public final class DownloaderImpl extends Downloader {
     public static final String USER_AGENT
-            = "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0";
+            = "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0";
     public static final String YOUTUBE_RESTRICTED_MODE_COOKIE_KEY
             = "youtube_restricted_mode_key";
     public static final String YOUTUBE_RESTRICTED_MODE_COOKIE = "PREF=f2=8000000";
@@ -52,11 +45,9 @@ public final class DownloaderImpl extends Downloader {
     private static DownloaderImpl instance;
     private final Map<String, String> mCookies;
     private final OkHttpClient client;
+    private Integer customTimeout;
 
     private DownloaderImpl(final OkHttpClient.Builder builder) {
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT) {
-            enableModernTLS(builder);
-        }
         this.client = builder
                 .readTimeout(30, TimeUnit.SECONDS)
 //                .cache(new Cache(new File(context.getExternalCacheDir(), "okhttp"),
@@ -79,6 +70,11 @@ public final class DownloaderImpl extends Downloader {
 
     public static DownloaderImpl getInstance() {
         return instance;
+    }
+
+    public DownloaderImpl setCustomTimeout(final Integer value) {
+        this.customTimeout = value;
+        return this;
     }
 
     /**
@@ -159,10 +155,7 @@ public final class DownloaderImpl extends Downloader {
     }
 
     public void updateYoutubeRestrictedModeCookies(final Context context) {
-        final String restrictedModeEnabledKey =
-                context.getString(R.string.youtube_restricted_mode_enabled);
-        final boolean restrictedModeEnabled = PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(restrictedModeEnabledKey, false);
+        final boolean restrictedModeEnabled = false;
         updateYoutubeRestrictedModeCookies(restrictedModeEnabled);
     }
 
@@ -184,12 +177,16 @@ public final class DownloaderImpl extends Downloader {
      */
     public long getContentLength(final String url) throws IOException {
         try {
-            final Response response = head(url);
+            final Response response = head(url, BilibiliService.isBiliBiliDownloadUrl(url)?BilibiliService.getUpToDateHeaders():null);
             return Long.parseLong(response.getHeader("Content-Length"));
         } catch (final NumberFormatException e) {
             throw new IOException("Invalid content length", e);
         } catch (final ReCaptchaException e) {
             throw new IOException(e);
+        } catch (ParsingException e) {
+            throw new RuntimeException(e);
+        } catch (JsonParserException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -230,7 +227,46 @@ public final class DownloaderImpl extends Downloader {
 
         }
 
-        final okhttp3.Response response = client.newCall(requestBuilder.build()).execute();
+        OkHttpClient tmpClient = client;
+        okhttp3.Response response = null;
+
+        if(url.contains("pipepipe.dev")) {
+            tmpClient = new OkHttpClient.Builder()
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build();
+        } else if (customTimeout != null) {
+            tmpClient = new OkHttpClient.Builder()
+                    .readTimeout(customTimeout, TimeUnit.SECONDS)
+                    .build();
+        }
+
+        int maxRetries = 2;
+        int retryCount = 0;
+
+        while (retryCount <= maxRetries && response == null) {
+            try {
+                response = tmpClient.newCall(requestBuilder.build()).execute();
+            } catch (UnknownHostException e) {
+                retryCount++;
+                if (retryCount <= maxRetries) {
+                    System.err.println("DNS lookup failed. Retrying (attempt " + retryCount + ")...");
+                    try {
+                        Thread.sleep(500); // Wait 0.5 second before retrying (optional)
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt(); // Preserve interrupt status
+                        break; // Exit retry loop if interrupted
+                    }
+                } else {
+                    System.err.println("DNS lookup failed after multiple retries.");
+                    throw e;
+                }
+            }
+        }
+
+        if(response == null) {
+            throw new IOException("Failed to execute request. We retried " + retryCount + " times.");
+        }
+
 
         if (response.code() == 429) {
             response.close();
@@ -240,13 +276,106 @@ public final class DownloaderImpl extends Downloader {
 
         final ResponseBody body = response.body();
         String responseBodyToReturn = null;
+        byte[] rawBodyBytes = null;
 
-        if (body != null) {
-            responseBodyToReturn = body.string();
+        try {
+            if (body != null) {
+                rawBodyBytes = body.bytes(); // Read the raw bytes from the response body
+                responseBodyToReturn = new String(rawBodyBytes, StandardCharsets.UTF_8); // Convert bytes to string
+                // The body is closed after body.bytes() is called.
+            }
+        } finally {
+            if (body != null) {
+                body.close(); // Ensure the body is closed even if bytes() throws an IOException
+            }
         }
 
         final String latestUrl = response.request().url().toString();
         return new Response(response.code(), response.message(), response.headers().toMultimap(),
-                responseBodyToReturn, latestUrl);
+                responseBodyToReturn, rawBodyBytes, latestUrl);
+    }
+
+    public CancellableCall executeAsync(@NonNull final Request request, @NonNull final Downloader.AsyncCallback callback) {
+        final String httpMethod = request.httpMethod();
+        final String url = request.url();
+        final Map<String, List<String>> headers = request.headers();
+        final byte[] dataToSend = request.dataToSend();
+
+        RequestBody requestBody = null;
+        if (dataToSend != null) {
+            requestBody = RequestBody.create(null, dataToSend);
+        }
+
+        final okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
+                .method(httpMethod, requestBody).url(url)
+                .addHeader("User-Agent", USER_AGENT);
+
+        final String cookies = getCookies(url);
+        if (!cookies.isEmpty()) {
+            requestBuilder.addHeader("Cookie", cookies);
+        }
+
+        for (final Map.Entry<String, List<String>> pair : headers.entrySet()) {
+            final String headerName = pair.getKey();
+            final List<String> headerValueList = pair.getValue();
+
+            if (headerValueList.size() > 1) {
+                requestBuilder.removeHeader(headerName);
+                for (final String headerValue : headerValueList) {
+                    requestBuilder.addHeader(headerName, headerValue);
+                }
+            } else if (headerValueList.size() == 1) {
+                requestBuilder.header(headerName, headerValueList.get(0));
+            }
+
+        }
+
+        OkHttpClient tmpClient = client;
+        if (customTimeout != null) {
+            tmpClient = new OkHttpClient.Builder()
+                    .readTimeout(customTimeout, TimeUnit.SECONDS)
+                    .build();
+        }
+
+        Call call = tmpClient.newCall(requestBuilder.build());
+        CancellableCall cancellableCall = new CancellableCall(call);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                cancellableCall.setFinished();
+                callback.onError(e);
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                try {
+                    if (response.code() == 429) {
+                        callback.onError(new ReCaptchaException("reCaptcha Challenge requested", url));
+                        return;
+                    }
+
+                    ResponseBody body = response.body();
+                    String responseBodyToReturn = null;
+                    byte[] rawBodyBytes = null;
+
+                    if (body != null) {
+                        rawBodyBytes = body.bytes();
+                        responseBodyToReturn = new String(rawBodyBytes, StandardCharsets.UTF_8);
+                    }
+
+                    String latestUrl = response.request().url().toString();
+                    Response newPipeResponse = new Response(response.code(), response.message(),
+                            response.headers().toMultimap(), responseBodyToReturn, rawBodyBytes, latestUrl);
+
+                    callback.onSuccess(newPipeResponse);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    response.close();
+                    cancellableCall.setFinished();
+                }
+            }
+        });
+        return cancellableCall;
     }
 }

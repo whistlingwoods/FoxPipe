@@ -9,11 +9,17 @@ import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.player.mediasession.MediaSessionCallback;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
 
-public class PlayerMediaSession implements MediaSessionCallback {
-    private final Player player;
+import static org.schabi.newpipe.player.helper.PlayerHelper.nextRepeatMode;
 
-    public PlayerMediaSession(final Player player) {
+public class PlayerMediaSession implements MediaSessionCallback {
+    public final Player player;
+    private final com.google.android.exoplayer2.Player exoPlayer;
+    public int mode = 0;
+
+    public PlayerMediaSession(final Player player, final com.google.android.exoplayer2.Player exoPlayer) {
         this.player = player;
+        this.exoPlayer = exoPlayer;
+        refresh();
     }
 
     @Override
@@ -87,11 +93,48 @@ public class PlayerMediaSession implements MediaSessionCallback {
 
     @Override
     public void play() {
+        refresh();
         player.play();
+        // hide the player controls even if the play command came from the media session
+        player.hideControls(0, 0);
     }
 
     @Override
     public void pause() {
+        refresh();
         player.pause();
+    }
+    public void changePlayMode() {
+        refresh();
+        switch (this.mode) {
+            case 0: // shuffle
+                player.onShuffleClicked();
+                break;
+            case 1: // repeat_one
+                player.onShuffleClicked();
+                player.setRepeatMode(nextRepeatMode(player.getRepeatMode()));
+                break;
+            case 2: // repeat_all
+            case 3: // repeat_none
+            default:
+                player.setRepeatMode(nextRepeatMode(player.getRepeatMode()));
+                break;
+        }
+        this.mode = (this.mode + 1) % 4;
+    }
+    public void close(){
+        player.service.stopService();
+    }
+
+    public void refresh(){
+        if (exoPlayer.getShuffleModeEnabled()) {
+            this.mode = 1;
+        } else if (exoPlayer.getRepeatMode() == com.google.android.exoplayer2.Player.REPEAT_MODE_ONE) {
+            this.mode = 2;
+        } else if (exoPlayer.getRepeatMode() == com.google.android.exoplayer2.Player.REPEAT_MODE_ALL) {
+            this.mode = 3;
+        } else {
+            this.mode = 0;
+        }
     }
 }

@@ -22,6 +22,13 @@ public final class Migrations {
     public static final int DB_VER_2 = 2;
     public static final int DB_VER_3 = 3;
     public static final int DB_VER_4 = 4;
+    public static final int DB_VER_5 = 5;
+    public static final int DB_VER_6 = 6;
+    public static final int DB_VER_7 = 7;
+    public static final int DB_VER_8 = 8;
+    public static final int DB_VER_9 = 9;
+
+    public static final int DB_VER_100 = 100;
 
     private static final String TAG = Migrations.class.getName();
     public static final boolean DEBUG = MainActivity.DEBUG;
@@ -179,5 +186,207 @@ public final class Migrations {
         }
     };
 
-    private Migrations() { }
+    public static final Migration MIGRATION_4_5 = new Migration(DB_VER_4, DB_VER_5) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `subscriptions` ADD COLUMN `notification_mode` "
+                    + "INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
+    public static final Migration MIGRATION_5_6 = new Migration(DB_VER_5, DB_VER_6) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            try {
+                database.beginTransaction();
+
+                // Update playlists.
+                // Create a temp table to initialize display_index.
+                database.execSQL("CREATE TABLE `playlists_tmp` "
+                        + "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                        + "`name` TEXT, `thumbnail_url` TEXT,"
+                        + "`display_index` INTEGER NOT NULL DEFAULT 0)");
+                database.execSQL("INSERT INTO `playlists_tmp` (`uid`, `name`, `thumbnail_url`)"
+                        + "SELECT `uid`, `name`, `thumbnail_url` FROM `playlists`");
+
+                // Replace the old table.
+                database.execSQL("DROP TABLE `playlists`");
+                database.execSQL("ALTER TABLE `playlists_tmp` RENAME TO `playlists`");
+
+                // Create index on the new table.
+                database.execSQL("CREATE INDEX `index_playlists_name` ON `playlists` (`name`)");
+
+
+                // Update remote_playlists.
+                // Create a temp table to initialize display_index.
+                database.execSQL("CREATE TABLE `remote_playlists_tmp` "
+                        + "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                        + "`service_id` INTEGER NOT NULL, `name` TEXT, `url` TEXT, "
+                        + "`thumbnail_url` TEXT, `uploader` TEXT, "
+                        + "`display_index` INTEGER NOT NULL DEFAULT 0,"
+                        + "`stream_count` INTEGER)");
+                database.execSQL("INSERT INTO `remote_playlists_tmp` (`uid`, `service_id`, "
+                        + "`name`, `url`, `thumbnail_url`, `uploader`, `stream_count`)"
+                        + "SELECT `uid`, `service_id`, `name`, `url`, `thumbnail_url`, `uploader`, "
+                        + "`stream_count` FROM `remote_playlists`");
+
+                // Replace the old table.
+                database.execSQL("DROP TABLE `remote_playlists`");
+                database.execSQL("ALTER TABLE `remote_playlists_tmp` RENAME TO `remote_playlists`");
+
+                // Create index on the new table.
+                database.execSQL("CREATE INDEX `index_remote_playlists_name` "
+                        + "ON `remote_playlists` (`name`)");
+                database.execSQL("CREATE UNIQUE INDEX `index_remote_playlists_service_id_url` "
+                        + "ON `remote_playlists` (`service_id`, `url`)");
+
+                database.setTransactionSuccessful();
+            } finally {
+                database.endTransaction();
+            }
+        }
+    };
+
+    public static final Migration MIGRATION_7_6 = new Migration(DB_VER_7, DB_VER_6) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            // Re-create the thumbnail_url field in the playlist table
+            database.execSQL("CREATE TABLE IF NOT EXISTS `playlists_new`"
+                    + "(uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "name TEXT, "
+                    + "display_index INTEGER NOT NULL DEFAULT 0, "
+                    + "thumbnail_url TEXT)");
+
+            database.execSQL("INSERT INTO playlists_new"
+                    + " SELECT uid, name, 0, thumbnail_stream_id "
+                    + " FROM playlists");
+
+            database.execSQL("DROP TABLE playlists");
+            database.execSQL("ALTER TABLE playlists_new RENAME TO playlists");
+            database.execSQL("CREATE INDEX IF NOT EXISTS "
+                    + "`index_playlists_name` ON `playlists` (`name`)");
+
+            database.execSQL("CREATE TABLE `remote_playlists_tmp` "
+                    + "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`service_id` INTEGER NOT NULL, `name` TEXT, `url` TEXT, "
+                    + "`thumbnail_url` TEXT, `uploader` TEXT, "
+                    + "`display_index` INTEGER NOT NULL DEFAULT 0,"
+                    + "`stream_count` INTEGER)");
+            database.execSQL("INSERT INTO `remote_playlists_tmp` (`uid`, `service_id`, "
+                    + "`name`, `url`, `thumbnail_url`, `uploader`, `stream_count`)"
+                    + "SELECT `uid`, `service_id`, `name`, `url`, `thumbnail_url`, `uploader`, "
+                    + "`stream_count` FROM `remote_playlists`");
+
+            // Replace the old table.
+            database.execSQL("DROP TABLE `remote_playlists`");
+            database.execSQL("ALTER TABLE `remote_playlists_tmp` RENAME TO `remote_playlists`");
+            // Create index on the new table.
+            database.execSQL("CREATE INDEX `index_remote_playlists_name` "
+                    + "ON `remote_playlists` (`name`)");
+            database.execSQL("CREATE UNIQUE INDEX `index_remote_playlists_service_id_url` "
+                    + "ON `remote_playlists` (`service_id`, `url`)");
+        }
+    };
+
+    public static final Migration MIGRATION_8_6 = new Migration(DB_VER_8, DB_VER_6) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            // Re-create the thumbnail_url field in the playlist table
+            database.execSQL("CREATE TABLE IF NOT EXISTS `playlists_new`"
+                    + "(uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "name TEXT, "
+                    + "display_index INTEGER NOT NULL DEFAULT 0, "
+                    + "thumbnail_url TEXT)");
+
+            database.execSQL("INSERT INTO playlists_new"
+                    + " SELECT uid, name, 0, thumbnail_stream_id "
+                    + " FROM playlists");
+
+            database.execSQL("DROP TABLE playlists");
+            database.execSQL("ALTER TABLE playlists_new RENAME TO playlists");
+            database.execSQL("CREATE INDEX IF NOT EXISTS "
+                    + "`index_playlists_name` ON `playlists` (`name`)");
+
+            database.execSQL("CREATE TABLE `remote_playlists_tmp` "
+                    + "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`service_id` INTEGER NOT NULL, `name` TEXT, `url` TEXT, "
+                    + "`thumbnail_url` TEXT, `uploader` TEXT, "
+                    + "`display_index` INTEGER NOT NULL DEFAULT 0,"
+                    + "`stream_count` INTEGER)");
+            database.execSQL("INSERT INTO `remote_playlists_tmp` (`uid`, `service_id`, "
+                    + "`name`, `url`, `thumbnail_url`, `uploader`, `stream_count`)"
+                    + "SELECT `uid`, `service_id`, `name`, `url`, `thumbnail_url`, `uploader`, "
+                    + "`stream_count` FROM `remote_playlists`");
+
+            // Replace the old table.
+            database.execSQL("DROP TABLE `remote_playlists`");
+            database.execSQL("ALTER TABLE `remote_playlists_tmp` RENAME TO `remote_playlists`");
+            // Create index on the new table.
+            database.execSQL("CREATE INDEX `index_remote_playlists_name` "
+                    + "ON `remote_playlists` (`name`)");
+            database.execSQL("CREATE UNIQUE INDEX `index_remote_playlists_service_id_url` "
+                    + "ON `remote_playlists` (`service_id`, `url`)");
+        }
+    };
+
+    public static final Migration MIGRATION_9_6 = new Migration(DB_VER_9, DB_VER_6) {
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            // Re-create the thumbnail_url field in the playlist table
+            database.execSQL("CREATE TABLE IF NOT EXISTS `playlists_new`"
+                    + "(uid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "name TEXT, "
+                    + "display_index INTEGER NOT NULL DEFAULT 0, "
+                    + "thumbnail_url TEXT)");
+
+            database.execSQL("INSERT INTO playlists_new"
+                    + " SELECT uid, name, 0, thumbnail_stream_id "
+                    + " FROM playlists");
+
+            database.execSQL("DROP TABLE playlists");
+            database.execSQL("ALTER TABLE playlists_new RENAME TO playlists");
+            database.execSQL("CREATE INDEX IF NOT EXISTS "
+                    + "`index_playlists_name` ON `playlists` (`name`)");
+
+            database.execSQL("CREATE TABLE `remote_playlists_tmp` "
+                    + "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`service_id` INTEGER NOT NULL, `name` TEXT, `url` TEXT, "
+                    + "`thumbnail_url` TEXT, `uploader` TEXT, "
+                    + "`display_index` INTEGER NOT NULL DEFAULT 0,"
+                    + "`stream_count` INTEGER)");
+            database.execSQL("INSERT INTO `remote_playlists_tmp` (`uid`, `service_id`, "
+                    + "`name`, `url`, `thumbnail_url`, `uploader`, `stream_count`)"
+                    + "SELECT `uid`, `service_id`, `name`, `url`, `thumbnail_url`, `uploader`, "
+                    + "`stream_count` FROM `remote_playlists`");
+
+            // Replace the old table.
+            database.execSQL("DROP TABLE `remote_playlists`");
+            database.execSQL("ALTER TABLE `remote_playlists_tmp` RENAME TO `remote_playlists`");
+            // Create index on the new table.
+            database.execSQL("CREATE INDEX `index_remote_playlists_name` "
+                    + "ON `remote_playlists` (`name`)");
+            database.execSQL("CREATE UNIQUE INDEX `index_remote_playlists_service_id_url` "
+                    + "ON `remote_playlists` (`service_id`, `url`)");
+        }
+    };
+
+    public static final Migration MIGRATION_6_100 = new Migration(DB_VER_6, DB_VER_100) {
+        @Override
+        public void migrate(@NonNull final SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `download` "
+                    + "(`id_key` TEXT NOT NULL, "
+                    + "`url_key` TEXT NOT NULL, "
+                    + "`creation_date` INTEGER NOT NULL, "
+                    + "`id` INTEGER NOT NULL, "
+                    + "`uri_value` TEXT NOT NULL, "
+                    + "`name` TEXT NOT NULL, "
+                    + "`uploader_name` TEXT NOT NULL, "
+                    + "`thumbnail_url` TEXT NOT NULL, "
+                    + "PRIMARY KEY(`id`))");
+        }
+    };
+
+
+
+    private Migrations() {
+    }
 }

@@ -173,16 +173,10 @@ public final class ShareUtils {
 
         // Migrate any clip data and flags from the original intent.
         final int permFlags;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            permFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
-                    | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
-        } else {
-            permFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        }
+        permFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
         if (permFlags != 0) {
             ClipData targetClipData = intent.getClipData();
             if (targetClipData == null && intent.getData() != null) {
@@ -218,8 +212,12 @@ public final class ShareUtils {
      */
     private static String getDefaultAppPackageName(@NonNull final Context context,
                                                    @NonNull final Intent intent) {
-        final ResolveInfo resolveInfo = context.getPackageManager().resolveActivity(intent,
-                PackageManager.MATCH_DEFAULT_ONLY);
+        ResolveInfo resolveInfo;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            resolveInfo = context.getPackageManager().resolveActivity(intent, PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY));
+        } else {
+            resolveInfo = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        }
 
         if (resolveInfo == null) {
             return "";

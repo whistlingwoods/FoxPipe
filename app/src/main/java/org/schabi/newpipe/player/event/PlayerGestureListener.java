@@ -93,17 +93,25 @@ public class PlayerGestureListener
                 + player.getPlayerType() + "], portion = [" + portion + "]");
         }
         if (playerType == MainPlayer.PlayerType.VIDEO) {
-
+            final boolean isFullscreenGestureEnabled =
+                    PlayerHelper.isFullscreenGestureEnabled(service);
+            if (isFullscreenGestureEnabled && ((player.isFullscreen() && distanceY < 0  && portion == DisplayPortion.MIDDLE) || (!player.isFullscreen() && distanceY > 0))) {
+                player.onScreenRotationButtonClicked();
+                return ;
+            }
+            if(!player.isFullscreen()) {
+                return;
+            }
             // -- Brightness and Volume control --
             final boolean isBrightnessGestureEnabled =
                 PlayerHelper.isBrightnessGestureEnabled(service);
             final boolean isVolumeGestureEnabled = PlayerHelper.isVolumeGestureEnabled(service);
 
             if (isBrightnessGestureEnabled && isVolumeGestureEnabled) {
-                if (portion == DisplayPortion.LEFT_HALF) {
+                 if (portion == DisplayPortion.LEFT) {
                     onScrollMainBrightness(distanceX, distanceY);
 
-                } else /* DisplayPortion.RIGHT_HALF */ {
+                } else if (portion == DisplayPortion.RIGHT) {
                     onScrollMainVolume(distanceX, distanceY);
                 }
             } else if (isBrightnessGestureEnabled) {
@@ -126,6 +134,14 @@ public class PlayerGestureListener
     }
 
     private void onScrollMainVolume(final float distanceX, final float distanceY) {
+        // If we just started sliding, change the progress bar to match the system volume
+        if (player.getVolumeRelativeLayout().getVisibility() != View.VISIBLE) {
+            final float volumePercent = player
+                    .getAudioReactor().getVolume() / (float) maxVolume;
+            player.getVolumeProgressBar().setProgress(
+                    (int) (volumePercent * player.getMaxGestureLength()));
+        }
+
         player.getVolumeProgressBar().incrementProgressBy((int) distanceY);
         final float currentProgressPercent = (float) player
                 .getVolumeProgressBar().getProgress() / player.getMaxGestureLength();

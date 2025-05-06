@@ -1,5 +1,7 @@
 package org.schabi.newpipe.util;
 
+import static org.schabi.newpipe.util.external_communication.ShareUtils.installApp;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -13,10 +15,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.jakewharton.processphoenix.ProcessPhoenix;
 
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.NewPipeDatabase;
@@ -31,6 +36,7 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.fragments.MainFragment;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
@@ -56,10 +62,7 @@ import org.schabi.newpipe.settings.SettingsActivity;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 
 import java.util.ArrayList;
-
-import static org.schabi.newpipe.util.external_communication.ShareUtils.installApp;
-
-import com.jakewharton.processphoenix.ProcessPhoenix;
+import java.util.Random;
 
 public final class NavigationHelper {
     public static final String MAIN_FRAGMENT_TAG = "main_fragment_tag";
@@ -175,10 +178,28 @@ public final class NavigationHelper {
         ContextCompat.startForegroundService(context, intent);
     }
 
+    public static void playOnBackgroundPlayerShuffled(final Context context,
+                                                      final PlayQueue queue,
+                                                      final boolean resumePlayback) {
+        Toast.makeText(context, R.string.background_player_playing_toast, Toast.LENGTH_SHORT)
+                .show();
+        queue.setIndex(new Random().nextInt(queue.getStreams().size()));
+        queue.shuffle();
+
+        final Intent intent = getPlayerIntent(context, MainPlayer.class, queue, resumePlayback);
+        intent.putExtra(Player.PLAYER_TYPE, MainPlayer.PlayerType.AUDIO.ordinal());
+        ContextCompat.startForegroundService(context, intent);
+    }
+
     /* ENQUEUE */
     public static void enqueueOnPlayer(final Context context,
                                        final PlayQueue queue,
                                        final PlayerType playerType) {
+        if ((playerType == PlayerType.POPUP) && !PermissionHelper.isPopupEnabled(context)) {
+            PermissionHelper.showPopupEnablementToast(context);
+            return;
+        }
+
         Toast.makeText(context, R.string.enqueued, Toast.LENGTH_SHORT).show();
         final Intent intent = getPlayerEnqueueIntent(context, MainPlayer.class, queue);
 
@@ -214,7 +235,8 @@ public final class NavigationHelper {
     // External Players
     //////////////////////////////////////////////////////////////////////////*/
 
-    public static void playOnExternalAudioPlayer(final Context context, final StreamInfo info) {
+    public static void playOnExternalAudioPlayer(@NonNull final Context context,
+                                                 @NonNull final StreamInfo info) {
         final int index = ListHelper.getDefaultAudioFormat(context, info.getAudioStreams());
 
         if (index == -1) {
@@ -226,9 +248,11 @@ public final class NavigationHelper {
         playOnExternalPlayer(context, info.getName(), info.getUploaderName(), audioStream);
     }
 
-    public static void playOnExternalVideoPlayer(final Context context, final StreamInfo info) {
+    public static void playOnExternalVideoPlayer(@NonNull final Context context,
+                                                 @NonNull final StreamInfo info) {
         final ArrayList<VideoStream> videoStreamsList = new ArrayList<>(
-                ListHelper.getSortedStreamVideosList(context, info.getVideoStreams(), null, false));
+                ListHelper.getSortedStreamVideosList(context, info.getVideoStreams(), null, false,
+                        false));
         final int index = ListHelper.getDefaultResolutionIndex(context, videoStreamsList);
 
         if (index == -1) {
@@ -240,20 +264,24 @@ public final class NavigationHelper {
         playOnExternalPlayer(context, info.getName(), info.getUploaderName(), videoStream);
     }
 
-    public static void playOnExternalPlayer(final Context context, final String name,
-                                            final String artist, final Stream stream) {
+    public static void playOnExternalPlayer(@NonNull final Context context,
+                                            @Nullable final String name,
+                                            @Nullable final String artist,
+                                            @NonNull final Stream stream) {
         final Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
         intent.setDataAndType(Uri.parse(stream.getUrl()), stream.getFormat().getMimeType());
         intent.putExtra(Intent.EXTRA_TITLE, name);
         intent.putExtra("title", name);
         intent.putExtra("artist", artist);
+        intent.putExtra("thumbnailUrl", artist);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         resolveActivityOrAskToInstall(context, intent);
     }
 
-    public static void resolveActivityOrAskToInstall(final Context context, final Intent intent) {
+    public static void resolveActivityOrAskToInstall(@NonNull final Context context,
+                                                     @NonNull final Intent intent) {
         if (intent.resolveActivity(context.getPackageManager()) != null) {
             ShareUtils.openIntentInApp(context, intent, false);
         } else {
@@ -323,15 +351,27 @@ public final class NavigationHelper {
         context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_SHOW_MAIN_PLAYER));
     }
 
-    public static void sendPlayerStartedEvent(final Context context) {
-        context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_PLAYER_STARTED));
+    public static void sendPlayerStartedEvent(final Context context,
+                                              @Nullable final String title,
+                                              @Nullable String artist,
+                                              @Nullable String thumbnailUrl
+    ) {
+        context.sendBroadcast(new
+                Intent(VideoDetailFragment.ACTION_PLAYER_STARTED)
+                .putExtra("title", title)
+                .putExtra("artist", artist)
+                .putExtra("thumbnailUrl", thumbnailUrl)
+        );
     }
-
-    public static void showMiniPlayer(final FragmentManager fragmentManager) {
+    public static void showMiniPlayer(final FragmentManager fragmentManager,
+                                      final String title,
+                                      final String artist,
+                                      final String thumbnailUrl) {
         final VideoDetailFragment instance = VideoDetailFragment.getInstanceInCollapsedState();
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_player_holder, instance)
-                .runOnCommit(() -> sendPlayerStartedEvent(instance.requireActivity()))
+                .runOnCommit(() -> sendPlayerStartedEvent(instance.requireActivity(),
+                        title, artist, thumbnailUrl))
                 .commitAllowingStateLoss();
     }
 
@@ -400,6 +440,15 @@ public final class NavigationHelper {
                 .replace(R.id.fragment_holder, ChannelFragment.getInstance(serviceId, url, name))
                 .addToBackStack(null)
                 .commit();
+    }
+
+    public static void openChannelFragment(@NonNull final Fragment fragment,
+                                           @NonNull final StreamInfoItem item,
+                                           final String uploaderUrl) {
+        // For some reason `getParentFragmentManager()` doesn't work, but this does.
+        openChannelFragment(
+                fragment.requireActivity().getSupportFragmentManager(),
+                item.getServiceId(), uploaderUrl, item.getUploaderName());
     }
 
     public static void openPlaylistFragment(final FragmentManager fragmentManager,
@@ -593,6 +642,12 @@ public final class NavigationHelper {
         }
 
         return getOpenIntent(context, url, service.getServiceId(), linkType);
+    }
+
+    public static Intent getChannelIntent(final Context context,
+                                          final int serviceId,
+                                          final String url) {
+        return getOpenIntent(context, url, serviceId, StreamingService.LinkType.CHANNEL);
     }
 
     /**

@@ -36,6 +36,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.PreferenceManager;
 
+import com.grack.nanojson.JsonParserException;
 import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipe.MainActivity;
@@ -46,12 +47,17 @@ import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.ServiceList;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
 import org.schabi.newpipe.extractor.localization.Localization;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.local.download.DownloadRecordManager;
+import org.schabi.newpipe.player.helper.PlayerDataSource;
 import org.schabi.newpipe.settings.NewPipeSettings;
 import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
@@ -61,15 +67,19 @@ import org.schabi.newpipe.util.FilenameUtils;
 import org.schabi.newpipe.util.ListHelper;
 import org.schabi.newpipe.util.PermissionHelper;
 import org.schabi.newpipe.util.SecondaryStreamHelper;
+import org.schabi.newpipe.util.SimpleOnSeekBarChangeListener;
 import org.schabi.newpipe.util.StreamItemAdapter;
 import org.schabi.newpipe.util.StreamItemAdapter.StreamSizeWrapper;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 
 import icepick.Icepick;
 import icepick.State;
@@ -102,6 +112,9 @@ public class DownloadDialog extends DialogFragment
     int selectedAudioIndex = 0;
     @State
     int selectedSubtitleIndex = 0;
+
+    @State
+    Boolean useDefault = false;
 
     @Nullable
     private OnDismissListener onDismissListener = null;
@@ -137,6 +150,7 @@ public class DownloadDialog extends DialogFragment
             registerForActivityResult(
                     new StartActivityForResult(), this::requestDownloadPickVideoFolderResult);
 
+    private DownloadRecordManager recordManager;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Instance creation
@@ -151,7 +165,7 @@ public class DownloadDialog extends DialogFragment
     public static DownloadDialog newInstance(final Context context, final StreamInfo info) {
         final ArrayList<VideoStream> streamsList = new ArrayList<>(ListHelper
                 .getSortedStreamVideosList(context, info.getVideoStreams(),
-                        info.getVideoOnlyStreams(), false));
+                        info.getVideoOnlyStreams(), false, false));
         final int selectedStreamIndex = ListHelper.getDefaultResolutionIndex(context, streamsList);
 
         final DownloadDialog instance = newInstance(info);
@@ -220,6 +234,7 @@ public class DownloadDialog extends DialogFragment
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        recordManager = new DownloadRecordManager(requireContext());
         if (DEBUG) {
             Log.d(TAG, "onCreate() called with: "
                     + "savedInstanceState = [" + savedInstanceState + "]");
@@ -275,6 +290,9 @@ public class DownloadDialog extends DialogFragment
                 askForSavePath = mgr.askForSavePath();
 
                 okButton.setEnabled(true);
+                if (useDefault) {
+                    prepareSelectedDownload();
+                }
 
                 context.unbindService(this);
             }
@@ -321,21 +339,15 @@ public class DownloadDialog extends DialogFragment
         final int threads = prefs.getInt(getString(R.string.default_download_threads), 3);
         dialogBinding.threadsCount.setText(String.valueOf(threads));
         dialogBinding.threads.setProgress(threads - 1);
-        dialogBinding.threads.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        dialogBinding.threads.setOnSeekBarChangeListener(new SimpleOnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(final SeekBar seekbar, final int progress,
+            public void onProgressChanged(@NonNull final SeekBar seekbar, final int progress,
                                           final boolean fromUser) {
                 final int newProgress = progress + 1;
                 prefs.edit().putInt(getString(R.string.default_download_threads), newProgress)
                         .apply();
                 dialogBinding.threadsCount.setText(String.valueOf(newProgress));
             }
-
-            @Override
-            public void onStartTrackingTouch(final SeekBar p1) { }
-
-            @Override
-            public void onStopTrackingTouch(final SeekBar p1) { }
         });
 
         fetchStreamsSize();
@@ -583,6 +595,39 @@ public class DownloadDialog extends DialogFragment
             case R.id.subtitle_button:
                 selectedSubtitleIndex = position;
                 break;
+        }
+        onItemSelectedSetFileName();
+    }
+
+    private void onItemSelectedSetFileName() {
+        final String fileName = FilenameUtils.createFilename(getContext(), currentInfo.getName());
+        final String prevFileName = Optional.ofNullable(dialogBinding.fileName.getText())
+                .map(Object::toString)
+                .orElse("");
+
+        if (prevFileName.isEmpty()
+                || prevFileName.equals(fileName)
+                || prevFileName.startsWith(getString(R.string.caption_file_name, fileName, ""))) {
+            // only update the file name field if it was not edited by the user
+
+            switch (dialogBinding.videoAudioGroup.getCheckedRadioButtonId()) {
+                case R.id.audio_button:
+                case R.id.video_button:
+                    if (!prevFileName.equals(fileName)) {
+                        // since the user might have switched between audio and video, the correct
+                        // text might already be in place, so avoid resetting the cursor position
+                        dialogBinding.fileName.setText(fileName);
+                    }
+                    break;
+
+                case R.id.subtitle_button:
+                    final String setSubtitleLanguageCode = subtitleStreamsAdapter
+                            .getItem(selectedSubtitleIndex).getLanguageTag();
+                    // this will reset the cursor position, which is bad UX, but it can't be avoided
+                    dialogBinding.fileName.setText(getString(
+                            R.string.caption_file_name, fileName, setSubtitleLanguageCode));
+                    break;
+            }
         }
     }
 
@@ -862,6 +907,10 @@ public class DownloadDialog extends DialogFragment
                     }
 
                     continueSelectedDownload(storage);
+                    if(currentInfo.getService() == ServiceList.BiliBili && dialogBinding.videoAudioGroup.getCheckedRadioButtonId() == R.id.video_button){
+                        mainStorage.createFile(filename.replace(".mp4", ".tmp.mp4"), "video/mp4");
+                        mainStorage.createFile(filename.replace(".mp4", ".tmp"), String.valueOf(MediaFormat.M4A));
+                    }
                     return;
                 }
                 msgBtn = R.string.overwrite;
@@ -896,7 +945,6 @@ public class DownloadDialog extends DialogFragment
             askDialog.create().show();
             return;
         }
-
         askDialog.setPositiveButton(msgBtn, (dialog, which) -> {
             dialog.dismiss();
 
@@ -921,6 +969,11 @@ public class DownloadDialog extends DialogFragment
                     }
 
                     if (storageNew != null && storageNew.canWrite()) {
+//                        mainStorage.remove(filename);
+                        if(currentInfo.getService() == ServiceList.BiliBili && dialogBinding.videoAudioGroup.getCheckedRadioButtonId() == R.id.video_button){
+                            mainStorage.createFile(filename.replace(".mp4", ".tmp.mp4"), "video/mp4");
+                            mainStorage.createFile(filename.replace(".mp4", ".tmp"), String.valueOf(MediaFormat.M4A));
+                        }
                         continueSelectedDownload(storageNew);
                     } else {
                         showFailedDialog(R.string.error_file_creation);
@@ -936,7 +989,6 @@ public class DownloadDialog extends DialogFragment
                     break;
             }
         });
-
         askDialog.create().show();
     }
 
@@ -972,8 +1024,9 @@ public class DownloadDialog extends DialogFragment
             case R.id.audio_button:
                 kind = 'a';
                 selectedStream = audioStreamsAdapter.getItem(selectedAudioIndex);
-
-                if (selectedStream.getFormat() == MediaFormat.M4A) {
+                if (currentInfo.getService() == ServiceList.NicoNico) {
+                    psName = Postprocessing.NICONICO_MUXER;
+                } else if (selectedStream.getFormat() == MediaFormat.M4A && currentInfo.getService() != ServiceList.BiliBili) {
                     psName = Postprocessing.ALGORITHM_M4A_NO_DASH;
                 } else if (selectedStream.getFormat() == MediaFormat.WEBMA_OPUS) {
                     psName = Postprocessing.ALGORITHM_OGG_FROM_WEBM_DEMUXER;
@@ -990,10 +1043,16 @@ public class DownloadDialog extends DialogFragment
                 if (secondary != null) {
                     secondaryStream = secondary.getStream();
 
-                    if (selectedStream.getFormat() == MediaFormat.MPEG_4) {
-                        psName = Postprocessing.ALGORITHM_MP4_FROM_DASH_MUXER;
+                    if(currentInfo.getService() == ServiceList.BiliBili) {
+                        psName = Postprocessing.BILIBILI_MUXER;
+                    } else if (currentInfo.getService() == ServiceList.NicoNico) {
+                        psName = Postprocessing.NICONICO_MUXER;
                     } else {
-                        psName = Postprocessing.ALGORITHM_WEBM_MUXER;
+                        if (selectedStream.getFormat() == MediaFormat.MPEG_4) {
+                            psName = Postprocessing.ALGORITHM_MP4_FROM_DASH_MUXER;
+                        } else {
+                            psName = Postprocessing.ALGORITHM_WEBM_MUXER;
+                        }
                     }
 
                     psArgs = null;
@@ -1011,7 +1070,20 @@ public class DownloadDialog extends DialogFragment
                 threads = 1; // use unique thread for subtitles due small file size
                 kind = 's';
                 selectedStream = subtitleStreamsAdapter.getItem(selectedSubtitleIndex);
+                if(currentInfo.getService() == ServiceList.BiliBili){
+                    try {
+                        OutputStream outputStream = storage.context.getContentResolver().openOutputStream(storage.getUri());
+                        outputStream.write(selectedStream.getContent().getBytes());
+                        outputStream.close();
+                        Toast.makeText(context, getString(R.string.recaptcha_done_button),
+                                Toast.LENGTH_SHORT).show();
 
+                        dismiss();
+                        return;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 if (selectedStream.getFormat() == MediaFormat.TTML) {
                     psName = Postprocessing.ALGORITHM_TTML_CONVERTER;
                     psArgs = new String[]{
@@ -1026,14 +1098,15 @@ public class DownloadDialog extends DialogFragment
 
         if (secondaryStream == null) {
             urls = new String[]{
-                    selectedStream.getUrl()
+                    selectedStream.getContent()
             };
             recoveryInfo = new MissionRecoveryInfo[]{
                     new MissionRecoveryInfo(selectedStream)
             };
         } else {
             urls = new String[]{
-                    selectedStream.getUrl(), secondaryStream.getUrl()
+                    selectedStream.getContent(),
+                    secondaryStream.getContent()
             };
             recoveryInfo = new MissionRecoveryInfo[]{new MissionRecoveryInfo(selectedStream),
                     new MissionRecoveryInfo(secondaryStream)};
@@ -1042,9 +1115,33 @@ public class DownloadDialog extends DialogFragment
         DownloadManagerService.startMission(context, urls, storage, kind, threads,
                 currentInfo.getUrl(), psName, psArgs, nearLength, recoveryInfo);
 
+        if (DEBUG) {
+            final String data = "" + currentInfo.getId() + " -> " + storage.getUri();
+            Log.d("GERRR", "continueSelectedDownload: " + data);
+        }
+
+        final String name = currentInfo.getName();
+        final String uploaderName = currentInfo.getUploaderName();
+        final String thumbnailUrl = currentInfo.getThumbnailUrl();
+
+        // TODO improve error handling
+        disposables.add(recordManager.insert(currentInfo.getId(), storage.getUri().toString(),
+                        currentInfo.getUrl(), name, uploaderName, thumbnailUrl).onErrorComplete()
+                .subscribe(
+                        ignored -> {
+                            /* successful */
+                            dismiss();
+                        },
+                        error -> Log.e(TAG, "Register view failure: ", error)
+                ));
+
         Toast.makeText(context, getString(R.string.download_has_started),
                 Toast.LENGTH_SHORT).show();
 
         dismiss();
+    }
+
+    public void setDefaultValues(final boolean defaultB) {
+        useDefault = defaultB;
     }
 }

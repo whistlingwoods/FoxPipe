@@ -52,17 +52,26 @@ public final class KioskTranslator {
                 return c.getString(R.string.featured);
             case "Radio":
                 return c.getString(R.string.radio);
+            case "Top 100":
+                return c.getString(R.string.top_100);
+            case "Recommended Videos":
+                return c.getString(R.string.recommended_videos);
+            case "Top Lives":
+                return c.getString(R.string.top_lives);
+            case "Recommended Lives":
+                return c.getString(R.string.recommended_lives);
             default:
                 return kioskId;
         }
     }
 
-    public static int getKioskIcon(final String kioskId, final Context c) {
+    public static int getKioskIcon(final String kioskId) {
         switch (kioskId) {
             case "Trending":
             case "Top 50":
             case "New & hot":
             case "conferences":
+            case "Top 100":
                 return R.drawable.ic_whatshot;
             case "Local":
                 return R.drawable.ic_home;
@@ -72,8 +81,11 @@ public final class KioskTranslator {
             case "Most liked":
                 return R.drawable.ic_thumb_up;
             case "live":
+            case "Top Lives":
+            case "Recommended Lives":
                 return R.drawable.ic_live_tv;
             case "Featured":
+            case "Recommended Videos":
                 return R.drawable.ic_stars;
             case "Radio":
                 return R.drawable.ic_radio;

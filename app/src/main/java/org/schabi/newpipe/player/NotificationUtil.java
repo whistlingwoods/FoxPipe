@@ -3,6 +3,7 @@ package org.schabi.newpipe.player;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
@@ -76,23 +77,24 @@ public final class NotificationUtil {
      * @param forceRecreate whether to force the recreation of the notification even if it already
      *                      exists
      */
-    synchronized void createNotificationIfNeededAndUpdate(final Player player,
-                                                          final boolean forceRecreate) {
+    public synchronized void createNotificationIfNeededAndUpdate(final Player player,
+                                                                 final boolean forceRecreate) {
         if (forceRecreate || notificationBuilder == null) {
-            notificationBuilder = createNotification(player);
+            notificationBuilder = createNotification(player, null);
         }
         updateNotification(player);
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }
 
-    private synchronized NotificationCompat.Builder createNotification(final Player player) {
+    private synchronized NotificationCompat.Builder createNotification(final Player player, final Service service) {
         if (DEBUG) {
             Log.d(TAG, "createNotification()");
         }
-        notificationManager = NotificationManagerCompat.from(player.getContext());
+        Context contextProvider = service != null ? service : player.getContext(); // for unknown reasons, sometime player's context is null
+        notificationManager = NotificationManagerCompat.from(contextProvider);
         final NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(player.getContext(),
-                player.getContext().getString(R.string.notification_channel_id));
+                new NotificationCompat.Builder(contextProvider,
+                        contextProvider.getString(R.string.notification_channel_id));
 
         initializeNotificationSlots(player);
 
@@ -107,27 +109,37 @@ public final class NotificationUtil {
 
         // build the compact slot indices array (need code to convert from Integer... because Java)
         final List<Integer> compactSlotList = NotificationConstants.getCompactSlotsFromPreferences(
-                player.getContext(), player.getPrefs(), nonNothingSlotCount);
+                contextProvider, player.getPrefs(), nonNothingSlotCount);
         final int[] compactSlots = new int[compactSlotList.size()];
         for (int i = 0; i < compactSlotList.size(); i++) {
             compactSlots[i] = compactSlotList.get(i);
         }
 
         builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                    .setMediaSession(player.getMediaSessionManager().getSessionToken())
-                    .setShowActionsInCompactView(compactSlots))
+                .setMediaSession(player.getMediaSessionManager().getSessionToken())
+                .setShowActionsInCompactView(compactSlots))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
                 .setShowWhen(false)
-                .setSmallIcon(R.drawable.ic_newpipe_triangle_white)
-                .setColor(ContextCompat.getColor(player.getContext(),
+                .setSmallIcon(R.drawable.ic_pipepipe)
+                .setColor(ContextCompat.getColor(contextProvider,
                         R.color.dark_background_color))
                 .setColorized(player.getPrefs().getBoolean(
-                        player.getContext().getString(R.string.notification_colorize_key), true))
-                .setDeleteIntent(PendingIntent.getBroadcast(player.getContext(), NOTIFICATION_ID,
-                        new Intent(ACTION_CLOSE), FLAG_UPDATE_CURRENT));
+                        contextProvider.getString(R.string.notification_colorize_key), true));
 
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                builder.setDeleteIntent(PendingIntent.getBroadcast(contextProvider, NOTIFICATION_ID,
+                        new Intent(ACTION_CLOSE), PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT));
+            } else {
+                builder.setDeleteIntent(PendingIntent.getBroadcast(contextProvider, NOTIFICATION_ID,
+                        new Intent(ACTION_CLOSE), FLAG_UPDATE_CURRENT));
+            }
+        } else {
+            builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(player.getMediaSessionManager().getSessionToken()));
+        }
         return builder;
     }
 
@@ -142,15 +154,20 @@ public final class NotificationUtil {
 
         // also update content intent, in case the user switched players
         notificationBuilder.setContentIntent(PendingIntent.getActivity(player.getContext(),
-                NOTIFICATION_ID, getIntentForNotification(player), FLAG_UPDATE_CURRENT));
+                NOTIFICATION_ID, getIntentForNotification(player), Build.VERSION.SDK_INT >= Build.VERSION_CODES.M?
+                        PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT));
         notificationBuilder.setContentTitle(player.getVideoTitle());
         notificationBuilder.setContentText(player.getUploaderName());
         notificationBuilder.setTicker(player.getVideoTitle());
-        updateActions(notificationBuilder, player);
-        final boolean showThumbnail = player.getPrefs().getBoolean(
-                player.getContext().getString(R.string.show_thumbnail_key), true);
-        if (showThumbnail) {
-            setLargeIcon(notificationBuilder, player);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            // notification actions are ignored on Android 13+, and are replaced by code in
+            // MediaSessionPlayerUi
+            updateActions(notificationBuilder, player);
+            final boolean showThumbnail = player.getPrefs().getBoolean(
+                    player.getContext().getString(R.string.show_thumbnail_key), true);
+            if (showThumbnail) {
+                setLargeIcon(notificationBuilder, player);
+            }
         }
     }
 
@@ -176,7 +193,7 @@ public final class NotificationUtil {
 
     void createNotificationAndStartForeground(final Player player, final Service service) {
         if (notificationBuilder == null) {
-            notificationBuilder = createNotification(player);
+            notificationBuilder = createNotification(player, service);
         }
         updateNotification(player);
 
@@ -331,7 +348,8 @@ public final class NotificationUtil {
                                                 final String intentAction) {
         return new NotificationCompat.Action(drawable, player.getContext().getString(title),
                 PendingIntent.getBroadcast(player.getContext(), NOTIFICATION_ID,
-                        new Intent(intentAction), FLAG_UPDATE_CURRENT));
+                        new Intent(intentAction), Build.VERSION.SDK_INT >= Build.VERSION_CODES.M?
+                                PendingIntent.FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT : FLAG_UPDATE_CURRENT));
     }
 
     private Intent getIntentForNotification(final Player player) {
@@ -355,6 +373,9 @@ public final class NotificationUtil {
     /////////////////////////////////////////////////////
 
     private void setLargeIcon(final NotificationCompat.Builder builder, final Player player) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return;
+        }
         final boolean scaleImageToSquareAspectRatio = player.getPrefs().getBoolean(
                 player.getContext().getString(R.string.scale_to_square_image_in_notifications_key),
                 false);

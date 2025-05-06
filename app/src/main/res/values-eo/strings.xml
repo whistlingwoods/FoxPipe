@@ -95,7 +95,6 @@
         <item quantity="one">%s filmeto</item>
         <item quantity="other">%s filmetoj</item>
     </plurals>
-    <string name="yes">Jes</string>
     <string name="msg_popup_permission">Tiu permeso estas necesa por
 \nmalfermi en ŝprucfenestra modo</string>
     <string name="popup_playing_toast">Ludante en ŝprucfenestra modo</string>
@@ -177,10 +176,10 @@
 \n5. Click on the \"Download\" button after it appears and
 \n6. From the downloaded takeout zip extract the .json file (usually under \"YouTube and YouTube Music/subscriptions/subscriptions.json\") and import it here.</string>
     <string name="import_soundcloud_instructions">Importu Soundcloud-n profilon tajpante ĉu la ligilon, ĉu vian ID :
-\n 
+\n
 \n1. Ebligu komputilon modon en retumilon (la retejo malhaveblas por poŝtelefonoj)
 \n2. Iru tien: %1$s
-\n3. Ensalutu kiam oni petas vin 
+\n3. Ensalutu kiam oni petas vin
 \n4. Kopiu la ligilon de profilo ke oni kondikis vin.</string>
     <string name="download_thumbnail_summary">Malŝaltu por malebligi ŝarĝajn bildetojn por konservi datumuzadon kaj memoruzadon. Ŝanĝoj vakigi ambaŭ en memoran kaj en diskan bildkaŝmemoron</string>
     <string name="thumbnail_cache_wipe_complete_notice">Bildokaŝmemoro vakigis</string>
@@ -513,8 +512,7 @@
     <string name="restricted_video">Tiu ĉi filmeto havas aĝlimon.
 \n
 \nŜalti \"%1$s\" en la agordoj, se vi volas vidi ĝin.</string>
-    <string name="settings_category_notification_title">Sciigo</string>
-    <string name="night_theme_title">Nokta etoso</string>
+    <string name="night_theme_title">Malhela etoso</string>
     <string name="notification_colorize_title">farbi sciigon</string>
     <string name="notification_action_buffering">Alŝuto</string>
     <string name="notification_scale_to_square_image_title">Skali bildeton ĝis 1:1 proportio</string>

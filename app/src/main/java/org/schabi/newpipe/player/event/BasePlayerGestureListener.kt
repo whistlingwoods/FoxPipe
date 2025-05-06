@@ -3,10 +3,7 @@ package org.schabi.newpipe.player.event
 import android.content.Context
 import android.os.Handler
 import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewConfiguration
+import android.view.*
 import org.schabi.newpipe.ktx.animate
 import org.schabi.newpipe.player.MainPlayer
 import org.schabi.newpipe.player.Player
@@ -85,23 +82,45 @@ abstract class BasePlayerGestureListener(
         }
     }
 
+    private var velocityTracker: VelocityTracker? = null
+
     private fun onTouchInMain(v: View, event: MotionEvent): Boolean {
         player.gestureDetector.onTouchEvent(event)
-        if (event.action == MotionEvent.ACTION_UP && isMovingInMain) {
-            isMovingInMain = false
-            onScrollEnd(MainPlayer.PlayerType.VIDEO, event)
-        }
-        return when (event.action) {
-            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                v.parent.requestDisallowInterceptTouchEvent(player.isFullscreen)
-                true
+
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                velocityTracker?.clear()
+                velocityTracker = velocityTracker ?: VelocityTracker.obtain()
+                velocityTracker?.addMovement(event)
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_MOVE -> {
+                velocityTracker?.addMovement(event)
+                velocityTracker?.computeCurrentVelocity(1000)
+                val yVelocity = velocityTracker?.yVelocity ?: 0f
+
+                // Check if swiping up (negative y velocity)
+                if (yVelocity < 0) {
+                    v.parent.requestDisallowInterceptTouchEvent(player.isFullscreenGestureEnabled || player.isFullscreen)
+                } else {
+                    v.parent.requestDisallowInterceptTouchEvent(player.isFullscreen)
+                }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 v.parent.requestDisallowInterceptTouchEvent(false)
-                false
+                velocityTracker?.recycle()
+                velocityTracker = null
+
+                if (isMovingInMain) {
+                    isMovingInMain = false
+                    onScrollEnd(MainPlayer.PlayerType.VIDEO, event)
+                } else if (player.longPressSpeedingEnabled) {
+                    player.playbackSpeed /= player.longPressSpeedingFactor
+                    player.longPressSpeedingEnabled = false
+                }
             }
-            else -> true
         }
+
+        return true
     }
 
     private fun onTouchInPopup(v: View, event: MotionEvent): Boolean {
@@ -267,11 +286,14 @@ abstract class BasePlayerGestureListener(
         return true
     }
 
-    override fun onLongPress(e: MotionEvent?) {
+    override fun onLongPress(e: MotionEvent) {
         if (player.popupPlayerSelected()) {
             player.updateScreenSize()
             player.checkPopupPositionBounds()
             player.changePopupSize(player.screenWidth.toInt())
+        } else {
+            player.longPressSpeedingEnabled = true
+            player.playbackSpeed *= player.longPressSpeedingFactor
         }
     }
 
@@ -289,8 +311,8 @@ abstract class BasePlayerGestureListener(
     }
 
     override fun onFling(
-        e1: MotionEvent?,
-        e2: MotionEvent?,
+        e1: MotionEvent,
+        e2: MotionEvent,
         velocityX: Float,
         velocityY: Float
     ): Boolean {
@@ -321,17 +343,12 @@ abstract class BasePlayerGestureListener(
         distanceY: Float
     ): Boolean {
 
-        if (!player.isFullscreen) {
-            return false
-        }
-
         val isTouchingStatusBar: Boolean = initialEvent.y < getStatusBarHeight(service)
         val isTouchingNavigationBar: Boolean =
             initialEvent.y > (player.rootView.height - getNavigationBarHeight(service))
         if (isTouchingStatusBar || isTouchingNavigationBar) {
             return false
         }
-
         val insideThreshold = abs(movingEvent.y - initialEvent.y) <= MOVEMENT_THRESHOLD
         if (
             !isMovingInMain && (insideThreshold || abs(distanceX) > abs(distanceY)) ||
@@ -344,7 +361,7 @@ abstract class BasePlayerGestureListener(
 
         onScroll(
             MainPlayer.PlayerType.VIDEO,
-            getDisplayHalfPortion(initialEvent),
+            getDisplayPortion(initialEvent),
             initialEvent,
             movingEvent,
             distanceX,
@@ -393,7 +410,7 @@ abstract class BasePlayerGestureListener(
 
         onScroll(
             MainPlayer.PlayerType.POPUP,
-            getDisplayHalfPortion(initialEvent),
+            getDisplayPortion(initialEvent),
             initialEvent,
             movingEvent,
             distanceX,

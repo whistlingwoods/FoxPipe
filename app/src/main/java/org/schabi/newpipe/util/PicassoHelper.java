@@ -1,14 +1,19 @@
 package org.schabi.newpipe.util;
 
+import static org.schabi.newpipe.extractor.utils.Utils.isBlank;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 
+import android.util.Log;
 import com.squareup.picasso.Cache;
 import com.squareup.picasso.LruCache;
 import com.squareup.picasso.OkHttp3Downloader;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.RequestCreator;
+import com.squareup.picasso.Target;
 import com.squareup.picasso.Transformation;
 
 import org.schabi.newpipe.R;
@@ -16,10 +21,9 @@ import org.schabi.newpipe.R;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import okhttp3.OkHttpClient;
-
-import static org.schabi.newpipe.extractor.utils.Utils.isBlank;
 
 public final class PicassoHelper {
     public static final String PLAYER_THUMBNAIL_TAG = "PICASSO_PLAYER_THUMBNAIL_TAG";
@@ -38,17 +42,60 @@ public final class PicassoHelper {
 
     private static boolean shouldLoadImages;
 
+    private static final Transformation transformation = new Transformation() {
+        @Override
+        public Bitmap transform(final Bitmap source) {
+            final float notificationThumbnailWidth = Math.min(
+                    600,
+                    source.getWidth());
+
+            final Bitmap result = Bitmap.createScaledBitmap(
+                    source,
+                    (int) notificationThumbnailWidth,
+                    (int) (source.getHeight()
+                            / (source.getWidth() / notificationThumbnailWidth)),
+                    true);
+
+            if (result == source) {
+                // create a new mutable bitmap to prevent strange crashes on some
+                // devices (see #4638)
+                try {
+                    final Bitmap copied = Bitmap.createScaledBitmap(
+                            source,
+                            (int) notificationThumbnailWidth - 1,
+                            (int) (source.getHeight() / (source.getWidth()
+                                    / (notificationThumbnailWidth - 1))),
+                            true);
+                    source.recycle();
+                    return copied;
+                } catch (final IllegalArgumentException e) {
+                    Log.e("PicassoHelper", "Failed to create scaled down copied bitmap", e);
+                    return result;
+                }
+
+            } else {
+                source.recycle();
+                return result;
+            }
+        }
+
+        @Override
+        public String key() {
+            return PLAYER_THUMBNAIL_TRANSFORMATION_KEY;
+        }
+    };
+
     public static void init(final Context context) {
-        picassoCache = new LruCache(10 * 1024 * 1024);
+        picassoCache = new LruCache(512 * 1024 * 1024);
         picassoDownloaderClient = new OkHttpClient.Builder()
                 .cache(new okhttp3.Cache(new File(context.getExternalCacheDir(), "picasso"),
-                        50 * 1024 * 1024))
+                        512 * 1024 * 1024))
                 // this should already be the default timeout in OkHttp3, but just to be sure...
                 .callTimeout(15, TimeUnit.SECONDS)
                 .build();
 
         picassoInstance = new Picasso.Builder(context)
-                .memoryCache(picassoCache) // memory cache
+//                .memoryCache(picassoCache) // memory cache
                 .downloader(new OkHttp3Downloader(picassoDownloaderClient)) // disk cache
                 .defaultBitmapConfig(Bitmap.Config.RGB_565)
                 .build();
@@ -92,11 +139,11 @@ public final class PicassoHelper {
 
 
     public static RequestCreator loadAvatar(final String url) {
-        return loadImageDefault(url, R.drawable.buddy);
+        return loadImageDefault(url, R.drawable.buddy).transform(transformation);
     }
 
     public static RequestCreator loadThumbnail(final String url) {
-        return loadImageDefault(url, R.drawable.dummy_thumbnail);
+        return loadImageDefault(url, R.drawable.dummy_thumbnail).transform(transformation);
     }
 
     public static RequestCreator loadBanner(final String url) {
@@ -104,53 +151,45 @@ public final class PicassoHelper {
     }
 
     public static RequestCreator loadPlaylistThumbnail(final String url) {
-        return loadImageDefault(url, R.drawable.dummy_thumbnail_playlist);
+        return loadImageDefault(url, R.drawable.dummy_thumbnail_playlist).transform(transformation);
     }
 
     public static RequestCreator loadSeekbarThumbnailPreview(final String url) {
-        return picassoInstance.load(url);
+        return picassoInstance.load(url); ///should not transform, see https://github.com/InfinityLoop1308/PipePipe/issues/215
+    }
+
+    public static RequestCreator loadScaledDownThumbnail(final Context context, final String url){ // reserve for compatibility
+        return loadScaledDownThumbnail(context, url, false);
+    }
+
+    public static RequestCreator loadScaledDownThumbnail(final Context context, final String url, final boolean shouldSetTag) {
+        // scale down the notification thumbnail for performance
+        return PicassoHelper.loadThumbnail(url)
+                .transform(transformation);
+    }
+
+    public static RequestCreator loadOrigin(final String url) {
+        return loadImageDefault(url, R.drawable.dummy_thumbnail_playlist);
     }
 
 
-    public static RequestCreator loadScaledDownThumbnail(final Context context, final String url) {
-        // scale down the notification thumbnail for performance
-        return PicassoHelper.loadThumbnail(url)
-                .tag(PLAYER_THUMBNAIL_TAG)
-                .transform(new Transformation() {
+    public static void loadNotificationIcon(final String url,
+                                            final Consumer<Bitmap> bitmapConsumer) {
+        loadImageDefault(url, R.drawable.ic_pipepipe)
+                .into(new Target() {
                     @Override
-                    public Bitmap transform(final Bitmap source) {
-                        final float notificationThumbnailWidth = Math.min(
-                                context.getResources()
-                                        .getDimension(R.dimen.player_notification_thumbnail_width),
-                                source.getWidth());
-
-                        final Bitmap result = Bitmap.createScaledBitmap(
-                                source,
-                                (int) notificationThumbnailWidth,
-                                (int) (source.getHeight()
-                                        / (source.getWidth() / notificationThumbnailWidth)),
-                                true);
-
-                        if (result == source) {
-                            // create a new mutable bitmap to prevent strange crashes on some
-                            // devices (see #4638)
-                            final Bitmap copied = Bitmap.createScaledBitmap(
-                                    source,
-                                    (int) notificationThumbnailWidth - 1,
-                                    (int) (source.getHeight() / (source.getWidth()
-                                            / (notificationThumbnailWidth - 1))),
-                                    true);
-                            source.recycle();
-                            return copied;
-                        } else {
-                            source.recycle();
-                            return result;
-                        }
+                    public void onBitmapLoaded(final Bitmap bitmap, final Picasso.LoadedFrom from) {
+                        bitmapConsumer.accept(bitmap);
                     }
 
                     @Override
-                    public String key() {
-                        return PLAYER_THUMBNAIL_TRANSFORMATION_KEY;
+                    public void onBitmapFailed(final Exception e, final Drawable errorDrawable) {
+                        bitmapConsumer.accept(null);
+                    }
+
+                    @Override
+                    public void onPrepareLoad(final Drawable placeHolderDrawable) {
+                        // Nothing to do
                     }
                 });
     }

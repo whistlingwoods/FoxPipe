@@ -26,6 +26,7 @@ import org.schabi.newpipe.info_list.holder.InfoItemHolder;
 import org.schabi.newpipe.info_list.holder.PlaylistGridInfoItemHolder;
 import org.schabi.newpipe.info_list.holder.PlaylistInfoItemHolder;
 import org.schabi.newpipe.info_list.holder.PlaylistMiniInfoItemHolder;
+import org.schabi.newpipe.info_list.holder.StaffInfoItemHolder;
 import org.schabi.newpipe.info_list.holder.StreamGridInfoItemHolder;
 import org.schabi.newpipe.info_list.holder.StreamInfoItemHolder;
 import org.schabi.newpipe.info_list.holder.StreamMiniInfoItemHolder;
@@ -75,6 +76,7 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private static final int GRID_PLAYLIST_HOLDER_TYPE = 0x302;
     private static final int MINI_COMMENT_HOLDER_TYPE = 0x400;
     private static final int COMMENT_HOLDER_TYPE = 0x401;
+    private static final int STAFF_TYPE = 0x816;
 
     private final LayoutInflater layoutInflater;
     private final InfoItemBuilder infoItemBuilder;
@@ -108,6 +110,10 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setOnCommentsSelectedListener(final OnClickGesture<CommentsInfoItem> listener) {
         infoItemBuilder.setOnCommentsSelectedListener(listener);
+    }
+
+    public void setOnCommentsReplyListener(final OnClickGesture<CommentsInfoItem> listener) {
+        infoItemBuilder.setOnCommentsReplyListener(listener);
     }
 
     public void setUseMiniVariant(final boolean useMiniVariant) {
@@ -147,6 +153,12 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         + " to " + footerNow);
             }
         }
+    }
+
+    public void setInfoItemList(final List<? extends InfoItem> data) {
+        infoItemList.clear();
+        infoItemList.addAll(data);
+        notifyDataSetChanged();
     }
 
     public void clearStreamItemList() {
@@ -244,6 +256,8 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                         ? MINI_PLAYLIST_HOLDER_TYPE : PLAYLIST_HOLDER_TYPE;
             case COMMENT:
                 return useMiniVariant ? MINI_COMMENT_HOLDER_TYPE : COMMENT_HOLDER_TYPE;
+            case STAFF:
+                return STAFF_TYPE;
             default:
                 return -1;
         }
@@ -290,6 +304,8 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 return new CommentsMiniInfoItemHolder(infoItemBuilder, parent);
             case COMMENT_HOLDER_TYPE:
                 return new CommentsInfoItemHolder(infoItemBuilder, parent);
+            case STAFF_TYPE:
+                return new StaffInfoItemHolder(infoItemBuilder, parent);
             default:
                 return new FallbackViewHolder(new View(parent.getContext()));
         }

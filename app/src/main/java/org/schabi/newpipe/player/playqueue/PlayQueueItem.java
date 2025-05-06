@@ -12,6 +12,7 @@ import java.io.Serializable;
 
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.schabi.newpipe.util.VideoSegment;
 
 public class PlayQueueItem implements Serializable {
     public static final long RECOVERY_UNSET = Long.MIN_VALUE;
@@ -31,15 +32,21 @@ public class PlayQueueItem implements Serializable {
     @NonNull
     private final StreamType streamType;
 
+    private final boolean isRoundPlayStream;
+
     private boolean isAutoQueued;
+
+    private long startAt;
 
     private long recoveryPosition;
     private Throwable error;
+    private VideoSegment[] videoSegments;
 
     PlayQueueItem(@NonNull final StreamInfo info) {
         this(info.getName(), info.getUrl(), info.getServiceId(), info.getDuration(),
                 info.getThumbnailUrl(), info.getUploaderName(),
-                info.getUploaderUrl(), info.getStreamType());
+                info.getUploaderUrl(), info.getStreamType(), info.isRoundPlayStream(),
+                info.getStartAt());
 
         if (info.getStartPosition() > 0) {
             setRecoveryPosition(info.getStartPosition() * 1000);
@@ -49,13 +56,15 @@ public class PlayQueueItem implements Serializable {
     PlayQueueItem(@NonNull final StreamInfoItem item) {
         this(item.getName(), item.getUrl(), item.getServiceId(), item.getDuration(),
                 item.getThumbnailUrl(), item.getUploaderName(),
-                item.getUploaderUrl(), item.getStreamType());
+                item.getUploaderUrl(), item.getStreamType(), item.isRoundPlayStream(), item.getStartAt());
     }
 
+    @SuppressWarnings("ParameterNumber")
     private PlayQueueItem(@Nullable final String name, @Nullable final String url,
                           final int serviceId, final long duration,
                           @Nullable final String thumbnailUrl, @Nullable final String uploader,
-                          final String uploaderUrl, @NonNull final StreamType streamType) {
+                          final String uploaderUrl, @NonNull final StreamType streamType,
+                          final boolean isRoundPlayStream, final long startAt) {
         this.title = name != null ? name : EMPTY_STRING;
         this.url = url != null ? url : EMPTY_STRING;
         this.serviceId = serviceId;
@@ -64,6 +73,8 @@ public class PlayQueueItem implements Serializable {
         this.uploader = uploader != null ? uploader : EMPTY_STRING;
         this.uploaderUrl = uploaderUrl;
         this.streamType = streamType;
+        this.isRoundPlayStream = isRoundPlayStream;
+        this.startAt = startAt;
 
         this.recoveryPosition = RECOVERY_UNSET;
     }
@@ -135,5 +146,21 @@ public class PlayQueueItem implements Serializable {
 
     public void setAutoQueued(final boolean autoQueued) {
         isAutoQueued = autoQueued;
+    }
+
+    public boolean isRoundPlayStream() {
+        return isRoundPlayStream;
+    }
+
+    public long getStartAt() {
+        return startAt;
+    }
+
+    public VideoSegment[] getVideoSegments() {
+        return videoSegments;
+    }
+
+    public void setVideoSegments(final VideoSegment[] videoSegments) {
+        this.videoSegments = videoSegments;
     }
 }

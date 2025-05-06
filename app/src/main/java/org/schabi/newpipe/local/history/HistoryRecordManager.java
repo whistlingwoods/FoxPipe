@@ -128,13 +128,11 @@ public class HistoryRecordManager {
 
             // Add a history entry
             final StreamHistoryEntity latestEntry = streamHistoryTable.getLatestEntry(streamId);
-            if (latestEntry != null) {
-                streamHistoryTable.delete(latestEntry);
-                latestEntry.setAccessDate(currentTime);
-                latestEntry.setRepeatCount(latestEntry.getRepeatCount() + 1);
-                return streamHistoryTable.insert(latestEntry);
+            if (latestEntry == null) {
+                // never actually viewed: add history entry but with 0 views
+                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime, 0));
             } else {
-                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime));
+                return 0L;
             }
         })).subscribeOn(Schedulers.io());
     }
@@ -155,7 +153,8 @@ public class HistoryRecordManager {
                 latestEntry.setRepeatCount(latestEntry.getRepeatCount() + 1);
                 return streamHistoryTable.insert(latestEntry);
             } else {
-                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime));
+                // just viewed for the first time: set 1 view
+                return streamHistoryTable.insert(new StreamHistoryEntity(streamId, currentTime, 1));
             }
         })).subscribeOn(Schedulers.io());
     }
@@ -224,10 +223,11 @@ public class HistoryRecordManager {
         final SearchHistoryEntry newEntry = new SearchHistoryEntry(currentTime, serviceId, search);
 
         return Maybe.fromCallable(() -> database.runInTransaction(() -> {
-            final SearchHistoryEntry latestEntry = searchHistoryTable.getLatestEntry();
-            if (latestEntry != null && latestEntry.hasEqualValues(newEntry)) {
-                latestEntry.setCreationDate(currentTime);
-                return (long) searchHistoryTable.update(latestEntry);
+            // Check for any matching entry by search term only
+            final SearchHistoryEntry existingEntry = searchHistoryTable.findBySearch(search);
+            if (existingEntry != null) {
+                existingEntry.setCreationDate(currentTime);
+                return (long) searchHistoryTable.update(existingEntry);
             } else {
                 return searchHistoryTable.insert(newEntry);
             }
@@ -273,7 +273,7 @@ public class HistoryRecordManager {
                 .flatMapPublisher(streamStateTable::getState)
                 .firstElement()
                 .flatMap(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
-                .filter(state -> state.isValid(queueItem.getDuration()))
+                .filter(state -> state.isValid(queueItem.getDuration(), queueItem.isRoundPlayStream()))
                 .subscribeOn(Schedulers.io());
     }
 
@@ -282,7 +282,7 @@ public class HistoryRecordManager {
                 .flatMapPublisher(streamStateTable::getState)
                 .firstElement()
                 .flatMap(list -> list.isEmpty() ? Maybe.empty() : Maybe.just(list.get(0)))
-                .filter(state -> state.isValid(info.getDuration()))
+                .filter(state -> state.isValid(info.getDuration(), info.isRoundPlayStream()))
                 .subscribeOn(Schedulers.io());
     }
 
@@ -290,7 +290,7 @@ public class HistoryRecordManager {
         return Completable.fromAction(() -> database.runInTransaction(() -> {
             final long streamId = streamTable.upsert(new StreamEntity(info));
             final StreamStateEntity state = new StreamStateEntity(streamId, progressMillis);
-            if (state.isValid(info.getDuration())) {
+            if (!info.isRoundPlayStream() && state.isValid(info.getDuration(), info.isRoundPlayStream())) {
                 streamStateTable.upsert(state);
             }
         })).subscribeOn(Schedulers.io());

@@ -1,7 +1,9 @@
 package org.schabi.newpipe;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,22 +14,21 @@ import androidx.preference.PreferenceManager;
 
 import com.jakewharton.processphoenix.ProcessPhoenix;
 
+
 import org.acra.ACRA;
 import org.acra.config.CoreConfigurationBuilder;
 import org.schabi.newpipe.error.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.downloader.Downloader;
+import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
 import org.schabi.newpipe.ktx.ExceptionUtils;
 import org.schabi.newpipe.settings.NewPipeSettings;
-import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.PicassoHelper;
-import org.schabi.newpipe.util.ServiceHelper;
-import org.schabi.newpipe.util.StateSaver;
+import org.schabi.newpipe.util.*;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,6 +38,8 @@ import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException;
 import io.reactivex.rxjava3.exceptions.UndeliverableException;
 import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
+
+import static org.schabi.newpipe.MainActivity.DEBUG;
 
 /*
  * Copyright (C) Hans-Christoph Steiner 2016 <hans@eds.org>
@@ -90,6 +93,7 @@ public class App extends MultiDexApplication {
         NewPipe.init(getDownloader(),
             Localization.getPreferredLocalization(this),
             Localization.getPreferredContentCountry(this));
+
         Localization.initPrettyTime(Localization.resolvePrettyTime(getApplicationContext()));
 
         StateSaver.init(this);
@@ -102,8 +106,13 @@ public class App extends MultiDexApplication {
         PicassoHelper.init(this);
         PicassoHelper.setShouldLoadImages(
                 prefs.getBoolean(getString(R.string.download_thumbnail_key), true));
-        PicassoHelper.setIndicatorsEnabled(MainActivity.DEBUG
+        PicassoHelper.setIndicatorsEnabled(DEBUG
                 && prefs.getBoolean(getString(R.string.show_image_indicators_key), false));
+
+        if (DEBUG) {
+            YoutubeParsingHelper.setVisitorData(
+                    prefs.getString(getString(R.string.youtube_visitor_data), null));
+        }
 
         configureRxJavaErrorHandler();
     }
@@ -167,7 +176,7 @@ public class App extends MultiDexApplication {
                 if (isDisposedRxExceptionsReported()) {
                     reportException(actualThrowable);
                 } else {
-                    Log.e(TAG, "RxJavaPlugin: Undeliverable Exception received: ", actualThrowable);
+//                    Log.e(TAG, "RxJavaPlugin: Undeliverable Exception received: ", actualThrowable);
                 }
             }
 
@@ -205,45 +214,62 @@ public class App extends MultiDexApplication {
             return;
         }
 
-        final CoreConfigurationBuilder acraConfig = new CoreConfigurationBuilder(this)
+        final CoreConfigurationBuilder acraConfig = new CoreConfigurationBuilder()
                 .withBuildConfigClass(BuildConfig.class);
-        ACRA.init(this, acraConfig);
+
+        if (isJobSenderServiceAvailable(this)) {
+            ACRA.init(this, acraConfig);
+        }
     }
+
+    public static boolean isJobSenderServiceAvailable(Context context) {
+        Intent intent = new Intent(context, org.acra.sender.JobSenderService.class);
+        ResolveInfo resolveInfo = context.getPackageManager().resolveService(intent, 0);
+        return resolveInfo != null;
+    }
+
 
     private void initNotificationChannels() {
         // Keep the importance below DEFAULT to avoid making noise on every notification update for
         // the main and update channels
-        final NotificationChannelCompat mainChannel = new NotificationChannelCompat
+        final List<NotificationChannelCompat> notificationChannelCompats = new ArrayList<>();
+        notificationChannelCompats.add(new NotificationChannelCompat
                 .Builder(getString(R.string.notification_channel_id),
                         NotificationManagerCompat.IMPORTANCE_LOW)
                 .setName(getString(R.string.notification_channel_name))
                 .setDescription(getString(R.string.notification_channel_description))
-                .build();
+                .build());
 
-        final NotificationChannelCompat appUpdateChannel = new NotificationChannelCompat
+        notificationChannelCompats.add(new NotificationChannelCompat
                 .Builder(getString(R.string.app_update_notification_channel_id),
                         NotificationManagerCompat.IMPORTANCE_LOW)
                 .setName(getString(R.string.app_update_notification_channel_name))
-                .setDescription(getString(R.string.app_update_notification_channel_description))
-                .build();
+                .setDescription(getString(R.string.app_update_notification_channel_description_new))
+                .build());
 
-        final NotificationChannelCompat hashChannel = new NotificationChannelCompat
+        notificationChannelCompats.add(new NotificationChannelCompat
                 .Builder(getString(R.string.hash_channel_id),
                         NotificationManagerCompat.IMPORTANCE_HIGH)
                 .setName(getString(R.string.hash_channel_name))
                 .setDescription(getString(R.string.hash_channel_description))
-                .build();
+                .build());
 
-        final NotificationChannelCompat errorReportChannel = new NotificationChannelCompat
+        notificationChannelCompats.add(new NotificationChannelCompat
                 .Builder(getString(R.string.error_report_channel_id),
                         NotificationManagerCompat.IMPORTANCE_LOW)
                 .setName(getString(R.string.error_report_channel_name))
                 .setDescription(getString(R.string.error_report_channel_description))
-                .build();
+                .build());
+
+        notificationChannelCompats.add(new NotificationChannelCompat
+                .Builder(getString(R.string.streams_notification_channel_id),
+                    NotificationManagerCompat.IMPORTANCE_DEFAULT)
+                .setName(getString(R.string.streams_notification_channel_name))
+                .setDescription(getString(R.string.streams_notification_channel_description))
+                .build());
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        notificationManager.createNotificationChannelsCompat(Arrays.asList(mainChannel,
-                appUpdateChannel, hashChannel, errorReportChannel));
+        notificationManager.createNotificationChannelsCompat(notificationChannelCompats);
     }
 
     protected boolean isDisposedRxExceptionsReported() {

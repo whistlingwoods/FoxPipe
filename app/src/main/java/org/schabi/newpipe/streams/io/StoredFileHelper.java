@@ -36,16 +36,16 @@ public class StoredFileHelper implements Serializable {
     public static final String DEFAULT_MIME = "application/octet-stream";
 
     private transient DocumentFile docFile;
-    private transient DocumentFile docTree;
-    private transient File ioFile;
-    private transient Context context;
+    public transient DocumentFile docTree;
+    public transient File ioFile;
+    public transient Context context;
 
-    protected String source;
-    private String sourceTree;
+    public String source;
+    public String sourceTree;
 
     protected String tag;
 
-    private String srcName;
+    public String srcName;
     private String srcType;
 
     public StoredFileHelper(final Context context, final Uri uri, final String mime) {
@@ -426,6 +426,9 @@ public class StoredFileHelper implements Serializable {
     private DocumentFile createSAF(@Nullable final Context ctx, final String mime,
                                    final String filename) throws IOException {
         DocumentFile res = StoredDirectoryHelper.findFileSAFHelper(ctx, docTree, filename);
+        if(res != null && !res.getName().equals(filename)){
+            res = null;
+        }
 
         if (res != null && res.exists() && res.isDirectory()) {
             if (!res.delete()) {
@@ -565,4 +568,5 @@ public class StoredFileHelper implements Serializable {
                     .putExtra(FilePickerActivityHelper.EXTRA_START_PATH, file.getAbsolutePath());
         }
     }
+
 }

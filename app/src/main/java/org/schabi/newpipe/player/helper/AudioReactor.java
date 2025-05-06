@@ -14,8 +14,10 @@ import androidx.core.content.ContextCompat;
 import androidx.media.AudioFocusRequestCompat;
 import androidx.media.AudioManagerCompat;
 
-import com.google.android.exoplayer2.SimpleExoPlayer;
+import androidx.preference.PreferenceManager;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import org.schabi.newpipe.R;
 
 public class AudioReactor implements AudioManager.OnAudioFocusChangeListener, AnalyticsListener {
 
@@ -27,14 +29,14 @@ public class AudioReactor implements AudioManager.OnAudioFocusChangeListener, An
     private static final int FOCUS_GAIN_TYPE = AudioManagerCompat.AUDIOFOCUS_GAIN;
     private static final int STREAM_TYPE = AudioManager.STREAM_MUSIC;
 
-    private final SimpleExoPlayer player;
+    private final ExoPlayer player;
     private final Context context;
     private final AudioManager audioManager;
 
     private final AudioFocusRequestCompat request;
 
     public AudioReactor(@NonNull final Context context,
-                        @NonNull final SimpleExoPlayer player) {
+                        @NonNull final ExoPlayer player) {
         this.player = player;
         this.context = context;
         this.audioManager = ContextCompat.getSystemService(context, AudioManager.class);
@@ -58,7 +60,11 @@ public class AudioReactor implements AudioManager.OnAudioFocusChangeListener, An
     //////////////////////////////////////////////////////////////////////////*/
 
     public void requestAudioFocus() {
-        AudioManagerCompat.requestAudioFocus(audioManager, request);
+        boolean shouldRequestAudioFocus = PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(context.getString(R.string.require_audio_focus_key), true);
+        if (shouldRequestAudioFocus) {
+            AudioManagerCompat.requestAudioFocus(audioManager, request);
+        }
     }
 
     public void abandonAudioFocus() {
@@ -149,7 +155,8 @@ public class AudioReactor implements AudioManager.OnAudioFocusChangeListener, An
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onAudioSessionIdChanged(final EventTime eventTime, final int audioSessionId) {
+    public void onAudioSessionIdChanged(@NonNull final EventTime eventTime,
+                                        final int audioSessionId) {
         notifyAudioSessionUpdate(true, audioSessionId);
     }
     private void notifyAudioSessionUpdate(final boolean active, final int audioSessionId) {

@@ -3,6 +3,8 @@ package org.schabi.newpipe.player.helper;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -13,15 +15,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media.session.MediaButtonReceiver;
 
+import com.google.android.exoplayer2.ForwardingPlayer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 
 import org.schabi.newpipe.MainActivity;
+import org.schabi.newpipe.R;
+import org.schabi.newpipe.player.NotificationUtil;
 import org.schabi.newpipe.player.mediasession.MediaSessionCallback;
 import org.schabi.newpipe.player.mediasession.PlayQueueNavigator;
-import org.schabi.newpipe.player.mediasession.PlayQueuePlaybackController;
+import org.schabi.newpipe.player.playback.PlayerMediaSession;
+import org.schabi.newpipe.util.StreamTypeUtil;
 
 import java.util.Optional;
+
+import static org.schabi.newpipe.player.MainPlayer.*;
 
 public class MediaSessionManager {
     private static final String TAG = MediaSessionManager.class.getSimpleName();
@@ -36,6 +44,8 @@ public class MediaSessionManager {
     private int lastArtistHashCode;
     private long lastDuration;
     private int lastAlbumArtHashCode;
+
+    private org.schabi.newpipe.player.Player player;
 
     public MediaSessionManager(@NonNull final Context context,
                                @NonNull final Player player,
@@ -55,9 +65,66 @@ public class MediaSessionManager {
                 .build());
 
         sessionConnector = new MediaSessionConnector(mediaSession);
-        sessionConnector.setControlDispatcher(new PlayQueuePlaybackController(callback));
         sessionConnector.setQueueNavigator(new PlayQueueNavigator(mediaSession, callback));
-        sessionConnector.setPlayer(player);
+        sessionConnector.setPlayer(new ForwardingPlayer(player) {
+            @Override
+            public void play() {
+                callback.play();
+            }
+
+            @Override
+            public void pause() {
+                callback.pause();
+            }
+        });
+        MediaSessionConnector.CustomActionProvider[] providers = new MediaSessionConnector.CustomActionProvider[2];
+        providers[0] = new MediaSessionConnector.CustomActionProvider() {
+            @Override
+            public void onCustomAction(@NonNull Player player, @NonNull String action, @Nullable Bundle extras) {
+                if (action.equals(ACTION_CHANGE_PLAY_MODE)) {
+                    callback.changePlayMode();
+                }
+            }
+
+            @Nullable
+            @Override
+            public PlaybackStateCompat.CustomAction getCustomAction(Player player) {
+                switch (((PlayerMediaSession)callback).mode){
+                    case 0:
+                    default:
+                        return new android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+                                ACTION_CHANGE_PLAY_MODE, "Shuffle", R.drawable.shuffle_disabled).build();
+                    case 1:
+                        return new android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+                                ACTION_CHANGE_PLAY_MODE, "Repeat all", R.drawable.exo_controls_shuffle_on).build();
+                    case 2:
+                        return new android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+                                ACTION_CHANGE_PLAY_MODE, "Repeat none", R.drawable.exo_controls_repeat_one).build();
+                    case 3:
+                        return new android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+                                ACTION_CHANGE_PLAY_MODE, "Repeat one", R.drawable.exo_controls_repeat_all).build();
+                }
+            }
+        };
+        providers[1] = new MediaSessionConnector.CustomActionProvider() {
+            @Override
+            public void onCustomAction(@NonNull Player player, @NonNull String action, @Nullable Bundle extras) {
+                if (action.equals(ACTION_CLOSE)) {
+                    callback.close();
+                }
+            }
+
+            @Nullable
+            @Override
+            public PlaybackStateCompat.CustomAction getCustomAction(Player player) {
+                // Close
+                return new android.support.v4.media.session.PlaybackStateCompat.CustomAction.Builder(
+                        ACTION_CLOSE, "Close", R.drawable.ic_close).build();
+            }
+        };
+        sessionConnector.setCustomActionProviders(providers);
+        sessionConnector.setMetadataDeduplicationEnabled(true);
+        sessionConnector.setMediaMetadataProvider(exoPlayer -> buildMediaMetadata());
     }
 
     @Nullable
@@ -70,122 +137,57 @@ public class MediaSessionManager {
         return mediaSession.getSessionToken();
     }
 
-    /**
-     * sets the Metadata - if required.
-     *
-     * @param title       {@link MediaMetadataCompat#METADATA_KEY_TITLE}
-     * @param artist      {@link MediaMetadataCompat#METADATA_KEY_ARTIST}
-     * @param optAlbumArt {@link MediaMetadataCompat#METADATA_KEY_ALBUM_ART}
-     * @param duration    {@link MediaMetadataCompat#METADATA_KEY_DURATION}
-     *                    - should be a negative value for unknown durations, e.g. for livestreams
-     */
-    public void setMetadata(@NonNull final String title,
-                            @NonNull final String artist,
-                            @NonNull final Optional<Bitmap> optAlbumArt,
-                            final long duration
-    ) {
-        if (DEBUG) {
-            Log.d(TAG, "setMetadata called:"
-                    + " t: " + title
-                    + " a: " + artist
-                    + " thumb: " + (
-                    optAlbumArt.isPresent()
-                            ? optAlbumArt.get().hashCode()
-                            : "<none>")
-                    + " d: " + duration);
-        }
-
-        if (!mediaSession.isActive()) {
-            if (DEBUG) {
-                Log.d(TAG, "setMetadata: mediaSession not active - exiting");
-            }
-            return;
-        }
-
-        if (!checkIfMetadataShouldBeSet(title, artist, optAlbumArt, duration)) {
-            if (DEBUG) {
-                Log.d(TAG, "setMetadata: No update required - exiting");
-            }
-            return;
-        }
-
-        if (DEBUG) {
-            Log.d(TAG, "setMetadata: N_Metadata update:"
-                    + " t: " + title
-                    + " a: " + artist
-                    + " thumb: " + (
-                    optAlbumArt.isPresent()
-                            ? optAlbumArt.get().hashCode()
-                            : "<none>")
-                    + " d: " + duration);
-        }
-
-        final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
-
-        if (optAlbumArt.isPresent()) {
-            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, optAlbumArt.get());
-            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, optAlbumArt.get());
-        }
-
-        mediaSession.setMetadata(builder.build());
-
-        lastTitleHashCode = title.hashCode();
-        lastArtistHashCode = artist.hashCode();
-        lastDuration = duration;
-        if (optAlbumArt.isPresent()) {
-            lastAlbumArtHashCode = optAlbumArt.get().hashCode();
-        }
+    public void setPlayer(org.schabi.newpipe.player.Player player) {
+        this.player = player;
     }
 
-    private boolean checkIfMetadataShouldBeSet(
-            @NonNull final String title,
-            @NonNull final String artist,
-            @NonNull final Optional<Bitmap> optAlbumArt,
-            final long duration
-    ) {
-        // Check if the values have changed since the last time
-        if (title.hashCode() != lastTitleHashCode
-                || artist.hashCode() != lastArtistHashCode
-                || duration != lastDuration
-                || (optAlbumArt.isPresent() && optAlbumArt.get().hashCode() != lastAlbumArtHashCode)
-        ) {
-            if (DEBUG) {
-                Log.d(TAG,
-                        "checkIfMetadataShouldBeSet: true - reason: changed values since last");
-            }
-            return true;
+    private MediaMetadataCompat buildMediaMetadata() {
+        if (DEBUG) {
+            Log.d(TAG, "buildMediaMetadata called");
         }
 
-        // Check if the currently set metadata is valid
-        if (getMetadataTitle() == null
-                || getMetadataArtist() == null
-                // Note that the duration can be <= 0 for live streams
-        ) {
-            if (DEBUG) {
-                if (getMetadataTitle() == null) {
-                    Log.d(TAG,
-                            "N_getMetadataTitle: title == null");
-                } else if (getMetadataArtist() == null) {
-                    Log.d(TAG,
-                            "N_getMetadataArtist: artist == null");
+        if(player == null) {
+            return new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "")
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "")
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, 0)
+                    .build();
+        }
+
+        // set title and artist
+        final MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, player.getVideoTitle())
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, player.getUploaderName());
+
+        // set duration (-1 for livestreams or if unknown, see the METADATA_KEY_DURATION docs)
+        final long duration = player.getCurrentStreamInfo()
+                .filter(info -> !StreamTypeUtil.isLiveStream(info.getStreamType()))
+                .map(info -> info.getDuration() * 1000L)
+                .orElse(-1L);
+        builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration);
+
+        // set album art, unless the user asked not to, or there is no thumbnail available
+        final boolean showThumbnail = player.getPrefs().getBoolean(
+                player.getContext().getString(R.string.show_thumbnail_key), true);
+        Optional.ofNullable(player.getThumbnail())
+                .filter(bitmap -> showThumbnail)
+                .ifPresent(bitmap -> {
+                    builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bitmap);
+                    builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, bitmap);
+                });
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            }
-            return true;
+                NotificationUtil.getInstance().createNotificationIfNeededAndUpdate(player, false);
+            }).start();
         }
 
-        // If we got an album art check if the current set AlbumArt is null
-        if (optAlbumArt.isPresent() && getMetadataAlbumArt() == null) {
-            if (DEBUG) {
-                Log.d(TAG, "N_getMetadataAlbumArt: thumb == null");
-            }
-            return true;
-        }
-
-        // Default - no update required
-        return false;
+        return builder.build();
     }
 
 

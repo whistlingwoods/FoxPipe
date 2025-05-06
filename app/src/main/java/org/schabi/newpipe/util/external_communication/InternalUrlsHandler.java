@@ -1,6 +1,7 @@
 package org.schabi.newpipe.util.external_communication;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -27,6 +28,8 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+
+import static org.schabi.newpipe.fragments.detail.VideoDetailFragment.ACTION_SEEK_TO;
 
 public final class InternalUrlsHandler {
     private static final String TAG = InternalUrlsHandler.class.getSimpleName();
@@ -56,7 +59,7 @@ public final class InternalUrlsHandler {
                                                              disposables,
                                                      final Context context,
                                                      @NonNull final String url) {
-        return handleUrl(context, url, HASHTAG_TIMESTAMP_PATTERN, disposables);
+        return handleTimestampUrl(context, url, HASHTAG_TIMESTAMP_PATTERN, disposables);
     }
 
     /**
@@ -76,7 +79,7 @@ public final class InternalUrlsHandler {
                                                                 disposables,
                                                         final Context context,
                                                         @NonNull final String url) {
-        return handleUrl(context, url, AMPERSAND_TIMESTAMP_PATTERN, disposables);
+        return handleTimestampUrl(context, url, AMPERSAND_TIMESTAMP_PATTERN, disposables);
     }
 
     /**
@@ -92,10 +95,16 @@ public final class InternalUrlsHandler {
      * @param disposables a field of the Activity/Fragment class that calls this method
      * @return true if the URL can be handled by NewPipe, false if it cannot
      */
-    private static boolean handleUrl(final Context context,
-                                     @NonNull final String url,
-                                     @NonNull final Pattern pattern,
-                                     @NonNull final CompositeDisposable disposables) {
+    private static boolean handleTimestampUrl(final Context context,
+                                              @NonNull final String url,
+                                              @NonNull final Pattern pattern,
+                                              @NonNull final CompositeDisposable disposables) {
+        if(url.contains("internal://timestamp/")) {
+            Intent intent = new Intent(ACTION_SEEK_TO);
+            intent.putExtra("Timestamp", Integer.parseInt(url.split("internal://timestamp/")[1]));
+            context.sendBroadcast(intent);
+            return true;
+        }
         final Matcher matcher = pattern.matcher(url);
         if (!matcher.matches()) {
             return false;
@@ -121,11 +130,28 @@ public final class InternalUrlsHandler {
         }
 
         if (linkType == StreamingService.LinkType.STREAM && seconds != -1) {
-            return playOnPopup(context, matchedUrl, service, seconds, disposables);
+            return playOnMain(context, matchedUrl, service, seconds, disposables);
         } else {
             NavigationHelper.openRouterActivity(context, matchedUrl);
-            return true;
         }
+        return true;
+    }
+    public static boolean handleUrl(final Context context,
+                                    @NonNull final String url,
+                                    @NonNull final CompositeDisposable disposables) {
+        final StreamingService service;
+        final StreamingService.LinkType linkType;
+        try {
+            service = NewPipe.getServiceByUrl(url);
+            linkType = service.getLinkTypeByUrl(url);
+            if (linkType == StreamingService.LinkType.NONE) {
+                return false;
+            }
+        } catch (final ExtractionException e) {
+            return false;
+        }
+        NavigationHelper.openRouterActivity(context, url);
+        return true;
     }
 
     /**
@@ -161,6 +187,42 @@ public final class InternalUrlsHandler {
                     final PlayQueue playQueue
                             = new SinglePlayQueue(info, seconds * 1000L);
                     NavigationHelper.playOnPopupPlayer(context, playQueue, false);
+                }, throwable -> {
+                    if (DEBUG) {
+                        Log.e(TAG, "Could not play on popup: " + url, throwable);
+                    }
+                    new AlertDialog.Builder(context)
+                            .setTitle(R.string.player_stream_failure)
+                            .setMessage(
+                                    ErrorPanelHelper.Companion.getExceptionDescription(throwable))
+                            .setPositiveButton(R.string.ok, (v, b) -> { })
+                            .show();
+                }));
+        return true;
+    }
+
+    public static boolean playOnMain(final Context context,
+                                      final String url,
+                                      @NonNull final StreamingService service,
+                                      final int seconds,
+                                      @NonNull final CompositeDisposable disposables) {
+        final LinkHandlerFactory factory = service.getStreamLHFactory();
+        final String cleanUrl;
+
+        try {
+            cleanUrl = factory.getUrl(factory.getId(url));
+        } catch (final ParsingException e) {
+            return false;
+        }
+
+        final Single<StreamInfo> single
+                = ExtractorHelper.getStreamInfo(service.getServiceId(), cleanUrl, false);
+        disposables.add(single.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(info -> {
+                    final PlayQueue playQueue
+                            = new SinglePlayQueue(info, seconds * 1000L);
+                    NavigationHelper.playOnMainPlayer(context, playQueue, false);
                 }, throwable -> {
                     if (DEBUG) {
                         Log.e(TAG, "Could not play on popup: " + url, throwable);

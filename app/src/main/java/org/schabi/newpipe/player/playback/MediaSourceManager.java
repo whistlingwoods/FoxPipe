@@ -1,21 +1,35 @@
 package org.schabi.newpipe.player.playback;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
+import androidx.preference.PreferenceManager;
 
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSource;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.schabi.newpipe.R;
+import org.schabi.newpipe.database.download.entry.DownloadEntry;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamType;
+import org.schabi.newpipe.local.download.DownloadRecordManager;
+import org.schabi.newpipe.player.mediaitem.MediaItemTag;
+import org.schabi.newpipe.player.mediaitem.MediaTagImpl;
 import org.schabi.newpipe.player.mediasource.FailedMediaSource;
 import org.schabi.newpipe.player.mediasource.LoadedMediaSource;
+import org.schabi.newpipe.player.mediasource.LocalMediaSource;
 import org.schabi.newpipe.player.mediasource.ManagedMediaSource;
 import org.schabi.newpipe.player.mediasource.ManagedMediaSourcePlaylist;
-import org.schabi.newpipe.player.mediasource.PlaceholderMediaSource;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
 import org.schabi.newpipe.player.playqueue.events.MoveEvent;
@@ -24,8 +38,10 @@ import org.schabi.newpipe.player.playqueue.events.RemoveEvent;
 import org.schabi.newpipe.player.playqueue.events.ReorderEvent;
 import org.schabi.newpipe.util.ServiceHelper;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,6 +54,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.internal.subscriptions.EmptySubscription;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.reactivex.rxjava3.subjects.PublishSubject;
+import org.schabi.newpipe.util.SponsorBlockUtils;
 
 import static org.schabi.newpipe.player.mediasource.FailedMediaSource.MediaSourceResolutionException;
 import static org.schabi.newpipe.player.mediasource.FailedMediaSource.StreamInfoLoadException;
@@ -68,7 +85,8 @@ public class MediaSourceManager {
      * @see #maybeLoadItem(PlayQueueItem)
      */
     private static final int MAXIMUM_LOADER_SIZE = WINDOW_SIZE * 2 + 1;
-
+    @NonNull
+    private final Context context;
     @NonNull
     private final PlaybackListener playbackListener;
     @NonNull
@@ -125,14 +143,17 @@ public class MediaSourceManager {
 
     private final Handler removeMediaSourceHandler = new Handler();
 
-    public MediaSourceManager(@NonNull final PlaybackListener listener,
+
+    public MediaSourceManager(@NonNull final Context context,
+                              @NonNull final PlaybackListener listener,
                               @NonNull final PlayQueue playQueue) {
-        this(listener, playQueue, 400L,
+        this(context, listener, playQueue, 400L,
                 /*playbackNearEndGapMillis=*/TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS),
                 /*progressUpdateIntervalMillis*/TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS));
     }
 
-    private MediaSourceManager(@NonNull final PlaybackListener listener,
+    private MediaSourceManager(@NonNull final Context context,
+                               @NonNull final PlaybackListener listener,
                                @NonNull final PlayQueue playQueue,
                                final long loadDebounceMillis,
                                final long playbackNearEndGapMillis,
@@ -146,6 +167,7 @@ public class MediaSourceManager {
                     + " ms] for them to be useful.");
         }
 
+        this.context = context;
         this.playbackListener = listener;
         this.playQueue = playQueue;
 
@@ -195,7 +217,7 @@ public class MediaSourceManager {
     //////////////////////////////////////////////////////////////////////////*/
 
     private Subscriber<PlayQueueEvent> getReactor() {
-        return new Subscriber<PlayQueueEvent>() {
+        return new Subscriber<>() {
             @Override
             public void onSubscribe(@NonNull final Subscription d) {
                 playQueueReactor.cancel();
@@ -209,10 +231,12 @@ public class MediaSourceManager {
             }
 
             @Override
-            public void onError(@NonNull final Throwable e) { }
+            public void onError(@NonNull final Throwable e) {
+            }
 
             @Override
-            public void onComplete() { }
+            public void onComplete() {
+            }
         };
     }
 
@@ -292,11 +316,11 @@ public class MediaSourceManager {
         }
 
         final ManagedMediaSource mediaSource = playlist.get(playQueue.getIndex());
-        if (mediaSource == null) {
+        final PlayQueueItem playQueueItem = playQueue.getItem();
+        if (mediaSource == null || playQueueItem == null) {
             return false;
         }
 
-        final PlayQueueItem playQueueItem = playQueue.getItem();
         return mediaSource.isStreamEqual(playQueueItem);
     }
 
@@ -315,7 +339,7 @@ public class MediaSourceManager {
         isBlocked.set(true);
     }
 
-    private void maybeUnblock() {
+    private boolean maybeUnblock() {
         if (DEBUG) {
             Log.d(TAG, "maybeUnblock() called.");
         }
@@ -323,14 +347,17 @@ public class MediaSourceManager {
         if (isBlocked.get()) {
             isBlocked.set(false);
             playbackListener.onPlaybackUnblock(playlist.getParentMediaSource());
+            return true;
         }
+
+        return false;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
     // Metadata Synchronization
     //////////////////////////////////////////////////////////////////////////*/
 
-    private void maybeSync() {
+    private void maybeSync(final boolean wasBlocked) {
         if (DEBUG) {
             Log.d(TAG, "maybeSync() called.");
         }
@@ -340,13 +367,13 @@ public class MediaSourceManager {
             return;
         }
 
-        playbackListener.onPlaybackSynchronize(currentItem);
+        playbackListener.onPlaybackSynchronize(currentItem, wasBlocked);
     }
 
     private synchronized void maybeSynchronizePlayer() {
         if (isPlayQueueReady() && isPlaybackReady()) {
-            maybeUnblock();
-            maybeSync();
+            final boolean isBlockReleased = maybeUnblock();
+            maybeSync(isBlockReleased);
         }
     }
 
@@ -406,6 +433,43 @@ public class MediaSourceManager {
             }
 
             loadingItems.add(item);
+
+
+            // try with local first
+            final String checkDownloadsFirst = context.getString(R.string.check_downloads_first);
+            final SharedPreferences sharedPref =
+                    PreferenceManager.getDefaultSharedPreferences(context);
+            final Boolean checkDownloadsFirstValue =
+                    sharedPref.getBoolean(checkDownloadsFirst, false);
+            final DownloadRecordManager d = new DownloadRecordManager(context);
+            final DownloadEntry downloadEntry = d.getUriFromUrl(item.getUrl()).blockingGet();
+            if (checkDownloadsFirstValue && downloadEntry != null) {
+                final String audioUri = downloadEntry.getUriValue();
+                // Create a data source factory to provide the MediaSource with data.
+                final DefaultDataSource.Factory dataSourceFactory =
+                        new DefaultDataSource.Factory(context); // Use default user agent
+
+                StreamInfo streamInfo = new StreamInfo(0, audioUri, audioUri, StreamType.AUDIO_STREAM, "0" , item.getTitle(), 1000);
+                streamInfo.setThumbnailUrl(item.getThumbnailUrl());
+
+                final MediaItem mediaItem = new MediaItem.Builder()
+                        .setUri(audioUri)
+                        .setMediaId(item.getUrl())
+                        .setTag(
+                                new MediaTagImpl(
+                                        Optional.of(streamInfo),
+                                        downloadEntry.getName(),
+                                        downloadEntry.getUploaderName(),
+                                        downloadEntry.getThumbnailUrl())
+                        )
+                        .build();
+                final ProgressiveMediaSource mediaSource =
+                        new ProgressiveMediaSource.Factory(dataSourceFactory)
+                                .createMediaSource(mediaItem);
+                onMediaSourceReceived(item, new LocalMediaSource(mediaSource));
+                return;
+            }
+
             final Disposable loader = getLoadedMediaSource(item)
                     .observeOn(AndroidSchedulers.mainThread())
                     /* No exception handling since getLoadedMediaSource guarantees nonnull return */
@@ -417,20 +481,36 @@ public class MediaSourceManager {
     private Single<ManagedMediaSource> getLoadedMediaSource(@NonNull final PlayQueueItem stream) {
         return stream.getStream().map(streamInfo -> {
             final MediaSource source = playbackListener.sourceOf(stream, streamInfo);
-            if (source == null) {
+            if (source == null || !MediaItemTag.from(source.getMediaItem()).isPresent()) {
                 final String message = "Unable to resolve source from stream info. "
                         + "URL: " + stream.getUrl() + ", "
                         + "audio count: " + streamInfo.getAudioStreams().size() + ", "
                         + "video count: " + streamInfo.getVideoOnlyStreams().size() + ", "
                         + streamInfo.getVideoStreams().size();
-                return new FailedMediaSource(stream, new MediaSourceResolutionException(message));
+                return (ManagedMediaSource)
+                        FailedMediaSource.of(stream, new MediaSourceResolutionException(message));
             }
 
+            final MediaItemTag tag = MediaItemTag.from(source.getMediaItem()).get();
             final long expiration = System.currentTimeMillis()
                     + ServiceHelper.getCacheExpirationMillis(streamInfo.getServiceId());
-            return new LoadedMediaSource(source, stream, expiration);
-        }).onErrorReturn(throwable -> new FailedMediaSource(stream,
-                new StreamInfoLoadException(throwable)));
+            try {
+                stream.setVideoSegments(
+                        SponsorBlockUtils.getYouTubeVideoSegments(
+                                context, streamInfo));
+            } catch (final UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+            return new LoadedMediaSource(source, tag, stream, expiration);
+        }).onErrorReturn(throwable -> {
+            if (throwable instanceof ExtractionException) {
+                return FailedMediaSource.of(stream, new StreamInfoLoadException(throwable));
+            }
+            // Non-source related error expected here (e.g. network),
+            // should allow retry shortly after the error.
+            return FailedMediaSource.of(stream, new Exception(throwable),
+                    /*allowRetryIn=*/TimeUnit.MILLISECONDS.convert(3, TimeUnit.SECONDS));
+        });
     }
 
     private void onMediaSourceReceived(@NonNull final PlayQueueItem item,
@@ -457,6 +537,7 @@ public class MediaSourceManager {
     /**
      * Checks if the corresponding MediaSource in
      * {@link com.google.android.exoplayer2.source.ConcatenatingMediaSource}
+     * {@link com.google.android.exoplayer2.source.ConcatenatingMediaSource}
      * for a given {@link PlayQueueItem} needs replacement, either due to gapless playback
      * readiness or playlist desynchronization.
      * <p>
@@ -478,23 +559,23 @@ public class MediaSourceManager {
 
     /**
      * Checks if the current playing index contains an expired {@link ManagedMediaSource}.
-     * If so, the expired source is replaced by a {@link PlaceholderMediaSource} and
+     * If so, the expired source is replaced by a dummy {@link ManagedMediaSource} and
      * {@link #loadImmediate()} is called to reload the current item.
      * <br><br>
      * If not, then the media source at the current index is ready for playback, and
      * {@link #maybeSynchronizePlayer()} is called.
      * <br><br>
-     * Under both cases, {@link #maybeSync()} will be called to ensure the listener
+     * Under both cases, {@link #maybeSync(boolean)} will be called to ensure the listener
      * is up-to-date.
      */
     private void maybeRenewCurrentIndex() {
         final int currentIndex = playQueue.getIndex();
+        final PlayQueueItem currentItem = playQueue.getItem();
         final ManagedMediaSource currentSource = playlist.get(currentIndex);
-        if (currentSource == null) {
+        if (currentItem == null || currentSource == null) {
             return;
         }
 
-        final PlayQueueItem currentItem = playQueue.getItem();
         if (!currentSource.shouldBeReplacedWith(currentItem, true)) {
             maybeSynchronizePlayer();
             return;
