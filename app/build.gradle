@@ -216,7 +216,9 @@ dependencies {
     // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:e9d656ddb49a412a5a0a5d5ef20ca7ef09549996'
     // WORKAROUND: if you get errors with the NewPipeExtractor dependency, replace `v0.24.3` with
-    // the corresponding commit hash, since JitPack is sometimes buggy
+    // the corresponding commit hash, since JitPack sometimes deletes artifacts.
+    // If there’s already a git hash, just add more of it to the end (or remove a letter)
+    // to cause jitpack to regenerate the artifact.
     implementation 'com.github.whistlingwoods:TubularExtractor:v0.24.7'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
