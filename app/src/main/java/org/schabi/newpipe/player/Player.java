@@ -1103,15 +1103,16 @@ public final class Player implements PlaybackListener, Listener {
 
             // show/hide manual skip buttons
             if (showManualButtons && secondaryMode != SponsorBlockSecondaryMode.HIGHLIGHT) {
-                if (currentProgress < sponsorBlockSegment.endTime
-                        && currentProgress > sponsorBlockSegment.startTime) {
+                if (currentProgress < getChainSkipEndTime(sponsorBlockSegment)
+                        && currentProgress > getChainStartTime(sponsorBlockSegment)) {
                     UIs.call(PlayerUi::showAutoSkip);
                 } else {
                     UIs.call(PlayerUi::hideAutoSkip);
                 }
 
-                if (currentProgress > sponsorBlockSegment.startTime
-                        && currentProgress < sponsorBlockSegment.endTime + UNSKIP_WINDOW_MILLIS) {
+                if (currentProgress > getChainStartTime(sponsorBlockSegment)
+                        && currentProgress < getChainSkipEndTime(sponsorBlockSegment)
+                        + UNSKIP_WINDOW_MILLIS) {
                     UIs.call(PlayerUi::showAutoUnskip);
                 } else {
                     UIs.call(PlayerUi::hideAutoUnskip);
@@ -1147,8 +1148,8 @@ public final class Player implements PlaybackListener, Listener {
             }
 
             int skipTarget = isRewind
-                    ? (int) Math.ceil((sponsorBlockSegment.startTime)) - 1
-                    : (int) Math.ceil((sponsorBlockSegment.endTime));
+                    ? (int) Math.ceil(getChainStartTime(sponsorBlockSegment)) - 1
+                    : (int) Math.ceil(getChainSkipEndTime(sponsorBlockSegment));
 
             if (skipTarget < 0) {
                 skipTarget = 0;
@@ -2643,11 +2644,11 @@ public final class Player implements PlaybackListener, Listener {
                     continue;
                 }
 
-                if (progress < sponsorBlockSegment.startTime) {
+                if (progress < getChainStartTime(sponsorBlockSegment)) {
                     continue;
                 }
 
-                if (progress > sponsorBlockSegment.endTime) {
+                if (progress > getChainSkipEndTime(sponsorBlockSegment)) {
                     continue;
                 }
 
@@ -2656,7 +2657,7 @@ public final class Player implements PlaybackListener, Listener {
 
             // fallback on old SponsorBlockSegment (for un-skip)
             if (lastSegment != null
-                    && progress > lastSegment.endTime + UNSKIP_WINDOW_MILLIS) {
+                    && progress > getChainSkipEndTime(lastSegment) + UNSKIP_WINDOW_MILLIS) {
                 // un-skip window is over
                 hideUnskipButtons();
                 lastSegment = null;
@@ -2666,8 +2667,8 @@ public final class Player implements PlaybackListener, Listener {
                     Log.d("SPONSOR_BLOCK", "Destroyed last segment variables (UNSKIP)");
                 }
             } else if (lastSegment != null
-                    && progress < lastSegment.endTime + UNSKIP_WINDOW_MILLIS
-                    && progress >= lastSegment.startTime) {
+                    && progress < getChainSkipEndTime(lastSegment) + UNSKIP_WINDOW_MILLIS
+                    && progress >= getChainStartTime(lastSegment)) {
                 // use old sponsorBlockSegment if exists AND currentProgress in bounds
                 return lastSegment;
             }
@@ -2675,6 +2676,36 @@ public final class Player implements PlaybackListener, Listener {
             hideUnskipButtons();
             return null;
         });
+    }
+
+    public double getChainStartTime(final SponsorBlockSegment segment) {
+        if (segment.chain.isEmpty()) {
+            return segment.startTime;
+        } else {
+            for (int i = segment.chain.indexOf(segment) - 1; i >= 0; i--) {
+                // look for automatically skipped segments before this one
+                if (segment.chain.get(i).action != SponsorBlockAction.SKIP
+                        || getSecondaryMode(segment) != SponsorBlockSecondaryMode.ENABLED) {
+                    return segment.chain.get(i + 1).endTime;
+                }
+            }
+            return segment.chain.get(0).startTime;
+        }
+    }
+
+    public double getChainSkipEndTime(final SponsorBlockSegment segment) {
+        if (segment.chain.isEmpty()) {
+            return segment.endTime;
+        } else {
+            for (int i = segment.chain.indexOf(segment) + 1; i < segment.chain.size(); i++) {
+                // look for automatically skipped segments after this one
+                if (segment.chain.get(i).action != SponsorBlockAction.SKIP
+                        || getSecondaryMode(segment) != SponsorBlockSecondaryMode.ENABLED) {
+                    return segment.chain.get(i - 1).endTime;
+                }
+            }
+            return segment.chain.get(segment.chain.size() - 1).endTime;
+        }
     }
 
     private void hideUnskipButtons() {
