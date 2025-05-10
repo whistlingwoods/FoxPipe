@@ -721,8 +721,9 @@
     <string name="feed_show_upcoming">Demnächst</string>
     <string name="feed_show_watched">Vollständig angeschaut</string>
     <string name="feed_show_partially_watched">Teilweise angeschaut</string>
-    <string name="left_gesture_control_summary">Geste für die linke Hälfte des Player-Bildschirms auswählen</string>
-    <string name="right_gesture_control_summary">Geste für die rechte Hälfte des Player-Bildschirms auswählen</string>
+    <string name="left_gesture_control_summary">Geste für den linken Teil des Player-Bildschirms auswählen</string>
+    <string name="middle_gesture_control_title">Mittlere Gestenaktion</string>
+    <string name="right_gesture_control_summary">Geste für den rechten Teil des Player-Bildschirms auswählen</string>
     <string name="none">Keine</string>
     <string name="right_gesture_control_title">Rechte Gestenaktion</string>
     <string name="left_gesture_control_title">Linke Gestenaktion</string>
@@ -870,4 +871,5 @@
     <string name="api23_requirement_dialog_blogpost">Blogbeitrag</string>
     <string name="api23_requirement_dialog_title">Tubular stellt die Unterstützung für Android 5 ein</string>
     <string name="api23_requirement_dialog_message">Leider ist Tubular auf einige Bibliotheken angewiesen, welche die Unterstützung für Android 5.0 und 5.1 eingestellt haben. Die nächste Version von Tubular wird daher leider nur auf Geräten mit Android 6 oder höher funktionieren. Mehr dazu im Blogbeitrag.</string>
+    <string name="middle_gesture_control_summary">Geste für den mittleren Teil des Player-Bildschirms auswählen</string>
 </resources>
