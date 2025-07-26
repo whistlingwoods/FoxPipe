@@ -216,7 +216,7 @@ dependencies {
     // If there’s already a git hash, just add more of it to the end (or remove a letter)
     // to cause jitpack to regenerate the artifact.
     //implementation 'com.github.TeamNewPipe.NewPipeExtractor:NewPipeExtractor:71b335128e8b66ecc0cd45379dd11a0865973065'
-    implementation 'com.github.ShareASmile.NewPipeExtractor:NewPipeExtractor:7d4ae054fb93df545717b8d5821872419c26c5aa'
+    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:92c14732ee837ab0c44c51cfa5d5e26823356f7f'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
 /** Checkstyle **/
