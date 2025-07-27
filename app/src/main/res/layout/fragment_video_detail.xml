@@ -643,7 +643,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textSize="@dimen/video_item_search_title_text_size"
                 tools:ignore="RtlHardcoded"
-                tools:text="The Video Title LONG very LONVideo Title LONG very LONG" />
+                tools:text="The Video Title LONG very LONG very LONG" />
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/overlay_channel_text_view"
