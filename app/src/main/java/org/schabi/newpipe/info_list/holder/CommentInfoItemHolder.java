@@ -3,9 +3,13 @@ package org.schabi.newpipe.info_list.holder;
 import static org.schabi.newpipe.util.ServiceHelper.getServiceById;
 import static org.schabi.newpipe.util.text.TouchUtils.getOffsetForHorizontalLine;
 
+import android.graphics.Typeface;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.StyleSpan;
 import android.text.style.URLSpan;
 import android.view.MotionEvent;
 import android.view.View;
@@ -87,7 +91,6 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         }
         final CommentsInfoItem item = (CommentsInfoItem) infoItem;
 
-
         // load the author avatar
         PicassoHelper.loadAvatar(item.getUploaderAvatars()).into(itemThumbnailView);
         if (ImageStrategy.shouldLoadImages()) {
@@ -104,12 +107,13 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         // setup the top row, with pinned icon, author name and comment date
         itemPinnedView.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
         final String uploaderName = Localization.localizeUserName(item.getUploaderName());
-        itemTitleView.setText(Localization.concatenateStrings(
+        String title = (Localization.concatenateStrings(
                 uploaderName,
                 Localization.relativeTimeOrTextual(
                         itemBuilder.getContext(),
                         item.getUploadDate(),
-                        item.getTextualUploadDate())));
+                        item.getTextualUploadDate()));
+        itemTitleView.setText(setTitleTextSpans(title));
 
         // setup bottom row, with likes, heart and replies button
         itemLikesCountView.setText(
@@ -190,6 +194,13 @@ public class CommentInfoItemHolder extends InfoItemHolder {
 
     private void denyLinkFocus() {
         itemContentView.setMovementMethod(null);
+    }
+
+    private Spannable setTitleTextSpans(final String title) {
+        final Spannable spannable = new SpannableString(title);
+        final int index = title.indexOf(" ");
+        spannable.setSpan(new StyleSpan(Typeface.BOLD), 0, index, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return spannable;
     }
 
     private boolean shouldFocusLinks() {
