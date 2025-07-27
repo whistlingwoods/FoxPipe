@@ -87,7 +87,6 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         }
         final CommentsInfoItem item = (CommentsInfoItem) infoItem;
 
-
         // load the author avatar
         PicassoHelper.loadAvatar(item.getUploaderAvatars()).into(itemThumbnailView);
         if (ImageStrategy.shouldLoadImages()) {
