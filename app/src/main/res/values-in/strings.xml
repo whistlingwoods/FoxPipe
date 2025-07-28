@@ -69,7 +69,7 @@
     <string name="ok">Oke</string>
     <string name="msg_name">Nama berkas</string>
     <string name="msg_error">Galat</string>
-    <string name="msg_running">NewPipe Sedang Mengunduh</string>
+    <string name="msg_running">FoxPipe Sedang Mengunduh</string>
     <string name="msg_running_detail">Sentuh untuk melihat detail</string>
     <string name="msg_wait">Mohon tunggu…</string>
     <string name="msg_copied">Disalin ke papan klip</string>
@@ -109,7 +109,7 @@
     <string name="settings_file_replacement_character_title">Karakter pengganti</string>
     <string name="charset_letters_and_digits">Huruf dan angka</string>
     <string name="charset_most_special_characters">Karakter spesial umum</string>
-    <string name="title_activity_about">Tentang NewPipe</string>
+    <string name="title_activity_about">Tentang FoxPipe</string>
     <string name="title_licenses">Lisensi pihak ketiga</string>
     <string name="copyright" formatted="true">© %1$s oleh %2$s di bawah %3$s</string>
     <string name="tab_about">Tentang &amp; SSD</string>
@@ -329,7 +329,7 @@
     <string name="events">Acara</string>
     <string name="file_deleted">Berkas dihapus</string>
     <string name="app_update_notification_channel_name">Notifikasi pembaruan apl</string>
-    <string name="app_update_notification_channel_description">Notifikasi untuk versi-versi NewPipe baru</string>
+    <string name="app_update_notification_channel_description">Notifikasi untuk versi-versi FoxPipe baru</string>
     <string name="download_to_sdcard_error_title">Penyimpanan eksternal tidak tersedia</string>
     <string name="download_to_sdcard_error_message">Tidak bisa mengunduh ke kartu SD eksternal. Atur ulang lokasi folder unduhan\?</string>
     <string name="saved_tabs_invalid_json">Tidak bisa membaca tab yang disimpan, beralih menggunakan tab bawaan</string>

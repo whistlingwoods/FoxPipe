@@ -72,7 +72,7 @@
     <string name="msg_name">Nome del file</string>
     <string name="msg_threads">Thread</string>
     <string name="msg_error">Errore</string>
-    <string name="msg_running">NewPipe sta scaricando</string>
+    <string name="msg_running">FoxPipe sta scaricando</string>
     <string name="msg_running_detail">Tocca per maggiori dettagli</string>
     <string name="msg_wait">Attendi…</string>
     <string name="msg_copied">Copiato negli appunti</string>
@@ -110,11 +110,11 @@
     <string name="tab_licenses">Licenze</string>
     <string name="app_description">Streaming libero e leggero su Android.</string>
     <string name="view_on_github">Mostra su GitHub</string>
-    <string name="app_license_title">Licenza di NewPipe</string>
+    <string name="app_license_title">Licenza di FoxPipe</string>
     <string name="contribution_encouragement">Un aiuto è sempre gradito: traduzioni, modifiche al design, pulizia del codice, cambiamenti radicali. Più si fa, meglio è!</string>
     <string name="read_full_license">Leggi la Licenza</string>
     <string name="contribution_title">Contribuisci</string>
-    <string name="title_activity_about">Informazioni su NewPipe</string>
+    <string name="title_activity_about">Informazioni su FoxPipe</string>
     <string name="subscribe_button_title">Iscriviti</string>
     <string name="subscribed_button_title">Iscritto</string>
     <string name="channel_unsubscribed">Disiscritto dal canale</string>
@@ -140,8 +140,8 @@
     <string name="settings_category_player_behavior_title">Comportamento</string>
     <string name="settings_category_history_title">Cronologia e cache</string>
     <string name="undo">Rifai</string>
-    <string name="notification_channel_name">Notifica NewPipe</string>
-    <string name="notification_channel_description">Notifiche per il lettore multimediale di NewPipe</string>
+    <string name="notification_channel_name">Notifica FoxPipe</string>
+    <string name="notification_channel_description">Notifiche per il lettore multimediale di FoxPipe</string>
     <string name="search_no_results">Nessun risultato</string>
     <string name="no_subscribers">Nessun iscritto</string>
     <plurals name="subscribers">
@@ -337,7 +337,7 @@
     <string name="settings_category_updates_title">Aggiornamenti</string>
     <string name="file_deleted">File eliminato</string>
     <string name="app_update_notification_channel_name">Notifiche per aggiornamenti dell\'app</string>
-    <string name="app_update_notification_channel_description">Notifiche per le nuove versioni di NewPipe</string>
+    <string name="app_update_notification_channel_description">Notifiche per le nuove versioni di FoxPipe</string>
     <string name="download_to_sdcard_error_title">Archiviazione esterna non disponibile</string>
     <string name="download_to_sdcard_error_message">Impossibile scaricare sulla scheda SD esterna. Ripristinare la posizione della cartella dei download\?</string>
     <string name="saved_tabs_invalid_json">Impossibile leggere le schede salvate, verranno usate quelle predefinite</string>
@@ -351,7 +351,7 @@
     <string name="list">Lista</string>
     <string name="grid">Griglia</string>
     <string name="auto">Automatica</string>
-    <string name="app_update_available_notification_title">Aggiornamento di NewPipe disponibile!</string>
+    <string name="app_update_available_notification_title">Aggiornamento di FoxPipe disponibile!</string>
     <string name="missions_header_finished">Completati</string>
     <string name="missions_header_pending">In corso</string>
     <string name="paused">in pausa</string>
@@ -398,7 +398,7 @@
     <string name="overwrite_unrelated_warning">Esiste già un file con questo nome</string>
     <string name="overwrite_failed">impossibile sovrascrivere il file</string>
     <string name="download_already_pending">C\'è un download in corso con questo nome</string>
-    <string name="error_postprocessing_stopped">NewPipe è stato chiuso mentre lavorava sul file</string>
+    <string name="error_postprocessing_stopped">FoxPipe è stato chiuso mentre lavorava sul file</string>
     <string name="error_insufficient_storage_left">Spazio insufficiente sul dispositivo</string>
     <string name="error_progress_lost">Progresso perso poiché il file è stato eliminato</string>
     <string name="confirm_prompt">Vuoi cancellare la cronologia dei download o eliminare tutti i file scaricati\?</string>
@@ -500,7 +500,7 @@
     <string name="feed_use_dedicated_fetch_method_disable_button">Disattiva recupero veloce</string>
     <string name="feed_use_dedicated_fetch_method_help_text">Il recupero dei feed è troppo lento\? Prova ad abilitare il recupero veloce (nelle impostazioni o premendo il pulsante qui sotto).
 \n
-\nNewPipe può caricare i feed in due modi:
+\nFoxPipe può caricare i feed in due modi:
 \n• Recuperando l\'intero canale, lento ma completo.
 \n• Utilizzando un endpoint dedicato, veloce ma solitamente incompleto.
 \n
@@ -510,7 +510,7 @@
 \n
 \nLa scelta va fatta in base alle proprie preferenze: velocità o informazioni precise.</string>
     <string name="feed_group_dialog_empty_name">Gruppo senza nome</string>
-    <string name="content_not_supported">Questo contenuto non è supportato da NewPipe. 
+    <string name="content_not_supported">Questo contenuto non è supportato da FoxPipe. 
 \n 
 \nSi spera che possa essere supportato in una versione futura.</string>
     <string name="infinite_videos">∞ video</string>
@@ -565,7 +565,7 @@
     <string name="show_memory_leaks">Mostra memory leak</string>
     <string name="enqueued">Aggiunto alla coda</string>
     <string name="enqueue_stream">Accoda</string>
-    <string name="clear_cookie_summary">Cancella i cookie che NewPipe memorizza quando si risolve un reCAPTCHA</string>
+    <string name="clear_cookie_summary">Cancella i cookie che FoxPipe memorizza quando si risolve un reCAPTCHA</string>
     <string name="recaptcha_cookies_cleared">Cookie reCAPTCHA eliminati</string>
     <string name="clear_cookie_title">Elimina cookie reCAPTCHA</string>
     <string name="youtube_restricted_mode_enabled_summary">Consente di usufruire della \"Modalità con restrizioni\" di YouTube, che esclude contenuti potenzialmente inappropriati per i minori</string>
@@ -589,13 +589,13 @@
     <string name="open_with">Apri con</string>
     <string name="no_app_to_open_intent">Sul tuo dispositivo non c\'è alcuna app che può aprirlo</string>
     <string name="crash_the_app">Fai crashare l\'app</string>
-    <string name="paid_content">Questo contenuto è disponibile solo per gli utenti paganti, quindi non può essere riprodotto o scaricato da NewPipe.</string>
-    <string name="soundcloud_go_plus_content">Nel tuo Paese questa è una traccia SoundCloud Go+, quindi non può essere riprodotta o scaricata da NewPipe.</string>
-    <string name="youtube_music_premium_content">Questo video è disponibile solo per i membri di YouTube Music Premium, quindi non può essere riprodotto o scaricato da NewPipe.</string>
-    <string name="private_content">Questo contenuto è privato, quindi non può essere riprodotto o scaricato da NewPipe.</string>
+    <string name="paid_content">Questo contenuto è disponibile solo per gli utenti paganti, quindi non può essere riprodotto o scaricato da FoxPipe.</string>
+    <string name="soundcloud_go_plus_content">Nel tuo Paese questa è una traccia SoundCloud Go+, quindi non può essere riprodotta o scaricata da FoxPipe.</string>
+    <string name="youtube_music_premium_content">Questo video è disponibile solo per i membri di YouTube Music Premium, quindi non può essere riprodotto o scaricato da FoxPipe.</string>
+    <string name="private_content">Questo contenuto è privato, quindi non può essere riprodotto o scaricato da FoxPipe.</string>
     <string name="georestricted_content">Questo contenuto non è disponibile nel tuo Paese.</string>
     <string name="restricted_video_no_stream">Questo video è soggetto a restrizioni di età.
-\nA causa delle nuove politiche di YouTube, NewPipe non può accedere a questo tipo di video.</string>
+\nA causa delle nuove politiche di YouTube, FoxPipe non può accedere a questo tipo di video.</string>
     <string name="radio">Radio</string>
     <string name="featured">In evidenza</string>
     <string name="recaptcha_solve">Risolvi</string>
@@ -627,7 +627,7 @@
     <string name="account_terminated">Account chiuso</string>
     <string name="feed_load_error_fast_unknown">Il recupero veloce dei feed non fornisce ulteriori informazioni al riguardo.</string>
     <string name="feed_load_error_terminated">L\'account dell\'autore è stato chiuso.
-\nNewPipe non sarà più in grado di caricare questo feed.
+\nFoxPipe non sarà più in grado di caricare questo feed.
 \nDisiscriversi dal canale\?</string>
     <string name="feed_load_error_account_info">Impossibile caricare feed per \"%s\".</string>
     <string name="feed_load_error">Errore caricamento feed</string>
@@ -671,7 +671,7 @@
     <string name="show_crash_the_player_summary">Quando il lettore multimediale è in uso, mostra un\'opzione per farlo crashare</string>
     <string name="show_crash_the_player_title">Mostra \"Fai crashare il lettore\"</string>
     <string name="crash_the_player">Fai crashare il lettore</string>
-    <string name="error_report_notification_title">NewPipe ha riscontrato un errore, tocca per segnalarlo</string>
+    <string name="error_report_notification_title">FoxPipe ha riscontrato un errore, tocca per segnalarlo</string>
     <string name="show_error_snackbar">Mostra un messaggio di errore</string>
     <string name="no_appropriate_file_manager_message">Non è stato trovato alcun gestore di file appropriato per questa azione.
 \nInstallane uno prova a disattivare \"%s\" nelle impostazioni di download</string>
@@ -723,7 +723,7 @@
     <string name="faq">Visualizza sul sito</string>
     <string name="fast_mode">Recupero veloce</string>
     <string name="app_update_available_notification_text">Premi per scaricare %s</string>
-    <string name="app_update_unavailable_toast">Stai già usando l\'ultima versione di NewPipe</string>
+    <string name="app_update_unavailable_toast">Stai già usando l\'ultima versione di FoxPipe</string>
     <string name="import_subscriptions_hint">Importa o esporta iscrizioni dal menu a 3 punti</string>
     <string name="night_theme_available">Questa opzione è disponibile solo se %s è selezionato come Tema</string>
     <string name="msg_failed_to_copy">Copia negli appunti non riuscita</string>
@@ -836,7 +836,7 @@
     <string name="reset_settings_summary">Azzera tutte le impostazioni ai loro valori predefiniti</string>
     <string name="yes">Sì</string>
     <string name="no">No</string>
-    <string name="auto_update_check_description">NewPipe può cercare automaticamente nuove versioni di tanto in tanto e avvisarti quando sono disponibili.
+    <string name="auto_update_check_description">FoxPipe può cercare automaticamente nuove versioni di tanto in tanto e avvisarti quando sono disponibili.
 \nVuoi attivarlo?</string>
     <string name="import_settings_vulnerable_format">Le impostazioni nell\'export che viene importato usano un formato vulnerabile che è stato deprecato dalla versione 0.27.0 di NewPipe. Assicuratevi che l\'export importato venga da una fonte fidata, sarebbe preferibile usare solo exports ottenuti da NewPipe 0.27.0 o superiori, nel futuro. Il supporto all\'importazione di Impostazioni in questo formato vulnerabile sarà presto rimosso completamente, da quel momento le versioni di NewPipe più vecchie non saranno più in grado di importare impostazioni tramite export di versioni più recenti.</string>
     <string name="audio_track_type_secondary">secondaria</string>

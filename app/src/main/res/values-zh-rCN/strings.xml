@@ -85,7 +85,7 @@
     <string name="msg_wait">请稍候…</string>
     <string name="msg_copied">已复制到剪贴板</string>
     <string name="controls_popup_title">悬浮窗播放</string>
-    <string name="title_activity_about">关于 NewPipe</string>
+    <string name="title_activity_about">关于 FoxPipe</string>
     <string name="title_licenses">第三方许可</string>
     <string name="copyright" formatted="true">© %1$s 由 %2$s 遵循 %3$s 协议发布</string>
     <string name="tab_about">关于和常见问题</string>
@@ -154,7 +154,7 @@
     <string name="detail_thumbnail_view_description">播放视频，时长：</string>
     <string name="detail_uploader_thumbnail_view_description">视频上传者的头像缩略图</string>
     <string name="short_billion">十亿</string>
-    <string name="msg_running">NewPipe 正在下载</string>
+    <string name="msg_running">FoxPipe 正在下载</string>
     <string name="no_available_dir">请稍后在设置中设定下载目录</string>
     <string name="msg_popup_permission">使用悬浮窗模式
 \n需要该权限</string>
@@ -349,7 +349,7 @@
     <string name="tab_choose">选择标签</string>
     <string name="content_language_title">视频默认语言</string>
     <string name="app_update_notification_channel_name">应用更新通知</string>
-    <string name="app_update_notification_channel_description">NewPipe 新版本的通知</string>
+    <string name="app_update_notification_channel_description">FoxPipe 新版本的通知</string>
     <string name="download_to_sdcard_error_title">外置存储不可用</string>
     <string name="download_to_sdcard_error_message">无法下载到外部 SD 卡，修改下载文件夹位置？</string>
     <string name="saved_tabs_invalid_json">读取已保存标签时发生错误，因此使用默认标签</string>
