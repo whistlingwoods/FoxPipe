@@ -72,7 +72,7 @@
     <string name="msg_name">Nombre del archivo</string>
     <string name="msg_threads">Subprocesos</string>
     <string name="msg_error">Error</string>
-    <string name="msg_running">NewPipe está descargando</string>
+    <string name="msg_running">FoxPipe está descargando</string>
     <string name="msg_running_detail">Toca para ver detalles</string>
     <string name="msg_wait">Espere, por favor…</string>
     <string name="msg_copied">Copiado al portapapeles</string>
@@ -104,7 +104,7 @@
     <string name="show_search_suggestions_title">Sugerencias de búsqueda</string>
     <string name="show_search_suggestions_summary">Elegir las sugerencias a mostrar al buscar</string>
     <string name="best_resolution">Mejor resolución</string>
-    <string name="title_activity_about">Acerca de NewPipe</string>
+    <string name="title_activity_about">Acerca de FoxPipe</string>
     <string name="title_licenses">Licencias de terceros</string>
     <string name="copyright" formatted="true">© %1$s por %2$s, bajo %3$s</string>
     <string name="tab_about">FAQ y Acerca de</string>
@@ -390,7 +390,7 @@
     <string name="settings_category_updates_title">Actualizaciones</string>
     <string name="events">Eventos</string>
     <string name="app_update_notification_channel_name">Notificación de actualización de la aplicación</string>
-    <string name="app_update_notification_channel_description">Notificaciones de nuevas versiones de NewPipe</string>
+    <string name="app_update_notification_channel_description">Notificaciones de nuevas versiones de FoxPipe</string>
     <string name="download_to_sdcard_error_title">Almacenamiento externo no disponible</string>
     <string name="download_to_sdcard_error_message">No es posible descargar a una tarjeta SD externa. ¿Restablecer la ubicación de la carpeta de descarga?</string>
     <string name="saved_tabs_invalid_json">No se pudo leer las pestañas guardadas, se usarán las pestañas predefinidas</string>

@@ -72,7 +72,7 @@
     <string name="msg_name">檔案名稱</string>
     <string name="msg_threads">執行緒數量</string>
     <string name="msg_error">錯誤</string>
-    <string name="msg_running">NewPipe 下載緊</string>
+    <string name="msg_running">FoxPipe 下載緊</string>
     <string name="msg_running_detail">撳一下睇詳情</string>
     <string name="msg_wait">請等等…</string>
     <string name="msg_copied">複製咗去剪貼簿</string>
@@ -104,7 +104,7 @@
     <string name="clear">抹走</string>
     <string name="best_resolution">最佳解像度</string>
     <string name="short_billion">十億</string>
-    <string name="title_activity_about">關於 NewPipe</string>
+    <string name="title_activity_about">關於 FoxPipe</string>
     <string name="title_licenses">第三方版權協議</string>
     <string name="copyright" formatted="true">© %1$s %2$s 版權所有，根據 %3$s 嘅條款授權</string>
     <string name="tab_about">跋記</string>
@@ -180,7 +180,7 @@
     <string name="file">檔案</string>
     <string name="notification_channel_name">NewPipe 通知</string>
     <string name="app_update_notification_channel_name">App 更新通知</string>
-    <string name="app_update_notification_channel_description">NewPipe 有新版本嘅通知</string>
+    <string name="app_update_notification_channel_description">FoxPipe 有新版本嘅通知</string>
     <string name="clear_cookie_title">抹走 reCAPTCHA Cookie</string>
     <string name="channels">頻道</string>
     <string name="videos_string">影片</string>

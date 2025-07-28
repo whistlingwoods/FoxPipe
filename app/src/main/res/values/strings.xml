@@ -193,10 +193,10 @@
     <string name="just_once">Just Once</string>
     <string name="file">File</string>
     <string name="notifications">Notifications</string>
-    <string name="notification_channel_name">NewPipe notification</string>
-    <string name="notification_channel_description">Notifications for NewPipe\'s player</string>
+    <string name="notification_channel_name">FoxPipe notification</string>
+    <string name="notification_channel_description">Notifications for FoxPipe\'s player</string>
     <string name="app_update_notification_channel_name">App update notification</string>
-    <string name="app_update_notification_channel_description">Notifications for new NewPipe versions</string>
+    <string name="app_update_notification_channel_description">Notifications for new FoxPipe versions</string>
     <string name="hash_channel_name">Video hash notification</string>
     <string name="hash_channel_description">Notifications for video hashing progress</string>
     <string name="streams_notification_channel_name">New streams</string>
@@ -339,7 +339,7 @@
     <string name="msg_name">Filename</string>
     <string name="msg_threads">Threads</string>
     <string name="msg_error">Error</string>
-    <string name="msg_running">NewPipe Downloading</string>
+    <string name="msg_running">FoxPipe Downloading</string>
     <string name="msg_running_detail">Tap for details</string>
     <string name="msg_calculating_hash">Calculating hash</string>
     <string name="msg_wait">Please wait…</string>
@@ -363,7 +363,7 @@
     <string name="charset_letters_and_digits">Letters and digits</string>
     <string name="charset_most_special_characters">Most special characters</string>
     <!-- About -->
-    <string name="title_activity_about">About NewPipe</string>
+    <string name="title_activity_about">About FoxPipe</string>
     <string name="title_licenses">Third-party Licenses</string>
     <string name="copyright">© %1$s by %2$s under %3$s</string>
     <string name="tab_about">About \u0026 FAQ</string>

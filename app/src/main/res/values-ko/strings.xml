@@ -132,7 +132,7 @@
     <string name="msg_name">파일명</string>
     <string name="msg_threads">스레드</string>
     <string name="msg_error">오류</string>
-    <string name="msg_running">NewPipe 다운로드 중</string>
+    <string name="msg_running">FoxPipe 다운로드 중</string>
     <string name="msg_running_detail">터치해서 상세 정보 확인</string>
     <string name="msg_wait">잠시만 기다리세요…</string>
     <string name="msg_copied">클립보드에 복사됨</string>
@@ -146,7 +146,7 @@
     <string name="settings_file_replacement_character_title">대체 문자</string>
     <string name="charset_letters_and_digits">문자 및 숫자</string>
     <string name="charset_most_special_characters">가장 특수한 문자</string>
-    <string name="title_activity_about">NewPipe에 대해서</string>
+    <string name="title_activity_about">FoxPipe에 대해서</string>
     <string name="title_licenses">제3자 라이센스</string>
     <string name="copyright" formatted="true">© %3$s 하에서 %2$s 에 의한 %1$s</string>
     <string name="tab_about">정보 및 자주 묻는 질문</string>
@@ -321,7 +321,7 @@
     <string name="events">이벤트</string>
     <string name="file_deleted">파일 삭제됨</string>
     <string name="app_update_notification_channel_name">앱 업데이트 알림</string>
-    <string name="app_update_notification_channel_description">새 NewPipe 버전 알림</string>
+    <string name="app_update_notification_channel_description">새 FoxPipe 버전 알림</string>
     <string name="download_to_sdcard_error_title">외부 저장소 없음</string>
     <string name="download_to_sdcard_error_message">SD 카드로 다운로드 할 수 없습니다. 다운로드 폴더 경로를 초기화 하시겠습니까\?</string>
     <string name="one_item_deleted">1개의 항목이 삭제되었습니다.</string>

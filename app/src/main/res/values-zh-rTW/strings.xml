@@ -93,7 +93,7 @@
     <string name="msg_name">檔案名稱</string>
     <string name="msg_threads">執行緒數目</string>
     <string name="msg_error">錯誤</string>
-    <string name="msg_running">NewPipe 下載中</string>
+    <string name="msg_running">FoxPipe 下載中</string>
     <string name="msg_running_detail">輕觸以顯示詳細資訊</string>
     <string name="msg_wait">請稍候…</string>
     <string name="msg_copied">已複製到剪貼簿</string>
@@ -140,7 +140,7 @@
     <string name="settings_file_replacement_character_title">替換為</string>
     <string name="charset_letters_and_digits">字母與數字</string>
     <string name="charset_most_special_characters">大部分的特殊字元</string>
-    <string name="title_activity_about">關於 NewPipe</string>
+    <string name="title_activity_about">關於 FoxPipe</string>
     <string name="title_licenses">第三方授權</string>
     <string name="copyright" formatted="true">© %1$s 由 %2$s 使用 %3$s 授權條款發布</string>
     <string name="tab_about">關於與常見問題</string>
@@ -328,7 +328,7 @@
     <string name="settings_category_updates_title">更新</string>
     <string name="file_deleted">已刪除檔案</string>
     <string name="app_update_notification_channel_name">應用程式更新通知</string>
-    <string name="app_update_notification_channel_description">新 NewPipe 版本通知</string>
+    <string name="app_update_notification_channel_description">新 FoxPipe 版本通知</string>
     <string name="download_to_sdcard_error_title">無法使用外部儲存空間</string>
     <string name="download_to_sdcard_error_message">無法下載到外部 SD 卡。重設下載資料夾位置？</string>
     <string name="saved_tabs_invalid_json">無法讀取已儲存的分頁，因此使用預設分頁</string>

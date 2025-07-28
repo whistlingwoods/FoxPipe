@@ -98,7 +98,7 @@ public final class NewPipeSettings {
     }
 
     private static String getNewPipeChildFolderPathForDir(final File dir) {
-        return new File(dir, "NewPipe").toURI().toString();
+        return new File(dir, "FoxPipe").toURI().toString();
     }
 
     public static boolean useStorageAccessFramework(final Context context) {

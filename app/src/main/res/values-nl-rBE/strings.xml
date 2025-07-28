@@ -176,7 +176,7 @@
     <string name="msg_name">Bestandsnaam</string>
     <string name="msg_threads">Threads</string>
     <string name="msg_error">Fout</string>
-    <string name="msg_running">NewPipe is aan het downloaden</string>
+    <string name="msg_running">FoxPipe is aan het downloaden</string>
     <string name="msg_running_detail">Tik voor meer informatie</string>
     <string name="msg_wait">Even geduld…</string>
     <string name="msg_copied">Gekopieerd naar klembord</string>
@@ -191,7 +191,7 @@
     <string name="settings_file_replacement_character_title">Vervangend teken</string>
     <string name="charset_letters_and_digits">Letters en cijfers</string>
     <string name="charset_most_special_characters">Meeste speciale tekens</string>
-    <string name="title_activity_about">Over NewPipe</string>
+    <string name="title_activity_about">Over FoxPipe</string>
     <string name="title_licenses">Derdepartijlicenties</string>
     <string name="copyright" formatted="true">© %1$s door %2$s, uitgebracht onder de %3$s</string>
     <string name="tab_about">Over</string>
@@ -335,7 +335,7 @@
     <string name="events">Gebeurtenissen</string>
     <string name="file_deleted">Bestand verwijderd</string>
     <string name="app_update_notification_channel_name">Appupdatemelding</string>
-    <string name="app_update_notification_channel_description">Meldingen voor nieuwe versies van NewPipe</string>
+    <string name="app_update_notification_channel_description">Meldingen voor nieuwe versies van FoxPipe</string>
     <string name="download_to_sdcard_error_title">Externe opslag niet beschikbaar</string>
     <string name="download_to_sdcard_error_message">Downloaden naar externe SD-kaart is niet mogelijk. Download map opnieuw instellen\?</string>
     <string name="saved_tabs_invalid_json">Fout bij het lezen van de opgeslagen tabbladen, waardoor standaard tabbladen worden gebruikt</string>

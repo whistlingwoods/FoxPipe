@@ -51,7 +51,7 @@
     <string name="checksum">Контрольная сумма</string>
     <string name="msg_name">Имя файла</string>
     <string name="msg_error">Ошибка</string>
-    <string name="msg_running">NewPipe загружает</string>
+    <string name="msg_running">FoxPipe загружает</string>
     <string name="msg_running_detail">Подробнее</string>
     <string name="msg_copied">Скопировано в буфер обмена</string>
     <string name="no_available_dir">Выберите папку для загрузки позже в настройках</string>
@@ -104,8 +104,8 @@
     <string name="title_activity_recaptcha">Запрос reCAPTCHA</string>
     <string name="recaptcha_request_toast">Запрошен ввод reCAPTCHA</string>
     <string name="show_higher_resolutions_title">Высокие разрешения</string>
-    <string name="title_activity_about">О NewPipe</string>
-    <string name="app_license_title">Лицензия NewPipe</string>
+    <string name="title_activity_about">О FoxPipe</string>
+    <string name="app_license_title">Лицензия FoxPipe</string>
     <string name="tab_licenses">Лицензии</string>
     <string name="title_licenses">Сторонние лицензии</string>
     <string name="tab_about">О приложении</string>
@@ -131,8 +131,8 @@
     <string name="enable_watch_history_summary">Запоминать воспроизведённые потоки</string>
     <string name="resume_on_audio_focus_gain_title">Возобновить при фокусе</string>
     <string name="resume_on_audio_focus_gain_summary">Возобновлять воспроизведение после перерывов (например, телефонных звонков)</string>
-    <string name="notification_channel_name">Уведомление NewPipe</string>
-    <string name="notification_channel_description">Уведомления для плеера NewPipe</string>
+    <string name="notification_channel_name">Уведомление FoxPipe</string>
+    <string name="notification_channel_description">Уведомления для плеера FoxPipe</string>
     <string name="settings_category_downloads_title">Загрузки</string>
     <string name="settings_file_charset_title">Допустимые символы имён файлов</string>
     <string name="settings_file_replacement_character_summary">Заменяет недопустимые символы</string>&gt;
@@ -359,10 +359,10 @@
     <string name="settings_category_updates_title">Обновления</string>
     <string name="file_deleted">Файл удалён</string>
     <string name="app_update_notification_channel_name">Уведомление об обновлении приложения</string>
-    <string name="app_update_notification_channel_description">Уведомления о новых версиях NewPipe</string>
+    <string name="app_update_notification_channel_description">Уведомления о новых версиях FoxPipe</string>
     <string name="updates_setting_title">Обновления</string>
     <string name="updates_setting_description">Показать уведомление при наличии новой версии</string>
-    <string name="app_update_available_notification_title">Доступно обновление NewPipe!</string>
+    <string name="app_update_available_notification_title">Доступно обновление FoxPipe!</string>
     <string name="missions_header_finished">Завершено</string>
     <string name="paused">приостановлено</string>
     <string name="queued">в очереди</string>
@@ -404,7 +404,7 @@
     <string name="overwrite_unrelated_warning">Файл с таким именем уже существует</string>
     <string name="overwrite_failed">не удаётся перезаписать файл</string>
     <string name="download_already_pending">В очереди уже есть загрузка с таким именем</string>
-    <string name="error_postprocessing_stopped">NewPipe была закрыта во время работы над файлом</string>
+    <string name="error_postprocessing_stopped">FoxPipe была закрыта во время работы над файлом</string>
     <string name="error_insufficient_storage_left">Закончилось свободное место на устройстве</string>
     <string name="error_progress_lost">Прогресс потерян, так как файл был удалён</string>
     <string name="confirm_prompt">Действительно удалить историю загрузок и загруженные файлы\?</string>
@@ -505,7 +505,7 @@
     <string name="feed_groups_header_title">Группы каналов</string>
     <string name="feed_use_dedicated_fetch_method_help_text">Если подписки обновляются слишком медленно, попробуйте быстрый режим (включите в настройках или кнопкой внизу).
 \n
-\nNewPipe может обновлять подписки двумя способами:
+\nFoxPipe может обновлять подписки двумя способами:
 \n• получение канала целиком, медленное, с полными сведениями;
 \n• обновление по RSS, быстрое, с потерей сведений.
 \n
@@ -520,7 +520,7 @@
     <string name="restricted_video">Это видео имеет возрастное ограничение.
 \n
 \nВключите «%1$s» в настройках, если хотите его видеть.</string>
-    <string name="content_not_supported">NewPipe не поддерживает этот контент. 
+    <string name="content_not_supported">FoxPipe не поддерживает этот контент. 
 \n 
 \nВозможно, поддержка появится в следующих версиях.</string>
     <string name="infinite_videos">∞ видео</string>
@@ -597,10 +597,10 @@
     <string name="open_with">Открыть в</string>
     <string name="no_app_to_open_intent">Подходящее приложение не найдено</string>
     <string name="crash_the_app">Вызвать сбой приложения</string>
-    <string name="paid_content">Этот контент доступен только оплатившим его пользователям, поэтому NewPipe не может воспроизвести или загрузить его.</string>
-    <string name="youtube_music_premium_content">Это видео доступно только для пользователей YouTube Music Premium, поэтому NewPipe не может воспроизвести или загрузить его.</string>
-    <string name="private_content">Это частный контент, поэтому NewPipe не может воспроизвести или загрузить его.</string>
-    <string name="soundcloud_go_plus_content">Этот трек требует SoundCloud Go+, по крайней мере в Вашей стране. Поэтому NewPipe не может воспроизвести или загрузить его.</string>
+    <string name="paid_content">Этот контент доступен только оплатившим его пользователям, поэтому FoxPipe не может воспроизвести или загрузить его.</string>
+    <string name="youtube_music_premium_content">Это видео доступно только для пользователей YouTube Music Premium, поэтому FoxPipe не может воспроизвести или загрузить его.</string>
+    <string name="private_content">Это частный контент, поэтому FoxPipe не может воспроизвести или загрузить его.</string>
+    <string name="soundcloud_go_plus_content">Этот трек требует SoundCloud Go+, по крайней мере в Вашей стране. Поэтому FoxPipe не может воспроизвести или загрузить его.</string>
     <string name="georestricted_content">Этот контент недоступен в вашей стране.</string>
     <string name="download_has_started">Загрузка началась</string>
     <string name="select_night_theme_toast">Вы можете выбрать предпочтительную ночную тему ниже</string>
@@ -632,7 +632,7 @@
     <string name="metadata_privacy">Доступность</string>
     <string name="feed_load_error_fast_unknown">В быстром режиме обновления подробности об этом не предоставляются.</string>
     <string name="feed_load_error_terminated">Аккаунт автора отключён.
-\nNewPipe не сможет загружать эту подписку в будущем.
+\nFoxPipe не сможет загружать эту подписку в будущем.
 \nОтписаться от этого канала\?</string>
     <string name="feed_load_error_account_info">Не удалось загрузить подписку \'%s\'.</string>
     <string name="feed_load_error">Ошибка загрузки подписки</string>
@@ -695,7 +695,7 @@
     <string name="crash_the_player">Вызвать сбой плеера</string>
     <string name="error_report_channel_name">Уведомление отчёта об ошибке</string>
     <string name="error_report_channel_description">Уведомления для отчётов об ошибках</string>
-    <string name="error_report_notification_title">Ошибка NewPipe, нажмите для отчёта</string>
+    <string name="error_report_notification_title">Ошибка FoxPipe, нажмите для отчёта</string>
     <string name="error_report_notification_toast">Произошла ошибка, подробнее в уведомлении</string>
     <string name="show_error_snackbar">Показать снэк-бар с ошибкой</string>
     <string name="create_error_notification">Показать уведомление об ошибке</string>
@@ -838,7 +838,7 @@
     <string name="no">Нет</string>
     <string name="settings_category_backup_restore_title">Резервное копирование и восстановление</string>
     <string name="reset_settings_title">Сбросить настройки</string>
-    <string name="auto_update_check_description">NewPipe может автоматически проверять наличие обновлений и уведомить вас, когда они будут доступны.
+    <string name="auto_update_check_description">FoxPipe может автоматически проверять наличие обновлений и уведомить вас, когда они будут доступны.
 \nЖелаете включить эту функцию?</string>
     <string name="reset_all_settings">Сброс всех настроек приведёт к сбросу всех ваших настроек и перезапуску приложения.
 \n
