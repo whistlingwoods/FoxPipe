@@ -16,6 +16,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.MainActivity
 import org.schabi.newpipe.NewPipeDatabase
 import org.schabi.newpipe.R
+import org.schabi.newpipe.error.ErrorInfo
 import org.schabi.newpipe.extractor.InfoItem.InfoType
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler
@@ -83,7 +84,7 @@ class MediaBrowserPlaybackPreparer(
                 },
                 { throwable ->
                     Log.e(TAG, "Failed to start playback of media ID [$mediaId]", throwable)
-                    onPrepareError()
+                    onPrepareError(throwable)
                 }
             )
     }
@@ -114,9 +115,9 @@ class MediaBrowserPlaybackPreparer(
         )
     }
 
-    private fun onPrepareError() {
+    private fun onPrepareError(throwable: Throwable) {
         setMediaSessionError.accept(
-            context.getString(R.string.error_snackbar_message),
+            ContextCompat.getString(context, ErrorInfo.getMessageStringId(throwable, null)),
             PlaybackStateCompat.ERROR_CODE_APP_ERROR
         )
     }
