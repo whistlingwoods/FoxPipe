@@ -1,8 +1,5 @@
 package org.schabi.newpipe.player.helper;
 
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_ALWAYS;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_NEVER;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_WIFI;
@@ -14,6 +11,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.view.accessibility.CaptioningManager;
 
@@ -24,7 +22,6 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player.RepeatMode;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
@@ -227,14 +224,16 @@ public final class PlayerHelper {
                 .getBoolean(context.getString(R.string.resume_on_audio_focus_gain_key), false);
     }
 
-    public static boolean isVolumeGestureEnabled(@NonNull final Context context) {
+    public static String getActionForRightGestureSide(@NonNull final Context context) {
         return getPreferences(context)
-                .getBoolean(context.getString(R.string.volume_gesture_control_key), true);
+                .getString(context.getString(R.string.right_gesture_control_key),
+                        context.getString(R.string.default_right_gesture_control_value));
     }
 
-    public static boolean isBrightnessGestureEnabled(@NonNull final Context context) {
+    public static String getActionForLeftGestureSide(@NonNull final Context context) {
         return getPreferences(context)
-                .getBoolean(context.getString(R.string.brightness_gesture_control_key), true);
+                .getString(context.getString(R.string.left_gesture_control_key),
+                        context.getString(R.string.default_left_gesture_control_value));
     }
 
     public static boolean isStartMainPlayerFullscreenEnabled(@NonNull final Context context) {
@@ -382,8 +381,11 @@ public final class PlayerHelper {
     public static boolean globalScreenOrientationLocked(final Context context) {
         // 1: Screen orientation changes using accelerometer
         // 0: Screen orientation is locked
+        // if the accelerometer sensor is missing completely, assume locked orientation
         return android.provider.Settings.System.getInt(
-                context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 0;
+                context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 0
+                    || !context.getPackageManager()
+                        .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
     }
 
     public static int getProgressiveLoadIntervalBytes(@NonNull final Context context) {
@@ -423,27 +425,6 @@ public final class PlayerHelper {
 
     ////////////////////////////////////////////////////////////////////////////
     // Utils used by player
-    ////////////////////////////////////////////////////////////////////////////
-
-    public static boolean isPlaybackResumeEnabled(final Player player) {
-        return player.getPrefs().getBoolean(
-                player.getContext().getString(R.string.enable_watch_history_key), true)
-                && player.getPrefs().getBoolean(
-                player.getContext().getString(R.string.enable_playback_resume_key), true);
-    }
-
-    @RepeatMode
-    public static int nextRepeatMode(@RepeatMode final int repeatMode) {
-        switch (repeatMode) {
-            case REPEAT_MODE_OFF:
-                return REPEAT_MODE_ONE;
-            case REPEAT_MODE_ONE:
-                return REPEAT_MODE_ALL;
-            case REPEAT_MODE_ALL:
-            default:
-                return REPEAT_MODE_OFF;
-        }
-    }
 
     @ResizeMode
     public static int retrieveResizeModeFromPrefs(final Player player) {
