@@ -6,7 +6,6 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;

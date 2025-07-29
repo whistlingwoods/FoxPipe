@@ -185,7 +185,7 @@ afterEvaluate {
     if (!System.properties.containsKey('skipFormatKtlint')) {
         preDebugBuild.dependsOn formatKtlint
     }
-    preDebugBuild.dependsOn // runCheckstyle, runKtlint
+    preDebugBuild.dependsOn runCheckstyle, runKtlint
 }
 
 sonar {
@@ -210,7 +210,7 @@ dependencies {
     // the corresponding commit hash, since JitPack sometimes deletes artifacts.
     // If there’s already a git hash, just add more of it to the end (or remove a letter)
     // to cause jitpack to regenerate the artifact.
-    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:b27f688dbc4132ec92c8330692c59c8fb4f7dde4'
+    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:v0.24.7.2'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
 /** Checkstyle **/
