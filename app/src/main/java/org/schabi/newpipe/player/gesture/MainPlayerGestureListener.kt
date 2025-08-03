@@ -161,7 +161,7 @@ class MainPlayerGestureListener(
 
     private fun onScrollPlaybackSpeed(distanceY: Float) {
         val bar: ProgressBar = binding.playbackSpeedProgressBar
-        val maxPlaybackSpeed: Float = PlaybackParameterDialog.getMaxPitchOrSpeed()
+        val maxPlaybackSpeed: Float = PlaybackParameterDialog.getMaxPitchOrSpeed(player.context)
         val minPlaybackSpeed: Float = PlaybackParameterDialog.getMinPitchOrSpeed()
         val playbackSpeedStep: Float = PlaybackParameterDialog.getCurrentStepSize(player.context) / maxPlaybackSpeed
 
