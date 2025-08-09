@@ -172,7 +172,7 @@ dependencies {
     // name and the commit hash with the commit hash of the (pushed) commit you want to test
     // This works thanks to JitPack: https://jitpack.io/
     implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
-    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:v0.22.7.8'
+    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:1fccfc421e46e4b416ba9cc870ec34901d0eadcb'
 
 /** Third-party libraries **/
     // Instance state boilerplate elimination
