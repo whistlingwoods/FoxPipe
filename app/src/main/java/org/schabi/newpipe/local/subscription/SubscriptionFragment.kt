@@ -208,7 +208,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
 
     private fun onExportSelected() {
         val date = SimpleDateFormat("yyyyMMddHHmm", Locale.ENGLISH).format(Date())
-        val exportName = "newpipe_subscriptions_$date.json"
+        val exportName = "zenpipe_subscriptions_$date.json"
 
         NoFileManagerSafeGuard.launchSafe(
             requestExportLauncher,
