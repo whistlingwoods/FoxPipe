@@ -5,6 +5,7 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,6 +21,7 @@ import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.CommentTextOnTouchListener;
 import org.schabi.newpipe.util.DeviceUtils;
@@ -73,12 +75,12 @@ public class CommentsMiniInfoItemHolder extends InfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
-        if (!(infoItem instanceof CommentsInfoItem)) {
+        if (!(infoItem.first instanceof CommentsInfoItem)) {
             return;
         }
-        final CommentsInfoItem item = (CommentsInfoItem) infoItem;
+        final CommentsInfoItem item = (CommentsInfoItem) infoItem.first;
 
         PicassoHelper.loadAvatar(item.getUploaderAvatarUrl()).into(itemThumbnailView);
         if (PicassoHelper.getShouldLoadImages()) {

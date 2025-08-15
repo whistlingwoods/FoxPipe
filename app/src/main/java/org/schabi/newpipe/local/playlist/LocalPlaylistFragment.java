@@ -67,7 +67,7 @@ import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDat
 import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabaseWithoutToast;
 import static org.schabi.newpipe.util.ThemeHelper.shouldUseGridLayout;
 
-public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistStreamEntry>, Void> implements BackPressable {
+public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistStreamEntry>, Void> implements BackPressable, SelectionHelper.OnItemSelectedListener {
     // Save the list 10 seconds after the last change occurred
     private static final long SAVE_DEBOUNCE_MILLIS = 10000;
     private static final int MINIMUM_INITIAL_DRAG_VELOCITY = 12;
@@ -82,6 +82,8 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     private PlaylistControlBinding playlistControlBinding;
 
     private ItemTouchHelper itemTouchHelper;
+
+    private SelectionHelper selectionHelper;
 
     private LocalPlaylistManager playlistManager;
     private Subscription databaseSubscription;
@@ -123,6 +125,20 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         final LocalPlaylistFragment instance = new LocalPlaylistFragment();
         instance.setInitialData(playlistId, name);
         return instance;
+    }
+
+    @Override
+    public void onItemSelected(int position) {
+        // Handle item selection
+//        itemsListState
+//                itemListAdapter
+        itemListAdapter.notifyItemChanged(position); // Update the UI
+    }
+
+    @Override
+    public void onItemDeselected(int position) {
+        // Handle item deselection
+        itemListAdapter.notifyItemChanged(position); // Update the UI
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -189,6 +205,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         headerBinding.playlistTitleView.setOnClickListener(view -> createRenameDialog());
 
         itemTouchHelper = new ItemTouchHelper(getItemTouchCallback());
+        selectionHelper = new SelectionHelper(itemsList, this);
         itemTouchHelper.attachToRecyclerView(itemsList);
 
         itemListAdapter.setSelectedListener(new OnClickGesture<LocalItem>() {
@@ -214,8 +231,10 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             @Override
             public void held(final LocalItem selectedItem) {
                 if (selectedItem instanceof PlaylistStreamEntry) {
-                    showInfoItemDialog((PlaylistStreamEntry) selectedItem);
+//                    showInfoItemDialog((PlaylistStreamEntry) selectedItem);
+                    Toast.makeText(getContext(), ((PlaylistStreamEntry) selectedItem).component1().component4()+" added local", Toast.LENGTH_SHORT).show();
                 }
+
             }
 
             @Override

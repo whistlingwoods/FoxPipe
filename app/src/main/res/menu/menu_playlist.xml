@@ -34,4 +34,9 @@
         android:orderInCategory="3"
         android:title="@string/add_to_playlist"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_select"
+        android:orderInCategory="4"
+        android:title="Select"
+        app:showAsAction="never" />
 </menu>

@@ -6,6 +6,7 @@ import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDat
 import static org.schabi.newpipe.util.SparseItemUtil.fetchUploaderUrlIfSparse;
 
 import android.net.Uri;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -102,6 +103,27 @@ public enum StreamDialogDefaultEntry {
                                 + "_playlist"
                 )
         )
+    ),
+
+    /**
+     * Opens a {@link PlaylistDialog} to either append the stream to a playlist
+     * or create a new playlist if there are no local playlists.
+     */
+    DETAILS(R.string.details, (fragment, selectedItem) -> {
+        NavigationHelper.openVideoDetailFragment(fragment.getContext(), fragment.getParentFragmentManager(),
+                selectedItem.getServiceId(), selectedItem.getUrl(), selectedItem.getName(),
+                null, false);
+    }
+//            PlaylistDialog.createCorrespondingDialog(
+//                    fragment.getContext(),
+//                    Collections.singletonList(new StreamEntity(item)),
+//                    dialog -> dialog.show(
+//                            fragment.getParentFragmentManager(),
+//                            "StreamDialogEntry@"
+//                                    + (dialog instanceof PlaylistAppendDialog ? "append" : "create")
+//                                    + "_playlist"
+//                    )
+//            )
     ),
 
     PLAY_WITH_KODI(R.string.play_with_kodi_title, (fragment, item) -> {

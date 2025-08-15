@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -247,14 +248,27 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             case R.id.menu_item_bookmark:
                 onBookmarkClicked();
                 break;
+            case R.id.menu_item_select:
+                Toast.makeText(getContext(), "Select items", Toast.LENGTH_SHORT).show();
+                selecting = true;
+                infoListAdapter.selectMode();
+                break;
             case R.id.menu_item_append_playlist:
-                if(isInfinitePlayList) {
+                if(isInfinitePlayList && selected.isEmpty()) {
                     // Popup a dialog to tell user explicitly that infinite playlist cannot be appended
                     new AlertDialog.Builder(requireContext())
                             .setTitle(R.string.add_failed)
                             .setMessage(R.string.append_playlist_not_supported)
                             .setPositiveButton(R.string.ok, null)
                             .show();
+                    return true;
+                } else if (!selected.isEmpty()) {
+                    PlaylistDialog.createCorrespondingDialog(
+                            getContext(),
+                            selected.stream().map(StreamEntity::new).collect(Collectors.toList()),
+                            dialog -> dialog.show(getFM(), TAG));
+                    selecting = false;
+                    infoListAdapter.notSelectMode();
                     return true;
                 }
                 disposables.add(PlaylistDialog.createCorrespondingDialog(

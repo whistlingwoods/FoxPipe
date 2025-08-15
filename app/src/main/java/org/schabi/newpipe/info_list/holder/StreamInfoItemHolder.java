@@ -1,6 +1,7 @@
 package org.schabi.newpipe.info_list.holder;
 
 import android.text.TextUtils;
+import android.util.Pair;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -9,6 +10,7 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.Localization;
 
@@ -54,14 +56,14 @@ public class StreamInfoItemHolder extends StreamMiniInfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
         super.updateFromItem(infoItem, historyRecordManager);
 
-        if (!(infoItem instanceof StreamInfoItem)) {
+        if (!(infoItem.first instanceof StreamInfoItem)) {
             return;
         }
-        final StreamInfoItem item = (StreamInfoItem) infoItem;
+        final StreamInfoItem item = (StreamInfoItem) infoItem.first;
 
         itemAdditionalDetails.setText(getStreamInfoDetailLine(item));
     }

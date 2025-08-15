@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
@@ -47,6 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@id/check"
         android:layout_toEndOf="@+id/itemThumbnailView"
         android:layout_toRightOf="@+id/itemThumbnailView"
         android:ellipsize="end"
@@ -77,5 +79,18 @@
         android:layout_alignEnd="@id/itemThumbnailView"
         android:layout_marginTop="-2dp"
         android:progressDrawable="?progress_horizontal_drawable" />
+
+    <ImageView
+        android:id="@+id/check"
+        android:layout_width="wrap_content"
+        android:layout_height="55dp"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="center_vertical"
+        android:contentDescription="@string/detail_drag_description"
+        android:paddingLeft="@dimen/video_item_search_image_right_margin"
+        android:scaleType="center"
+        app:srcCompat="@drawable/check_circle"
+        tools:ignore="RtlHardcoded,RtlSymmetry"
+        android:visibility="gone"/>
 
 </RelativeLayout>
