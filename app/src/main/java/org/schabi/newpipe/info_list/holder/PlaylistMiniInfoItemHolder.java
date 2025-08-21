@@ -1,5 +1,6 @@
 package org.schabi.newpipe.info_list.holder;
 
+import android.util.Pair;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -8,6 +9,7 @@ import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.util.Localization;
@@ -34,12 +36,12 @@ public class PlaylistMiniInfoItemHolder extends InfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
-        if (!(infoItem instanceof PlaylistInfoItem)) {
+        if (!(infoItem.first instanceof PlaylistInfoItem)) {
             return;
         }
-        final PlaylistInfoItem item = (PlaylistInfoItem) infoItem;
+        final PlaylistInfoItem item = (PlaylistInfoItem) infoItem.first;
 
         itemTitleView.setText(item.getName());
         itemStreamCountView.setText(Localization

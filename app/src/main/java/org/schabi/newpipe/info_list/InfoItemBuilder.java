@@ -1,6 +1,7 @@
 package org.schabi.newpipe.info_list;
 
 import android.content.Context;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -60,16 +61,16 @@ public class InfoItemBuilder {
         this.context = context;
     }
 
-    public View buildView(@NonNull final ViewGroup parent, @NonNull final InfoItem infoItem,
+    public View buildView(@NonNull final ViewGroup parent, @NonNull final Pair<InfoItem,Select> infoItem,
                           final HistoryRecordManager historyRecordManager) {
         return buildView(parent, infoItem, historyRecordManager, false);
     }
 
-    public View buildView(@NonNull final ViewGroup parent, @NonNull final InfoItem infoItem,
+    public View buildView(@NonNull final ViewGroup parent, @NonNull final Pair<InfoItem,Select> infoItem,
                           final HistoryRecordManager historyRecordManager,
                           final boolean useMiniVariant) {
         final InfoItemHolder holder
-                = holderFromInfoType(parent, infoItem.getInfoType(), useMiniVariant);
+                = holderFromInfoType(parent, infoItem.first.getInfoType(), useMiniVariant);
         holder.updateFromItem(infoItem, historyRecordManager);
         return holder.itemView;
     }

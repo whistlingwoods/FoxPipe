@@ -1,5 +1,6 @@
 package org.schabi.newpipe.info_list.holder;
 
+import android.util.Pair;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -8,6 +9,7 @@ import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.util.Localization;
@@ -32,17 +34,17 @@ public class ChannelMiniInfoItemHolder extends InfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
-        if (!(infoItem instanceof ChannelInfoItem)) {
+        if (!(infoItem.first instanceof ChannelInfoItem)) {
             return;
         }
-        final ChannelInfoItem item = (ChannelInfoItem) infoItem;
+        final ChannelInfoItem item = (ChannelInfoItem) infoItem.first;
 
         itemTitleView.setText(item.getName());
         itemAdditionalDetailView.setText(getDetailLine(item));
 
-        PicassoHelper.loadScaledDownThumbnail(itemThumbnailView.getContext(), infoItem.getThumbnailUrl())
+        PicassoHelper.loadScaledDownThumbnail(itemThumbnailView.getContext(), item.getThumbnailUrl())
                 .into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {

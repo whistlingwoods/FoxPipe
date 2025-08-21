@@ -1,5 +1,6 @@
 package org.schabi.newpipe.info_list.holder;
 
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 
 /*
@@ -38,7 +40,7 @@ public abstract class InfoItemHolder extends RecyclerView.ViewHolder {
         this.itemBuilder = infoItemBuilder;
     }
 
-    public abstract void updateFromItem(InfoItem infoItem,
+    public abstract void updateFromItem(Pair<InfoItem, Select> infoItem,
                                         HistoryRecordManager historyRecordManager);
 
     public void updateState(final InfoItem infoItem,

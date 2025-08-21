@@ -1,5 +1,6 @@
 package org.schabi.newpipe.info_list.holder;
 
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import org.schabi.newpipe.extractor.Image;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.info_list.dialog.PictureDialog;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 
@@ -54,14 +56,14 @@ public class CommentsInfoItemHolder extends CommentsMiniInfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
         super.updateFromItem(infoItem, historyRecordManager);
 
-        if (!(infoItem instanceof CommentsInfoItem)) {
+        if (!(infoItem.first instanceof CommentsInfoItem)) {
             return;
         }
-        final CommentsInfoItem item = (CommentsInfoItem) infoItem;
+        final CommentsInfoItem item = (CommentsInfoItem) infoItem.first;
 
         itemTitleView.setText(item.getUploaderName());
 

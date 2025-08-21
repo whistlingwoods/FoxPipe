@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,6 +40,8 @@ import org.schabi.newpipe.util.StateSaver;
 import org.schabi.newpipe.views.SuperScrollLayoutManager;
 
 import javax.annotation.Nonnull;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Supplier;
@@ -50,6 +53,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     protected org.schabi.newpipe.util.SavedState savedState;
 
     private boolean useDefaultStateSaving = true;
+
+    protected boolean selecting = false;
     private int updateFlags = 0;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -59,6 +64,8 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     protected InfoListAdapter infoListAdapter;
     protected RecyclerView itemsList;
     private int focusedPosition = -1;
+
+    protected ArrayList<StreamInfoItem> selected = new ArrayList<>();
 
     /*//////////////////////////////////////////////////////////////////////////
     // LifeCycle
@@ -264,7 +271,17 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         infoListAdapter.setOnStreamSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final StreamInfoItem selectedItem) {
-                onStreamSelected(selectedItem);
+                if (selecting) {
+                    if (selected.contains(selectedItem)) {
+                        infoListAdapter.selectMode();
+                        selected.remove(selectedItem);
+                    } else {
+                        infoListAdapter.select(selectedItem);
+                        selected.add(selectedItem);
+                    }
+                } else {
+                    onStreamSelected(selectedItem);
+                }
             }
 
             @Override

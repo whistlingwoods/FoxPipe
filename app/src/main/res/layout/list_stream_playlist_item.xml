@@ -53,6 +53,19 @@
         app:srcCompat="@drawable/ic_drag_handle"
         tools:ignore="RtlHardcoded,RtlSymmetry" />
 
+    <ImageView
+        android:id="@+id/check"
+        android:layout_width="wrap_content"
+        android:layout_height="55dp"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="center_vertical"
+        android:contentDescription="@string/detail_drag_description"
+        android:paddingLeft="@dimen/video_item_search_image_right_margin"
+        android:scaleType="center"
+        app:srcCompat="@drawable/check_circle"
+        tools:ignore="RtlHardcoded,RtlSymmetry"
+        android:visibility="gone"/>
+
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemVideoTitleView"
         android:layout_width="match_parent"

@@ -1,5 +1,10 @@
 package org.schabi.newpipe.info_list.holder;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
+import android.graphics.drawable.Drawable;
+import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -13,6 +18,7 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.Select;
 import org.schabi.newpipe.ktx.ViewUtils;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.PicassoHelper;
@@ -28,6 +34,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
     public final TextView itemDurationView;
     private final AnimatedProgressBar itemProgressView;
 
+    public final ImageView check;
+
     StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final int layoutId,
                              final ViewGroup parent) {
         super(infoItemBuilder, layoutId, parent);
@@ -37,6 +45,7 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         itemUploaderView = itemView.findViewById(R.id.itemUploaderView);
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
+        check = itemView.findViewById(R.id.check);
     }
 
     public StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final ViewGroup parent) {
@@ -44,13 +53,21 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
     }
 
     @Override
-    public void updateFromItem(final InfoItem infoItem,
+    public void updateFromItem(final Pair<InfoItem, Select> infoItem,
                                final HistoryRecordManager historyRecordManager) {
-        if (!(infoItem instanceof StreamInfoItem)) {
+        if (!(infoItem.first instanceof InfoItem)) {
             return;
         }
-        final StreamInfoItem item = (StreamInfoItem) infoItem;
-
+        final StreamInfoItem item = (StreamInfoItem) infoItem.first;
+        if (check != null && infoItem.second.equals(Select.NOT_SELECTED)) {
+            check.setVisibility(VISIBLE);
+            check.setImageResource(R.drawable.check_circle);
+        } else if (check != null && infoItem.second.equals(Select.SELECTED)) {
+            check.setVisibility(VISIBLE);
+            check.setImageResource(R.drawable.checked_circle);
+        } else if (check != null) {
+            check.setVisibility(GONE);
+        }
         itemVideoTitleView.setText(item.getName());
         itemUploaderView.setText(item.getUploaderName());
 
@@ -58,34 +75,35 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
             itemDurationView.setText(Localization.getDurationString(item.getDuration()));
             itemDurationView.setBackgroundColor(ContextCompat.getColor(itemBuilder.getContext(),
                     R.color.duration_background_color));
-            itemDurationView.setVisibility(View.VISIBLE);
+            itemDurationView.setVisibility(VISIBLE);
 
-            final StreamStateEntity state2 = historyRecordManager.loadStreamState(infoItem)
+            final StreamStateEntity state2 = historyRecordManager.loadStreamState(item)
                     .blockingGet()[0];
             if (state2 != null) {
-                itemProgressView.setVisibility(View.VISIBLE);
+                itemProgressView.setVisibility(VISIBLE);
                 itemProgressView.setMax((int) item.getDuration());
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
                         .toSeconds(state2.getProgressMillis()));
             } else {
-                itemProgressView.setVisibility(View.GONE);
+                itemProgressView.setVisibility(GONE);
             }
         } else if (item.getStreamType() == StreamType.LIVE_STREAM
                 || item.getStreamType() == StreamType.AUDIO_LIVE_STREAM) {
             itemDurationView.setText(R.string.duration_live);
             itemDurationView.setBackgroundColor(ContextCompat.getColor(itemBuilder.getContext(),
                     R.color.live_duration_background_color));
-            itemDurationView.setVisibility(View.VISIBLE);
-            itemProgressView.setVisibility(View.GONE);
+            itemDurationView.setVisibility(VISIBLE);
+            itemProgressView.setVisibility(GONE);
         } else {
-            itemDurationView.setVisibility(View.GONE);
-            itemProgressView.setVisibility(View.GONE);
+            itemDurationView.setVisibility(GONE);
+            itemProgressView.setVisibility(GONE);
         }
 
         // Default thumbnail is shown on error, while loading and if the url is empty
         PicassoHelper.loadScaledDownThumbnail(this.itemThumbnailView.getContext(), item.getThumbnailUrl()).into(itemThumbnailView);
 
         itemView.setOnClickListener(view -> {
+//            check.setImageResource(R.drawable.checked_circle);
             if (itemBuilder.getOnStreamSelectedListener() != null) {
                 itemBuilder.getOnStreamSelectedListener().selected(item);
             }
@@ -115,7 +133,7 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         if (state != null && item.getDuration() > 0
                 && item.getStreamType() != StreamType.LIVE_STREAM) {
             itemProgressView.setMax((int) item.getDuration());
-            if (itemProgressView.getVisibility() == View.VISIBLE) {
+            if (itemProgressView.getVisibility() == VISIBLE) {
                 itemProgressView.setProgressAnimated((int) TimeUnit.MILLISECONDS
                         .toSeconds(state.getProgressMillis()));
             } else {
@@ -123,7 +141,7 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
                         .toSeconds(state.getProgressMillis()));
                 ViewUtils.animate(itemProgressView, true, 500);
             }
-        } else if (itemProgressView.getVisibility() == View.VISIBLE) {
+        } else if (itemProgressView.getVisibility() == VISIBLE) {
             ViewUtils.animate(itemProgressView, false, 500);
         }
     }

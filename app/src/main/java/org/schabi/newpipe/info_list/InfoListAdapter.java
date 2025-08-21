@@ -2,6 +2,7 @@ package org.schabi.newpipe.info_list;
 
 import android.content.Context;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,8 +36,10 @@ import org.schabi.newpipe.util.FallbackViewHolder;
 import org.schabi.newpipe.util.OnClickGesture;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /*
  * Created by Christian Schabesberger on 01.08.16.
@@ -80,7 +83,7 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     private final LayoutInflater layoutInflater;
     private final InfoItemBuilder infoItemBuilder;
-    private final List<InfoItem> infoItemList;
+    private final List<Pair<InfoItem, Select>> infoItemList;
     private final HistoryRecordManager recordManager;
 
     private boolean useMiniVariant = false;
@@ -134,7 +137,8 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         final int offsetStart = sizeConsideringHeaderOffset();
-        infoItemList.addAll(data);
+        List da = data.stream().map(item -> new Pair(item, Select.NOT_SELECTING)).collect(Collectors.toList());
+        infoItemList.addAll(da);
 
         if (DEBUG) {
             Log.d(TAG, "addInfoItemList() after > offsetStart = " + offsetStart + ", "
@@ -157,7 +161,8 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public void setInfoItemList(final List<? extends InfoItem> data) {
         infoItemList.clear();
-        infoItemList.addAll(data);
+        List da = data.stream().map(item -> new Pair(item, Select.NOT_SELECTED)).collect(Collectors.toList());
+        infoItemList.addAll(da);
         notifyDataSetChanged();
     }
 
@@ -206,7 +211,7 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public List<InfoItem> getItemsList() {
-        return infoItemList;
+        return infoItemList.stream().map(pair -> pair.first).collect(Collectors.toList());
     }
 
     @Override
@@ -243,7 +248,7 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (position == infoItemList.size() && showFooter) {
             return FOOTER_TYPE;
         }
-        final InfoItem item = infoItemList.get(position);
+        final InfoItem item = infoItemList.get(position).first;
         switch (item.getInfoType()) {
             case STREAM:
                 return useGridVariant ? GRID_STREAM_HOLDER_TYPE : useMiniVariant
@@ -334,6 +339,28 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 return type == HEADER_TYPE || type == FOOTER_TYPE ? spanCount : 1;
             }
         };
+    }
+
+    public void selectMode() {
+        List da = infoItemList.stream().map(item -> new Pair(item.first, Select.NOT_SELECTED)).collect(Collectors.toList());
+        infoItemList.clear();
+        infoItemList.addAll(da);
+        notifyDataSetChanged();
+    }
+
+    public void notSelectMode() {
+        List da = infoItemList.stream().map(item -> new Pair(item.first, Select.NOT_SELECTING)).collect(Collectors.toList());
+        infoItemList.clear();
+        infoItemList.addAll(da);
+        notifyDataSetChanged();
+    }
+
+    public void select(StreamInfoItem selectedItem) {
+        InfoItem item = selectedItem;
+        int i = infoItemList.indexOf(new Pair(item, Select.NOT_SELECTED));
+        infoItemList.set(i, new Pair(selectedItem, Select.SELECTED));
+//        notifyItemChanged(i);
+        notifyDataSetChanged();
     }
 
     static class HFHolder extends RecyclerView.ViewHolder {

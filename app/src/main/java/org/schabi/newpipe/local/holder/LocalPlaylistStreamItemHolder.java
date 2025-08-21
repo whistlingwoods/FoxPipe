@@ -1,5 +1,7 @@
 package org.schabi.newpipe.local.holder;
 
+import static android.view.View.VISIBLE;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +32,9 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
     private final View itemHandleView;
     private final AnimatedProgressBar itemProgressView;
 
+    private final ImageView check;
+
+
     LocalPlaylistStreamItemHolder(final LocalItemBuilder infoItemBuilder, final int layoutId,
                                   final ViewGroup parent) {
         super(infoItemBuilder, layoutId, parent);
@@ -40,6 +45,7 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemHandleView = itemView.findViewById(R.id.itemHandle);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
+        check = itemView.findViewById(R.id.check);
     }
 
     public LocalPlaylistStreamItemHolder(final LocalItemBuilder infoItemBuilder,
@@ -92,6 +98,9 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
 
         itemView.setLongClickable(true);
         itemView.setOnLongClickListener(view -> {
+            itemHandleView.setVisibility(View.GONE);
+            check.setVisibility(VISIBLE);
+            check.setImageResource(R.drawable.checked_circle);
             if (itemBuilder.getOnItemSelectedListener() != null) {
                 itemBuilder.getOnItemSelectedListener().held(item);
             }
