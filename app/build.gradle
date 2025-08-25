@@ -16,8 +16,8 @@ android {
     namespace 'org.schabi.newpipe'
 
     defaultConfig {
-        applicationId "org.polymorphicshade.tubular"
-        resValue "string", "app_name", "Tubular"
+        applicationId "apps.palmtree.mingle"
+        resValue "string", "app_name", "Mingle"
         minSdk 21
         targetSdk 33
         if (System.properties.containsKey('versionCodeOverride')) {
@@ -67,6 +67,8 @@ android {
             shrinkResources false // disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
+            applicationIdSuffix ".pipe"
+            resValue "string", "app_name", "Mingle " + "Pipe"
         }
     }
 
