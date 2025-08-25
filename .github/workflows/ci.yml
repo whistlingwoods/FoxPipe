@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - dev
-      - master
+      - '**'
     paths-ignore:
       - 'README.md'
       - 'doc/**'
@@ -16,8 +15,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
   push:
     branches:
-      - dev
-      - master
+      - '**'
     paths-ignore:
       - 'README.md'
       - 'doc/**'
@@ -28,18 +26,24 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
 
 jobs:
-  build:
+  build-and-test-jvm:
     runs-on: ubuntu-latest
 
-    permissions: write-all
+    permissions:
+      contents: read
 
     steps:
-      - name: Checkout branch "${{ github.ref_name }}"
-        run: |
-          git clone --no-checkout https://github.com/polymorphicshade/Tubular.git .
-          git checkout --progress --force ${{ github.ref_name }}
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
 
-      - name: Set up JDK 21
+      - name: create and checkout branch
+        # push events already checked out the branch
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: git checkout -B "$BRANCH"
+
+      - name: set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: 21
