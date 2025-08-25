@@ -214,10 +214,10 @@ dependencies {
     // Or you can use a commit you pushed to GitHub by just replacing TeamNewPipe with your GitHub
     // name and the commit hash with the commit hash of the (pushed) commit you want to test
     // This works thanks to JitPack: https://jitpack.io/
-    implementation 'com.github.TeamNewPipe:nanojson:1d9e1aea9049fc9f85e68b43ba39fe7be1c1f751'
+    implementation 'com.github.TeamNewPipe:nanojson:e9d656ddb49a412a5a0a5d5ef20ca7ef09549996'
     // WORKAROUND: if you get errors with the NewPipeExtractor dependency, replace `v0.24.3` with
     // the corresponding commit hash, since JitPack is sometimes buggy
-    implementation 'com.github.polymorphicshade:TubularExtractor:c973caab73ed8647afd76ad01fe0726de62b9e81'
+    implementation 'com.github.whistlingwoods:TubularExtractor:v0.24.7'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
 /** Checkstyle **/
@@ -303,7 +303,7 @@ dependencies {
     implementation "com.jakewharton.rxbinding4:rxbinding:4.0.0"
 
     // Date and time formatting
-    implementation "org.ocpsoft.prettytime:prettytime:5.0.8.Final"
+    implementation "org.ocpsoft.prettytime:prettytime:5.0.9.Final"
 
 /** Debugging **/
     // Memory leak detection
