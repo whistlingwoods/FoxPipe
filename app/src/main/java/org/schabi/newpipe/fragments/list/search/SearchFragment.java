@@ -734,8 +734,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private Observable<List<SuggestionItem>> getLocalSuggestionsObservable(
             final String query, final int similarQueryLimit) {
+        final int suggestionsCount = NewPipeSettings.getSearchSuggestionsCount(
+                requireContext(), PreferenceManager.getDefaultSharedPreferences(requireContext()));
         return historyRecordManager
-                .getRelatedSearches(query, similarQueryLimit, 25)
+                .getRelatedSearches(query, similarQueryLimit, suggestionsCount)
                 .toObservable()
                 .map(searchHistoryEntries ->
                         searchHistoryEntries.stream()
@@ -775,7 +777,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
                     if (showLocalSuggestions && shallShowRemoteSuggestionsNow) {
                         return Observable.zip(
-                                getLocalSuggestionsObservable(query, 3),
+                                getLocalSuggestionsObservable(query, 10),
                                 getRemoteSuggestionsObservable(query),
                                 (local, remote) -> {
                                     remote.removeIf(remoteItem -> local.stream().anyMatch(
@@ -785,7 +787,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                                 })
                                 .materialize();
                     } else if (showLocalSuggestions) {
-                        return getLocalSuggestionsObservable(query, 25)
+                        return getLocalSuggestionsObservable(query, 150)
                                 .materialize();
                     } else if (shallShowRemoteSuggestionsNow) {
                         return getRemoteSuggestionsObservable(query)
