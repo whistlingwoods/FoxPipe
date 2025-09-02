@@ -142,6 +142,18 @@ public final class NewPipeSettings {
                 R.string.show_remote_search_suggestions_key);
     }
 
+    public static int getSearchSuggestionsCount(final Context context,
+                                               final SharedPreferences sharedPreferences) {
+        final String countString = sharedPreferences.getString(
+                context.getString(R.string.search_suggestions_count_key), "250");
+        try {
+            final int count = Integer.parseInt(countString);
+            return Math.max(1, Math.min(count, 1000));
+        } catch (final NumberFormatException e) {
+            return 250;
+        }
+    }
+
     private static void disableMediaTunnelingIfNecessary(@NonNull final Context context) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         final String disabledTunnelingKey = context.getString(R.string.disable_media_tunneling_key);
