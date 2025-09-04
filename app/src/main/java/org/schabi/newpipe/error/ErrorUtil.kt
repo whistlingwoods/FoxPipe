@@ -156,7 +156,7 @@ class ErrorUtil {
                 Snackbar.make(rootView, R.string.error_snackbar_message, Snackbar.LENGTH_LONG)
                     .setActionTextColor(Color.YELLOW)
                     .setAction(context.getString(R.string.error_snackbar_action).uppercase()) {
-                        openActivity(context, errorInfo)
+                        context.startActivity(getErrorActivityIntent(context, errorInfo))
                     }.show()
             }
         }
