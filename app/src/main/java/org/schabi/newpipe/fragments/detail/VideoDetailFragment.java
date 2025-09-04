@@ -1526,7 +1526,7 @@ public final class VideoDetailFragment
         binding.positionView.setVisibility(View.GONE);
 
         binding.detailVideoTitleView.setText(title);
-        binding.detailVideoTitleView.setMaxLines(3);
+        binding.detailVideoTitleView.setMaxLines(5);
         animate(binding.detailVideoTitleView, true, 0);
 
         binding.detailToggleSecondaryControlsView.setVisibility(View.GONE);
