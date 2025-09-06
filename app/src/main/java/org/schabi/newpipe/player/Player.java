@@ -392,8 +392,12 @@ public final class Player implements PlaybackListener, Listener {
                         return;
                     }
                     playQueue.append(newQueue.getStreams());
+                   return;
                 }
-                return;
+
+                // TODO: This falls through to the old logic, there was no playQueue
+                // yet so we should start the player and add the new video
+                break;
             }
             case EnqueueNext -> {
                 if (playQueue != null) {
@@ -403,8 +407,12 @@ public final class Player implements PlaybackListener, Listener {
                     }
                     final PlayQueueItem newItem = newQueue.getStreams().get(0);
                     newQueue.enqueueNext(newItem, false);
+                    return;
                 }
-                return;
+
+                // TODO: This falls through to the old logic, there was no playQueue
+                // yet so we should start the player and add the new video
+                break;
             }
             case TimestampChange -> {
                 final TimestampChangeData dat = intent.getParcelableExtra(PLAYER_INTENT_DATA);
