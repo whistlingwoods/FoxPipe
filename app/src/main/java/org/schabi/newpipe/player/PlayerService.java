@@ -105,7 +105,9 @@ public final class PlayerService extends Service {
         }
 
         if (player != null) {
+            final PlayerType oldPlayerType = player.getPlayerType();
             player.handleIntent(intent);
+            player.handleIntentPost(oldPlayerType);
             player.UIs().get(MediaSessionPlayerUi.class)
                     .ifPresent(ui -> ui.handleMediaButtonIntent(intent));
         }

@@ -363,11 +363,8 @@ public final class Player implements PlaybackListener, Listener {
             }
         }
 
-        final PlayerType oldPlayerType = playerType;
         playerType = newPlayerType;
         initUIsForCurrentPlayerType();
-        // TODO: what does the following comment mean? Is that a relict?
-        // We need to setup audioOnly before super(), see "sourceOf"
         isAudioOnly = audioPlayerSelected();
 
         if (intent.hasExtra(PLAYBACK_QUALITY)) {
@@ -448,8 +445,6 @@ public final class Player implements PlaybackListener, Listener {
                                 }
                                 initPlayback(newPlayQueue, playWhenReady);
                             }
-
-                            handleIntentPost(oldPlayerType);
 
                         }, throwable -> {
                             if (DEBUG) {
@@ -554,11 +549,10 @@ public final class Player implements PlaybackListener, Listener {
             initPlayback(samePlayQueue ? playQueue : newQueue, playWhenReady);
         }
 
-        handleIntentPost(oldPlayerType);
     }
 
 
-    private void handleIntentPost(final PlayerType oldPlayerType) {
+    public void handleIntentPost(final PlayerType oldPlayerType) {
         if (oldPlayerType != playerType && playQueue != null) {
             // If playerType changes from one to another we should reload the player
             // (to disable/enable video stream or to set quality)

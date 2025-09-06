@@ -83,8 +83,8 @@ public class PlayQueueItem implements Serializable {
         }
         // We assume that the same service & URL uniquely determines
         // that we can keep the same stream running.
-        return getServiceId() == other.getServiceId()
-                && getUrl().equals(other.getUrl());
+        return serviceId == other.serviceId
+                && url.equals(other.url);
     }
 
     @NonNull
