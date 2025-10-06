@@ -95,10 +95,7 @@ public final class NavigationHelper {
             }
         }
         intent.putExtra(Player.PLAYER_TYPE, PlayerType.MAIN.valueForIntent());
-
-        intent.putExtra(PlayerService.SHOULD_START_FOREGROUND_EXTRA, true);
-
-        intent.putExtra(Player.PLAYER_INTENT_TYPE, (Parcelable) playerIntentType);
+        intent.putExtra(Player.RESUME_PLAYBACK, resumePlayback);
 
         return intent;
     }
