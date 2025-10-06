@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import androidx.core.net.toUri
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector.PlaybackPreparer
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -138,7 +137,7 @@ class MediaBrowserPlaybackPreparer(
 
     private fun extractPlayQueueFromMediaId(mediaId: String): Single<PlayQueue> {
         try {
-            val mediaIdUri = mediaId.toUri()
+            val mediaIdUri = Uri.parse(mediaId)
             val path = ArrayList(mediaIdUri.pathSegments)
             if (path.isEmpty()) {
                 throw parseError(mediaId)

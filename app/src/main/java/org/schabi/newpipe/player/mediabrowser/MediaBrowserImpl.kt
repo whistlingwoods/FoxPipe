@@ -104,7 +104,7 @@ class MediaBrowserImpl(
 
     private fun onLoadChildren(parentId: String): Single<List<MediaBrowserCompat.MediaItem>> {
         try {
-            val parentIdUri = parentId.toUri()
+            val parentIdUri = Uri.parse(parentId)
             val path = ArrayList(parentIdUri.pathSegments)
 
             if (path.isEmpty()) {
