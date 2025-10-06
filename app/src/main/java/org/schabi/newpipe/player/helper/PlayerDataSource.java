@@ -129,13 +129,6 @@ public class PlayerDataSource {
                 getDefaultDashChunkSourceFactory(cachelessDataSourceFactory),
                 cachelessDataSourceFactory);
     }
-
-    public DashMediaSource.Factory getLiveYoutubeDashMediaSourceFactory() {
-        return new DashMediaSource.Factory(
-                getDefaultDashChunkSourceFactory(cachelessDataSourceFactory),
-                cachelessDataSourceFactory)
-                .setManifestParser(new YoutubeDashLiveManifestParser());
-    }
     //endregion
 
 
