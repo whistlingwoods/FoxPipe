@@ -153,7 +153,7 @@ class NewVersionWorker(
         private val DEBUG = MainActivity.DEBUG
         private val TAG = NewVersionWorker::class.java.simpleName
         private const val API_URL =
-            "https://api.github.com/repos/NewPipeX/NewPipeX/releases/latest"
+            "https://api.github.com/repos/whistlingwoods/FoxPipe/releases/latest"
         private const val IS_MANUAL = "isManual"
 
         /**

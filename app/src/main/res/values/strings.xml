@@ -213,10 +213,10 @@
     <string name="just_once">Just Once</string>
     <string name="file">File</string>
     <string name="notifications">Notifications</string>
-    <string name="notification_channel_name">NewPipe X notification</string>
-    <string name="notification_channel_description">Notifications for NewPipe X\'s player</string>
+    <string name="notification_channel_name">TubularX notification</string>
+    <string name="notification_channel_description">Notifications for TubularX\'s player</string>
     <string name="app_update_notification_channel_name">App update notification</string>
-    <string name="app_update_notification_channel_description">Notifications for new NewPipe X versions</string>
+    <string name="app_update_notification_channel_description">Notifications for new TubularX versions</string>
     <string name="hash_channel_name">Video hash notification</string>
     <string name="hash_channel_description">Notifications for video hashing progress</string>
     <string name="streams_notification_channel_name">New streams</string>
@@ -278,7 +278,7 @@
     <string name="permission_display_over_apps">Give permission to display over other apps</string>
     <string name="invalid_color_toast">Invalid color</string>
     <!-- error activity -->
-    <string name="error_report_notification_title">NewPipe X encountered an error, tap to report</string>
+    <string name="error_report_notification_title">TubularX encountered an error, tap to report</string>
     <string name="error_report_notification_toast">An error occurred, see the notification</string>
     <string name="sorry_string">Sorry, that should not have happened.</string>
     <string name="error_report_button_text">Report via e-mail</string>
@@ -389,20 +389,20 @@
     <string name="copyright">© %1$s by %2$s under %3$s</string>
     <string name="tab_about">About \u0026 FAQ</string>
     <string name="tab_licenses">Licenses</string>
-    <string name="app_description">NewPipe, eXtended!</string>
-    <string name="contribution_title">View source code</string>
-    <string name="contribution_encouragement">NewPipe X strongly believes in open-source software principles. We are proud that every official release of NewPipe X is fully auditable, thanks to our unique build process that automatically compiles our app from its source code. This process is publicly available, alongside our source code, in our code repository.\n\nFeel free to take a look, ask questions, report bugs, request features, and/or contribute code at any time!</string>
+    <string name="app_description">Tubular, eXtended!</string>
+    <string name="contribution_title">Contribute</string>
+    <string name="contribution_encouragement">Whether you have ideas of; translation, design changes, code cleaning, or real heavy code changes—help is always welcome. The more is done the better it gets!</string>
     <string name="view_on_github">View on GitHub</string>
-    <string name="donation_title">Support our team</string>
-    <string name="donation_encouragement">While we don\'t accept donations, a free way you can support the NewPipe X project is by giving it a \"star\" on GitHub.</string>
-    <string name="give_back">I\'ll click a \"star\" button</string>
+    <string name="donation_title">Donate</string>
+    <string name="donation_encouragement">NewPipe's this fork is developed by volunteers spending their free time bringing you the best user experience. Give back to help developers make NewPipe even better while they enjoy a cup of coffee.</string>
+    <string name="give_back">Give back</string>
     <string name="website_title">Website</string>
-    <string name="website_encouragement">Visit the NewPipe X website for more info and news.</string>
+    <string name="website_encouragement">Visit the upstream NewPipe Website for more info and news.</string>
     <string name="privacy_policy_title">Privacy policy</string>
-    <string name="privacy_policy_encouragement">NewPipe X takes your privacy very seriously. Therefore, the app does not collect any data without your consent.\n\nThe privacy policy explains in detail what data is sent and stored when you send a crash report.</string>
+    <string name="privacy_policy_encouragement">Tubular X takes your privacy very seriously. Therefore, the app does not collect any data without your consent.\n\nThe privacy policy explains in detail what data is sent and stored when you send a crash report.</string>
     <string name="read_privacy_policy">Read privacy policy</string>
-    <string name="app_license_title">NewPipe X\'s License</string>
-    <string name="app_license">NewPipe X is copyleft libre software: You can use, study, share, and improve it at will. Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</string>
+    <string name="app_license_title">TubularX\'s License</string>
+    <string name="app_license">TubularX is copyleft libre software: You can use, study, share, and improve it at will. Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</string>
     <string name="read_full_license">Read license</string>
     <string name="faq_title">Frequently asked questions</string>
     <string name="faq_description">If you are having trouble using the app, be sure to check out these answers to common questions!</string>
@@ -607,8 +607,8 @@
     <string name="low_quality_smaller">Low quality (smaller)</string>
     <string name="dont_show">Don\'t show</string>
     <!-- App update notification -->
-    <string name="app_update_unavailable_toast">You are running the latest version of NewPipe X</string>
-    <string name="app_update_available_notification_title">NewPipe X update is available!</string>
+    <string name="app_update_unavailable_toast">You are running the latest version of TubularX</string>
+    <string name="app_update_available_notification_title">TubularX update is available!</string>
     <string name="app_update_available_notification_text">Tap to download %s</string>
     <string name="missions_header_finished">Finished</string>
     <string name="missions_header_pending">Pending</string>
@@ -648,7 +648,7 @@
     <string name="error_http_unsupported_range">The server does not accept multi-threaded downloads, retry with @string/msg_threads = 1</string>
     <string name="error_http_not_found">Not found</string>
     <string name="error_postprocessing_failed">Post-processing failed</string>
-    <string name="error_postprocessing_stopped">NewPipe X was closed while working on the file</string>
+    <string name="error_postprocessing_stopped">TubularX was closed while working on the file</string>
     <string name="error_insufficient_storage">Not enough free space on device</string>
     <string name="error_insufficient_storage_left">No space left on device</string>
     <string name="error_progress_lost">Progress lost, because the file was deleted</string>
