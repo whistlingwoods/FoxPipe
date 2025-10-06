@@ -8,7 +8,6 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.core.net.toUri
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.MediaBrowserServiceCompat.Result
 import androidx.media.utils.MediaConstants
@@ -186,7 +185,7 @@ class MediaBrowserImpl(
         builder
             .setMediaId(createMediaIdForInfoItem(playlist is PlaylistRemoteEntity, playlist.uid))
             .setTitle(playlist.orderingName)
-            .setIconUri(imageUriOrNullIfDisabled(playlist.thumbnailUrl))
+            .setIconUri(playlist.thumbnailUrl?.let { Uri.parse(it) })
 
         val extras = Bundle()
         extras.putString(
@@ -213,7 +212,7 @@ class MediaBrowserImpl(
         }
 
         ImageStrategy.choosePreferredImage(item.thumbnails)?.let {
-            builder.setIconUri(imageUriOrNullIfDisabled(it))
+            builder.setIconUri(Uri.parse(it))
         }
 
         return MediaBrowserCompat.MediaItem(
@@ -259,7 +258,7 @@ class MediaBrowserImpl(
         builder.setMediaId(createMediaIdForPlaylistIndex(false, playlistId, index))
             .setTitle(item.streamEntity.title)
             .setSubtitle(item.streamEntity.uploader)
-            .setIconUri(imageUriOrNullIfDisabled(item.streamEntity.thumbnailUrl))
+            .setIconUri(Uri.parse(item.streamEntity.thumbnailUrl))
 
         return MediaBrowserCompat.MediaItem(
             builder.build(),
@@ -278,7 +277,7 @@ class MediaBrowserImpl(
             .setSubtitle(item.uploaderName)
 
         ImageStrategy.choosePreferredImage(item.thumbnails)?.let {
-            builder.setIconUri(imageUriOrNullIfDisabled(it))
+            builder.setIconUri(Uri.parse(it))
         }
 
         return MediaBrowserCompat.MediaItem(
@@ -317,7 +316,7 @@ class MediaBrowserImpl(
         builder.setMediaId(mediaId)
             .setTitle(streamHistoryEntry.streamEntity.title)
             .setSubtitle(streamHistoryEntry.streamEntity.uploader)
-            .setIconUri(imageUriOrNullIfDisabled(streamHistoryEntry.streamEntity.thumbnailUrl))
+            .setIconUri(Uri.parse(streamHistoryEntry.streamEntity.thumbnailUrl))
 
         return MediaBrowserCompat.MediaItem(
             builder.build(),
@@ -396,13 +395,5 @@ class MediaBrowserImpl(
 
     companion object {
         private val TAG: String = MediaBrowserImpl::class.java.getSimpleName()
-
-        fun imageUriOrNullIfDisabled(url: String?): Uri? {
-            return if (ImageStrategy.shouldLoadImages()) {
-                url?.toUri()
-            } else {
-                null
-            }
-        }
     }
 }
