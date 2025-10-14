@@ -293,6 +293,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         binding.topControls.setClickable(true);
         binding.topControls.setFocusable(true);
 
+        binding.metadataView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.titleTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.channelTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
     }
@@ -938,6 +939,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         }
         fragmentListener.onFullscreenStateChanged(isFullscreen);
 
+        binding.metadataView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.titleTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.channelTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
