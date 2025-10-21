@@ -928,7 +928,7 @@
     <string name="sponsor_block_skip_mode_manual">Show Skip Button</string>
     <string name="sponsor_block_skip_mode_highlight">Highlight Only</string>
     <string name="sponsor_block_graced_rewind_title">Rewind pauses skipping</string>
-    <string name="sponsor_block_graced_rewind_summary">Rewinding the video back into automatically skipped segments will pause segment skipping until the segment ends.</string>
+    <string name="sponsor_block_graced_rewind_summary">Rewinding the video back to automatically-skipped segments will pause skipping until the segment ends.</string>
     <string name="sponsor_block_manual_unskip_button">Un-skip</string>
     <string name="sponsor_block_manual_skip_button">Skip</string>
 
