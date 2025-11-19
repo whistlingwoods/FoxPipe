@@ -348,7 +348,8 @@ public class RouterActivity extends AppCompatActivity {
         if (choiceChecker.isAvailableAndSelected(
                 R.string.video_player_key,
                 R.string.background_player_key,
-                R.string.popup_player_key)) {
+                R.string.popup_player_key,
+                R.string.enqueue_key)) {
 
             final String selectedChoice = choiceChecker.getSelectedChoiceKey();
 
@@ -361,6 +362,8 @@ public class RouterActivity extends AppCompatActivity {
                             || selectedChoice.equals(getString(R.string.popup_player_key));
             final boolean isAudioPlayerSelected =
                     selectedChoice.equals(getString(R.string.background_player_key));
+            final boolean isEnqueueSelected =
+                    selectedChoice.equals(getString(R.string.enqueue_key));
 
             if (currentLinkType != LinkType.STREAM
                     && ((isExtAudioEnabled && isAudioPlayerSelected)
@@ -377,7 +380,9 @@ public class RouterActivity extends AppCompatActivity {
 
             // Check if the service supports the choice
             if ((isVideoPlayerSelected && capabilities.contains(VIDEO))
-                    || (isAudioPlayerSelected && capabilities.contains(AUDIO))) {
+                    || (isAudioPlayerSelected && capabilities.contains(AUDIO))
+                    || (isEnqueueSelected && (capabilities.contains(VIDEO)
+                    || capabilities.contains(AUDIO)))) {
                 handleChoice(selectedChoice);
             } else {
                 handleChoice(getString(R.string.show_info_key));
@@ -576,7 +581,10 @@ public class RouterActivity extends AppCompatActivity {
             // not be added to a playlist
             returnedItems.add(new AdapterChoiceItem(getString(R.string.add_to_playlist_key),
                     getString(R.string.add_to_playlist),
-                    R.drawable.ic_add));
+                    R.drawable.ic_playlist_add));
+
+            returnedItems.add(new AdapterChoiceItem(getString(R.string.enqueue_key),
+                    getString(R.string.enqueue_stream), R.drawable.ic_add));
         } else {
             // LinkType.NONE is never present because it's filtered out before
             // channels and playlist can be played as they contain a list of videos
@@ -1050,6 +1058,8 @@ public class RouterActivity extends AppCompatActivity {
                     NavigationHelper.playOnBackgroundPlayer(this, playQueue, true);
                 } else if (choice.playerChoice.equals(popupPlayerKey)) {
                     NavigationHelper.playOnPopupPlayer(this, playQueue, true);
+                } else if (choice.playerChoice.equals(getString(R.string.enqueue_key))) {
+                    NavigationHelper.enqueueOnPlayer(this, playQueue);
                 }
             };
         }
