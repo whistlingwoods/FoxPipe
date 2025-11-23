@@ -43,6 +43,7 @@ import org.schabi.newpipe.extractor.stream.Description;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
 import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
+import org.schabi.newpipe.fragments.playlist.DownloadAllPlaylistDialog;
 import org.schabi.newpipe.info_list.dialog.StreamDialogDefaultEntry;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.local.playlist.RemotePlaylistManager;
@@ -244,6 +245,13 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
                 break;
             case R.id.menu_item_bookmark:
                 onBookmarkClicked();
+                break;
+            case R.id.menu_item_download_all:
+                if (currentInfo != null) {
+                    DownloadAllPlaylistDialog.newInstance(currentInfo.getServiceId(),
+                            currentInfo.getName(),
+                            currentInfo.getUrl()).show(getFM(), TAG);
+                }
                 break;
             case R.id.menu_item_append_playlist:
                 if (currentInfo != null) {

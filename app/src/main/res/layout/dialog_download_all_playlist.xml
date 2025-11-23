@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -18,11 +19,62 @@
         android:layout_marginTop="16dp"
         android:hint="@string/playlist_name_hint" />
 
-    <Button
-        android:id="@+id/choose_location_button"
+    <RadioGroup
+        android:id="@+id/video_audio_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="@string/choose_location" />
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/video_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/video" />
+
+        <RadioButton
+            android:id="@+id/audio_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/audio" />
+    </RadioGroup>
+
+    <Spinner
+        android:id="@+id/quality_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        tools:listitem="@layout/stream_quality_item" />
+
+    <TextView
+        android:id="@+id/threads_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/msg_threads" />
+
+    <LinearLayout
+        android:id="@+id/threads_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/threads_count"
+            android:layout_width="25dp"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:paddingLeft="2dp"
+            tools:ignore="RtlHardcoded,RtlSymmetry"
+            tools:text="3" />
+
+        <SeekBar
+            android:id="@+id/threads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="31"
+            android:progress="3" />
+    </LinearLayout>
 
 </LinearLayout>
