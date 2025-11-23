@@ -15,6 +15,10 @@
     <string name="open_with">Open with</string>
     <string name="share">Share</string>
     <string name="download">Download</string>
+    <string name="download_all">Download all</string>
+    <string name="download_all_prompt_title">Download Playlist</string>
+    <string name="playlist_name_hint">Enter playlist name</string>
+    <string name="choose_location">Choose location</string>
     <string name="controls_download_desc">Download stream file</string>
     <string name="search">Search</string>
     <string name="search_with_service_name">Search %1$s</string>
