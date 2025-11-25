@@ -17,6 +17,7 @@
     <string name="download">Download</string>
     <string name="download_all">Download all</string>
     <string name="download_all_prompt_title">Download Playlist</string>
+    <string name="use_for_all_files">Use this for all</string>
     <string name="playlist_name_hint">Enter playlist name</string>
     <string name="choose_location">Choose location</string>
     <string name="controls_download_desc">Download stream file</string>
@@ -177,6 +178,7 @@
     <string name="downloads">Downloads</string>
     <string name="downloads_title">Downloads</string>
     <string name="loading_metadata_title">Loading Metadata…</string>
+    <string name="loading">Loading...</string>
     <string name="error_report_title">Error report</string>
     <string name="all">All</string>
     <string name="channels">Channels</string>
@@ -287,6 +289,7 @@
     <string name="related_items_tab_description">Related items</string>
     <string name="description_tab_description">Description</string>
     <string name="search_no_results">No results</string>
+    <string name="empty_playlist">This playlist is empty.</string>
     <string name="empty_list_subtitle">Nothing here but crickets</string>
     <string name="import_subscriptions_hint">Import or export subscriptions from the 3-dot menu</string>
     <string name="detail_drag_description">Drag to reorder</string>
@@ -769,6 +772,7 @@
     <string name="select_night_theme_toast">You can select your favorite night theme below</string>
     <string name="night_theme_available">This option is only available if %s is selected for Theme</string>
     <string name="download_has_started">Download has started</string>
+    <string name="all_downloads_queued">All downloads have been queued.</string>
     <string name="description_select_note">You can now select text inside the description. Note that the page may flicker and links may not be clickable while in selection mode.</string>
     <string name="description_select_enable">Enable selecting text in the description</string>
     <string name="description_select_disable">Disable selecting text in the description</string>

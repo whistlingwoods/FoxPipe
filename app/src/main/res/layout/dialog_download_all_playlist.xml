@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/download_all_prompt_title"
-        android:textAppearance="?attr/textAppearanceHeadline6" />
+        android:textAppearance="?attr/textAppearanceHeadline5" />
 
     <EditText
         android:id="@+id/playlist_name_edit_text"
@@ -46,6 +46,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         tools:listitem="@layout/stream_quality_item" />
+
+    <CheckBox
+        android:id="@+id/use_for_all_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:checked="true"
+        android:text="@string/use_for_all_files" />
 
     <TextView
         android:id="@+id/threads_text_view"

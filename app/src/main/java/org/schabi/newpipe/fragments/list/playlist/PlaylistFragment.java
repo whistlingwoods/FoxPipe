@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,8 +43,8 @@ import org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper;
 import org.schabi.newpipe.extractor.stream.Description;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
-import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
 import org.schabi.newpipe.fragments.playlist.DownloadAllPlaylistDialog;
+import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
 import org.schabi.newpipe.info_list.dialog.StreamDialogDefaultEntry;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.local.playlist.RemotePlaylistManager;
@@ -69,6 +70,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, PlaylistInfo>
         implements PlaylistControlViewHolder {
@@ -247,10 +249,19 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
                 onBookmarkClicked();
                 break;
             case R.id.menu_item_download_all:
-                if (currentInfo != null) {
-                    DownloadAllPlaylistDialog.newInstance(currentInfo.getServiceId(),
-                            currentInfo.getName(),
-                            currentInfo.getUrl()).show(getFM(), TAG);
+                if (currentInfo != null && !currentInfo.getRelatedItems().isEmpty()) {
+                    Toast.makeText(getContext(), R.string.loading, Toast.LENGTH_SHORT).show();
+                    final StreamInfoItem firstItem = currentInfo.getRelatedItems().get(0);
+                    disposables.add(ExtractorHelper.getStreamInfo(firstItem.getServiceId(),
+                            firstItem.getUrl(), false)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    streamInfo -> DownloadAllPlaylistDialog.newInstance(
+                                            currentInfo, streamInfo).show(getFM(), TAG),
+                                    throwable -> ErrorUtil.showUiErrorSnackbar(
+                                            this, "Could not get stream info", throwable)
+                            ));
                 }
                 break;
             case R.id.menu_item_append_playlist:
