@@ -215,6 +215,7 @@
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:padding="@dimen/player_main_buttons_padding"
+                        android:visibility="gone"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
                         tools:ignore="RtlHardcoded,RtlSymmetry"
