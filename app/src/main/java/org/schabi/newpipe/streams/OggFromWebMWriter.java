@@ -70,7 +70,7 @@ public class OggFromWebMWriter implements Closeable {
     private final Bitmap thumbnail;
 
     /**
-     * Constructor of OggFromWebMWriter
+     * Constructor of OggFromWebMWriter.
      * @param source
      * @param target
      * @param streamInfo the stream info
