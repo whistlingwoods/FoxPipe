@@ -19,8 +19,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,9 +65,19 @@ public class OggFromWebMWriter implements Closeable {
 
     private final int[] crc32Table = new int[256];
     private final StreamInfo streamInfo;
+    private final byte[] thumbnailData;
 
-    public OggFromWebMWriter(@NonNull final SharpStream source, @NonNull final SharpStream target,
-                             @Nullable final StreamInfo streamInfo) {
+    /**
+     *
+     * @param source
+     * @param target
+     * @param streamInfo
+     * @param thumbnailData
+     */
+    public OggFromWebMWriter(@NonNull final SharpStream source,
+                             @NonNull final SharpStream target,
+                             @Nullable final StreamInfo streamInfo,
+                             @Nullable final byte[] thumbnailData) {
         if (!source.canRead() || !source.canRewind()) {
             throw new IllegalArgumentException("source stream must be readable and allows seeking");
         }
@@ -76,6 +88,7 @@ public class OggFromWebMWriter implements Closeable {
         this.source = source;
         this.output = target;
         this.streamInfo = streamInfo;
+        this.thumbnailData = thumbnailData;
 
         this.streamId = (int) System.currentTimeMillis();
 
@@ -299,6 +312,14 @@ public class OggFromWebMWriter implements Closeable {
                         .getUploadDate()
                         .offsetDateTime()
                         .format(DateTimeFormatter.ISO_DATE)));
+                 if (thumbnailData != null) {
+
+                     metadata.add(makeOpusPictureTag(thumbnailData, "image/jpeg"));
+                     // optional kompatibel:
+                     // metadata.add(Pair.create("COVERART", Base64.getEncoder()
+                     //        .encodeToString(thumb)));
+                     // metadata.add(Pair.create("COVERARTMIME", "image/jpeg"));
+                 }
             }
 
             if (DEBUG) {
@@ -337,6 +358,42 @@ public class OggFromWebMWriter implements Closeable {
         buf.putInt(bytes.length);
         buf.put(bytes);
         return buf.array();
+    }
+
+    private static Pair<String, String> makeOpusPictureTag(final byte[] imageData,
+                                                           final String mimeType) {
+        // FLAC picture block format (big-endian):
+        // uint32 picture_type
+        // uint32 mime_length, mime_string
+        // uint32 desc_length, desc_string
+        // uint32 width
+        // uint32 height
+        // uint32 color_depth
+        // uint32 colors_indexed
+        // uint32 data_length, data_bytes
+        final byte[] mimeBytes = mimeType.getBytes(StandardCharsets.UTF_8);
+        final byte[] descBytes = new byte[0]; // optional description
+        // fixed ints + mime + desc
+        final int headerSize = 4 * 8 + mimeBytes.length + descBytes.length;
+        final ByteBuffer buf = ByteBuffer.allocate(headerSize + imageData.length);
+        buf.putInt(3); // picture type: 3 = Cover (front)
+        buf.putInt(mimeBytes.length);
+        buf.put(mimeBytes);
+        buf.putInt(descBytes.length);
+        // no description
+        if (descBytes.length > 0) {
+            buf.put(descBytes);
+        }
+        buf.putInt(0); // width (unknown)
+        buf.putInt(0); // height (unknown)
+        buf.putInt(0); // color depth
+        buf.putInt(0); // colors indexed
+        buf.putInt(imageData.length);
+        buf.put(imageData);
+        final String b64 = Base64.getEncoder().encodeToString(buf.array());
+        // Many apps also accept COVERART / COVERARTMIME,
+        // but METADATA_BLOCK_PICTURE is the standard approach
+        return Pair.create("METADATA_BLOCK_PICTURE", b64);
     }
 
     /**
