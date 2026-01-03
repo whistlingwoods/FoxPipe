@@ -86,10 +86,12 @@
                     android:scaleType="fitCenter"
                     app:tint="@color/drawer_header_font_color"
                     tools:ignore="ContentDescription"
+                    android:visibility="gone"
                     tools:src="@drawable/ic_smart_display" />
 
                 <org.schabi.newpipe.views.NewPipeTextView
                     android:id="@+id/drawer_header_service_view"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
@@ -102,6 +104,7 @@
             <ImageView
                 android:id="@+id/drawer_arrow"
                 android:layout_width="24dp"
+                android:visibility="gone"
                 android:layout_height="24dp"
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_arrow_drop_down"
@@ -112,6 +115,7 @@
 
     <Button
         android:id="@+id/drawer_header_action_button"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="?selectableItemBackground"
