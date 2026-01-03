@@ -113,7 +113,19 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         }
 
         if (itemAdditionalDetails != null) {
-            itemAdditionalDetails.setText(getStreamInfoDetailLine(item, dateTimeFormatter));
+            boolean isHistoryPage = historyRecordManager != null; // or another flag
+            if (isHistoryPage) {
+                // Only show date + service, hide view count
+                itemAdditionalDetails.setText(
+                        Localization.concatenateStrings(
+                                dateTimeFormatter.format(item.getLatestAccessDate()),
+                                ServiceHelper.getNameOfServiceById(item.getStreamEntity().getServiceId())
+                        )
+                );
+            } else {
+                // normal behavior
+                itemAdditionalDetails.setText(getStreamInfoDetailLine(item, dateTimeFormatter));
+            }
         }
 
         // Default thumbnail is shown on error, while loading and if the url is empty
