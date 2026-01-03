@@ -424,7 +424,7 @@ public class DownloadManagerService extends Service {
                     // erwartet, dass StreamInfo eine Methode liefert, die List<Image> zurückgibt,
                     // z.B. getThumbnailImages(). Falls nicht vorhanden, anpassen auf die vorhandene API.
                     List<Image> images = streamInfo.getThumbnails();
-                    mission.fetchThumbnailAsJpeg(images);
+                    mission.fetchThumbnail(images);
                 } catch (Exception e) {
                     Log.w(TAG, "failed to fetch thumbnail for mission: " + mission.storage.getName(), e);
                 }

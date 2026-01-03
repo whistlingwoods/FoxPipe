@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 
 import org.schabi.newpipe.DownloaderImpl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -66,7 +65,7 @@ public class DownloadMission extends Mission {
     static final int ERROR_HTTP_FORBIDDEN = 403;
 
     private StreamInfo streamInfo;
-    protected volatile byte[] thumbnailData;
+    protected volatile Bitmap thumbnail;
     protected volatile boolean thumbnailFetched = false;
 
     /**
@@ -711,7 +710,7 @@ public class DownloadMission extends Mission {
         Exception exception = null;
 
         try {
-            psAlgorithm.setThumbnailData(thumbnailData);
+            psAlgorithm.setThumbnail(thumbnail);
             psAlgorithm.run(this);
         } catch (Exception err) {
             Log.e(TAG, "Post-processing failed. " + psAlgorithm.toString(), err);
@@ -849,32 +848,21 @@ public class DownloadMission extends Mission {
      *
      * @param images Liste von Image-Objekten (darf nicht null sein)
      */
-    @Nullable
-    public void fetchThumbnailAsJpeg(@NonNull final List<Image> images) {
+    // java
+    public void fetchThumbnail(@NonNull final List<Image> images) {
         if (images == null || images.isEmpty()) {
             thumbnailFetched = true;
             return;
         }
 
         try {
-            // synchrones Laden des Bitmaps (muss im Hintergrundthread aufgerufen werden)
-            final Bitmap bitmap = PicassoHelper.loadThumbnail(images).get();
-            if (bitmap == null) {
-                thumbnailFetched = true;
-                return;
-            }
-
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            bitmap.recycle();
-
-            thumbnailData = baos.toByteArray();
-            psAlgorithm.setThumbnailData(thumbnailData);
+            // synchrones Laden des Thumbnails (muss im Hintergrundthread erfolgen)
+            thumbnail = PicassoHelper.loadThumbnail(images).get();
             thumbnailFetched = true;
-        } catch (final java.io.IOException e) {
-            Log.w(TAG, "fetchThumbnailAsJpeg: failed to load/convert thumbnail", e);
+        } catch (final Exception e) {
+            Log.w(TAG, "fetchThumbnail: failed to load thumbnail", e);
             thumbnailFetched = true;
-            thumbnailData = null;
+            return;
         }
     }
 
