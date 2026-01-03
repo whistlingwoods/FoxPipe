@@ -2,8 +2,9 @@ package org.schabi.newpipe.streams;
 
 import static org.schabi.newpipe.MainActivity.DEBUG;
 
-import android.util.Pair;
+import android.graphics.Bitmap;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +16,7 @@ import org.schabi.newpipe.streams.WebMReader.SimpleBlock;
 import org.schabi.newpipe.streams.WebMReader.WebMTrack;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -65,19 +67,19 @@ public class OggFromWebMWriter implements Closeable {
 
     private final int[] crc32Table = new int[256];
     private final StreamInfo streamInfo;
-    private final byte[] thumbnailData;
+    private final Bitmap thumbnail;
 
     /**
-     *
+     * Constructor of OggFromWebMWriter
      * @param source
      * @param target
-     * @param streamInfo
-     * @param thumbnailData
+     * @param streamInfo the stream info
+     * @param thumbnail the thumbnail bitmap used as cover art
      */
     public OggFromWebMWriter(@NonNull final SharpStream source,
                              @NonNull final SharpStream target,
                              @Nullable final StreamInfo streamInfo,
-                             @Nullable final byte[] thumbnailData) {
+                             @Nullable final Bitmap thumbnail) {
         if (!source.canRead() || !source.canRewind()) {
             throw new IllegalArgumentException("source stream must be readable and allows seeking");
         }
@@ -88,7 +90,7 @@ public class OggFromWebMWriter implements Closeable {
         this.source = source;
         this.output = target;
         this.streamInfo = streamInfo;
-        this.thumbnailData = thumbnailData;
+        this.thumbnail = thumbnail;
 
         this.streamId = (int) System.currentTimeMillis();
 
@@ -312,9 +314,9 @@ public class OggFromWebMWriter implements Closeable {
                         .getUploadDate()
                         .offsetDateTime()
                         .format(DateTimeFormatter.ISO_DATE)));
-                 if (thumbnailData != null) {
+                 if (thumbnail != null) {
 
-                     metadata.add(makeOpusPictureTag(thumbnailData, "image/jpeg"));
+                     metadata.add(makeOpusPictureTag(thumbnail));
                      // optional kompatibel:
                      // metadata.add(Pair.create("COVERART", Base64.getEncoder()
                      //        .encodeToString(thumb)));
@@ -360,8 +362,7 @@ public class OggFromWebMWriter implements Closeable {
         return buf.array();
     }
 
-    private static Pair<String, String> makeOpusPictureTag(final byte[] imageData,
-                                                           final String mimeType) {
+    private static Pair<String, String> makeOpusPictureTag(final Bitmap bitmap) {
         // FLAC picture block format (big-endian):
         // uint32 picture_type
         // uint32 mime_length, mime_string
@@ -371,7 +372,13 @@ public class OggFromWebMWriter implements Closeable {
         // uint32 color_depth
         // uint32 colors_indexed
         // uint32 data_length, data_bytes
-        final byte[] mimeBytes = mimeType.getBytes(StandardCharsets.UTF_8);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        bitmap.recycle();
+
+        final byte[] imageData = baos.toByteArray();
+        final byte[] mimeBytes = "image/jpeg".getBytes(StandardCharsets.UTF_8);
         final byte[] descBytes = new byte[0]; // optional description
         // fixed ints + mime + desc
         final int headerSize = 4 * 8 + mimeBytes.length + descBytes.length;
@@ -384,8 +391,8 @@ public class OggFromWebMWriter implements Closeable {
         if (descBytes.length > 0) {
             buf.put(descBytes);
         }
-        buf.putInt(0); // width (unknown)
-        buf.putInt(0); // height (unknown)
+        buf.putInt(bitmap.getWidth()); // width (unknown)
+        buf.putInt(bitmap.getHeight()); // height (unknown)
         buf.putInt(0); // color depth
         buf.putInt(0); // colors indexed
         buf.putInt(imageData.length);
