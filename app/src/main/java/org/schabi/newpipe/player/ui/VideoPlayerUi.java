@@ -31,6 +31,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -148,6 +149,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private final SeekbarPreviewThumbnailHolder seekbarPreviewThumbnailHolder =
             new SeekbarPreviewThumbnailHolder();
 
+    private boolean showRemainingTime = false; // New field for time remaining toggle
+    private boolean showRemainingTimeRight = false; // New field for time remaining toggle on right
+
 
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor, setup, destroy
@@ -208,6 +212,16 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.captionTextView.setOnClickListener(makeOnClickListener(this::onCaptionClicked));
         binding.resizeTextView.setOnClickListener(makeOnClickListener(this::onResizeClicked));
         binding.playbackLiveSync.setOnClickListener(makeOnClickListener(player::seekToDefault));
+        // New listener for playbackCurrentTime to toggle remaining time display
+        binding.playbackCurrentTime.setOnClickListener(v -> {
+            showRemainingTime = !showRemainingTime;
+            updatePlayBackElementsCurrentDuration((int) player.getExoPlayer().getCurrentPosition(), (int) player.getExoPlayer().getDuration());
+        });
+        // New listener for playbackEndTime to toggle remaining time display
+        binding.playbackEndTime.setOnClickListener(v -> {
+            showRemainingTimeRight = !showRemainingTimeRight;
+            updatePlayBackElementsCurrentDuration((int) player.getExoPlayer().getCurrentPosition(), (int) player.getExoPlayer().getDuration());
+        });
 
         playerGestureListener = buildGestureListener();
         gestureDetector = new GestureDetector(context, playerGestureListener);
@@ -284,6 +298,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.captionTextView.setOnClickListener(null);
         binding.resizeTextView.setOnClickListener(null);
         binding.playbackLiveSync.setOnClickListener(null);
+        binding.playbackCurrentTime.setOnClickListener(null); // Remove listener
+        binding.playbackEndTime.setOnClickListener(null); // Remove listener
 
         binding.getRoot().setOnTouchListener(null);
         playerGestureListener = null;
@@ -521,7 +537,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             setVideoDurationToControls(duration);
         }
         if (player.getCurrentState() != STATE_PAUSED) {
-            updatePlayBackElementsCurrentDuration(currentProgress);
+            updatePlayBackElementsCurrentDuration(currentProgress, duration); // Pass duration
         }
         if (player.isLoading() || bufferPercent > 90) {
             binding.playbackSeekBar.setSecondaryProgress(
@@ -540,13 +556,26 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * Sets the current duration into the corresponding elements.
      *
      * @param currentProgress the current progress, in milliseconds
+     * @param duration the total duration, in milliseconds
      */
-    private void updatePlayBackElementsCurrentDuration(final int currentProgress) {
+    private void updatePlayBackElementsCurrentDuration(final int currentProgress, final int duration) {
         // Don't set seekbar progress while user is seeking
         if (player.getCurrentState() != STATE_PAUSED_SEEK) {
             binding.playbackSeekBar.setProgress(currentProgress);
         }
-        binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        // Toggle between current time and remaining time on the left
+        if (showRemainingTime) {
+            binding.playbackCurrentTime.setText(getTimeString(duration - currentProgress));
+        } else {
+            binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        }
+
+        // Toggle between total duration and remaining time on the right
+        if (showRemainingTimeRight) {
+            binding.playbackEndTime.setText("- " + getTimeString(duration - currentProgress));
+        } else {
+            binding.playbackEndTime.setText(getTimeString(duration));
+        }
     }
 
     /**
@@ -555,8 +584,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * @param duration the video duration, in milliseconds
      */
     private void setVideoDurationToControls(final int duration) {
-        binding.playbackEndTime.setText(getTimeString(duration));
-
+        // The duration is now updated in updatePlayBackElementsCurrentDuration
         binding.playbackSeekBar.setMax(duration);
         // This is important for Android TVs otherwise it would apply the default from
         // setMax/Min methods which is (max - min) / 20
@@ -652,7 +680,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             player.getExoPlayer().play();
         }
 
-        binding.playbackCurrentTime.setText(getTimeString(seekBar.getProgress()));
+        // Update the current time display after seeking
+        updatePlayBackElementsCurrentDuration(seekBar.getProgress(), (int) player.getExoPlayer().getDuration());
         animate(binding.currentDisplaySeek, false, 200, AnimationType.SCALE_AND_ALPHA);
         animate(binding.currentSeekbarPreviewThumbnail, false, 200, AnimationType.SCALE_AND_ALPHA);
 
@@ -894,7 +923,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.getRoot().setKeepScreenOn(false);
 
         // When a (short) video ends the elements have to display the correct values - see #6180
-        updatePlayBackElementsCurrentDuration(binding.playbackSeekBar.getMax());
+        updatePlayBackElementsCurrentDuration(binding.playbackSeekBar.getMax(), (int) player.getExoPlayer().getDuration()); // Pass duration
 
         showControls(500);
         animate(binding.currentDisplaySeek, false, 200, AnimationType.SCALE_AND_ALPHA);
@@ -1454,7 +1483,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                                     // Hide controls in fullscreen immediately
                                     || (v == binding.screenRotationButton && isFullscreen())) {
                                 hideControls(0, 0);
-                            } else {
+                            }
+                            else {
                                 hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
                             }
                         }
