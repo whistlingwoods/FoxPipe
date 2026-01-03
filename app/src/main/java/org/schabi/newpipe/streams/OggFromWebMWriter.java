@@ -301,10 +301,10 @@ public class OggFromWebMWriter implements Closeable {
                         .format(DateTimeFormatter.ISO_DATE)));
             }
 
-            Log.d("OggFromWebMWriter", "Creating metadata header with this data:");
-            metadata.forEach(p -> {
-                Log.d("OggFromWebMWriter", p.first + "=" + p.second);
-            });
+            if (DEBUG) {
+                Log.d("OggFromWebMWriter", "Creating metadata header with this data:");
+                metadata.forEach(p -> Log.d("OggFromWebMWriter", p.first + "=" + p.second));
+            }
 
             return makeOpusTagsHeader(metadata);
         } else if ("A_VORBIS".equals(webmTrack.codecId)) {
