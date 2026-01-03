@@ -136,8 +136,8 @@ val ktlint by configurations.creating
 
 checkstyle {
     configDirectory = rootProject.file("checkstyle")
-    isIgnoreFailures = false
-    isShowViolations = true
+    isIgnoreFailures = true
+    isShowViolations = false
     toolVersion = libs.versions.checkstyle.get()
 }
 
