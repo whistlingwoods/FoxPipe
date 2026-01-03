@@ -34,7 +34,8 @@ class OggFromWebmDemuxer extends Postprocessing {
 
     @Override
     int process(SharpStream out, @NonNull SharpStream... sources) throws IOException {
-        OggFromWebMWriter demuxer = new OggFromWebMWriter(sources[0], out, streamInfo);
+        OggFromWebMWriter demuxer = new OggFromWebMWriter(
+                sources[0], out, streamInfo, thumbnailData);
         demuxer.parseSource();
         demuxer.selectTrack(0);
         demuxer.build();

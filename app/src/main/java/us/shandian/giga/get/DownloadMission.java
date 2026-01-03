@@ -1,5 +1,6 @@
 package us.shandian.giga.get;
 
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.system.ErrnoException;
 import android.system.OsConstants;
@@ -10,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import org.schabi.newpipe.DownloaderImpl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,11 +23,16 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.List;
 import java.util.Objects;
 
 import javax.net.ssl.SSLException;
 
+import org.schabi.newpipe.extractor.Image;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
+import org.schabi.newpipe.util.image.PicassoHelper;
+
 import us.shandian.giga.postprocessing.Postprocessing;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.util.Utility;
@@ -57,6 +64,10 @@ public class DownloadMission extends Mission {
     public static final int ERROR_RESOURCE_GONE = 1013;
     public static final int ERROR_HTTP_NO_CONTENT = 204;
     static final int ERROR_HTTP_FORBIDDEN = 403;
+
+    private StreamInfo streamInfo;
+    protected volatile byte[] thumbnailData;
+    protected volatile boolean thumbnailFetched = false;
 
     /**
      * The urls of the file to download
@@ -153,7 +164,8 @@ public class DownloadMission extends Mission {
     public transient Thread[] threads = new Thread[0];
     public transient Thread init = null;
 
-    public DownloadMission(String[] urls, StoredFileHelper storage, char kind, Postprocessing psInstance) {
+    public DownloadMission(String[] urls, StoredFileHelper storage, char kind,
+                           Postprocessing psInstance, StreamInfo streamInfo) {
         if (Objects.requireNonNull(urls).length < 1)
             throw new IllegalArgumentException("urls array is empty");
         this.urls = urls;
@@ -163,6 +175,7 @@ public class DownloadMission extends Mission {
         this.maxRetry = 3;
         this.storage = storage;
         this.psAlgorithm = psInstance;
+        this.streamInfo = streamInfo;
 
         if (DEBUG && psInstance == null && urls.length > 1) {
             Log.w(TAG, "mission created with multiple urls ¿missing post-processing algorithm?");
@@ -698,6 +711,7 @@ public class DownloadMission extends Mission {
         Exception exception = null;
 
         try {
+            psAlgorithm.setThumbnailData(thumbnailData);
             psAlgorithm.run(this);
         } catch (Exception err) {
             Log.e(TAG, "Post-processing failed. " + psAlgorithm.toString(), err);
@@ -829,6 +843,40 @@ public class DownloadMission extends Mission {
         }
     }
 
+    /**
+     * Lädt ein Thumbnail für die gegebene Liste von Images mit PicassoHelper und
+     * konvertiert es zu JPEG-Bytes (MIME: "image/jpeg").
+     *
+     * @param images Liste von Image-Objekten (darf nicht null sein)
+     */
+    @Nullable
+    public void fetchThumbnailAsJpeg(@NonNull final List<Image> images) {
+        if (images == null || images.isEmpty()) {
+            thumbnailFetched = true;
+            return;
+        }
+
+        try {
+            // synchrones Laden des Bitmaps (muss im Hintergrundthread aufgerufen werden)
+            final Bitmap bitmap = PicassoHelper.loadThumbnail(images).get();
+            if (bitmap == null) {
+                thumbnailFetched = true;
+                return;
+            }
+
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            bitmap.recycle();
+
+            thumbnailData = baos.toByteArray();
+            psAlgorithm.setThumbnailData(thumbnailData);
+            thumbnailFetched = true;
+        } catch (final java.io.IOException e) {
+            Log.w(TAG, "fetchThumbnailAsJpeg: failed to load/convert thumbnail", e);
+            thumbnailFetched = true;
+            thumbnailData = null;
+        }
+    }
 
     static class HttpError extends Exception {
         final int statusCode;

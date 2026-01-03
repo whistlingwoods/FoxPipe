@@ -81,6 +81,7 @@ public abstract class Postprocessing implements Serializable {
 
     private String[] args;
     protected StreamInfo streamInfo;
+    protected byte[] thumbnailData;
 
     private transient DownloadMission mission;
 
@@ -106,6 +107,10 @@ public abstract class Postprocessing implements Serializable {
                 // nothing to do
             }
         }
+    }
+
+    public void setThumbnailData(byte[] data) {
+        this.thumbnailData = data;
     }
 
 
