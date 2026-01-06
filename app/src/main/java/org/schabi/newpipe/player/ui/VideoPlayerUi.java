@@ -3,6 +3,7 @@ package org.schabi.newpipe.player.ui;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import static org.schabi.newpipe.MainActivity.DEBUG;
+import androidx.preference.PreferenceManager;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
 import static org.schabi.newpipe.player.Player.RENDERER_UNAVAILABLE;
@@ -179,9 +180,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         // CHANGE: Replaced Color.RED with Nord 6th accent color (#5E81AC)
         binding.playbackSeekBar.getThumb()
-                .setColorFilter(new PorterDuffColorFilter(Color.parseColor("#5E81AC"), PorterDuff.Mode.SRC_IN));
+                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
         binding.playbackSeekBar.getProgressDrawable()
-                .setColorFilter(new PorterDuffColorFilter(Color.parseColor("#5E81AC"), PorterDuff.Mode.MULTIPLY));
+                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY));
 
         final ContextThemeWrapper themeWrapper = new ContextThemeWrapper(context,
                 R.style.DarkPopupMenu);
@@ -855,7 +856,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         binding.playbackSeekBar.setEnabled(true);
         binding.playbackSeekBar.getThumb()
-                .setColorFilter(new PorterDuffColorFilter(Color.parseColor("#5E81AC"), PorterDuff.Mode.SRC_IN));
+                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
 
         binding.loadingPanel.setVisibility(View.GONE);
 
@@ -1104,7 +1105,12 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             }
 
             buildPlaybackSpeedMenu();
-            binding.playbackSpeed.setVisibility(View.GONE);
+            // Get the preference value using the existing 'context' variable
+            final boolean showSpeedControls = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getBoolean(context.getString(R.string.show_playback_speed_controls_key), true);
+
+            // Set visibility based on the toggle
+            binding.playbackSpeed.setVisibility(showSpeedControls ? View.VISIBLE : View.GONE);
         });
     }
     //endregion

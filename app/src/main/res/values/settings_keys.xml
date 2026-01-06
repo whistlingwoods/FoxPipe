@@ -1481,6 +1481,7 @@
         <item>@string/any_network</item>
         <item>@string/wifi_only</item>
     </string-array>
+    <string name="show_playback_speed_controls_key">show_playback_speed_controls</string>
     <string name="streams_notifications_channels_key">streams_notifications_channels</string>
     <string name="player_notification_screen_key">player_notification_screen</string>
 
