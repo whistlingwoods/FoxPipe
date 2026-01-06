@@ -207,7 +207,7 @@ dependencies {
 
     /** NewPipe libraries **/
     implementation(libs.newpipe.nanojson)
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation(libs.newpipe.extractor)
     implementation(libs.newpipe.filepicker)
 
     /** Checkstyle **/
