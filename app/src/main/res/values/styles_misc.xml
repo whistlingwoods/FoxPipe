@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Follows service's primary color -->
     <style name="ServiceColoredButton" parent="Widget.AppCompat.Button.Colored">
         <item name="colorButtonNormal">?attr/colorPrimary</item>
         <item name="android:textColor">@color/subscribe_text_color</item>
@@ -8,6 +9,7 @@
     </style>
 
 
+    <!--File picker styles-->
     <style name="FilePickerThemeLight" parent="NNF_BaseTheme.Light">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
@@ -97,7 +99,8 @@
     <style name="ToolbarSearchInputTheme">
         <item name="colorPrimary">?attr/toolbarSearchColor</item>
         <item name="colorPrimaryDark">?attr/toolbarSearchColor</item>
-        <item name="colorAccent">@color/colorAccent</item> </style>
+        <item name="colorAccent">?attr/toolbarSearchColor</item>
+    </style>
 
     <style name="CircularImageView">
         <item name="cornerFamily">rounded</item>

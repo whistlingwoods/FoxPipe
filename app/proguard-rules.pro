@@ -16,6 +16,16 @@
 -dontwarn javax.script.**
 -keep class jdk.dynalink.** { *; }
 -dontwarn jdk.dynalink.**
+-dontwarn com.google.protobuf.GeneratedMessageLite$Builder
+-dontwarn com.google.protobuf.GeneratedMessageLite
+-dontwarn com.google.protobuf.MessageLiteOrBuilder
+-dontwarn org.mozilla.javascript.Context
+-dontwarn org.mozilla.javascript.Function
+-dontwarn org.mozilla.javascript.Kit
+-dontwarn org.mozilla.javascript.Script
+-dontwarn org.mozilla.javascript.ScriptRuntime
+-dontwarn org.mozilla.javascript.Scriptable
+-dontwarn org.mozilla.javascript.ScriptableObject
 
 ## Rules for ExoPlayer
 -keep class com.google.android.exoplayer2.** { *; }
