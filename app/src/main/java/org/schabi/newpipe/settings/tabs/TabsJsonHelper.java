@@ -18,11 +18,13 @@ import java.util.List;
 public final class TabsJsonHelper {
     private static final String JSON_TABS_ARRAY_KEY = "tabs";
 
+    // تم تعديل هذه القائمة لحذف الصفحة الرئيسية (بث مباشر/الرائج)
+    // والبدء بـ "ما الجديد" مباشرة
     private static final List<Tab> FALLBACK_INITIAL_TABS_LIST = List.of(
-            Tab.Type.DEFAULT_KIOSK.getTab(),
-            Tab.Type.FEED.getTab(),
-            Tab.Type.SUBSCRIPTIONS.getTab(),
-            Tab.Type.BOOKMARKS.getTab());
+            // Tab.Type.DEFAULT_KIOSK.getTab(), // (كان يمثل الصفحة الرئيسية/الرائج)
+            Tab.Type.FEED.getTab(),           // ما الجديد
+            Tab.Type.SUBSCRIPTIONS.getTab(),  // الاشتراكات
+            Tab.Type.BOOKMARKS.getTab());     // الإشارات المرجعية
 
     private TabsJsonHelper() { }
 
