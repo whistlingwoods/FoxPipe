@@ -29,7 +29,7 @@
     <string name="fragment_feed_title">ਨਵਾਂ ਕੀ ਹੈ</string>
     <string name="controls_background_title">ਬੈਕਗ੍ਰਾਊਂਡ ਆਡੀਓ</string>
     <string name="controls_popup_title">ਪੌਪ-ਅਪ</string>
-    <string name="controls_add_to_playlist_title">ਵਿੱਚ ਸ਼ਾਮਿਲ ਕਰੋ</string>
+    <string name="controls_add_to_playlist_title">ਦੇ ਵਿੱਚ ਜੋੜ੍ਹੋ</string>
     <string name="download_path_title">ਵੀਡੀਓ ਲਈ ਡਾਊਨਲੋਡ ਫ਼ੋਲਡਰ</string>
     <string name="download_path_summary">ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਵੀਡੀਓ ਫ਼ਾਈਲਾਂ ਇੱਥੇ ਜਮ੍ਹਾਂ ਹੁੰਦੀਆਂ ਹਨ</string>
     <string name="download_path_dialog_title">ਵੀਡੀਓ ਫ਼ਾਈਲਾਂ ਲਈ ਡਾਊਨਲੋਡ ਫ਼ੋਲਡਰ ਚੁਣੋ</string>
@@ -84,7 +84,7 @@
     <string name="background_player_playing_toast">ਬੈਕਗ੍ਰਾਊਂਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ</string>
     <string name="popup_playing_toast">ਪੌਪ-ਅਪ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ</string>
     <string name="content">ਸਮੱਗਰੀ</string>
-    <string name="show_age_restricted_content_title">ਉਮਰ-ਮੁਤਾਬਕ-ਪਾਬੰਦੀਸ਼ੁਦਾ ਸਮੱਗਰੀ ਵਿਖਾਓ</string>
+    <string name="show_age_restricted_content_title">ਉਮਰ ਮੁਤਾਬਕ ਪਾਬੰਦੀਸ਼ੁਦਾ ਸਮੱਗਰੀ ਵਿਖਾਓ</string>
     <string name="duration_live">ਲਾਈਵ</string>
     <string name="downloads">ਡਾਊਨਲੋਡਸ</string>
     <string name="downloads_title">ਡਾਊਨਲੋਡਸ</string>
@@ -97,7 +97,7 @@
     <string name="play_all">ਸਾਰੇ ਚਲਾਓ</string>
     <string name="always">ਹਮੇਸ਼ਾਂ</string>
     <string name="just_once">ਸਿਰਫ਼ ਇਸ ਬਾਰ</string>
-    <string name="file">ਫਾਈਲ</string>
+    <string name="file">ਫ਼ਾਈਲ</string>
     <string name="notification_channel_name">ਫੌਕਸਪਾਈਪ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
     <string name="notification_channel_description">ਫੌਕਸਪਾਈਪ ਦੇ ਪਲੇਅਰ ਦੇ ਲਈ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
     <string name="unknown_content">[ਅਣਜਾਣ]</string>
@@ -129,9 +129,9 @@
     <string name="video_streams_empty">ਕੋਈ ਵੀਡੀਓ ਸਟ੍ਰੀਮ ਨਹੀਂ ਮਿਲੀ</string>
     <string name="audio_streams_empty">ਕੋਈ ਆਡੀਓ ਸਟ੍ਰੀਮ ਨਹੀਂ ਮਿਲੀ</string>
     <string name="invalid_directory">ਅਜਿਹਾ ਕੋਈ ਫੋਲਡਰ ਨਹੀਂ</string>
-    <string name="invalid_source">ਅਜਿਹਾ ਕੋਈ ਫਾਈਲ/ਸਮੱਗਰੀ ਸਰੋਤ ਨਹੀਂ ਹੈ</string>
-    <string name="invalid_file">ਫਾਈਲ ਮੌਜੂਦ ਨਹੀਂ ਹੈ ਜਾਂ ਇਸ ਨੂੰ ਪੜ੍ਹਨ ਜਾਂ ਲਿਖਣ ਦੀ ਆਗਿਆ ਨਹੀਂ ਹੈ</string>
-    <string name="file_name_empty_error">ਫਾਈਲ ਨਾਮ ਖਾਲੀ ਨਹੀਂ ਹੋ ਸਕਦਾ</string>
+    <string name="invalid_source">ਅਜਿਹਾ ਕੋਈ ਫ਼ਾਈਲ/ਸਮੱਗਰੀ ਸਰੋਤ ਨਹੀਂ ਹੈ</string>
+    <string name="invalid_file">ਫ਼ਾਈਲ ਮੌਜੂਦ ਨਹੀਂ ਹੈ ਜਾਂ ਇਸ ਨੂੰ ਪੜ੍ਹਨ ਜਾਂ ਲਿਖਣ ਦੀ ਆਗਿਆ ਨਹੀਂ ਹੈ</string>
+    <string name="file_name_empty_error">ਫ਼ਾਈਲ ਨਾਮ ਖਾਲੀ ਨਹੀਂ ਹੋ ਸਕਦਾ</string>
     <string name="error_occurred_detail">ਇੱਕ ਤਰੁੱਟੀ ਆਈ ਹੈ: %1$s</string>
     <string name="no_streams_available_download">ਡਾਊਨਲੋਡ ਕਰਨ ਲਈ ਕੋਈ ਸਟ੍ਰੀਮ ਉਪਲਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="sorry_string">ਮੁਆਫ ਕਰਨਾ, ਅਜਿਹਾ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ ਸੀ।</string>
@@ -175,13 +175,11 @@
     <string name="pause">ਰੋਕੋ</string>
     <string name="create">ਬਣਾਓ</string>
     <string name="delete">ਮਿਟਾਓ</string>
-    <string name="delete_file">ਫ਼ਾਈਲ ਮਿਟਾਓ</string>
-    <string name="delete_entry">ਐਂਟਰੀ ਮਿਟਾਓ</string>
     <string name="checksum">ਚੈੱਕ-ਸਮ</string>
     <string name="dismiss">ਖਾਰਿਜ ਕਰੋ</string>
     <string name="rename">ਨਾਮ ਬਦਲੋ</string>
     <string name="ok">ਠੀਕ ਹੈ</string>
-    <string name="msg_name">ਫਾਈਲ ਦਾ ਨਾਮ</string>
+    <string name="msg_name">ਫ਼ਾਈਲ ਦਾ ਨਾਮ</string>
     <string name="msg_threads">ਥਰੈੱਡ</string>
     <string name="msg_error">ਤਰੁੱਟੀ</string>
     <string name="msg_running">ਫੌਕਸਪਾਈਪ ਡਾਊਨਲੋਡ ਕਰ ਰਹੀ ਹੈ</string>
@@ -195,7 +193,7 @@
     <string name="title_activity_recaptcha">ReCaptcha ਚੁਣੌਤੀ</string>
     <string name="recaptcha_request_toast">ReCaptcha ਚੁਣੌਤੀ ਲਈ ਬੇਨਤੀ</string>
     <string name="settings_category_downloads_title">ਡਾਊਨਲੋਡ</string>
-    <string name="settings_file_charset_title">ਫਾਈਲ ਨਾਮ ਵਿੱਚ ਪ੍ਰਵਾਨਿਤ ਅੱਖਰ</string>
+    <string name="settings_file_charset_title">ਫ਼ਾਈਲ ਨਾਮ ਵਿੱਚ ਪ੍ਰਵਾਨਿਤ ਅੱਖਰ</string>
     <string name="settings_file_replacement_character_summary">ਗਲਤ ਅੱਖਰ ਇਸ ਚਿੰਨ ਨਾਲ ਤਬਦੀਲ ਕੀਤੇ ਜਾਣਗੇ</string>
     <string name="settings_file_replacement_character_title">ਵਟਾਂਦਰਾ ਚਿੰਨ</string>
     <string name="charset_letters_and_digits">ਅੱਖਰ ਅਤੇ ਅੰਕ</string>
@@ -231,8 +229,8 @@
     <string name="select_a_kiosk">ਇੱਕ ਕਿਓਸਕ ਚੁਣੋ</string>
     <string name="export_complete_toast">ਐਕਸਪੋਰਟ ਕੀਤਾ ਗਿਆ</string>
     <string name="import_complete_toast">ਇੰਪੋਰਟ ਕੀਤਾ ਗਿਆ</string>
-    <string name="no_valid_zip_file">ਕੋਈ ਵੈਧ ZIP ਫਾਈਲ ਨਹੀਂ ਹੈ</string>
-    <string name="could_not_import_all_files">ਚੇਤਾਵਨੀ: ਸਾਰੀਆਂ ਫਾਈਲਾਂ ਇੰਪੋਰਟ ਨਹੀਂ ਕੀਤੀਆਂ ਜਾ ਸਕੀਆਂ।</string>
+    <string name="no_valid_zip_file">ਕੋਈ ਵੈਧ ZIP ਫ਼ਾਈਲ ਨਹੀਂ ਹੈ</string>
+    <string name="could_not_import_all_files">ਚੇਤਾਵਨੀ: ਸਾਰੀਆਂ ਫ਼ਾਈਲਾਂ ਇੰਪੋਰਟ ਨਹੀਂ ਕੀਤੀਆਂ ਜਾ ਸਕੀਆਂ।</string>
     <string name="override_current_data">ਇਹ ਤੁਹਾਡੇ ਮੌਜੂਦਾ ਸੈਟ-ਅਪ ਨੂੰ ਓਵਰ-ਰਾਈਡ ਕਰ ਦੇਵੇਗਾ।</string>
     <string name="trending">ਫਿਲਹਾਲ ਰੁਝਾਨ ਵਿੱਚ ਹੈ</string>
     <string name="top_50">ਸਿਖਰਲੇ 50</string>
@@ -279,19 +277,19 @@
     <string name="export_to">ਤੇ ਐਕਸਪੋਰਟ ਕਰੋ</string>
     <string name="import_ongoing">ਇੰਪੋਰਟ ਹੋ ਰਿਹਾ ਹੈ…</string>
     <string name="export_ongoing">ਐਕਸਪੋਰਟ ਹੋ ਰਿਹਾ ਹੈ…</string>
-    <string name="import_file_title">ਇੰਪੋਰਟ ਫਾਈਲ</string>
+    <string name="import_file_title">ਇੰਪੋਰਟ ਫ਼ਾਈਲ</string>
     <string name="previous_export">ਪਿੱਛਲਾ ਐਕਸਪੋਰਟ</string>
     <string name="subscriptions_import_unsuccessful">ਸਬਸਕ੍ਰਿਪਸ਼ਨਾਂ ਇੰਪੋਰਟ ਨਹੀਂ ਹੋ ਸਕੀਆਂ</string>
     <string name="subscriptions_export_unsuccessful">ਸਬਸਕ੍ਰਿਪਸ਼ਨਾਂ ਐਕਸਪੋਰਟ ਨਹੀਂ ਹੋ ਸਕੀਆਂ</string>
-    <string name="import_youtube_instructions">ਗੂਗਲ ਟੇਕਆਊਟ ਤੋਂ ਯੂਟਿਊਬ ਸਬਸਕ੍ਰਿਪਸ਼ਨਾਂ ਇੰਪੋਰਟ ਕਰਨ ਲਈ ਐਕਸਪੋਰਟ ਫਾਈਲ ਡਾਊਨਲੋਡ ਕਰੋ:
+    <string name="import_youtube_instructions">ਗੂਗਲ ਟੇਕਆਊਟ ਤੋਂ ਯੂਟਿਊਬ ਸਬਸਕ੍ਰਿਪਸ਼ਨਾਂ ਇੰਪੋਰਟ ਕਰਨ ਲਈ ਐਕਸਪੋਰਟ ਫ਼ਾਈਲ ਡਾਊਨਲੋਡ ਕਰੋ:
 \n
 \n1. ਇਸ URL ਤੇ ਜਾਓ: %1$s
 \n2. ਮੰਗਣ ਤੇ ਆਪਣੇ ਖਾਤੇ \'ਚ ਲਾਗ-ਇਨ ਕਰੋ
 \n3. ਕਲਿੱਕ ਕਰੋ \" All data incuded\" ਤੇ, ਫੇਰ \"Deselect all\" ਤੇ ਫੇਰ ਸਿਰਫ \"subscriprion\" ਚੁਣੋ ਅਤੇ \"OK\" ਕਰੋ
 \n4. \"Next step\" ਤੇ ਕਲਿੱਕ ਕਰੋ ਤੇ ਫੇਰ \"create export\" ਤੇ
-\n5. ਡਾਊਨਲੋਡ ਬਟਨ ਦਿਖਾਈ ਦੇਣ ਤੇ ਇਸ ਤੇ ਕਲਿੱਕ ਕਰੋ। ਇੱਕ ਡਾਉਨਲੋਡ ਸ਼ੁਰੂ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ (ਇਹੀ ਐਕਸਪੋਰਟ ਫਾਈਲ ਹੈ)
-\n6. ਥੱਲੇ ਇੰਪੋਰਟ ਫਾਈਲ ਤੇ ਕਲਿੱਕ ਕਰੋ ਤੇ ਡਾਊਨਲੋਡ ਕੀਤੀ .zip ਫਾਈਲ ਚੁਣੋ
-\n7. [ਜੇ .zip ਤੋਂ ਐਕਸਪੋਰਟ ਫੇਲ ਹੋ ਜਾਂਦੀ ਹੈ] ਤਾਂ .csv ਫਾਈਲ ਐਕਸਟਰੈਕਟ ਕਰੋ (ਆਮ ਤੌਰ ਤੇ \"YouTube and YouTube Music/subscriptions/subscriptions.csv\"), ਥੱਲੇ ਦਿੱਤੇ ਇੰਪੋਰਟ ਫਾਈਲ ਤੇ ਕਲਿੱਕ ਕਰਕੇ ਐਕਸਟਰੈਕਟ ਕੀਤੀ csv ਫਾਈਲ ਚੁਣੋ</string>
+\n5. ਡਾਊਨਲੋਡ ਬਟਨ ਦਿਖਾਈ ਦੇਣ ਤੇ ਇਸ ਤੇ ਕਲਿੱਕ ਕਰੋ। ਇੱਕ ਡਾਉਨਲੋਡ ਸ਼ੁਰੂ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ (ਇਹੀ ਐਕਸਪੋਰਟ ਫ਼ਾਈਲ ਹੈ)
+\n6. ਥੱਲੇ ਇੰਪੋਰਟ ਫ਼ਾਈਲ ਤੇ ਕਲਿੱਕ ਕਰੋ ਤੇ ਡਾਊਨਲੋਡ ਕੀਤੀ .zip ਫ਼ਾਈਲ ਚੁਣੋ
+\n7. [ਜੇ .zip ਤੋਂ ਐਕਸਪੋਰਟ ਫੇਲ ਹੋ ਜਾਂਦੀ ਹੈ] ਤਾਂ .csv ਫ਼ਾਈਲ ਐਕਸਟਰੈਕਟ ਕਰੋ (ਆਮ ਤੌਰ ਤੇ \"YouTube and YouTube Music/subscriptions/subscriptions.csv\"), ਥੱਲੇ ਦਿੱਤੇ ਇੰਪੋਰਟ ਫ਼ਾਈਲ ਤੇ ਕਲਿੱਕ ਕਰਕੇ ਐਕਸਟਰੈਕਟ ਕੀਤੀ csv ਫ਼ਾਈਲ ਚੁਣੋ</string>
     <string name="import_soundcloud_instructions">URL ਜਾਂ ਆਪਣੀ ID ਟਾਈਪ ਕਰਕੇ ਸਾਉੰਡ ਕਲਾਉਡ ਪ੍ਰੋਫਾਈਲ ਇੰਪੋਰਟ ਕਰੋ:
 \n
 \n1. ਇੱਕ ਵੈਬ-ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ \"ਡੈਸਕਟਾਪ ਮੋਡ\" ਨੂੰ ਚਾਲੂ ਕਰੋ (ਸਾਈਟ ਮੋਬਾਈਲ ਉਪਕਰਣਾਂ ਲਈ ਉਪਲਬਧ ਨਹੀਂ ਹੈ)
@@ -322,7 +320,7 @@
     <string name="minimize_on_exit_none_description">ਕੋਈ ਨਹੀਂ</string>
     <string name="minimize_on_exit_background_description">ਬੈਕਗ੍ਰਾਊਂਡ ਪਲੇਅਰ ਵਿੱਚ ਬਦਲੋ</string>
     <string name="minimize_on_exit_popup_description">ਪੌਪ-ਅਪ ਪਲੇਅਰ ਵਿੱਚ ਬਦਲੋ</string>
-    <string name="skip_silence_checkbox">ਚੁੱਪ ਦੌਰਾਨ ਤੇਜ਼ੀ ਨਾਲ ਅੱਗੇ ਕਰੋ</string>
+    <string name="skip_silence_checkbox">ਖਾਮੋਸ਼ੀ ਦੌਰਾਨ ਤੇਜੀ ਨਾਲ ਅੱਗੇ ਵਧੋ</string>
     <string name="playback_step">ਕਦਮ</string>
     <string name="playback_reset">ਰੀਸੈੱਟ</string>
     <string name="channels">ਚੈਨਲ</string>
@@ -333,7 +331,7 @@
     <string name="tab_choose">ਟੈਬ ਚੁਣੋ</string>
     <string name="content_language_title">ਸਮੱਗਰੀ ਦੀ ਮੂਲ ਭਾਸ਼ਾ</string>
     <string name="settings_category_updates_title">ਅੱਪਡੇਟਾਂ</string>
-    <string name="file_deleted">ਫਾਈਲ ਮਿਟਾ ਦਿੱਤੀ ਗਈ ਹੈ</string>
+    <string name="file_deleted">ਫ਼ਾਈਲ ਮਿਟਾ ਦਿੱਤੀ ਗਈ ਹੈ</string>
     <string name="app_update_notification_channel_name">ਐਪ ਅੱਪਡੇਟ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
     <string name="app_update_notification_channel_description">ਨਵੇਂ ਐਪ ਸੰਸਕਰਣਾਂ ਲਈ ਪ੍ਰਾਪਤ ਸੂਚਨਾਵਾਂ</string>
     <string name="download_to_sdcard_error_title">ਬਾਹਰੀ ਸਟੋਰੇਜ ਉਪਲਬਧ ਨਹੀਂ ਹੈ</string>
@@ -363,7 +361,7 @@
     <string name="download_already_running">ਇਸ ਨਾਮ ਦੇ ਨਾਲ ਇੱਕ ਡਾਊਨਲੋਡ ਪਹਿਲਾਂ ਤੋਂ ਜਾਰੀ ਹੈ</string>
     <string name="show_error">ਤਰੁੱਟੀ ਵਿਖਾਓ</string>
     <string name="error_path_creation">ਮੰਜ਼ਿਲ ਫੋਲਡਰ ਬਣਾਇਆ ਨਹੀਂ ਜਾ ਸਕਿਆ</string>
-    <string name="error_file_creation">ਫਾਈਲ ਨਹੀਂ ਬਣਾਈ ਜਾ ਸਕਦੀ</string>
+    <string name="error_file_creation">ਫ਼ਾਈਲ ਨਹੀਂ ਬਣਾਈ ਜਾ ਸਕਦੀ</string>
     <string name="error_ssl_exception">ਸੁਰੱਖਿਅਤ ਕੁਨੈਕਸ਼ਨ ਸਥਾਪਤ ਨਹੀਂ ਹੋ ਸਕਿਆ</string>
     <string name="error_unknown_host">ਸਰਵਰ ਨਹੀਂ ਲੱਭ ਸਕਿਆ</string>
     <string name="error_connect_host">ਸਰਵਰ ਨਾਲ ਜੁੜ ਨਹੀਂ ਸਕਿਆ</string>
@@ -391,14 +389,14 @@
     <string name="settings_category_clear_data_title">ਡਾਟਾ ਮਿਟਾਓ</string>
     <string name="watch_history_deleted">ਵੇਖੀਆਂ ਸਟ੍ਰੀਮਾਂ ਦੀ ਇਤਿਹਾਸ ਸੂਚੀ ਨੂੰ ਮਿਟਾ ਦਿੱਤਾ ਗਿਆ</string>
     <string name="watch_history_states_deleted">ਪਲੇਅਬੈਕ ਸਥਿਤੀਆਂ ਨੂੰ ਮਿਟਾ ਦਿੱਤਾ ਗਿਆ</string>
-    <string name="missing_file">ਫਾਈਲ ਤਬਦੀਲ ਕੀਤੀ ਜਾਂ ਮਿਟਾਈ ਗਈ</string>
-    <string name="overwrite_unrelated_warning">ਇਸ ਨਾਮ ਵਾਲੀ ਇੱਕ ਫਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
-    <string name="overwrite_finished_warning">ਇਸ ਨਾਮ ਨਾਲ ਡਾਉਨਲੋਡ ਕੀਤੀ ਫਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
-    <string name="overwrite_failed">ਫਾਈਲ ਓਵਰਰਾਈਟ ਨਹੀਂ ਹੋ ਸਕਦੀ</string>
+    <string name="missing_file">ਫ਼ਾਈਲ ਤਬਦੀਲ ਕੀਤੀ ਜਾਂ ਮਿਟਾਈ ਗਈ</string>
+    <string name="overwrite_unrelated_warning">ਇਸ ਨਾਮ ਵਾਲੀ ਇੱਕ ਫ਼ਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
+    <string name="overwrite_finished_warning">ਇਸ ਨਾਮ ਨਾਲ ਡਾਉਨਲੋਡ ਕੀਤੀ ਫ਼ਾਈਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ</string>
+    <string name="overwrite_failed">ਫ਼ਾਈਲ ਓਵਰਰਾਈਟ ਨਹੀਂ ਹੋ ਸਕਦੀ</string>
     <string name="download_already_pending">ਇਸ ਨਾਮ ਦਾ ਇੱਕ ਡਾਊਨਲੋਡ ਬਕਾਇਆ ਹੈ</string>
-    <string name="error_postprocessing_stopped">ਫਾਈਲ ਤੇ ਕੰਮ ਕਰਦੇ ਸਮੇਂ ਫੌਕਸਪਾਈਪ ਬੰਦ ਕੀਤੀ ਗਈ</string>
+    <string name="error_postprocessing_stopped">ਫ਼ਾਈਲ ਤੇ ਕੰਮ ਕਰਦੇ ਸਮੇਂ ਫੌਕਸਪਾਈਪ ਬੰਦ ਕੀਤੀ ਗਈ</string>
     <string name="error_insufficient_storage_left">ਡਿਵਾਈਸ ਤੇ ਕੋਈ ਜਗ੍ਹਾ ਨਹੀਂ ਬਚੀ ਹੈ</string>
-    <string name="error_progress_lost">ਪ੍ਰਗਤੀ ਖਤਮ ਹੋ ਗਈ, ਕਿਉਂਕਿ ਫਾਈਲ ਮਿਟਾਈ ਗਈ</string>
+    <string name="error_progress_lost">ਪ੍ਰਗਤੀ ਖਤਮ ਹੋ ਗਈ, ਕਿਉਂਕਿ ਫ਼ਾਈਲ ਮਿਟਾਈ ਗਈ</string>
     <string name="error_timeout">ਕੁਨੈਕਸ਼ਨ ਦਾ ਸਮਾਂ ਸਮਾਪਤ</string>
     <string name="confirm_prompt">ਕੀ ਤੁਸੀਂ ਆਪਣਾ ਡਾਊਨਲੋਡ ਇਤਿਹਾਸ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ ਜਾਂ ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਸਾਰੀਆਂ ਫ਼ਾਈਲਾਂ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ\?</string>
     <string name="enable_queue_limit">ਡਾਊਨਲੋਡ ਕਤਾਰ ਸੀਮਤ ਕਰੋ</string>
@@ -518,7 +516,7 @@
         <item quantity="other">%d ਸਕਿੰਟ</item>
     </plurals>
     <string name="remove_watched_popup_yes_and_partially_watched_videos">ਹਾਂ, ਅਤੇ ਅੱਧ-ਪਚੱਧੀਆਂ ਵੇਖੀਆਂ ਹੋਈਆਂ ਵੀ</string>
-    <string name="remove_watched_popup_warning">ਪਲੇਲਿਸਟ ਵਿੱਚ ਸ਼ਾਮਿਲ, ਪਹਿਲਾਂ ਚਾਹੇ ਬਾਅਦ ਵਿੱਚ ਵੇਖੇ ਜਾ ਚੁੱਕੇ ਵੀਡੀਓ ਹਟਾ ਦਿੱਤੇ ਜਾਣਗੇ।
+    <string name="remove_watched_popup_warning">ਪਲੇਲਿਸਟ ਵਿੱਚ ਸ਼ਾਮਿਲ ਪਹਿਲਾਂ ਤੇ ਬਾਅਦ ਵਿੱਚ ਵੇਖੇ ਜਾ ਚੁੱਕੇ ਵੀਡੀਓ ਹਟਾ ਦਿੱਤੇ ਜਾਣਗੇ।
 \nਕੀ ਵਾਕਿਆ ਹੀ ਤੁਸੀਂ ਇਹਨਾਂ ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ? ਇਸ ਕਾਰਵਾਈ ਨੂੰ ਵਾਪਸ ਨਹੀਂ ਮੋੜਿਆ ਜਾ ਸਕਣਾ!</string>
     <string name="remove_watched_popup_title">ਵੇਖੇ ਹੋਏ ਵੀਡੀਓ ਹਟਾ ਦੇਈਏ\?</string>
     <string name="remove_watched">ਵੇਖੇ ਹੋਏ ਨੂੰ ਹਟਾਓ</string>
@@ -673,14 +671,14 @@
     <string name="any_network">ਕੋਈ ਵੀ ਨੈੱਟਵਰਕ</string>
     <string name="check_for_updates">ਅੱਪਡੇਟ ਲਈ ਜਾਂਚ ਕਰੋ</string>
     <string name="low_quality_smaller">ਘੱਟ ਗੁਣਵੱਤਾ (ਛੋਟਾ ਆਕਾਰ)</string>
-    <string name="delete_downloaded_files_confirm">ਡਿਸਕ ਤੋਂ ਸਾਰੀਆਂ ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫਾਈਲਾਂ ਹਟਾਓ\?</string>
+    <string name="delete_downloaded_files_confirm">ਡਿਸਕ ਤੋਂ ਸਾਰੀਆਂ ਡਾਊਨਲੋਡ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਹਟਾਓ\?</string>
     <plurals name="deleted_downloads_toast">
         <item quantity="one">%1$s ਡਾਊਨਲੋਡ ਹਟਾਇਆ</item>
         <item quantity="other">%1$s ਡਾਊਨਲੋਡ ਹਟਾਏ</item>
     </plurals>
     <string name="detail_sub_channel_thumbnail_view_description">ਚੈਨਲ ਦਾ ਅਵਤਾਰ ਥੰਮਨੇਲ</string>
-    <string name="no_appropriate_file_manager_message_android_10">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
-\nਕ੍ਰਿਪਾ ਕਰਕੇ ਸਟੋਰੇਜ ਐਕਸਿਸ ਫਰੇਮਵਰਕ SAF ਅਨੁਕੂਲ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ</string>
+    <string name="no_appropriate_file_manager_message_android_10">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫ਼ਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
+\nਕ੍ਰਿਪਾ ਕਰਕੇ ਸਟੋਰੇਜ ਐਕਸਿਸ ਫਰੇਮਵਰਕ SAF ਅਨੁਕੂਲ ਫ਼ਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ</string>
     <string name="tablet_mode_title">ਟੈਬਲੇਟ ਮੋਡ</string>
     <string name="notifications_disabled">ਨੋਟੀਫਿਕੇਸ਼ਨ ਬੰਦ ਕੀਤੇ ਹੋਏ ਹਨ</string>
     <string name="toggle_all">ਸਭ ਨੂੰ ਟੌਗਲ ਕਰੋ</string>
@@ -695,8 +693,8 @@
     <string name="streams_notifications_network_title">ਨੈੱਟਵਰਕ ਦੀ ਕਿਸਮ</string>
     <string name="manual_update_description">ਨਵੇਂ ਸੰਸਕਰਣਾਂ ਲਈ ਹੱਥੀਂ ਜਾਂਚ ਕਰੋ</string>
     <string name="high_quality_larger">ਵਧੀਆ ਗੁਣਵੱਤਾ (ਵੱਡਾ ਆਕਾਰ)</string>
-    <string name="no_appropriate_file_manager_message">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
-\nਕ੍ਰਿਪਾ ਕਰਕੇ ਫਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ ਜਾਂ ਡਾਊਨਲੋਡ ਸੈਟਿੰਗ ਵਿੱਚ \'%s\' ਅਸਮਰੱਥ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
+    <string name="no_appropriate_file_manager_message">ਇਸ ਕਾਰਜ ਲਈ ਕੋਈ ਢੁਕਵਾਂ ਫ਼ਾਈਲ ਮੈਨੇਜਰ ਨਹੀਂ ਮਿਲਿਆ।
+\nਕ੍ਰਿਪਾ ਕਰਕੇ ਫ਼ਾਈਲ ਮੈਨੇਜਰ ਇੰਨਸਟਾਲ ਕਰੋ ਜਾਂ ਡਾਊਨਲੋਡ ਸੈਟਿੰਗ ਵਿੱਚ \'%s\' ਅਸਮਰੱਥ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
     <string name="you_successfully_subscribed">ਤੁਸੀਂ ਇਸ ਚੈਨਲ ਨੂੰ ਸਬਸਕ੍ਰਾਈਬ ਕਰ ਲਿਆ ਹੈ</string>
     <string name="no_video_streams_available_for_external_players">ਕੋਈ ਵੀਡੀਓ ਸਟ੍ਰੀਮ ਬਾਹਰੀ ਪਲੇਅਰਾਂ ਲਈ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ</string>
     <string name="progressive_load_interval_exoplayer_default">ਐਕਸੋਪਲੇਅਰ ਡਿਫ਼ਾਲਟ</string>
@@ -828,5 +826,18 @@
     <string name="no">ਨਹੀਂ</string>
     <string name="import_settings_vulnerable_format">ਇੰਪੋਰਟ ਕੀਤੇ ਜਾ ਰਹੇ ਐਕਸਪੋਰਟ ਵਿੱਚ ਸੈਟਿੰਗਾਂ ਇੱਕ ਕਮਜ਼ੋਰ ਫਾਰਮੈਟ ਦੀ ਵਰਤੋਂ ਕਰਦੀਆਂ ਹਨ ਜੋ ਨਿਊਪਾਈਪ 0.27.0 ਤੋਂ ਬਰਤਰਫ਼ ਕੀਤਾ ਗਿਆ ਸੀ। ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਇੰਪੋਰਟ ਕੀਤਾ ਜਾ ਰਿਹਾ ਨਿਰਯਾਤ ਇੱਕ ਭਰੋਸੇਯੋਗ ਸਰੋਤ ਤੋਂ ਹੈ, ਅਤੇ ਸਿਰਫ਼ ਨਿਊਪਾਈਪ 0.27.0 ਜਾਂ ਇਸਤੋਂ ਨਵੇਂ ਤੋਂ ਪ੍ਰਾਪਤ ਕੀਤੇ ਐਕਸਪੋਰਟ ਦੀ ਵਰਤੋਂ ਕਰਨ ਨੂੰ ਤਰਜੀਹ ਦਿਓ। ਇਸ ਕਮਜ਼ੋਰ ਫਾਰਮੈਟ ਵਿੱਚ ਸੈਟਿੰਗਾਂ ਨੂੰ ਆਯਾਤ ਕਰਨ ਲਈ ਸਮਰਥਨ ਜਲਦੀ ਹੀ ਪੂਰੀ ਤਰ੍ਹਾਂ ਹਟਾ ਦਿੱਤਾ ਜਾਵੇਗਾ ਅਤੇ ਫਿਰ ਨਿਊਪਾਈਪ ਦੇ ਪੁਰਾਣੇ ਸੰਸਕਰਣ ਹੁਣ ਨਵੇਂ ਸੰਸਕਰਣਾਂ ਤੋਂ ਐਕਸਪੋਰਟ ਦੀਆਂ ਸੈਟਿੰਗਾਂ ਨੂੰ ਇੰਪੋਰਟ ਕਰਨ ਦੇ ਯੋਗ ਨਹੀਂ ਹੋਣਗੇ।</string>
     <string name="audio_track_type_secondary">ਸੈਕੰਡਰੀ</string>
+    <string name="search_with_service_name">%1$s ਖੋਜੋ</string>
+    <string name="search_with_service_name_and_filter">%1$s (%2$s) ਖੋਜੋ</string>
+    <string name="select_a_feed_group">ਫੀਡ ਗਰੁੱਪ ਚੁਣੋ</string>
+    <string name="no_feed_group_created_yet">ਅਜੇ ਤੱਕ ਕੋਈ ਫੀਡ ਗਰੁੱਪ ਨਹੀਂ ਬਣਾਇਆ ਗਿਆ</string>
+    <string name="feed_group_page_summary">ਚੈਨਲ ਗਰੁੱਪ ਪੰਨਾ</string>
+    <string name="channel_tab_likes">ਲਾਈਕਸ</string>
+    <string name="search_suggestions_count_title">ਖੋਜ ਸੁਝਾਵਾਂ ਦੀ ਗਿਣਤੀ</string>
+    <string name="search_suggestions_count_summary">ਪ੍ਰਦਰਸ਼ਿਤ ਕਰਨ ਲਈ ਪਿਛਲੇ ਖੋਜ ਸੁਝਾਵਾਂ ਦੀ ਗਿਣਤੀ</string>
+    <string name="delete_file">ਫ਼ਾਈਲ ਮਿਟਾਓ</string>
+    <string name="delete_entry">ਐਂਟਰੀ ਮਿਟਾਓ</string>
     <string name="entry_deleted">ਐਂਟਰੀ ਮਿਟਾ ਦਿੱਤੀ ਗਈ</string>
+    <string name="max_silence_duration_title">ਵੱਧ ਤੋਂ ਵੱਧ ਖਾਮੋਸ਼ੀ ਦਾ ਸਮਾਂ ਮਿਲੀਸਕਿੰਟਾਂ ਵਿੱਚ ਜਦੋਂ \"ਖਾਮੋਸ਼ੀ ਦੌਰਾਨ ਤੇਜੀ ਨਾਲ ਅੱਗੇ ਵਧੋ\"  ਚਾਲੂ ਹੋਵੇ</string>
+    <string name="settings_file_name_include_uploader_key_title">ਫ਼ਾਈਲ ਵਿੱਚ ਅੱਪਲੋਡਰ ਦਾ ਨਾਮ</string>
+    <string name="settings_file_name_include_uploader_key_summary">ਡਾਊਨਲੋਡ ਫ਼ਾਈਲ ਨਾਮ ਦੇ ਅਖੀਰ ਵਿੱਚ ਅਪਲੋਡਰ ਦਾ ਨਾਮ ਜੋੜ੍ਹੋ</string>
 </resources>

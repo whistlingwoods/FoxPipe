@@ -74,7 +74,7 @@
     <string name="enable_watch_history_summary">देखे गए वीडियोज़ की सूची रखें</string>
     <string name="resume_on_audio_focus_gain_title">प्लेबैक फिर से शुरू करें</string>
     <string name="resume_on_audio_focus_gain_summary">रुकावटें (जैसे कि फ़ोन कॉल) खत्म होने के बाद वीडियो प्ले जारी रखें</string>
-    <string name="show_next_and_similar_title">\'अगले\' और \'संबंधित\' वीडियो दिखाएं</string>
+    <string name="show_next_and_similar_title">\'अगला\' और \'संबंधित\' वीडियो दिखाएं</string>
     <string name="show_hold_to_append_title">\"कतार में जोड़ने के लिए स्पर्श बनाये रखें\" दिखाएं</string>
     <string name="show_hold_to_append_summary">जब बैकग्राउंड और पॉपअप बटन वीडियो के विवरण पन्ने में दबाई जाए तो सलाह दिखाएं</string>
     <string name="unsupported_url">असमर्थित URL</string>
@@ -187,7 +187,7 @@
     <string name="controls_download_desc">स्ट्रीम फाइल डाउनलोड करें</string>
     <string name="show_info">जानकारी दिखाएं</string>
     <string name="tab_bookmarks">बुकमार्क की गई प्लेलिस्टें</string>
-    <string name="controls_add_to_playlist_title">में शामिल करें</string>
+    <string name="controls_add_to_playlist_title">में जोड़ें</string>
     <string name="default_content_country_title">सामग्री का डिफ़ॉल्ट देश</string>
     <string name="always">हमेशा</string>
     <string name="just_once">सिर्फ एक बार</string>
@@ -307,7 +307,7 @@
     <string name="playback_tempo">ताल</string>
     <string name="playback_pitch">पिच</string>
     <string name="unhook_checkbox">अनहुक (आवाज़ में बिगाड़ पड़ सकता है)</string>
-    <string name="skip_silence_checkbox">खामोशी के समय तेज़ी से आगे बढ़ें</string>
+    <string name="skip_silence_checkbox">खामोशी के दौरान तेज़ी से आगे बढ़ें</string>
     <string name="playback_step">कदम</string>
     <string name="playback_reset">रीसेट करें</string>
     <string name="accept">स्वीकार करें</string>
@@ -826,4 +826,19 @@
     <string name="settings_category_backup_restore_title">बैकअप और रिस्टोर</string>
     <string name="import_settings_vulnerable_format">आयात किए जा रहे निर्यात में सेटिंग्स एक कमजोर प्रारूप का उपयोग करती हैं जिसे न्यूपाइप 0.27.0 के बाद से हटा दिया गया था। सुनिश्चित करें कि आयात किया जा रहा निर्यात किसी विश्वसनीय स्रोत से है, और भविष्य में केवल न्यूपाइप 0.27.0 या नए से प्राप्त निर्यात का उपयोग करना पसंद करें। इस असुरक्षित प्रारूप में सेटिंग्स आयात करने के लिए समर्थन जल्द ही पूरी तरह से हटा दिया जाएगा, और फिर न्यूपाइप के पुराने संस्करण अब नए संस्करणों से निर्यात की सेटिंग्स आयात नहीं कर पाएंगे।</string>
     <string name="audio_track_type_secondary">सेकेंडरी</string>
+    <string name="search_with_service_name">%1$s खोजें</string>
+    <string name="search_with_service_name_and_filter">%1$s (%2$s) खोजें</string>
+    <string name="tab_bookmarks_short">प्लेलिस्ट</string>
+    <string name="select_a_feed_group">कृपया एक फ़ीड समूह चुनें</string>
+    <string name="no_feed_group_created_yet">अभी तक कोई फ़ीड समूह नहीं बनाया गया है</string>
+    <string name="feed_group_page_summary">चैनल समूह पेज</string>
+    <string name="channel_tab_likes">लाइकस</string>
+    <string name="search_suggestions_count_title">खोज सुझावों की संख्या</string>
+    <string name="search_suggestions_count_summary">दिखाए जाने वाले पिछले सर्च सुझावों की संख्या</string>   
+    <string name="delete_file">फाईल डिलीट करें</string>
+    <string name="delete_entry">एंटरी मिटाऐं</string>
+    <string name="entry_deleted">एंटरी मिटा दी गई</string>
+    <string name="max_silence_duration_title">मिलीसेकंड में मौन का ज़्यादा से ज़्यादा समय जब \"खामोशी के दौरान तेज़ी से आगे बढ़ें\" चालू हो</string>
+    <string name="settings_file_name_include_uploader_key_title">फ़ाइल में अपलोडर का नाम</string>
+    <string name="settings_file_name_include_uploader_key_summary">डाउनलोड फ़ाइल नाम के आखिर में अपलोडर का नाम जोड़ें</string>
 </resources>
