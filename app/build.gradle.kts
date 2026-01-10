@@ -79,7 +79,7 @@ configure<ApplicationExtension> {
                 resValue("string", "app_name", "ZenPipe $suffix")
             }
             isMinifyEnabled = true
-            isShrinkResources = true
+            isShrinkResources = false // disabled to fix F-Droid"s reproducible build
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
