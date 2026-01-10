@@ -83,7 +83,7 @@ import org.schabi.newpipe.settings.UpdateSettingsFragment;
 import org.schabi.newpipe.settings.migration.MigrationManager;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
-import org.schabi.newpipe.util.KioskTranslator;
+//import org.schabi.newpipe.util.KioskTranslator;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.PeertubeHelper;
@@ -143,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
 
         Localization.migrateAppLanguageSettingIfNecessary(getApplicationContext());
         ThemeHelper.setDayNightMode(this);
+        // YouTube ID is usually 0
+        org.schabi.newpipe.util.ServiceHelper.setSelectedServiceId(this, 0);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
 
         // Fixes text color turning black in dark/black mode:
@@ -285,8 +287,9 @@ public class MainActivity extends AppCompatActivity {
         final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
         final StreamingService service = NewPipe.getService(currentServiceId);
 
-        int kioskMenuItemId = 0;
+        //int kioskMenuItemId = 0;
 
+        /*
         for (final String ks : service.getKioskList().getAvailableKiosks()) {
             drawerLayoutBinding.navigation.getMenu()
                     .add(R.id.menu_kiosks_group, kioskMenuItemId, 0, KioskTranslator
@@ -294,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                     .setIcon(KioskTranslator.getKioskIcon(ks));
             kioskMenuItemId++;
         }
+        */
 
         //Settings and About
         drawerLayoutBinding.navigation.getMenu()
@@ -392,19 +396,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupDrawerHeader() {
-        // 1. إخفاء زر السهم تماماً
+        // 1. إخفاء زر السهم (الذي يفتح القائمة)
         drawerHeaderBinding.drawerHeaderActionButton.setVisibility(View.GONE);
 
-        // 2. إلغاء تفعيل الضغط على الزر (في حال كان مخفياً ولكنه موجود)
-        drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(null);
-        drawerHeaderBinding.drawerHeaderActionButton.setClickable(false);
+        // 2. إخفاء السهم الصغير تحديداً (هذا ما كان ينقصك)
+        drawerHeaderBinding.drawerArrow.setVisibility(View.GONE);
 
-        // 3. (هام جداً) إلغاء تفعيل الضغط على عنوان الخدمة (كلمة YouTube نفسها)
-        // أحياناً يكون النص نفسه قابلاً للضغط في بعض النسخ
-        drawerHeaderBinding.drawerHeaderServiceView.setClickable(false);
-        drawerHeaderBinding.drawerHeaderServiceView.setOnClickListener(null);
-
-        // بقية كود تكبير الخط نتركه كما هو ليعمل التطبيق بشكل سليم
+        // هذا الكود يبقي اسم التطبيق "NewPipe" ظاهراً ومنسقاً
         if (getString(R.string.app_name).length() > "NewPipe".length()) {
             final ViewGroup.LayoutParams layoutParams =
                     drawerHeaderBinding.drawerHeaderNewpipeTitle.getLayoutParams();
