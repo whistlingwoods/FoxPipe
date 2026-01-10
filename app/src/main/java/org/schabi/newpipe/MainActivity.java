@@ -392,10 +392,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupDrawerHeader() {
-        drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(view -> toggleServices());
+        // 1. إخفاء زر السهم تماماً
+        drawerHeaderBinding.drawerHeaderActionButton.setVisibility(View.GONE);
 
-        // If the current app name is bigger than the default "NewPipe" (7 chars),
-        // let the text view grow a little more as well.
+        // 2. إلغاء تفعيل الضغط على الزر (في حال كان مخفياً ولكنه موجود)
+        drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(null);
+        drawerHeaderBinding.drawerHeaderActionButton.setClickable(false);
+
+        // 3. (هام جداً) إلغاء تفعيل الضغط على عنوان الخدمة (كلمة YouTube نفسها)
+        // أحياناً يكون النص نفسه قابلاً للضغط في بعض النسخ
+        drawerHeaderBinding.drawerHeaderServiceView.setClickable(false);
+        drawerHeaderBinding.drawerHeaderServiceView.setOnClickListener(null);
+
+        // بقية كود تكبير الخط نتركه كما هو ليعمل التطبيق بشكل سليم
         if (getString(R.string.app_name).length() > "NewPipe".length()) {
             final ViewGroup.LayoutParams layoutParams =
                     drawerHeaderBinding.drawerHeaderNewpipeTitle.getLayoutParams();
@@ -410,26 +419,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleServices() {
-        servicesShown = !servicesShown;
-
-        drawerLayoutBinding.navigation.getMenu().removeGroup(R.id.menu_services_group);
-        drawerLayoutBinding.navigation.getMenu().removeGroup(R.id.menu_tabs_group);
-        drawerLayoutBinding.navigation.getMenu().removeGroup(R.id.menu_kiosks_group);
-        drawerLayoutBinding.navigation.getMenu().removeGroup(R.id.menu_options_about_group);
-
-        // Show up or down arrow
-        drawerHeaderBinding.drawerArrow.setImageResource(
-                servicesShown ? R.drawable.ic_arrow_drop_up : R.drawable.ic_arrow_drop_down);
-
-        if (servicesShown) {
-            showServices();
-        } else {
-            try {
-                addDrawerMenuForCurrentService();
-            } catch (final Exception e) {
-                ErrorUtil.showUiErrorSnackbar(this, "Showing main page tabs", e);
-            }
-        }
+        // لقد قمنا بمسح كل شيء هنا.
+        // الآن هذه الدالة عبارة عن "جسد ميت"، لا تفعل شيئاً عند استدعائها.
     }
 
     private void showServices() {
