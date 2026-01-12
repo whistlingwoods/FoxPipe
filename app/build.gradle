@@ -67,6 +67,8 @@ android {
             shrinkResources false // disabled to fix F-Droid's reproducible build
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             archivesBaseName = 'app'
+            applicationIdSuffix "d"
+            resValue "string", "app_name", "FoxPipe " + "D"
         }
     }
 
