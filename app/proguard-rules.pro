@@ -16,16 +16,11 @@
 -dontwarn javax.script.**
 -keep class jdk.dynalink.** { *; }
 -dontwarn jdk.dynalink.**
--dontwarn com.google.protobuf.GeneratedMessageLite$Builder
--dontwarn com.google.protobuf.GeneratedMessageLite
--dontwarn com.google.protobuf.MessageLiteOrBuilder
--dontwarn org.mozilla.javascript.Context
--dontwarn org.mozilla.javascript.Function
--dontwarn org.mozilla.javascript.Kit
--dontwarn org.mozilla.javascript.Script
--dontwarn org.mozilla.javascript.ScriptRuntime
--dontwarn org.mozilla.javascript.Scriptable
--dontwarn org.mozilla.javascript.ScriptableObject
+# Rules for jsoup
+# Ignore intended-to-be-optional re2j classes - only needed if using re2j for jsoup regex
+# jsoup safely falls back to JDK regex if re2j not on classpath, but has concrete re2j refs
+# See https://github.com/jhy/jsoup/issues/2459 - may be resolved in future, then this may be removed
+-dontwarn com.google.re2j.**
 
 ## Rules for ExoPlayer
 -keep class com.google.android.exoplayer2.** { *; }
