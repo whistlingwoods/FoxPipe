@@ -2,6 +2,7 @@ package org.schabi.newpipe.streams;
 
 import static org.schabi.newpipe.MainActivity.DEBUG;
 
+import android.util.Base64; // تأكد من استيراد Base64
 import android.util.Log;
 import android.util.Pair;
 
@@ -15,7 +16,11 @@ import org.schabi.newpipe.streams.WebMReader.SimpleBlock;
 import org.schabi.newpipe.streams.WebMReader.WebMTrack;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -64,6 +69,9 @@ public class OggFromWebMWriter implements Closeable {
     private final int[] crc32Table = new int[256];
     private final StreamInfo streamInfo;
 
+    // --- إضافة: متغير لحفظ ملف الغلاف ---
+    private File coverArtFile;
+
     public OggFromWebMWriter(@NonNull final SharpStream source, @NonNull final SharpStream target,
                              @Nullable final StreamInfo streamInfo) {
         if (!source.canRead() || !source.canRewind()) {
@@ -80,6 +88,11 @@ public class OggFromWebMWriter implements Closeable {
         this.streamId = (int) System.currentTimeMillis();
 
         populateCrc32Table();
+    }
+    
+    // --- إضافة: دالة لاستقبال ملف الغلاف ---
+    public void setCover(File cover) {
+        this.coverArtFile = cover;
     }
 
     public boolean isDone() {
@@ -301,6 +314,19 @@ public class OggFromWebMWriter implements Closeable {
                         .format(DateTimeFormatter.ISO_DATE)));
             }
 
+            // --- إضافة: تضمين صورة الغلاف ---
+            if (coverArtFile != null && coverArtFile.exists()) {
+                try {
+                    String picBlock = createFlacPictureBlock(coverArtFile);
+                    if (picBlock != null) {
+                        metadata.add(Pair.create("METADATA_BLOCK_PICTURE", picBlock));
+                    }
+                } catch (Exception e) {
+                    if (DEBUG) e.printStackTrace();
+                }
+            }
+            // -------------------------------
+
             if (DEBUG) {
                 Log.d("OggFromWebMWriter", "Creating metadata header with this data:");
                 metadata.forEach(p -> {
@@ -321,6 +347,49 @@ public class OggFromWebMWriter implements Closeable {
         // not implemented for the desired codec
         return null;
     }
+    
+    // --- إضافة: دالة مساعدة لإنشاء بلوك الصورة بنظام FLAC ---
+    private String createFlacPictureBlock(File file) throws IOException {
+        byte[] data = new byte[(int) file.length()];
+        try (FileInputStream fis = new FileInputStream(file)) {
+            fis.read(data);
+        }
+
+        // تحديد نوع المايم (MIME) بسيط
+        String mimeType = "image/jpeg";
+        if (file.getName().toLowerCase().endsWith(".png")) {
+            mimeType = "image/png";
+        }
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        dos.writeInt(3); // Picture Type: 3 = Cover (front)
+        
+        byte[] mimeBytes = mimeType.getBytes("UTF-8");
+        dos.writeInt(mimeBytes.length); // MIME length
+        dos.write(mimeBytes);           // MIME string
+        
+        String desc = "";
+        byte[] descBytes = desc.getBytes("UTF-8");
+        dos.writeInt(descBytes.length); // Description length
+        dos.write(descBytes);           // Description string
+
+        // Width, Height, Depth, Colors (نضعها 0 لعدم تعقيد الكود بمكتبات الصور)
+        dos.writeInt(0);
+        dos.writeInt(0);
+        dos.writeInt(0);
+        dos.writeInt(0);
+
+        dos.writeInt(data.length); // Image Data length
+        dos.write(data);           // Image Data
+
+        dos.flush();
+        byte[] blockBytes = baos.toByteArray();
+        
+        // تشفير النتيجة بـ Base64
+        return Base64.encodeToString(blockBytes, Base64.NO_WRAP);
+    }
 
     /**
      * This creates a single metadata tag for use in opus metadata headers. It contains the four
@@ -331,7 +400,7 @@ public class OggFromWebMWriter implements Closeable {
      * @return The binary data of the encoded metadata tag
      */
     private static byte[] makeOpusMetadataTag(final Pair<String, String> pair) {
-        final var keyValue = pair.first.toUpperCase() + "=" + pair.second.trim();
+        final var keyValue = pair.first + "=" + pair.second; // إزالة UpperCase للسماح بـ METADATA_BLOCK_PICTURE
 
         final var bytes = keyValue.getBytes();
         final var buf = ByteBuffer.allocate(4 + bytes.length);

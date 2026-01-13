@@ -46,11 +46,17 @@ public class PlaylistDownloadLogic {
         public List<MissionRecoveryInfo> recovery;
         public String filename;
         public String mimeType;
+        public String thumbnailUrl; // متغير لحفظ رابط الصورة
     }
 
     public static DownloadBundle prepareDownload(Context context, StreamInfo info, String targetQuality) {
         DownloadBundle bundle = new DownloadBundle();
 
+         if (info.getThumbnails() != null && !info.getThumbnails().isEmpty()) {
+            bundle.thumbnailUrl = info.getThumbnails().get(0).getUrl();
+        } else {
+            bundle.thumbnailUrl = null;
+        }
         // ---------------------------------------------------------
         // 1. معالجة طلبات الصوت
         // ---------------------------------------------------------

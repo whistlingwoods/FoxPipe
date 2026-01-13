@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import java.io.File;
+import java.io.FileInputStream;
+
 /**
  * @author kapodamy
  */
@@ -28,6 +31,9 @@ public class Mp4FromDashWriter {
     private static final int THRESHOLD_MOOV_LENGTH = (256 * 1024) + (2048 * 1024);
 
     private final long time;
+
+    // متغير لحفظ الصورة
+    private File coverArtFile;
 
     private ByteBuffer auxBuffer;
     private SharpStream outStream;
@@ -65,6 +71,10 @@ public class Mp4FromDashWriter {
         compatibleBrands.add(0x6D703431); // mp41
         compatibleBrands.add(0x69736F6D); // isom
         compatibleBrands.add(0x69736F32); // iso2
+    }
+
+    public void setCover(File cover) {
+        this.coverArtFile = cover;
     }
 
     public Mp4Track[] getTracksFromSource(final int sourceIndex) throws IllegalStateException {
@@ -719,6 +729,8 @@ public class Mp4FromDashWriter {
             }
             makeTrak(i, durations[i], defaultMediaTime[i], tablesInfo[i], is64);
         }
+        
+        makeUdta(); 
 
         return lengthFor(start);
     }
@@ -897,6 +909,97 @@ public class Mp4FromDashWriter {
 
         return buffer.array();
     }
+
+    // ==========================================
+    //  بداية كود إضافة الغلاف (انسخ من هنا)
+    // ==========================================
+
+    private void makeUdta() throws IOException {
+        // إذا لم توجد صورة، لا تفعل شيئاً
+        if (coverArtFile == null || !coverArtFile.exists()) return;
+
+        final int start = auxOffset();
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x75, 0x64, 0x74, 0x61}); // udta atom
+        makeMeta();
+        lengthFor(start);
+    }
+
+    private void makeMeta() throws IOException {
+        final int start = auxOffset();
+        // meta box (FullBox)
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x6D, 0x65, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00});
+        
+        // hdlr atom for metadata
+        ByteBuffer hdlr = ByteBuffer.allocate(33);
+        hdlr.putInt(33);
+        hdlr.putInt(0x68646C72); // "hdlr"
+        hdlr.putInt(0); 
+        hdlr.putInt(0); 
+        hdlr.putInt(0x6D646972); // "mdir"
+        hdlr.putInt(0x6170706C); // "appl"
+        hdlr.putInt(0); 
+        hdlr.putInt(0); 
+        hdlr.put(new byte[]{0}); 
+        auxWrite(hdlr.array());
+        
+        makeIlst();
+        lengthFor(start);
+    }
+
+    private void makeIlst() throws IOException {
+        final int start = auxOffset();
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x69, 0x6C, 0x73, 0x74}); // ilst
+        makeCovr();
+        lengthFor(start);
+    }
+
+    private void makeCovr() throws IOException {
+        final int start = auxOffset();
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x63, 0x6F, 0x76, 0x72}); // covr
+        makeData();
+        lengthFor(start);
+    }
+
+    private void makeData() throws IOException {
+        final int start = auxOffset();
+        
+        // تحديد نوع الصورة (13 للـ JPEG و 14 للـ PNG)
+        int typeFlag = 13; 
+        if (coverArtFile.getName().toLowerCase().endsWith(".png")) {
+            typeFlag = 14;
+        }
+
+        // data atom
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x64, 0x61, 0x74, 0x61});
+        auxWrite(typeFlag); // type
+        auxWrite(0); // locale
+        
+        // كتابة بيانات الصورة
+        if (moovSimulation) {
+             writeOffset += coverArtFile.length();
+        } else if (auxBuffer == null) {
+            try (FileInputStream fis = new FileInputStream(coverArtFile)) {
+                byte[] buffer = new byte[4096];
+                int n;
+                while ((n = fis.read(buffer)) != -1) {
+                    outWrite(buffer, n);
+                }
+            }
+        } else {
+            try (FileInputStream fis = new FileInputStream(coverArtFile)) {
+                byte[] buffer = new byte[4096];
+                int n;
+                while ((n = fis.read(buffer)) != -1) {
+                    auxBuffer.put(buffer, 0, n);
+                }
+            }
+        }
+
+        lengthFor(start);
+    }
+    // ==========================================
+    //  نهاية كود إضافة الغلاف
+    // ==========================================
 
     static class TablesInfo {
         int stts;

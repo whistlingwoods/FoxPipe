@@ -7,9 +7,14 @@ import androidx.annotation.NonNull;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
+import java.net.URLConnection;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.io.ChunkFileInputStream;
@@ -84,6 +89,8 @@ public abstract class Postprocessing implements Serializable {
     private transient DownloadMission mission;
 
     private transient File tempFile;
+    // --- تعديل 1: متغير لحفظ ملف الغلاف المؤقت ---
+    protected transient File tempCover; 
 
     Postprocessing(boolean reserveSpace, boolean worksOnSameFile, String algorithmName) {
         this.reserveSpace = reserveSpace;
@@ -105,8 +112,65 @@ public abstract class Postprocessing implements Serializable {
                 // nothing to do
             }
         }
+        
+        // --- تعديل 2: حذف ملف الغلاف بعد الانتهاء ---
+        if (tempCover != null && tempCover.exists()) {
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                tempCover.delete();
+            } catch (Exception e) {
+                // nothing to do
+            }
+            tempCover = null;
+        }
     }
 
+    // --- تعديل 3: دالة لتحميل الصورة لاستخدامها في FFmpeg لاحقاً ---
+    // انسخ هذه الدالة واستبدل القديمة بها
+    protected File downloadCoverArt() {
+        // --- التصحيح 1: تعريف المتغير هنا ---
+        String thumbnailUrl = null;
+
+        // --- التصحيح 2: جلب الرابط من القائمة بأمان ---
+        if (streamInfo != null && streamInfo.getThumbnails() != null && !streamInfo.getThumbnails().isEmpty()) {
+            // نأخذ الصورة الأولى
+            thumbnailUrl = streamInfo.getThumbnails().get(0).getUrl();
+        }
+
+        if (thumbnailUrl == null || thumbnailUrl.isEmpty()) {
+            return null;
+        }
+        
+        // إذا لم يتم تحديد مجلد مؤقت، لا يمكننا الحفظ
+        if (tempFile == null || tempFile.getParentFile() == null) {
+            return null;
+        }
+
+        try {
+            URL url = new URL(thumbnailUrl);
+            // إنشاء ملف للصورة في نفس المجلد المؤقت
+            tempCover = new File(tempFile.getParentFile(), "cover_" + System.nanoTime() + ".jpg");
+            
+            java.net.URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+            
+            try (java.io.InputStream input = new java.io.BufferedInputStream(connection.getInputStream());
+                 java.io.FileOutputStream output = new java.io.FileOutputStream(tempCover)) {
+                
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+            }
+            
+            return tempCover;
+        } catch (Exception e) {
+            Log.e(getClass().getSimpleName(), "Failed to download cover art", e);
+            return null;
+        }
+    }
 
     public void run(DownloadMission target) throws IOException {
         this.mission = target;
@@ -193,6 +257,7 @@ public abstract class Postprocessing implements Serializable {
                     tempFile.delete();
                     tempFile = null;
                 }
+                // سيتم تنظيف tempCover في دالة cleanupTemporalDir التي يتم استدعاؤها عادة من الخارج
             }
         } else {
             result = test() ? process(null) : OK_RESULT;
