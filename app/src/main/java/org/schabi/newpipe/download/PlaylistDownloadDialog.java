@@ -139,20 +139,30 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            // Using simple list item with checkbox
-             View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_multiple_choice, parent, false);
+             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_playlist_selection, parent, false);
              return new ViewHolder(v);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.textView.setText(items.get(position).getName());
+            StreamInfoItem item = items.get(position);
+            
+            holder.title.setText(item.getName());
+            holder.uploader.setText(item.getUploaderName());
             holder.checkBox.setChecked(selected[position]);
             
-            // Fix: Set only one listener on the view (since itemView == checkBox)
-            // CheckedTextView requires manual toggling in RecyclerView
+            org.schabi.newpipe.util.image.PicassoHelper.loadThumbnail(item.getThumbnails())
+                .into(holder.thumbnail);
+            
             holder.itemView.setOnClickListener(v -> {
                 holder.checkBox.toggle();
+                int adapterPosition = holder.getBindingAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    selected[adapterPosition] = holder.checkBox.isChecked();
+                }
+            });
+            
+            holder.checkBox.setOnClickListener(v -> {
                 int adapterPosition = holder.getBindingAdapterPosition();
                 if (adapterPosition != RecyclerView.NO_POSITION) {
                     selected[adapterPosition] = holder.checkBox.isChecked();
@@ -166,13 +176,17 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {
-            final android.widget.CheckedTextView checkBox;
-            final TextView textView;
+            final android.widget.CheckBox checkBox;
+            final TextView title;
+            final TextView uploader;
+            final android.widget.ImageView thumbnail;
 
             ViewHolder(View itemView) {
                 super(itemView);
-                checkBox = (android.widget.CheckedTextView) itemView;
-                textView = checkBox; // it's the same view
+                checkBox = itemView.findViewById(R.id.itemCheckBox);
+                title = itemView.findViewById(R.id.itemVideoTitleView);
+                uploader = itemView.findViewById(R.id.itemUploaderView);
+                thumbnail = itemView.findViewById(R.id.itemThumbnailView);
             }
         }
     }
