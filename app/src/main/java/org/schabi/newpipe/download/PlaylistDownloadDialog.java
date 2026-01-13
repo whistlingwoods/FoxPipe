@@ -74,8 +74,12 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_BEST_AUDIO
         };
         
+        // التغيير هنا: استخدام simple_spinner_item بدلاً من dropdown_item
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, options);
+        
+        // هذا السطر صحيح كما هو (للقائمة المنسدلة)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        
         qualitySpinner.setAdapter(adapter);
     }
 
