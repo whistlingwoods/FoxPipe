@@ -2,6 +2,7 @@ package org.schabi.newpipe.download;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color; // مهم جداً
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipe.views.NewPipeTextView; // استدعاء مكتبة نصوص NewPipe
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,11 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // --- السطر السحري ---
+        // هذا يجعل خلفية النظام شفافة، لكي تظهر خلفية التصميم الخاص بنا فقط
+        ((View) view.getParent()).setBackgroundColor(Color.TRANSPARENT);
+        // --------------------
+
         qualitySpinner = view.findViewById(R.id.qualitySpinner);
         selectAllCheckbox = view.findViewById(R.id.selectAllCheckbox);
         recyclerView = view.findViewById(R.id.itemsRecyclerView);
@@ -58,7 +65,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         setupRecyclerView();
         
         selectAllCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-             adapter.selectAll(isChecked);
+             if(adapter != null) adapter.selectAll(isChecked);
         });
 
         startButton.setOnClickListener(v -> startDownload());
@@ -74,12 +81,9 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_BEST_AUDIO
         };
         
-        // التغيير هنا: استخدام simple_spinner_item بدلاً من dropdown_item
+        // استخدام الثيم الصحيح للقائمة
         ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, options);
-        
-        // هذا السطر صحيح كما هو (للقائمة المنسدلة)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        
         qualitySpinner.setAdapter(adapter);
     }
 
@@ -90,6 +94,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     }
 
     private void startDownload() {
+        if(adapter == null) return;
         List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
         if (selectedItems.isEmpty()) {
             Toast.makeText(getContext(), "No items selected", Toast.LENGTH_SHORT).show();
@@ -102,7 +107,6 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         serviceIntent.setAction(PlaylistEnqueuerService.ACTION_ENQUEUE_PLAYLIST);
         serviceIntent.putExtra(PlaylistEnqueuerService.EXTRA_QUALITY, quality);
         
-        // Pass urls/titles. Passing whole StreamInfoItem might be too big for Intent
         ArrayList<String> urls = new ArrayList<>();
         ArrayList<String> titles = new ArrayList<>();
         for (StreamInfoItem item : selectedItems) {
@@ -124,7 +128,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         ItemsAdapter(List<StreamInfoItem> items) {
             this.items = items;
             this.selected = new boolean[items.size()];
-            for(int i=0; i<selected.length; i++) selected[i] = true; // default select all
+            for(int i=0; i<selected.length; i++) selected[i] = true;
         }
 
         void selectAll(boolean isSelected) {
@@ -160,18 +164,18 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             
             holder.itemView.setOnClickListener(v -> {
                 holder.checkBox.toggle();
-                int adapterPosition = holder.getBindingAdapterPosition();
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    selected[adapterPosition] = holder.checkBox.isChecked();
-                }
+                updateSelection(holder.getBindingAdapterPosition(), holder.checkBox.isChecked());
             });
             
             holder.checkBox.setOnClickListener(v -> {
-                int adapterPosition = holder.getBindingAdapterPosition();
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    selected[adapterPosition] = holder.checkBox.isChecked();
-                }
+                updateSelection(holder.getBindingAdapterPosition(), holder.checkBox.isChecked());
             });
+        }
+
+        private void updateSelection(int position, boolean isChecked) {
+            if (position != RecyclerView.NO_POSITION) {
+                selected[position] = isChecked;
+            }
         }
 
         @Override
@@ -181,8 +185,9 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
         static class ViewHolder extends RecyclerView.ViewHolder {
             final android.widget.CheckBox checkBox;
-            final TextView title;
-            final TextView uploader;
+            // استخدام NewPipeTextView هنا مهم جداً
+            final NewPipeTextView title;
+            final NewPipeTextView uploader;
             final android.widget.ImageView thumbnail;
 
             ViewHolder(View itemView) {

@@ -27,7 +27,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
+    <!-- اسم الفيديو: NewPipeTextView -->
+    <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemVideoTitleView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -43,7 +44,8 @@
         app:layout_constraintStart_toEndOf="@+id/itemThumbnailView"
         app:layout_constraintTop_toTopOf="@+id/itemThumbnailView" />
 
-    <TextView
+    <!-- اسم الرافع: NewPipeTextView -->
+    <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemUploaderView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -52,6 +54,7 @@
         android:lines="1"
         android:text="Uploader Name"
         android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="?android:attr/textColorSecondary"
         android:textSize="12sp"
         app:layout_constraintEnd_toStartOf="@+id/itemCheckBox"
         app:layout_constraintStart_toStartOf="@+id/itemVideoTitleView"
