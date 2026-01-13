@@ -5,24 +5,44 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?attr/windowBackground" 
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp">
+    android:background="?attr/windowBackground"
+    android:paddingBottom="16dp"> 
+    <!-- 
+       ملاحظة هامة جداً:
+       لقد حذفت android:paddingTop="16dp" من هنا
+       لكي يلتصق الشريط الأحمر بأعلى الشاشة تماماً بدون فراغات
+    -->
 
-    <!-- العنوان: لاحظ حذفنا للون، واعتمدنا على الستايل فقط مثل الأصل -->
-    <org.schabi.newpipe.views.NewPipeTextView
-        android:id="@+id/dialog_title"
+    <!-- بداية: شريط العنوان الأحمر -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:gravity="center_vertical"
         android:paddingHorizontal="16dp"
-        android:text="Download Playlist"
-        app:buttonTint="?attr/colorAccent"
-        android:textStyle="bold" />
+        android:elevation="4dp">
 
+        <org.schabi.newpipe.views.NewPipeTextView
+            android:id="@+id/dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Download Playlist"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+            <!-- 
+               جعلنا النص أبيض دائماً (textColor="@android:color/white") 
+               لأن الخلفية ستكون ملونة (أحمر/برتقالي) في كل الأوضاع 
+            -->
+    </LinearLayout>
+    <!-- نهاية: شريط العنوان الأحمر -->
+
+
+    <!-- حاوية خيارات الجودة (أضفنا لها مسافة علوية لتعويض الفراغ المحذوف) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" 
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -33,7 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:text="Quality:"
-           app:buttonTint="?attr/colorAccent" />
+            app:buttonTint="?attr/colorAccent" />
 
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/qualitySpinner"
@@ -44,7 +64,6 @@
             android:minHeight="48dp"
             android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar" />
 
-        <!-- Checkbox: يأخذ لونه تلقائياً إذا تم ضبط الثيم في الجافا بشكل صحيح -->
         <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/selectAllCheckbox"
             android:layout_width="wrap_content"
@@ -84,8 +103,9 @@
         android:layout_marginHorizontal="16dp"
         android:text="Start Download"
         android:textColor="@android:color/white"
-        android:backgroundTint="?attr/colorAccent"
+        android:backgroundTint="?attr/colorPrimary" 
         android:textAllCaps="false"
-        android:textSize="16sp" />
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
 </LinearLayout>
