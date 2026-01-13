@@ -20,14 +20,22 @@ import us.shandian.giga.postprocessing.Postprocessing;
 
 public class PlaylistDownloadLogic {
 
+    // --- ثوابت الفيديو ---
     public static final String QUAL_BEST_VIDEO = "Best Video";
-    public static final String QUAL_BEST_AUDIO = "Best Audio";
     public static final String QUAL_1080P = "1080p";
     public static final String QUAL_720P = "720p";
     public static final String QUAL_480P = "480p";
     public static final String QUAL_360P = "360p";
     public static final String QUAL_240P = "240p";
     public static final String QUAL_144P = "144p";
+
+    // --- ثوابت الصوت ---
+    // تم استبدال "Best Audio" بهذه الخيارات الثلاثة لمرونة أكبر
+    public static final String QUAL_AUDIO_HIGH   = "Audio High (160kbps)";   // جودة عالية (Opus غالباً)
+    public static final String QUAL_AUDIO_MEDIUM = "Audio Medium (128kbps)"; // جودة متوسطة (M4A غالباً)
+    public static final String QUAL_AUDIO_LOW    = "Audio Low (48kbps)";     // توفير البيانات (Opus/M4A)
+    // نبقي هذا الثابت للتوافق، وسيتم معاملته كـ Audio High
+    public static final String QUAL_BEST_AUDIO = "Best Audio";
 
     public static class DownloadBundle {
         public String[] urls;
@@ -42,60 +50,62 @@ public class PlaylistDownloadLogic {
 
     public static DownloadBundle prepareDownload(Context context, StreamInfo info, String targetQuality) {
         DownloadBundle bundle = new DownloadBundle();
-        
-        if (targetQuality.equals(QUAL_BEST_AUDIO)) {
-            Log.d("PlaylistDownloadLogic", "Preparing AUDIO download");
+
+        // ---------------------------------------------------------
+        // 1. معالجة طلبات الصوت
+        // ---------------------------------------------------------
+        if (isAudioRequest(targetQuality)) {
+            Log.d("PlaylistDownloadLogic", "Preparing AUDIO download: " + targetQuality);
 
             List<AudioStream> allAudioStreams = info.getAudioStreams();
-            // استخدام دالة الفلترة التي تسمح بـ DASH للحصول على أفضل جودة
+            // لا نفلتر شيئاً (نسمح بـ DASH)، نحتاج كل الصيغ للحصول على أفضل جودة
             List<AudioStream> audioStreams = filterAudioStreams(allAudioStreams);
-            
+
             if (audioStreams.isEmpty()) {
                 Log.e("PlaylistDownloadLogic", "No audio streams found");
                 return null;
             }
-                    
-            AudioStream audioStream = getBestAudio(audioStreams);
-            
+
+            // اختيار مسار الصوت المناسب بناءً على الجودة المطلوبة (Bitrate)
+            AudioStream audioStream = matchAudioStream(audioStreams, targetQuality);
+
+            if (audioStream == null) return null;
+
             bundle.kind = 'a';
             bundle.urls = new String[]{audioStream.getContent()};
             bundle.recovery = List.of(new MissionRecoveryInfo(audioStream));
             bundle.nearLength = 0;
-            
-            // تحديد الامتداد ونوع الملف الافتراضي
+
             String extension = audioStream.getFormat().getSuffix();
             String mimeType = audioStream.getFormat().mimeType;
 
-            // --- إصلاح المشكلة هنا ---
-            // Post-processing setup & File Extension Fix
+            // إعدادات المعالجة اللاحقة (Post-processing) وإصلاح الامتداد
             if (audioStream.getFormat() == MediaFormat.M4A) {
                 bundle.psName = Postprocessing.ALGORITHM_M4A_NO_DASH;
-                // M4A يبقى كما هو
             } else if (audioStream.getFormat() == MediaFormat.WEBMA_OPUS) {
                 bundle.psName = Postprocessing.ALGORITHM_OGG_FROM_WEBM_DEMUXER;
-                
-                // [هام جداً]
-                // المصدر هو WebM لكن النتيجة بعد المعالجة ستكون Opus/Ogg
-                // يجب تغيير الامتداد والنوع يدوياً وإلا سيفشل الملف بعد المعالجة
+                // تغيير الامتداد والنوع لأن النتيجة ستكون OGG/Opus
                 extension = "opus";
                 mimeType = "audio/ogg";
             }
-            // ------------------------
-            
+
             bundle.filename = createSafeFilename(context, info.getName(), extension);
             bundle.mimeType = mimeType;
             return bundle;
         }
 
-          // التعديل 1: دمج القائمتين (فيديو بصوت + فيديو بدون صوت)
-        // لكي نعثر على جودات 144p و 240p و 1080p
-        List<VideoStream> searchPool = new ArrayList<>();
+        // ---------------------------------------------------------
+        // 2. معالجة طلبات الفيديو
+        // ---------------------------------------------------------
         
+        // دمج القائمتين (فيديو بصوت + فيديو بدون صوت) للعثور على جودات 144p و 1080p
+        List<VideoStream> searchPool = new ArrayList<>();
+
         // نضيف الفيديو الجاهز (غالباً 360p و 720p)
         if (info.getVideoStreams() != null) {
             searchPool.addAll(info.getVideoStreams());
         }
-        
+
         // نضيف الفيديو الخام (144p, 240p, 1080p, 2k, 4k...)
         if (info.getVideoOnlyStreams() != null) {
             searchPool.addAll(info.getVideoOnlyStreams());
@@ -103,63 +113,114 @@ public class PlaylistDownloadLogic {
 
         if (searchPool.isEmpty()) return null;
 
-        // التعديل 2: البحث داخل القائمة المدمجة
+        // البحث داخل القائمة المدمجة
         VideoStream videoStream = matchVideoStream(searchPool, targetQuality);
-        
-        // إذا لم نجد الفيديو المطلوب، لا نريد تحميل 8K ونحن نطلب 144p
-        // سنضيف منطقاً بسيطاً: إذا فشل البحث، حاول إيجاد "أصغر" فيديو بدلاً من "أفضل" فيديو
-        // إذا كان المستخدم يطلب توفير البيانات
+
+        // إذا لم نجد الفيديو المطلوب (مثلاً طلبنا 144p ولم نجده)، نحاول إيجاد بديل مناسب
         if (videoStream == null) {
-             if (targetQuality.equals(QUAL_144P) || targetQuality.equals(QUAL_240P)) {
-                 // ابحث عن أقل جودة متوفرة
-                 videoStream = getLowestVideo(searchPool); 
-             } else {
-                 return null; // أو دع matchVideoStream يتصرف
-             }
+            if (targetQuality.equals(QUAL_144P) || targetQuality.equals(QUAL_240P)) {
+                // إذا كان الهدف توفير البيانات، ابحث عن أقل جودة متوفرة بدلاً من الاستسلام
+                videoStream = getLowestVideo(searchPool);
+            } else {
+                return null; // للجودات العالية، نترك الأمر فارغاً إذا لم يتوفر
+            }
         }
-        
-        // (ملاحظة: matchVideoStream المعدل في الأسفل سيتعامل مع الـ null)
 
         bundle.kind = 'v';
-        
-        // باقي الكود كما هو تماماً، سيتعامل بذكاء مع الدمج
+
+        // التعامل مع الفيديو (سواء كان يحتاج دمج صوت أو لا)
         if (videoStream.isVideoOnly()) {
             List<AudioStream> allAudioStreams = info.getAudioStreams();
-            // لا نفلتر الصوت هنا أيضاً، نحتاج أي صوت متاح للدمج
+            // نحتاج أي صوت متاح للدمج مع الفيديو
             AudioStream audioStream = SecondaryStreamHelper.getAudioStreamFor(context, allAudioStreams, videoStream);
-            
+
             if (audioStream != null) {
                 bundle.urls = new String[]{videoStream.getContent(), audioStream.getContent()};
                 bundle.recovery = List.of(
-                    new MissionRecoveryInfo(videoStream),
-                    new MissionRecoveryInfo(audioStream)
+                        new MissionRecoveryInfo(videoStream),
+                        new MissionRecoveryInfo(audioStream)
                 );
-                
+
                 if (videoStream.getFormat() == MediaFormat.MPEG_4) {
                     bundle.psName = Postprocessing.ALGORITHM_MP4_FROM_DASH_MUXER;
                 } else {
                     bundle.psName = Postprocessing.ALGORITHM_WEBM_MUXER;
                 }
-                
+
                 bundle.nearLength = 0;
             } else {
-                // فيديو بدون صوت (حالة نادرة جداً)
+                // فيديو بدون صوت (حالة نادرة)
                 bundle.urls = new String[]{videoStream.getContent()};
                 bundle.recovery = List.of(new MissionRecoveryInfo(videoStream));
                 bundle.nearLength = 0;
             }
         } else {
-            // فيديو جاهز (360p / 720p)
+            // فيديو جاهز (progressive)
             bundle.urls = new String[]{videoStream.getContent()};
             bundle.recovery = List.of(new MissionRecoveryInfo(videoStream));
             bundle.nearLength = 0;
         }
-        
+
         bundle.filename = createSafeFilename(context, info.getName(), videoStream.getFormat().getSuffix());
         bundle.mimeType = videoStream.getFormat().mimeType;
         return bundle;
     }
-    
+
+    // --- دوال مساعدة للصوت (من الكود الأول) ---
+
+    private static boolean isAudioRequest(String quality) {
+        return quality.equals(QUAL_AUDIO_HIGH) ||
+               quality.equals(QUAL_AUDIO_MEDIUM) ||
+               quality.equals(QUAL_AUDIO_LOW) ||
+               quality.equals(QUAL_BEST_AUDIO);
+    }
+
+    private static AudioStream matchAudioStream(List<AudioStream> streams, String targetQuality) {
+        if (streams == null || streams.isEmpty()) return null;
+
+        // الترتيب حسب معدل البت (Bitrate) من الأصغر للأكبر
+        streams.sort((a, b) -> Integer.compare(a.getAverageBitrate(), b.getAverageBitrate()));
+
+        switch (targetQuality) {
+            case QUAL_AUDIO_LOW:
+                // نريد أقل شيء (أول عنصر)
+                return streams.get(0);
+
+            case QUAL_AUDIO_HIGH:
+            case QUAL_BEST_AUDIO:
+                // نريد أعلى شيء (آخر عنصر)
+                return streams.get(streams.size() - 1);
+
+            case QUAL_AUDIO_MEDIUM:
+            default:
+                // نريد شيئاً قريباً من 128kbps
+                return getClosestBitrate(streams, 128);
+        }
+    }
+
+    // دالة للبحث عن أقرب Bitrate لرقم معين
+    private static AudioStream getClosestBitrate(List<AudioStream> streams, int targetKbps) {
+        AudioStream closest = null;
+        int minDiff = Integer.MAX_VALUE;
+        int targetBitrate = targetKbps * 1000;
+
+        for (AudioStream stream : streams) {
+            int diff = Math.abs(stream.getAverageBitrate() - targetBitrate);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = stream;
+            }
+        }
+        return closest != null ? closest : streams.get(streams.size() / 2);
+    }
+
+    private static List<AudioStream> filterAudioStreams(List<AudioStream> streams) {
+        // إرجاع القائمة كما هي للسماح بـ DASH streams (جودة أفضل لـ Opus)
+        return streams != null ? streams : new ArrayList<>();
+    }
+
+    // --- دوال مساعدة للفيديو والملفات (من الكود الثاني) ---
+
     private static String createSafeFilename(Context context, String title, String extension) {
         String baseName = FilenameUtils.createFilename(context, title);
         final int MAX_LENGTH = 100;
@@ -169,81 +230,48 @@ public class PlaylistDownloadLogic {
         return baseName + "." + extension;
     }
 
-    private static <T extends Stream> List<T> filterProgressiveHttpStreams(List<T> streams) {
-        List<T> filtered = new ArrayList<>();
-        if (streams == null) return filtered;
-        for (T stream : streams) {
-            if (stream.getDeliveryMethod() == DeliveryMethod.PROGRESSIVE_HTTP) {
-                filtered.add(stream);
-            }
-        }
-        return filtered;
-    }
-    
     private static VideoStream matchVideoStream(List<VideoStream> videoStreams, String targetQuality) {
         if (targetQuality.equals(QUAL_BEST_VIDEO)) {
             return getBestVideo(videoStreams);
         }
 
-        // استخراج الرقم فقط (مثلاً 144)
+        // استخراج الرقم فقط
         String targetRes = targetQuality.replace("p", "");
-        
-        // محاولة إيجاد تطابق دقيق (يبدأ بـ 144)
+
+        // محاولة إيجاد تطابق دقيق
         for (VideoStream stream : videoStreams) {
-            // التحقق من أن stream ليس null وتجنب الأخطاء
             if (stream != null && stream.getResolution() != null) {
                 if (stream.getResolution().startsWith(targetRes)) {
                     return stream;
                 }
             }
         }
-        
-        // إذا طلب المستخدم جودة منخفضة ولم يجدها، نعطيه أقل جودة متاحة بدلاً من "أفضل جودة"
+
+        // إذا طلب جودة منخفضة ولم يجدها، نعطيه أقل جودة متاحة
         if (targetQuality.equals(QUAL_144P) || targetQuality.equals(QUAL_240P)) {
             return getLowestVideo(videoStreams);
         }
-        
-        // في الحالات الأخرى (طلب 720 ولم يجد، نعطيه الأفضل)
+
+        // في الحالات الأخرى نعطيه الأفضل
         return getBestVideo(videoStreams);
     }
 
-    // دالة جديدة لجلب أقل جودة (لتوفير البيانات)
     private static VideoStream getLowestVideo(List<VideoStream> streams) {
         if (streams == null || streams.isEmpty()) return null;
         VideoStream lowest = streams.get(0);
         int resLowest = parseHeight(lowest.getResolution());
-        
+
         for (VideoStream s : streams) {
             int resCurr = parseHeight(s.getResolution());
-            // نبحث عن الأصغر (بشرط أن يكون أكبر من 0)
             if (resCurr > 0 && resCurr < resLowest) {
                 lowest = s;
                 resLowest = resCurr;
             } else if (resLowest == 0 && resCurr > 0) {
-                // تصحيح إذا كان الأول غير صالح
                 lowest = s;
                 resLowest = resCurr;
             }
         }
         return lowest;
-    }
-    
-    // السماح بكل أنواع التدفقات للصوت لضمان جودة Opus العالية
-    private static List<AudioStream> filterAudioStreams(List<AudioStream> streams) {
-        return streams != null ? streams : new ArrayList<>();
-    }
-
-    // جلب أعلى Bitrate متاح
-    private static AudioStream getBestAudio(List<AudioStream> streams) {
-        if (streams == null || streams.isEmpty()) return null;
-        
-        AudioStream best = streams.get(0);
-        for (AudioStream s : streams) {
-            if (s.getAverageBitrate() > best.getAverageBitrate()) {
-                best = s;
-            }
-        }
-        return best;
     }
 
     private static VideoStream getBestVideo(List<VideoStream> streams) {
@@ -258,7 +286,7 @@ public class PlaylistDownloadLogic {
         }
         return best;
     }
-    
+
     private static int parseHeight(String res) {
         try {
             String digits = res.replaceAll("p.*", "").replaceAll("[^0-9]", "");
@@ -267,9 +295,10 @@ public class PlaylistDownloadLogic {
             return 0;
         }
     }
-    
+
+    // دالة تحديد النوع (معدلة لتدعم كل أنواع الصوت)
     public static char getDownloadKind(String targetQuality) {
-        if (QUAL_BEST_AUDIO.equals(targetQuality)) {
+        if (isAudioRequest(targetQuality)) {
             return 'a';
         }
         return 'v';

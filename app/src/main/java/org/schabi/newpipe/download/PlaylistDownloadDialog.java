@@ -90,7 +90,9 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_360P,
             PlaylistDownloadLogic.QUAL_240P,
             PlaylistDownloadLogic.QUAL_144P,
-            PlaylistDownloadLogic.QUAL_BEST_AUDIO
+            PlaylistDownloadLogic.QUAL_AUDIO_HIGH,   // بدلاً من Best Audio القديم
+            PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM, // خيار جديد
+            PlaylistDownloadLogic.QUAL_AUDIO_LOW  
         };
         
         // استخدام R.layout.spinner_item_newpipe بدلاً من تصميم الأندرويد الافتراضي
