@@ -47,10 +47,6 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // 1. نحصل على الثيم الحالي من الإعدادات باستخدام أدوات NewPipe
-        // إذا لم يكن ThemeHelper متاحاً، يمكنك استخدام R.style.LightTheme مبدئياً للتجربة، 
-        // لكن NewPipe غالباً يستخدم ThemeHelper.getTheme(context)
-        
         // الحل الأبسط والأكثر فعالية: استخدام ContextThemeWrapper مع ثيم التطبيق العام
         // هذا سيجبر النافذة على استخدام نفس ألوان التطبيق (بما فيها الفاتح والغامق)
         Context contextThemeWrapper = new ContextThemeWrapper(getActivity(),  org.schabi.newpipe.R.style.LightTheme); 
