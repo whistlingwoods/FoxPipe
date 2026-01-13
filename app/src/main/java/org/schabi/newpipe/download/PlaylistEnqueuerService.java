@@ -42,6 +42,8 @@ public class PlaylistEnqueuerService extends Service {
     private static final String TAG = "PlaylistEnqueuer";
     public static final String ACTION_ENQUEUE_PLAYLIST = "org.schabi.newpipe.action.ENQUEUE_PLAYLIST";
     
+    public static final String ACTION_CANCEL_ALL = "org.schabi.newpipe.action.CANCEL_PLAYLIST";
+    
     public static final String EXTRA_URLS = "org.schabi.newpipe.extra.URLS";
     public static final String EXTRA_TITLES = "org.schabi.newpipe.extra.TITLES";
     public static final String EXTRA_QUALITY = "org.schabi.newpipe.extra.QUALITY";
@@ -49,17 +51,28 @@ public class PlaylistEnqueuerService extends Service {
     private static final int NOTIFICATION_ID = 10134;
     private static final String CHANNEL_ID = "playlist_enqueuer_channel";
 
+    private final io.reactivex.rxjava3.disposables.CompositeDisposable disposables = new io.reactivex.rxjava3.disposables.CompositeDisposable();
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null && ACTION_ENQUEUE_PLAYLIST.equals(intent.getAction())) {
-            ArrayList<String> urls = intent.getStringArrayListExtra(EXTRA_URLS);
-            ArrayList<String> titles = intent.getStringArrayListExtra(EXTRA_TITLES);
-            String quality = intent.getStringExtra(EXTRA_QUALITY);
-            
-            startForeground(NOTIFICATION_ID, createNotification(0, urls.size()));
-            
-            // Process directly without needing DownloadManagerService binding
-            processPlaylist(urls, titles, quality);
+        if (intent != null) {
+            String action = intent.getAction();
+            if (ACTION_ENQUEUE_PLAYLIST.equals(action)) {
+                ArrayList<String> urls = intent.getStringArrayListExtra(EXTRA_URLS);
+                ArrayList<String> titles = intent.getStringArrayListExtra(EXTRA_TITLES);
+                String quality = intent.getStringExtra(EXTRA_QUALITY);
+                
+                startForeground(NOTIFICATION_ID, createNotification(0, urls.size()));
+                
+                // Process directly without needing DownloadManagerService binding
+                processPlaylist(urls, titles, quality);
+            } else if (ACTION_CANCEL_ALL.equals(action)) {
+                Log.d(TAG, "Cancelling playlist enqueuing...");
+                disposables.clear();
+                stopForeground(true);
+                stopSelf();
+                return START_NOT_STICKY;
+            }
         }
         return START_NOT_STICKY;
     }
@@ -70,7 +83,7 @@ public class PlaylistEnqueuerService extends Service {
         final int total = urls.size();
 
         // Use 'range' to handle indices, mapped to parallel execution via flatMap
-        Observable.range(0, total)
+        disposables.add(Observable.range(0, total)
                 .flatMap(index -> Observable.fromCallable(() -> {
                     String url = urls.get(index);
                     String title = titles.get(index);
@@ -92,7 +105,7 @@ public class PlaylistEnqueuerService extends Service {
                     return true;
                 }).subscribeOn(Schedulers.io()), 3) // <--- Safety Mechanism: Max Concurrency = 3
                 .doOnComplete(this::stopSelf)
-                .subscribe();
+                .subscribe());
     }
 
     private void processSingleVideo(String url, String title, String quality) {
@@ -164,22 +177,42 @@ public class PlaylistEnqueuerService extends Service {
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
         }
         
+        Intent cancelIntent = new Intent(this, PlaylistEnqueuerService.class);
+        cancelIntent.setAction(ACTION_CANCEL_ALL);
+        android.app.PendingIntent cancelPendingIntent = android.app.PendingIntent.getService(this, 0, cancelIntent, 
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? (android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT) : android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Queueing Playlist Downloads")
                 .setContentText(progress + "/" + max)
                 .setSmallIcon(R.drawable.ic_playlist_add) // verify icon exists
                 .setProgress(max, progress, false)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.cancel), cancelPendingIntent)
+                .setOngoing(true)
                 .build();
     }
     
     private void updateNotification(int progress, int max, String text) {
+        Intent cancelIntent = new Intent(this, PlaylistEnqueuerService.class);
+        cancelIntent.setAction(ACTION_CANCEL_ALL);
+        android.app.PendingIntent cancelPendingIntent = android.app.PendingIntent.getService(this, 0, cancelIntent, 
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? (android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT) : android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Queueing Playlist Downloads")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
                 .setProgress(max, progress, false)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, getString(R.string.cancel), cancelPendingIntent)
+                .setOngoing(true)
                 .build();
         getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, notification);
+    }
+    
+    @Override
+    public void onDestroy() {
+        disposables.clear();
+        super.onDestroy();
     }
 
     @Nullable
