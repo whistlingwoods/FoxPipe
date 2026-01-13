@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import org.schabi.newpipe.streams.OggFromWebMWriter;
 import org.schabi.newpipe.streams.io.SharpStream;
 
-import java.io.File; // تم إضافة هذا الاستيراد
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -20,34 +20,27 @@ class OggFromWebmDemuxer extends Postprocessing {
         ByteBuffer buffer = ByteBuffer.allocate(4);
         sources[0].read(buffer.array());
 
-        // youtube uses WebM as container, but the file extension (format suffix) is "*.opus"
-        // check if the file is a webm/mkv file before proceed
-
+        // youtube uses WebM as container, but the file extension is "*.opus"
         switch (buffer.getInt()) {
             case 0x1a45dfa3:
-                return true;// webm/mkv
+                return true; // webm/mkv
             case 0x4F676753:
-                return false;// ogg
+                return false; // ogg
         }
 
-        throw new UnsupportedOperationException("file not recognized, failed to demux the audio stream");
+        throw new UnsupportedOperationException("file not recognized");
     }
 
     @Override
     int process(SharpStream out, @NonNull SharpStream... sources) throws IOException {
-        // 1. تحميل صورة الغلاف (من الدالة التي أضفناها في Postprocessing.java)
-        File coverArtFile = downloadCoverArt();
+        // 1. تحميل الصورة (نفس الدالة الموجودة في Postprocessing)
+        File cover = downloadCoverArt();
 
         OggFromWebMWriter demuxer = new OggFromWebMWriter(sources[0], out, streamInfo);
         
-        // 2. تمرير الصورة إلى الكاتب (Writer) إذا تم تحميلها
-        if (coverArtFile != null && coverArtFile.exists()) {
-            // ملاحظة هامة: يجب أن يحتوي OggFromWebMWriter على دالة setCover
-            // إذا كان الكلاس لا يحتوي عليها، ستحتاج لإضافتها أو سيتم تجاهل الصورة هنا
-            // demuxer.setCover(coverArtFile); 
-            
-            // بما أنني لا أملك كود OggFromWebMWriter الخاص بك، 
-            // سأترك هذا السطر كتعليق لتفعيله إذا عدلت الـ Writer.
+        // 2. تمرير الصورة (تأكد من تطبيق الخطوة التالية في الملف الآخر)
+        if (cover != null) {
+            demuxer.setCover(cover);
         }
 
         demuxer.parseSource();
