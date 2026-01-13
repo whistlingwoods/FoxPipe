@@ -26,6 +26,8 @@ public class PlaylistDownloadLogic {
     public static final String QUAL_720P = "720p";
     public static final String QUAL_480P = "480p";
     public static final String QUAL_360P = "360p";
+    public static final String QUAL_240P = "240p";
+    public static final String QUAL_144P = "144p";
 
     public static class DownloadBundle {
         public String[] urls;
@@ -85,20 +87,46 @@ public class PlaylistDownloadLogic {
             return bundle;
         }
 
-        // Video download logic
-        List<VideoStream> allVideoStreams = info.getVideoStreams();
-        List<VideoStream> videoStreams = filterProgressiveHttpStreams(allVideoStreams);
-        if (videoStreams.isEmpty()) return null;
+          // التعديل 1: دمج القائمتين (فيديو بصوت + فيديو بدون صوت)
+        // لكي نعثر على جودات 144p و 240p و 1080p
+        List<VideoStream> searchPool = new ArrayList<>();
+        
+        // نضيف الفيديو الجاهز (غالباً 360p و 720p)
+        if (info.getVideoStreams() != null) {
+            searchPool.addAll(info.getVideoStreams());
+        }
+        
+        // نضيف الفيديو الخام (144p, 240p, 1080p, 2k, 4k...)
+        if (info.getVideoOnlyStreams() != null) {
+            searchPool.addAll(info.getVideoOnlyStreams());
+        }
 
-        VideoStream videoStream = matchVideoStream(videoStreams, targetQuality);
-        if (videoStream == null) return null;
+        if (searchPool.isEmpty()) return null;
+
+        // التعديل 2: البحث داخل القائمة المدمجة
+        VideoStream videoStream = matchVideoStream(searchPool, targetQuality);
+        
+        // إذا لم نجد الفيديو المطلوب، لا نريد تحميل 8K ونحن نطلب 144p
+        // سنضيف منطقاً بسيطاً: إذا فشل البحث، حاول إيجاد "أصغر" فيديو بدلاً من "أفضل" فيديو
+        // إذا كان المستخدم يطلب توفير البيانات
+        if (videoStream == null) {
+             if (targetQuality.equals(QUAL_144P) || targetQuality.equals(QUAL_240P)) {
+                 // ابحث عن أقل جودة متوفرة
+                 videoStream = getLowestVideo(searchPool); 
+             } else {
+                 return null; // أو دع matchVideoStream يتصرف
+             }
+        }
+        
+        // (ملاحظة: matchVideoStream المعدل في الأسفل سيتعامل مع الـ null)
 
         bundle.kind = 'v';
         
+        // باقي الكود كما هو تماماً، سيتعامل بذكاء مع الدمج
         if (videoStream.isVideoOnly()) {
             List<AudioStream> allAudioStreams = info.getAudioStreams();
-            List<AudioStream> audioStreams = filterProgressiveHttpStreams(allAudioStreams);
-            AudioStream audioStream = SecondaryStreamHelper.getAudioStreamFor(context, audioStreams, videoStream);
+            // لا نفلتر الصوت هنا أيضاً، نحتاج أي صوت متاح للدمج
+            AudioStream audioStream = SecondaryStreamHelper.getAudioStreamFor(context, allAudioStreams, videoStream);
             
             if (audioStream != null) {
                 bundle.urls = new String[]{videoStream.getContent(), audioStream.getContent()};
@@ -115,11 +143,13 @@ public class PlaylistDownloadLogic {
                 
                 bundle.nearLength = 0;
             } else {
+                // فيديو بدون صوت (حالة نادرة جداً)
                 bundle.urls = new String[]{videoStream.getContent()};
                 bundle.recovery = List.of(new MissionRecoveryInfo(videoStream));
                 bundle.nearLength = 0;
             }
         } else {
+            // فيديو جاهز (360p / 720p)
             bundle.urls = new String[]{videoStream.getContent()};
             bundle.recovery = List.of(new MissionRecoveryInfo(videoStream));
             bundle.nearLength = 0;
@@ -154,13 +184,48 @@ public class PlaylistDownloadLogic {
         if (targetQuality.equals(QUAL_BEST_VIDEO)) {
             return getBestVideo(videoStreams);
         }
+
+        // استخراج الرقم فقط (مثلاً 144)
         String targetRes = targetQuality.replace("p", "");
+        
+        // محاولة إيجاد تطابق دقيق (يبدأ بـ 144)
         for (VideoStream stream : videoStreams) {
-            if (stream.getResolution().startsWith(targetRes)) {
-                return stream;
+            // التحقق من أن stream ليس null وتجنب الأخطاء
+            if (stream != null && stream.getResolution() != null) {
+                if (stream.getResolution().startsWith(targetRes)) {
+                    return stream;
+                }
             }
         }
+        
+        // إذا طلب المستخدم جودة منخفضة ولم يجدها، نعطيه أقل جودة متاحة بدلاً من "أفضل جودة"
+        if (targetQuality.equals(QUAL_144P) || targetQuality.equals(QUAL_240P)) {
+            return getLowestVideo(videoStreams);
+        }
+        
+        // في الحالات الأخرى (طلب 720 ولم يجد، نعطيه الأفضل)
         return getBestVideo(videoStreams);
+    }
+
+    // دالة جديدة لجلب أقل جودة (لتوفير البيانات)
+    private static VideoStream getLowestVideo(List<VideoStream> streams) {
+        if (streams == null || streams.isEmpty()) return null;
+        VideoStream lowest = streams.get(0);
+        int resLowest = parseHeight(lowest.getResolution());
+        
+        for (VideoStream s : streams) {
+            int resCurr = parseHeight(s.getResolution());
+            // نبحث عن الأصغر (بشرط أن يكون أكبر من 0)
+            if (resCurr > 0 && resCurr < resLowest) {
+                lowest = s;
+                resLowest = resCurr;
+            } else if (resLowest == 0 && resCurr > 0) {
+                // تصحيح إذا كان الأول غير صالح
+                lowest = s;
+                resLowest = resCurr;
+            }
+        }
+        return lowest;
     }
     
     // السماح بكل أنواع التدفقات للصوت لضمان جودة Opus العالية

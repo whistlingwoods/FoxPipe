@@ -88,6 +88,8 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_720P,
             PlaylistDownloadLogic.QUAL_480P,
             PlaylistDownloadLogic.QUAL_360P,
+            PlaylistDownloadLogic.QUAL_240P,
+            PlaylistDownloadLogic.QUAL_144P,
             PlaylistDownloadLogic.QUAL_BEST_AUDIO
         };
         
