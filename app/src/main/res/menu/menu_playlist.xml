@@ -18,6 +18,12 @@
         tools:visible="true" />
 
     <item
+        android:id="@+id/menu_item_download_all"
+        android:icon="@drawable/ic_file_download"
+        android:title="Download All"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="1"
         android:title="@string/settings"

@@ -146,6 +146,10 @@
         <service android:name="us.shandian.giga.service.DownloadManagerService"
             android:foregroundServiceType="dataSync" />
 
+        <service android:name=".download.PlaylistEnqueuerService"
+            android:foregroundServiceType="dataSync" 
+            android:exported="false"/>
+
         <activity
             android:name=".util.FilePickerActivityHelper"
             android:exported="true"
