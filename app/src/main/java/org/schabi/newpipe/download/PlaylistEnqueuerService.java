@@ -30,6 +30,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.shandian.giga.get.MissionRecoveryInfo;
 import us.shandian.giga.service.DownloadManagerService;
 
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+
+
 /**
  * Service to fetch metadata for a list of videos and enqueue them for download.
  * Running as a Foreground Service to ensure longevity.
@@ -61,100 +65,97 @@ public class PlaylistEnqueuerService extends Service {
     }
 
     private void processPlaylist(List<String> urls, List<String> titles, String quality) {
-        Observable.fromIterable(urls)
-                .zipWith(Observable.fromIterable(titles), (url, title) -> new String[]{url, title})
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.io())
-                .doOnNext(pair -> {
-                      String url = pair[0];
-                      String title = pair[1];
-                      updateNotification(titles.indexOf(title) + 1, urls.size(), "Processing: " + title);
-                      
-                      try {
-                          Log.d(TAG, "=== Processing: " + title + " ===");
-                          Log.d(TAG, "URL: " + url);
-                          Log.d(TAG, "Quality: " + quality);
-                          
-                          // 1. Fetch Info
-                          StreamInfo info = StreamInfo.getInfo(NewPipe.getService(0), url);
-                          Log.d(TAG, "StreamInfo fetched successfully");
-                          Log.d(TAG, "Available audio streams: " + info.getAudioStreams().size());
-                          Log.d(TAG, "Available video streams: " + info.getVideoStreams().size());
-                          
-                          // 2. Prepare complete download bundle (with muxing support)
-                          PlaylistDownloadLogic.DownloadBundle bundle = 
-                              PlaylistDownloadLogic.prepareDownload(this, info, quality);
-                          
-                          if (bundle == null) {
-                              Log.e(TAG, "❌ Bundle is NULL for: " + title);
-                              return;
-                          }
-                          
-                          Log.d(TAG, "Bundle created successfully:");
-                          Log.d(TAG, "  - kind: " + bundle.kind);
-                          Log.d(TAG, "  - urls: " + java.util.Arrays.toString(bundle.urls));
-                          Log.d(TAG, "  - filename: " + bundle.filename);
-                          Log.d(TAG, "  - mimeType: " + bundle.mimeType);
-                          Log.d(TAG, "  - psName: " + bundle.psName);
-                          Log.d(TAG, "  - recovery size: " + bundle.recovery.size());
-                          
-                          // 3. Create Storage directly (like DownloadDialog does)
-                          boolean isVideo = bundle.kind == 'v';
-                          String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
-                          
-                          StoredFileHelper finalStorage;
-                          try {
-                              // Get download path from preferences
-                              String downloadPath = androidx.preference.PreferenceManager
-                                  .getDefaultSharedPreferences(this)
-                                  .getString(key, null);
-                              
-                              if (downloadPath == null || downloadPath.isEmpty()) {
-                                  // Use default directory
-                                  java.io.File defaultDir = NewPipeSettings.getDir(
-                                      isVideo ? android.os.Environment.DIRECTORY_MOVIES 
-                                             : android.os.Environment.DIRECTORY_MUSIC);
-                                  downloadPath = android.net.Uri.fromFile(defaultDir).toString();
-                              }
-                              
-                              android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
-                              StoredDirectoryHelper storage = new StoredDirectoryHelper(this, pathUri, null);
-                              
-                              // Create unique file
-                              finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
-                              
-                              if (finalStorage == null) {
-                                  Log.e(TAG, "❌ createUniqueFile returned NULL");
-                                  Log.e(TAG, "  Filename: " + bundle.filename);
-                                  Log.e(TAG, "  Filename length: " + bundle.filename.length());
-                                  Log.e(TAG, "  MIME: " + bundle.mimeType);
-                                  return;
-                              }
-                              
-                              Log.d(TAG, "✅ File created: " + finalStorage.getUri());
-                              
-                          } catch (IOException e) {
-                              Log.e(TAG, "❌❌ IOException creating storage", e);
-                              Log.e(TAG, "  Exception message: " + e.getMessage());
-                              Log.e(TAG, "  Filename: " + bundle.filename);
-                              return;
-                          }
+        final AtomicInteger progressCounter = new AtomicInteger(0);
+        final Random random = new Random(); // For jitter
+        final int total = urls.size();
 
-                          // 4. Enqueue with complete bundle information
-                          Log.d(TAG, "Calling DownloadManagerService.startMission...");
-                          DownloadManagerService.startMission(this, bundle.urls, finalStorage, 
-                              bundle.kind, 3, info, bundle.psName, bundle.psArgs, 
-                              bundle.nearLength, new ArrayList<>(bundle.recovery));
-                          Log.d(TAG, "✅ Mission started successfully for: " + title);
-                          
-                      } catch (Exception e) {
-                          Log.e(TAG, "❌❌❌ EXCEPTION while processing: " + title, e);
-                          Log.e(TAG, "Exception type: " + e.getClass().getName());
-                          Log.e(TAG, "Exception message: " + e.getMessage());
-                      }
-                })
+        // Use 'range' to handle indices, mapped to parallel execution via flatMap
+        Observable.range(0, total)
+                .flatMap(index -> Observable.fromCallable(() -> {
+                    String url = urls.get(index);
+                    String title = titles.get(index);
+
+                    // --- Safety Mechanism: Random Jitter ---
+                    // Sleep for 500ms to 1500ms to avoid pattern detection/rate limiting
+                    try {
+                        long jitter = 500 + random.nextInt(1000);
+                        Thread.sleep(jitter);
+                    } catch (InterruptedException e) {
+                        return false;
+                    }
+
+                    // Update notification with "Processed / Total" count
+                    int currentCount = progressCounter.incrementAndGet();
+                    updateNotification(currentCount, total, "Processing (" + currentCount + "/" + total + "): " + title);
+
+                    processSingleVideo(url, title, quality);
+                    return true;
+                }).subscribeOn(Schedulers.io()), 3) // <--- Safety Mechanism: Max Concurrency = 3
                 .doOnComplete(this::stopSelf)
                 .subscribe();
+    }
+
+    private void processSingleVideo(String url, String title, String quality) {
+        try {
+            Log.d(TAG, "=== Processing: " + title + " ===");
+            Log.d(TAG, "URL: " + url);
+            Log.d(TAG, "Quality: " + quality);
+
+            // 1. Fetch Info
+            StreamInfo info = StreamInfo.getInfo(NewPipe.getService(0), url);
+            Log.d(TAG, "StreamInfo fetched successfully");
+            
+            // 2. Prepare complete download bundle
+            PlaylistDownloadLogic.DownloadBundle bundle = 
+                PlaylistDownloadLogic.prepareDownload(this, info, quality);
+
+            if (bundle == null) {
+                Log.e(TAG, "❌ Bundle is NULL for: " + title);
+                return;
+            }
+
+            // 3. Create Storage directly
+            boolean isVideo = bundle.kind == 'v';
+            String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
+
+            StoredFileHelper finalStorage;
+            try {
+                String downloadPath = androidx.preference.PreferenceManager
+                    .getDefaultSharedPreferences(this)
+                    .getString(key, null);
+
+                if (downloadPath == null || downloadPath.isEmpty()) {
+                    java.io.File defaultDir = NewPipeSettings.getDir(
+                        isVideo ? android.os.Environment.DIRECTORY_MOVIES 
+                               : android.os.Environment.DIRECTORY_MUSIC);
+                    downloadPath = android.net.Uri.fromFile(defaultDir).toString();
+                }
+
+                android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
+                StoredDirectoryHelper storage = new StoredDirectoryHelper(this, pathUri, null);
+
+                finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
+                
+                if (finalStorage == null) {
+                    Log.e(TAG, "❌ createUniqueFile returned NULL for: " + title);
+                    return;
+                }
+
+            } catch (IOException e) {
+                Log.e(TAG, "❌❌ IOException creating storage", e);
+                return;
+            }
+
+            // 4. Enqueue
+            DownloadManagerService.startMission(this, bundle.urls, finalStorage, 
+                bundle.kind, 3, info, bundle.psName, bundle.psArgs, 
+                bundle.nearLength, new ArrayList<>(bundle.recovery));
+            
+            Log.d(TAG, "✅ Mission started successfully for: " + title);
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌❌❌ EXCEPTION while processing: " + title, e);
+        }
     }
 
     private Notification createNotification(int progress, int max) {
