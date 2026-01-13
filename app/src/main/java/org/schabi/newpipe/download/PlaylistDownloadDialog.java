@@ -148,8 +148,16 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             holder.textView.setText(items.get(position).getName());
             holder.checkBox.setChecked(selected[position]);
-            holder.checkBox.setOnClickListener(v -> selected[position] = holder.checkBox.isChecked());
-            holder.itemView.setOnClickListener(v -> holder.checkBox.performClick());
+            
+            // Fix: Set only one listener on the view (since itemView == checkBox)
+            // CheckedTextView requires manual toggling in RecyclerView
+            holder.itemView.setOnClickListener(v -> {
+                holder.checkBox.toggle();
+                int adapterPosition = holder.getBindingAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    selected[adapterPosition] = holder.checkBox.isChecked();
+                }
+            });
         }
 
         @Override
