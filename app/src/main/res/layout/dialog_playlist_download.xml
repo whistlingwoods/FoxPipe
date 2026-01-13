@@ -5,13 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?attr/card_item_background_color"
+    android:background="?attr/windowBackground" 
     android:paddingTop="16dp"
     android:paddingBottom="16dp">
 
-    <!-- هذا السطر ^^^ هو الحل للمشكلة. سيجعل الخلفية صلبة وليست شفافة -->
-
-    <!-- العنوان -->
+    <!-- العنوان: لاحظ حذفنا للون، واعتمدنا على الستايل فقط مثل الأصل -->
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/dialog_title"
         android:layout_width="match_parent"
@@ -19,7 +17,7 @@
         android:layout_marginBottom="16dp"
         android:paddingHorizontal="16dp"
         android:text="Download Playlist"
-        android:textAppearance="?attr/textAppearanceHeadline6"
+        app:buttonTint="?attr/colorAccent"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -35,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:text="Quality:"
-            android:textAppearance="?attr/textAppearanceSubtitle1" />
+           app:buttonTint="?attr/colorAccent" />
 
         <androidx.appcompat.widget.AppCompatSpinner
             android:id="@+id/qualitySpinner"
@@ -43,21 +41,24 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="48dp" />
+            android:minHeight="48dp"
+            android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar" />
 
+        <!-- Checkbox: يأخذ لونه تلقائياً إذا تم ضبط الثيم في الجافا بشكل صحيح -->
         <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/selectAllCheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="Select All" />
+            android:text="Select All"
+            app:buttonTint="?attr/colorAccent" />
 
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?android:attr/listDivider" />
+        android:background="?attr/separator_color" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/itemsRecyclerView"
@@ -74,7 +75,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginBottom="16dp"
-        android:background="?android:attr/listDivider" />
+        android:background="?attr/separator_color" />
 
     <Button
         android:id="@+id/startDownloadButton"

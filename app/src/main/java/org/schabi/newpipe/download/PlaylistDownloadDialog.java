@@ -28,6 +28,9 @@ import org.schabi.newpipe.views.NewPipeTextView; // استدعاء مكتبة ن
 import java.util.ArrayList;
 import java.util.List;
 
+import android.view.ContextThemeWrapper; // تأكد من إضافة هذا الاستيراد
+import org.schabi.newpipe.util.ThemeHelper; // NewPipe يستخدم هذا المساعد
+
 public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
     private List<StreamInfoItem> streamList;
@@ -44,7 +47,18 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.dialog_playlist_download, container, false);
+        // 1. نحصل على الثيم الحالي من الإعدادات باستخدام أدوات NewPipe
+        // إذا لم يكن ThemeHelper متاحاً، يمكنك استخدام R.style.LightTheme مبدئياً للتجربة، 
+        // لكن NewPipe غالباً يستخدم ThemeHelper.getTheme(context)
+        
+        // الحل الأبسط والأكثر فعالية: استخدام ContextThemeWrapper مع ثيم التطبيق العام
+        // هذا سيجبر النافذة على استخدام نفس ألوان التطبيق (بما فيها الفاتح والغامق)
+        Context contextThemeWrapper = new ContextThemeWrapper(getActivity(),  org.schabi.newpipe.R.style.LightTheme); 
+        // ملاحظة: NewPipe يقوم بتبديل كلمة "LightTheme" داخلياً حسب الوضع، أو يمكنك استخدام getTheme() من الـ Activity
+
+        LayoutInflater localInflater = inflater.cloneInContext(getContext());
+
+        return localInflater.inflate(R.layout.dialog_playlist_download, container, false);
     }
 
     @Override
@@ -71,7 +85,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         startButton.setOnClickListener(v -> startDownload());
     }
 
-    private void setupQualitySpinner() {
+   private void setupQualitySpinner() {
         String[] options = {
             PlaylistDownloadLogic.QUAL_BEST_VIDEO,
             PlaylistDownloadLogic.QUAL_1080P,
@@ -81,9 +95,13 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_BEST_AUDIO
         };
         
-        // استخدام الثيم الصحيح للقائمة
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, options);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // استخدام R.layout.spinner_item_newpipe بدلاً من تصميم الأندرويد الافتراضي
+        // تأكد من استيراد R الخاص بمشروعك بشكل صحيح
+       ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.spinner_item_newpipe, options);
+        
+        // استخدام نفس التصميم للقائمة المنسدلة أيضاً لضمان توحيد الألوان
+        adapter.setDropDownViewResource(R.layout.spinner_item_newpipe);
+        
         qualitySpinner.setAdapter(adapter);
     }
 

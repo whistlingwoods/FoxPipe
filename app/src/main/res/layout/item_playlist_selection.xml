@@ -23,11 +23,12 @@
         android:layout_height="wrap_content"
         android:minWidth="0dp"
         android:minHeight="0dp"
+        app:buttonTint="?attr/colorAccent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- اسم الفيديو: NewPipeTextView -->
+    <!-- حذفنا textColor واعتمدنا على textAppearanceMedium -->
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemVideoTitleView"
         android:layout_width="0dp"
@@ -44,7 +45,7 @@
         app:layout_constraintStart_toEndOf="@+id/itemThumbnailView"
         app:layout_constraintTop_toTopOf="@+id/itemThumbnailView" />
 
-    <!-- اسم الرافع: NewPipeTextView -->
+    <!-- هنا نستخدم textAppearanceSmall للنص الثانوي -->
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemUploaderView"
         android:layout_width="0dp"
