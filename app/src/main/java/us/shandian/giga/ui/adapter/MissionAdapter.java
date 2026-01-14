@@ -209,8 +209,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (item.mission instanceof DownloadMission) {
             thumbUrl = ((DownloadMission) item.mission).thumbnailUrl;
         } else if (item.mission instanceof FinishedMission) {
-            // ملاحظة: FinishedMission يحتاج أيضاً أن يحمل thumbnailUrl إذا أردت ظهوره في المنتهية
-            // حالياً سنركز على DownloadMission
+            thumbUrl = ((FinishedMission) item.mission).thumbnailUrl;
         }
 
         if (thumbUrl != null && !thumbUrl.isEmpty()) {
@@ -238,7 +237,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
         // --- نهاية التعديل الجديد ---
 
-        h.icon.setImageResource(Utility.getIconForFileType(type));
+        // ❌ تم حذف السطر التالي لأنه كان يستبدل الصورة المصغرة المحملة بأيقونة افتراضية
+        // h.icon.setImageResource(Utility.getIconForFileType(type));
+        
         h.name.setText(item.mission.storage.getName());
 
         h.progress.setColors(Utility.getBackgroundForFileType(mContext, type), Utility.getForegroundForFileType(mContext, type));

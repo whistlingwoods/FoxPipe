@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 public class FinishedMission extends Mission {
 
+    public String thumbnailUrl; // URL للصورة المصغرة
+
     public FinishedMission() {
     }
 
@@ -13,6 +15,7 @@ public class FinishedMission extends Mission {
         timestamp = mission.timestamp;
         kind = mission.kind;
         storage = mission.storage;
+        thumbnailUrl = mission.thumbnailUrl; // نسخ رابط الصورة المصغرة
     }
 
 }
