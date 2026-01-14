@@ -147,6 +147,8 @@ public class DownloadMission extends Mission {
     private transient long writingToFileNext;
     private transient volatile boolean writingToFile;
 
+    public String thumbnailUrl; // <لجب الصورة المصغره 
+
     final Object LOCK = new Lock();
 
     @NonNull

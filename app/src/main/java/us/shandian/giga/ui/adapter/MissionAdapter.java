@@ -90,6 +90,9 @@ import us.shandian.giga.ui.common.Deleter;
 import us.shandian.giga.ui.common.ProgressDrawable;
 import us.shandian.giga.util.Utility;
 
+import org.schabi.newpipe.util.image.PicassoHelper;
+import android.util.TypedValue; // للحصول على لون الثيم
+
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final String TAG = "MissionAdapter";
     private static final String UNDEFINED_PROGRESS = "--.-%";
@@ -197,6 +200,43 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         h.item = item;
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
+
+
+        // --- بداية التعديل الجديد ---
+        
+        // التحقق مما إذا كان هناك رابط صورة مخزن في الـ Mission
+        String thumbUrl = null;
+        if (item.mission instanceof DownloadMission) {
+            thumbUrl = ((DownloadMission) item.mission).thumbnailUrl;
+        } else if (item.mission instanceof FinishedMission) {
+            // ملاحظة: FinishedMission يحتاج أيضاً أن يحمل thumbnailUrl إذا أردت ظهوره في المنتهية
+            // حالياً سنركز على DownloadMission
+        }
+
+        if (thumbUrl != null && !thumbUrl.isEmpty()) {
+            // 1. إزالة الفلتر اللوني للصورة الحقيقية
+            h.icon.clearColorFilter();
+            h.icon.setPadding(0,0,0,0); // إزالة الحواف للصورة
+            
+            // 2. تحميل الصورة باستخدام Picasso
+            PicassoHelper.loadThumbnail(thumbUrl)
+                    .placeholder(Utility.getIconForFileType(type)) // صورة مؤقتة
+                    .error(Utility.getIconForFileType(type)) // صورة عند الخطأ
+                    .into(h.icon);
+        } else {
+            // 3. العودة للأيقونة الافتراضية (نظام NewPipe القديم)
+            h.icon.setImageResource(Utility.getIconForFileType(type));
+            
+            // إعادة تطبيق لون الثيم (Action Color) للأيقونات
+            TypedValue typedValue = new TypedValue();
+            mContext.getTheme().resolveAttribute(R.attr.actionColor, typedValue, true);
+            h.icon.setColorFilter(typedValue.data);
+            
+            // إعادة البادينغ للأيقونة لتبدو مناسبة
+            int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, mContext.getResources().getDisplayMetrics());
+            h.icon.setPadding(padding, padding, padding, padding);
+        }
+        // --- نهاية التعديل الجديد ---
 
         h.icon.setImageResource(Utility.getIconForFileType(type));
         h.name.setText(item.mission.storage.getName());
