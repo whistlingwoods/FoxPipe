@@ -89,6 +89,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.schabi.newpipe.download.PlaylistDownloadDialog;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -115,6 +116,12 @@ public class RouterActivity extends AppCompatActivity {
     private boolean selectionIsAddToPlaylist = false;
     private AlertDialog alertDialogChoice = null;
     private FragmentManager.FragmentLifecycleCallbacks dismissListener = null;
+
+
+    
+    private void openPlaylistDownloadDialog() {
+        getPersistFragment().openPlaylistDownloadDialog(currentServiceId, currentUrl);
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -548,15 +555,15 @@ public class RouterActivity extends AppCompatActivity {
                         getString(R.string.enqueue_stream), R.drawable.ic_add));
             }
 
-            if (linkType == LinkType.STREAM) {
-                // download is redundant for linkType CHANNEL AND PLAYLIST
-                // (till playlist downloading is not supported )
+            // التعديل: السماح بظهور زر التحميل لكل من الفيديو الفردي وقوائم التشغيل
+            if (linkType == LinkType.STREAM || linkType == LinkType.PLAYLIST) {
                 returnedItems.add(new AdapterChoiceItem(getString(R.string.download_key),
                         getString(R.string.download),
                         R.drawable.ic_file_download));
+            }
 
-                // Add to playlist is not necessary for CHANNEL and PLAYLIST linkType
-                // since those can not be added to a playlist
+            if (linkType == LinkType.STREAM) {
+                // Add to playlist logic remains for streams only
                 returnedItems.add(new AdapterChoiceItem(getString(R.string.add_to_playlist_key),
                         getString(R.string.add_to_playlist),
                         R.drawable.ic_playlist_add));
@@ -628,7 +635,13 @@ public class RouterActivity extends AppCompatActivity {
             if (PermissionHelper.checkStoragePermissions(this,
                     PermissionHelper.DOWNLOAD_DIALOG_REQUEST_CODE)) {
                 selectionIsDownload = true;
-                openDownloadDialog();
+                
+                // التعديل: التحقق من نوع الرابط
+                if (currentLinkType == LinkType.PLAYLIST) {
+                    openPlaylistDownloadDialog(); // دالة جديدة سنضيفها بالأسفل
+                } else {
+                    openDownloadDialog(); // الدالة القديمة للفيديو الفردي
+                }
             }
             return;
         }
@@ -705,6 +718,33 @@ public class RouterActivity extends AppCompatActivity {
                             .beginTransaction().remove(this).commit());
                 }
             }
+        }
+
+        @SuppressLint("CheckResult")
+        private void openPlaylistDownloadDialog(final int currentServiceId, final String currentUrl) {
+            inFlight(true);
+            final LoadingDialog loadingDialog = new LoadingDialog(R.string.loading_metadata_title); // أو أي نص مناسب
+            loadingDialog.show(getParentFragmentManager(), "loadingDialog");
+            
+            // استخدام ExtractorHelper لجلب معلومات القائمة
+            disposables.add(ExtractorHelper.getPlaylistInfo(currentServiceId, currentUrl, false)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .compose(this::pleaseWait)
+                    .subscribe(result ->
+                        runOnVisible(ctx -> {
+                            loadingDialog.dismiss();
+                            final FragmentManager fm = ctx.getSupportFragmentManager();
+                            
+                            // هنا نفتح الديالوج الخاص بنا ونمرر له الفيديوهات الموجودة في القائمة
+                            // result.getRelatedItems() تعيد قائمة الفيديوهات
+                            PlaylistDownloadDialog playlistDialog = new PlaylistDownloadDialog(result.getRelatedItems());
+                            playlistDialog.show(fm, "playlistDownloadDialog");
+                        }
+                        ), throwable -> runOnVisible(ctx -> {
+                        loadingDialog.dismiss();
+                        ((RouterActivity) ctx).showUnsupportedUrlDialog(currentUrl);
+                    })));
         }
 
         @Override
