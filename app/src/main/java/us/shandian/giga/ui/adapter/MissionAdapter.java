@@ -83,6 +83,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.get.MissionRecoveryInfo;
 import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
@@ -152,6 +153,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         switch (viewType) {
             case DownloadManager.SPECIAL_PENDING:
             case DownloadManager.SPECIAL_FINISHED:
+            case DownloadManager.SPECIAL_QUEUED:  // Queued downloads header
                 return new ViewHolderHeader(mInflater.inflate(R.layout.missions_header, parent, false));
         }
 
@@ -187,6 +189,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             int str;
             if (item.special == DownloadManager.SPECIAL_PENDING) {
                 str = R.string.missions_header_pending;
+            } else if (item.special == DownloadManager.SPECIAL_QUEUED) {  // Queued header
+                str = R.string.missions_header_queued;
             } else {
                 str = R.string.missions_header_finished;
                 if (mClear != null) mClear.setVisible(true);
@@ -198,6 +202,12 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
         ViewHolderItem h = (ViewHolderItem) view;
         h.item = item;
+        
+        // Handle QueuedMission separately
+        if (item.mission instanceof QueuedMission) {
+            bindQueuedMission(h, (QueuedMission) item.mission);
+            return;
+        }
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
 
@@ -1029,6 +1039,70 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             lastTimestamp = -1;
             lastSpeedIdx = -1;
         }
+    }
+
+    /**
+     * Bind a QueuedMission to the ViewHolder
+     * Shows title, thumbnail, and status (waiting/extracting/failed)
+     */
+    private void bindQueuedMission(ViewHolderItem h, QueuedMission mission) {
+        // Set title
+        h.name.setText(mission.title);
+        
+        // Set thumbnail
+        if (mission.thumbnailUrl != null && !mission.thumbnailUrl.isEmpty()) {
+            h.icon.clearColorFilter();
+            h.icon.setPadding(0, 0, 0, 0);
+            PicassoHelper.loadThumbnail(mission.thumbnailUrl)
+                .placeholder(R.drawable.ic_play_arrow)
+                .error(R.drawable.ic_play_arrow)
+                .into(h.icon);
+        } else {
+            // Fallback icon
+            h.icon.setImageResource(R.drawable.ic_play_arrow);
+            TypedValue typedValue = new TypedValue();
+            mContext.getTheme().resolveAttribute(R.attr.actionColor, typedValue, true);
+            h.icon.setColorFilter(typedValue.data);
+            int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, 
+                mContext.getResources().getDisplayMetrics());
+            h.icon.setPadding(padding, padding, padding, padding);
+        }
+        
+        //  Set status text based on QueuedMission status
+        String statusText;
+        switch (mission.status) {
+            case WAITING:
+                statusText = mContext.getString(R.string.queued_status_waiting);
+                break;
+            case EXTRACTING:
+                statusText = mContext.getString(R.string.queued_status_extracting);
+                break;
+            case PREPARING:
+                statusText = mContext.getString(R.string.queued_status_preparing);
+                break;
+            case FAILED:
+                String error = mission.errorMessage != null ? mission.errorMessage : "";
+                statusText = mContext.getString(R.string.queued_status_failed) + 
+                    (error.isEmpty() ? "" : ": " + error);
+                break;
+            default:
+                statusText = "";
+        }
+        h.status.setText(statusText);
+        
+        // Hide progress bar (no progress yet) - set alpha to 0
+        h.progress.setAlpha(0);
+        
+        // Size unknown
+        h.size.setText("--");
+        
+        // Hide date for queued items
+        if (h.date != null) {
+            h.date.setVisibility(View.GONE);
+        }
+        
+        // Disable menu options for queued items
+        h.popupMenu.getMenu().clear();
     }
 
     static class ViewHolderHeader extends RecyclerView.ViewHolder {

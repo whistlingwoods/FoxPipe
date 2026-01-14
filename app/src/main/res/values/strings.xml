@@ -597,6 +597,11 @@
     <string name="app_update_available_notification_text">Tap to download %s</string>
     <string name="missions_header_finished">Finished</string>
     <string name="missions_header_pending">Pending</string>
+    <string name="missions_header_queued">In Queue</string>
+    <string name="queued_status_waiting">Waiting...</string>
+    <string name="queued_status_extracting">Extracting info...</string>
+    <string name="queued_status_preparing">Preparing...</string>
+    <string name="queued_status_failed">Failed</string>
     <string name="paused">paused</string>
     <string name="queued">queued</string>
     <string name="post_processing">post-processing</string>

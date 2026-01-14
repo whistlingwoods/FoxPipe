@@ -28,6 +28,8 @@ import java.util.List;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.shandian.giga.get.MissionRecoveryInfo;
+import us.shandian.giga.get.QueuedMission;
+import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 
 import java.util.Random;
@@ -82,6 +84,25 @@ public class PlaylistEnqueuerService extends Service {
         final Random random = new Random(); // For jitter
         final int total = urls.size();
 
+        // ===== 🆕 Add all videos to queue first =====
+        DownloadManager downloadManager = getDownloadManager();
+        if (downloadManager != null) {
+            for (int i = 0; i < total; i++) {
+                QueuedMission queued = new QueuedMission();
+                queued.videoUrl = urls.get(i);
+                queued.title = titles.get(i);
+                queued.targetQuality = quality;
+                queued.status = QueuedMission.Status.WAITING;
+                queued.timestamp = System.currentTimeMillis();
+                queued.positionInPlaylist = i;
+                
+                // Try to get thumbnail from URL (basic heuristic)
+                queued.thumbnailUrl = extractThumbnailFromUrl(urls.get(i));
+                
+                downloadManager.addQueuedMission(queued);
+            }
+        }
+
         // Use 'range' to handle indices, mapped to parallel execution via flatMap
         disposables.add(Observable.range(0, total)
                 .flatMap(index -> Observable.fromCallable(() -> {
@@ -97,80 +118,186 @@ public class PlaylistEnqueuerService extends Service {
                         return false;
                     }
 
-                    // Update notification with "Processed / Total" count
-                    int currentCount = progressCounter.incrementAndGet();
-                    updateNotification(currentCount, total, "Processing (" + currentCount + "/" + total + "): " + title);
+                    // 🆕 Update status to EXTRACTING
+                    if (downloadManager != null) {
+                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.EXTRACTING);
+                    }
 
-                    processSingleVideo(url, title, quality);
+                    // Update notification with "Processed / Total" count
+                    int current = progressCounter.incrementAndGet();
+                    updateNotification(current, total, title);
+
+                    // 1. Extract StreamInfo
+                    org.schabi.newpipe.extractor.stream.StreamInfo info;
+                    try {
+                        int serviceId = org.schabi.newpipe.extractor.NewPipe.getServiceByUrl(url).getServiceId();
+                        info = org.schabi.newpipe.extractor.stream.StreamInfo.getInfo(
+                            org.schabi.newpipe.extractor.NewPipe.getService(serviceId), url);
+                    } catch (Exception e) {
+                        android.util.Log.e(TAG, "❌ Failed to extract info for: " + title, e);
+                        
+                        // 🆕 Mark as FAILED
+                        if (downloadManager != null) {
+                            QueuedMission mission = downloadManager.getQueuedMission(index);
+                            if (mission != null) {
+                                mission.status = QueuedMission.Status.FAILED;
+                                mission.errorMessage = e.getMessage();
+                                downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.FAILED);
+                            }
+                        }
+                        return false;
+                    }
+                    
+                    // 🆕 Update thumbnail URL if available
+                    if (downloadManager != null && info.getThumbnails() != null && !info.getThumbnails().isEmpty()) {
+                        QueuedMission mission = downloadManager.getQueuedMission(index);
+                        if (mission != null) {
+                            mission.thumbnailUrl = info.getThumbnails().get(0).getUrl();
+                        }
+                    }
+
+                    // 🆕 Update status to PREPARING
+                    if (downloadManager != null) {
+                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.PREPARING);
+                    }
+
+                    // 2. Prepare complete download bundle
+                    PlaylistDownloadLogic.DownloadBundle bundle = 
+                        PlaylistDownloadLogic.prepareDownload(this, info, quality);
+
+                    if (bundle == null) {
+                        android.util.Log.e(TAG, "❌ Bundle is NULL for: " + title);
+                        
+                        // 🆕 Mark as FAILED
+                        if (downloadManager != null) {
+                            QueuedMission mission = downloadManager.getQueuedMission(index);
+                            if (mission != null) {
+                                mission.status = QueuedMission.Status.FAILED;
+                                mission.errorMessage = "Failed to prepare download";
+                                downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.FAILED);
+                            }
+                        }
+                        return false;
+                    }
+                                // 3. Create Storage directly
+                    boolean isVideo = bundle.kind == 'v';
+                    String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
+
+                    StoredFileHelper finalStorage;
+                    try {
+                        String downloadPath = androidx.preference.PreferenceManager
+                            .getDefaultSharedPreferences(this)
+                            .getString(key, null);
+
+                        if (downloadPath == null || downloadPath.isEmpty()) {
+                            java.io.File defaultDir = NewPipeSettings.getDir(
+                                isVideo ? android.os.Environment.DIRECTORY_MOVIES 
+                                       : android.os.Environment.DIRECTORY_MUSIC);
+                            downloadPath = android.net.Uri.fromFile(defaultDir).toString();
+                        }
+
+                        android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
+                        StoredDirectoryHelper storage = new StoredDirectoryHelper(this, pathUri, null);
+
+                        finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
+                
+                        if (finalStorage == null) {
+                            android.util.Log.e(TAG, "❌ createUniqueFile returned NULL for: " + title);
+                            return false;
+                        }
+
+                    } catch (IOException e) {
+                        android.util.Log.e(TAG, "❌❌ IOException creating storage", e);
+                        return false;
+                    }
+
+                    // 4. Start the download
+                    DownloadManagerService.startMission(
+                        getApplicationContext(),
+                        bundle.urls,
+                        finalStorage,
+                        bundle.kind,
+                        3, // threads
+                        info,
+                        bundle.psName,
+                        bundle.psArgs,
+                        bundle.nearLength,
+                        new ArrayList<>(bundle.recovery)
+                    );
+
+                    // 🆕 Remove from queue on success
+                    if (downloadManager != null) {
+                        downloadManager.removeQueuedMission(index);
+                    }
+
+                    android.util.Log.d(TAG, "✅ Started download for: " + title);
                     return true;
-                }).subscribeOn(Schedulers.io()), 3) // <--- Safety Mechanism: Max Concurrency = 3
-                .doOnComplete(this::stopSelf)
-                .subscribe());
+
+                }), false, 2) // concurrency = 2 (reduced from 3)
+                .subscribeOn(Schedulers.io())
+                .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                .subscribe(
+                    success -> {
+                        // Handle individual success if needed
+                    },
+                    error -> {
+                        android.util.Log.e(TAG, "Error processing playlist item", error);
+                        stopForeground(true);
+                        stopSelf();
+                    },
+                    () -> {
+                        // All items processed
+                        android.util.Log.d(TAG, "Playlist processing complete.");
+                        stopForeground(true);
+                        stopSelf();
+                    }
+                ));
     }
 
-    private void processSingleVideo(String url, String title, String quality) {
+    /**
+     * Get DownloadManager instance from DownloadManagerService
+     */
+    private DownloadManager getDownloadManager() {
+        // Access the manager through the service's binder
+        // The service should be running when playlist enqueuing starts
         try {
-            Log.d(TAG, "=== Processing: " + title + " ===");
-            Log.d(TAG, "URL: " + url);
-            Log.d(TAG, "Quality: " + quality);
-
-            // 1. Fetch Info
-            StreamInfo info = StreamInfo.getInfo(NewPipe.getService(0), url);
-            Log.d(TAG, "StreamInfo fetched successfully");
+            // Start the service to ensure it's running
+            Intent intent = new Intent(this, DownloadManagerService.class);
+            startService(intent);
             
-            // 2. Prepare complete download bundle
-            PlaylistDownloadLogic.DownloadBundle bundle = 
-                PlaylistDownloadLogic.prepareDownload(this, info, quality);
-
-            if (bundle == null) {
-                Log.e(TAG, "❌ Bundle is NULL for: " + title);
-                return;
-            }
-
-            // 3. Create Storage directly
-            boolean isVideo = bundle.kind == 'v';
-            String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
-
-            StoredFileHelper finalStorage;
-            try {
-                String downloadPath = androidx.preference.PreferenceManager
-                    .getDefaultSharedPreferences(this)
-                    .getString(key, null);
-
-                if (downloadPath == null || downloadPath.isEmpty()) {
-                    java.io.File defaultDir = NewPipeSettings.getDir(
-                        isVideo ? android.os.Environment.DIRECTORY_MOVIES 
-                               : android.os.Environment.DIRECTORY_MUSIC);
-                    downloadPath = android.net.Uri.fromFile(defaultDir).toString();
-                }
-
-                android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
-                StoredDirectoryHelper storage = new StoredDirectoryHelper(this, pathUri, null);
-
-                finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
-                
-                if (finalStorage == null) {
-                    Log.e(TAG, "❌ createUniqueFile returned NULL for: " + title);
-                    return;
-                }
-
-            } catch (IOException e) {
-                Log.e(TAG, "❌❌ IOException creating storage", e);
-                return;
-            }
-
-            // 4. Enqueue
-            DownloadManagerService.startMission(this, bundle.urls, finalStorage, 
-                bundle.kind, 3, info, bundle.psName, bundle.psArgs, 
-                bundle.nearLength, new ArrayList<>(bundle.recovery));
-            
-            Log.d(TAG, "✅ Mission started successfully for: " + title);
-
+            // Get the manager directly through the static accessor if available
+            // Otherwise we need to use binding - for now return null with TODO
+            // The DownloadManagerService needs to expose a static getter
+            return DownloadManagerService.getDownloadManager();
         } catch (Exception e) {
-            Log.e(TAG, "❌❌❌ EXCEPTION while processing: " + title, e);
+            android.util.Log.e(TAG, "Failed to get DownloadManager", e);
+            return null;
         }
     }
 
+    /**
+     * Extract thumbnail URL from video URL (basic heuristic for YouTube)
+     */
+    private String extractThumbnailFromUrl(String videoUrl) {
+        try {
+            if (videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be")) {
+                // Extract video ID
+                String videoId = null;
+                if (videoUrl.contains("v=")) {
+                    videoId = videoUrl.split("v=")[1].split("&")[0];
+                } else if (videoUrl.contains("youtu.be/")) {
+                    videoId = videoUrl.split("youtu.be/")[1].split("\\?")[0];
+                }
+                
+                if (videoId != null) {
+                    return "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg";
+                }
+            }
+        } catch (Exception e) {
+            // Ignore
+        }
+        return null;
+    }
     private Notification createNotification(int progress, int max) {
          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Playlist Download", NotificationManager.IMPORTANCE_LOW);

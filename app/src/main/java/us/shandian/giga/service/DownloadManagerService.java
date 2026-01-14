@@ -103,6 +103,19 @@ public class DownloadManagerService extends Service {
     private ConnectivityManager.NetworkCallback mNetworkStateListenerL = null;
 
     private SharedPreferences mPrefs = null;
+    /**
+     * Static reference to the current instance for external access
+     * Used by PlaylistEnqueuerService to add queued missions
+     */
+    private static DownloadManagerService sInstance = null;
+
+    /**
+     * Get the DownloadManager instance from the running service
+     * @return DownloadManager instance or null if service not running
+     */
+    public static DownloadManager getDownloadManager() {
+        return sInstance != null ? sInstance.mManager : null;
+    }
     private final OnSharedPreferenceChangeListener mPrefChangeListener = this::handlePreferenceChange;
 
     private boolean mLockAcquired = false;
@@ -135,6 +148,9 @@ public class DownloadManagerService extends Service {
         if (DEBUG) {
             Log.d(TAG, "onCreate");
         }
+
+        // Set static instance for external access
+        sInstance = this;
 
         mBinder = new DownloadManagerBinder();
         mHandler = new Handler(this::handleMessage);
@@ -219,13 +235,15 @@ public class DownloadManagerService extends Service {
         return START_STICKY;
     }
 
-    @Override
     public void onDestroy() {
         super.onDestroy();
 
         if (DEBUG) {
             Log.d(TAG, "Destroying");
         }
+
+        // Clear static instance
+        sInstance = null;
 
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
 

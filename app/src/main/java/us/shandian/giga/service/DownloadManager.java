@@ -18,6 +18,7 @@ import java.util.List;
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.get.sqlite.FinishedMissionStore;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
@@ -35,6 +36,7 @@ public class DownloadManager {
     public static final int SPECIAL_NOTHING = 0;
     public static final int SPECIAL_PENDING = 1;
     public static final int SPECIAL_FINISHED = 2;
+    public static final int SPECIAL_QUEUED = 3;  // For queued downloads (waiting to be processed)
 
     public static final String TAG_AUDIO = "audio";
     public static final String TAG_VIDEO = "video";
@@ -44,6 +46,7 @@ public class DownloadManager {
 
     private final ArrayList<DownloadMission> mMissionsPending = new ArrayList<>();
     private final ArrayList<FinishedMission> mMissionsFinished;
+    private final ArrayList<QueuedMission> mMissionsQueued = new ArrayList<>();  // Queued downloads
 
     private final Handler mHandler;
     private final File mPendingMissionsDir;
@@ -434,6 +437,86 @@ public class DownloadManager {
     }
 
     /**
+     * Check if a mission is finished
+     *
+     * @return {@code true} if exists
+     */
+    public boolean existsFinishedMission(StoredFileHelper storage) {
+        synchronized (this) {
+            for (FinishedMission mission : mMissionsFinished) {
+                if (mission.storage != null && mission.storage.equals(storage)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ========== Queued Missions Management ==========
+
+    /**
+     * Add a new queued mission
+     * @param mission The queued mission to add
+     */
+    public void addQueuedMission(QueuedMission mission) {
+        synchronized (this) {
+            mMissionsQueued.add(mission);
+            mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+        }
+    }
+
+    /**
+     * Update the status of a queued mission
+     * @param index Index of the queued mission
+     * @param newStatus New status to set
+     */
+    public void updateQueuedMissionStatus(int index, QueuedMission.Status newStatus) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                mMissionsQueued.get(index).status = newStatus;
+                mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+            }
+        }
+    }
+
+    /**
+     * Get a queued mission by index
+     * @param index Index of the queued mission
+     * @return The queued mission, or null if index is invalid
+     */
+    public QueuedMission getQueuedMission(int index) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                return mMissionsQueued.get(index);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Remove a queued mission (when it starts downloading or fails permanently)
+     * @param index Index of the queued mission to remove
+     */
+    public void removeQueuedMission(int index) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                mMissionsQueued.remove(index);
+                mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+            }
+        }
+    }
+
+    /**
+     * Get the count of queued missions
+     * @return Number of queued missions
+     */
+    public int getQueuedCount() {
+        synchronized (this) {
+            return mMissionsQueued.size();
+        }
+    }
+
+    /**
      * Set a pending download as finished
      *
      * @param mission the desired mission
@@ -593,6 +676,7 @@ public class DownloadManager {
     public class MissionIterator extends DiffUtil.Callback {
         final Object FINISHED = new Object();
         final Object PENDING = new Object();
+        final Object QUEUED = new Object();  // For queued downloads
 
         ArrayList<Object> snapshot;
         ArrayList<Object> current;
@@ -610,6 +694,7 @@ public class DownloadManager {
             synchronized (DownloadManager.this) {
                 ArrayList<Mission> pending = new ArrayList<>(mMissionsPending);
                 ArrayList<Mission> finished = new ArrayList<>(mMissionsFinished);
+                ArrayList<QueuedMission> queued = new ArrayList<>(mMissionsQueued);
                 List<Mission> remove = new ArrayList<>(hidden);
 
                 // Don't hide recoverable missions
@@ -625,8 +710,18 @@ public class DownloadManager {
 
                 fakeTotal += finished.size();
                 if (finished.size() > 0) fakeTotal++;
+                
+                fakeTotal += queued.size();
+                if (queued.size() > 0) fakeTotal++;
 
                 ArrayList<Object> list = new ArrayList<>(fakeTotal);
+                
+                // Add queued first
+                if (queued.size() > 0) {
+                    list.add(QUEUED);
+                    list.addAll(queued);
+                }
+                
                 if (pending.size() > 0) {
                     list.add(PENDING);
                     list.addAll(pending);
@@ -647,6 +742,7 @@ public class DownloadManager {
 
             if (object == PENDING) return new MissionItem(SPECIAL_PENDING);
             if (object == FINISHED) return new MissionItem(SPECIAL_FINISHED);
+            if (object == QUEUED) return new MissionItem(SPECIAL_QUEUED);
 
             return new MissionItem(SPECIAL_NOTHING, (Mission) object);
         }
@@ -656,6 +752,7 @@ public class DownloadManager {
 
             if (object == PENDING) return SPECIAL_PENDING;
             if (object == FINISHED) return SPECIAL_FINISHED;
+            if (object == QUEUED) return SPECIAL_QUEUED;
 
             return SPECIAL_NOTHING;
         }
@@ -726,14 +823,32 @@ public class DownloadManager {
 
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            Object x = snapshot.get(oldItemPosition);
-            Object y = current.get(newItemPosition);
+            Object oldItem = snapshot.get(oldItemPosition);
+            Object newItem = current.get(newItemPosition);
 
-            if (x instanceof Mission && y instanceof Mission) {
-                return ((Mission) x).storage.equals(((Mission) y).storage);
+            if (oldItem == PENDING || oldItem == FINISHED || oldItem == QUEUED) return oldItem == newItem;
+
+            // Handle QueuedMission (no storage yet)
+            if (oldItem instanceof QueuedMission && newItem instanceof QueuedMission) {
+                QueuedMission oldQueued = (QueuedMission) oldItem;
+                QueuedMission newQueued = (QueuedMission) newItem;
+                
+                // Compare by URL and title since no storage exists yet
+                return oldQueued.videoUrl.equals(newQueued.videoUrl) 
+                    && oldQueued.title.equals(newQueued.title)
+                    && oldQueued.status == newQueued.status;
             }
 
-            return false;
+            // Handle DownloadMission and FinishedMission (have storage)
+            Mission oldMission = (Mission) oldItem;
+            Mission newMission = (Mission) newItem;
+            
+            // Null check for storage (QueuedMission doesn't have storage)
+            if (oldMission.storage == null || newMission.storage == null) {
+                return false; // Different if either has null storage
+            }
+
+            return oldMission.storage.equals(newMission.storage) && oldMission.timestamp == newMission.timestamp;
         }
     }
 
