@@ -28,7 +28,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- حذفنا textColor واعتمدنا على textAppearanceMedium -->
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemVideoTitleView"
         android:layout_width="0dp"
@@ -45,20 +44,33 @@
         app:layout_constraintStart_toEndOf="@+id/itemThumbnailView"
         app:layout_constraintTop_toTopOf="@+id/itemThumbnailView" />
 
-    <!-- هنا نستخدم textAppearanceSmall للنص الثانوي -->
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemUploaderView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:ellipsize="end"
         android:lines="1"
-        android:text="Uploader Name"
+        android:text="Uploader"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="12sp"
-        app:layout_constraintEnd_toStartOf="@+id/itemCheckBox"
         app:layout_constraintStart_toStartOf="@+id/itemVideoTitleView"
         app:layout_constraintTop_toBottomOf="@+id/itemVideoTitleView" />
+
+    <!-- النص الجديد لحجم الفيديو الفردي -->
+    <org.schabi.newpipe.views.NewPipeTextView
+        android:id="@+id/itemSizeView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="~5MB"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/itemUploaderView"
+        app:layout_constraintStart_toEndOf="@+id/itemUploaderView"
+        app:layout_constraintTop_toTopOf="@+id/itemUploaderView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,11 +2,13 @@ package org.schabi.newpipe.download;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color; // مهم جداً
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -23,10 +25,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
-import org.schabi.newpipe.views.NewPipeTextView; // استدعاء مكتبة نصوص NewPipe
+import org.schabi.newpipe.views.NewPipeTextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import android.view.ContextThemeWrapper; // تأكد من إضافة هذا الاستيراد
 import org.schabi.newpipe.util.ThemeHelper; // NewPipe يستخدم هذا المساعد
@@ -38,7 +41,11 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     private Spinner qualitySpinner;
     private CheckBox selectAllCheckbox;
     private Button startButton;
+    private NewPipeTextView totalSizeTextView; // نص الحجم الإجمالي
     private ItemsAdapter adapter;
+    
+    // معدل البت التقريبي (kbps) لكل جودة
+    private long currentBitrate = 0;
 
     public PlaylistDownloadDialog(List<StreamInfoItem> items) {
         this.streamList = new ArrayList<>(items);
@@ -47,13 +54,13 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // الحل الأبسط والأكثر فعالية: استخدام ContextThemeWrapper مع ثيم التطبيق العام
-        // هذا سيجبر النافذة على استخدام نفس ألوان التطبيق (بما فيها الفاتح والغامق)
-        Context contextThemeWrapper = new ContextThemeWrapper(getActivity(),  org.schabi.newpipe.R.style.LightTheme); 
-        // ملاحظة: NewPipe يقوم بتبديل كلمة "LightTheme" داخلياً حسب الوضع، أو يمكنك استخدام getTheme() من الـ Activity
+        int themeId = ThemeHelper.isLightThemeSelected(getActivity()) 
+                ? org.schabi.newpipe.R.style.LightTheme 
+                : org.schabi.newpipe.R.style.DarkTheme;
 
-        LayoutInflater localInflater = inflater.cloneInContext(getContext());
-
+        Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), themeId);
+        LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
+        
         return localInflater.inflate(R.layout.dialog_playlist_download, container, false);
     }
 
@@ -61,27 +68,28 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- السطر السحري ---
-        // هذا يجعل خلفية النظام شفافة، لكي تظهر خلفية التصميم الخاص بنا فقط
         ((View) view.getParent()).setBackgroundColor(Color.TRANSPARENT);
-        // --------------------
 
         qualitySpinner = view.findViewById(R.id.qualitySpinner);
         selectAllCheckbox = view.findViewById(R.id.selectAllCheckbox);
         recyclerView = view.findViewById(R.id.itemsRecyclerView);
         startButton = view.findViewById(R.id.startDownloadButton);
+        totalSizeTextView = view.findViewById(R.id.totalSizeTextView); // ربط النص الجديد
 
         setupQualitySpinner();
         setupRecyclerView();
-        
+
         selectAllCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-             if(adapter != null) adapter.selectAll(isChecked);
+            if (adapter != null) {
+                adapter.selectAll(isChecked);
+                updateTotalSize(); // تحديث الإجمالي عند تحديد الكل
+            }
         });
 
         startButton.setOnClickListener(v -> startDownload());
     }
 
-   private void setupQualitySpinner() {
+    private void setupQualitySpinner() {
         String[] options = {
             PlaylistDownloadLogic.QUAL_BEST_VIDEO,
             PlaylistDownloadLogic.QUAL_1080P,
@@ -90,25 +98,77 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_360P,
             PlaylistDownloadLogic.QUAL_240P,
             PlaylistDownloadLogic.QUAL_144P,
-            PlaylistDownloadLogic.QUAL_AUDIO_HIGH,   // بدلاً من Best Audio القديم
-            PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM, // خيار جديد
-            PlaylistDownloadLogic.QUAL_AUDIO_LOW  
+            PlaylistDownloadLogic.QUAL_AUDIO_HIGH,
+            PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM,
+            PlaylistDownloadLogic.QUAL_AUDIO_LOW
         };
-        
-        // استخدام R.layout.spinner_item_newpipe بدلاً من تصميم الأندرويد الافتراضي
-        // تأكد من استيراد R الخاص بمشروعك بشكل صحيح
-       ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.spinner_item_newpipe, options);
-        
-        // استخدام نفس التصميم للقائمة المنسدلة أيضاً لضمان توحيد الألوان
-        adapter.setDropDownViewResource(R.layout.spinner_item_newpipe);
-        
-        qualitySpinner.setAdapter(adapter);
+
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getActivity(), R.layout.spinner_item_newpipe, options);
+        spinnerAdapter.setDropDownViewResource(R.layout.spinner_item_newpipe);
+        qualitySpinner.setAdapter(spinnerAdapter);
+
+        // مستمع عند تغيير الجودة لتحديث الأحجام
+        qualitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedQuality = options[position];
+                currentBitrate = getEstimatedBitrate(selectedQuality);
+                
+                if (adapter != null) {
+                    adapter.updateBitrate(currentBitrate); // تحديث الأحجام الفردية
+                }
+                updateTotalSize(); // تحديث الحجم الإجمالي
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ItemsAdapter(streamList);
+        adapter = new ItemsAdapter(streamList, this::updateTotalSize); // تمرير دالة التحديث
         recyclerView.setAdapter(adapter);
+    }
+
+    // حساب الحجم الإجمالي للعناصر المحددة
+    private void updateTotalSize() {
+        if (adapter == null) return;
+        List<StreamInfoItem> selected = adapter.getSelectedItems();
+        long totalBytes = 0;
+        
+        for (StreamInfoItem item : selected) {
+            // الحجم = (المدة بالثواني * البت ريت) / 8 لتحويلها لبايت
+            totalBytes += (item.getDuration() * (currentBitrate * 1000)) / 8;
+        }
+        
+        totalSizeTextView.setText("Total Est. Size: " + formatFileSize(totalBytes));
+    }
+
+    // تقدير معدل البت (kbps) بناءً على الجودة (Video + Audio)
+    private long getEstimatedBitrate(String quality) {
+        switch (quality) {
+            case PlaylistDownloadLogic.QUAL_1080P: return 4500; // ~4.5 Mbps
+            case PlaylistDownloadLogic.QUAL_720P: return 2500;
+            case PlaylistDownloadLogic.QUAL_480P: return 1200;
+            case PlaylistDownloadLogic.QUAL_360P: return 700;
+            case PlaylistDownloadLogic.QUAL_240P: return 350;
+            case PlaylistDownloadLogic.QUAL_144P: return 150; // Video + Audio
+            
+            case PlaylistDownloadLogic.QUAL_AUDIO_HIGH: return 160;
+            case PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM: return 128;
+            case PlaylistDownloadLogic.QUAL_AUDIO_LOW: return 48;
+            
+            case PlaylistDownloadLogic.QUAL_BEST_VIDEO: default: return 5000;
+        }
+    }
+
+    // دالة مساعدة لتنسيق الحجم
+    public static String formatFileSize(long size) {
+        if (size <= 0) return "0 MB";
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return String.format(Locale.US, "%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
     }
 
     private void startDownload() {
@@ -120,7 +180,6 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         }
 
         String quality = (String) qualitySpinner.getSelectedItem();
-        
         Intent serviceIntent = new Intent(getContext(), PlaylistEnqueuerService.class);
         serviceIntent.setAction(PlaylistEnqueuerService.ACTION_ENQUEUE_PLAYLIST);
         serviceIntent.putExtra(PlaylistEnqueuerService.EXTRA_QUALITY, quality);
@@ -142,11 +201,19 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     private static class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.ViewHolder> {
         private final List<StreamInfoItem> items;
         private final boolean[] selected;
+        private long currentBitrate = 0;
+        private final Runnable onSelectionChanged; // Callback لتحديث الإجمالي
 
-        ItemsAdapter(List<StreamInfoItem> items) {
+        ItemsAdapter(List<StreamInfoItem> items, Runnable onSelectionChanged) {
             this.items = items;
+            this.onSelectionChanged = onSelectionChanged;
             this.selected = new boolean[items.size()];
             for(int i=0; i<selected.length; i++) selected[i] = true;
+        }
+
+        void updateBitrate(long bitrate) {
+            this.currentBitrate = bitrate;
+            notifyDataSetChanged(); // إعادة رسم القائمة بالأحجام الجديدة
         }
 
         void selectAll(boolean isSelected) {
@@ -177,6 +244,15 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             holder.uploader.setText(item.getUploaderName());
             holder.checkBox.setChecked(selected[position]);
             
+            // حساب الحجم الفردي
+            if (currentBitrate > 0 && item.getDuration() > 0) {
+                long estimatedSize = (item.getDuration() * (currentBitrate * 1000)) / 8;
+                holder.sizeText.setText(formatFileSize(estimatedSize));
+                holder.sizeText.setVisibility(View.VISIBLE);
+            } else {
+                holder.sizeText.setVisibility(View.GONE);
+            }
+
             org.schabi.newpipe.util.image.PicassoHelper.loadThumbnail(item.getThumbnails())
                 .into(holder.thumbnail);
             
@@ -193,6 +269,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         private void updateSelection(int position, boolean isChecked) {
             if (position != RecyclerView.NO_POSITION) {
                 selected[position] = isChecked;
+                if (onSelectionChanged != null) onSelectionChanged.run(); // تحديث الإجمالي
             }
         }
 
@@ -203,9 +280,9 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
         static class ViewHolder extends RecyclerView.ViewHolder {
             final android.widget.CheckBox checkBox;
-            // استخدام NewPipeTextView هنا مهم جداً
             final NewPipeTextView title;
             final NewPipeTextView uploader;
+            final NewPipeTextView sizeText; // النص الجديد للحجم
             final android.widget.ImageView thumbnail;
 
             ViewHolder(View itemView) {
@@ -213,6 +290,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
                 checkBox = itemView.findViewById(R.id.itemCheckBox);
                 title = itemView.findViewById(R.id.itemVideoTitleView);
                 uploader = itemView.findViewById(R.id.itemUploaderView);
+                sizeText = itemView.findViewById(R.id.itemSizeView); // تأكد من إضافته للـ XML
                 thumbnail = itemView.findViewById(R.id.itemThumbnailView);
             }
         }

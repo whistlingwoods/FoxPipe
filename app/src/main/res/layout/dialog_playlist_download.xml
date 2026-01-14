@@ -7,13 +7,8 @@
     android:orientation="vertical"
     android:background="?attr/windowBackground"
     android:paddingBottom="16dp"> 
-    <!-- 
-       ملاحظة هامة جداً:
-       لقد حذفت android:paddingTop="16dp" من هنا
-       لكي يلتصق الشريط الأحمر بأعلى الشاشة تماماً بدون فراغات
-    -->
 
-    <!-- بداية: شريط العنوان الأحمر -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -30,15 +25,10 @@
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
-            <!-- 
-               جعلنا النص أبيض دائماً (textColor="@android:color/white") 
-               لأن الخلفية ستكون ملونة (أحمر/برتقالي) في كل الأوضاع 
-            -->
     </LinearLayout>
-    <!-- نهاية: شريط العنوان الأحمر -->
 
 
-    <!-- حاوية خيارات الجودة (أضفنا لها مسافة علوية لتعويض الفراغ المحذوف) -->
+    <!-- Options -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -93,19 +83,38 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginBottom="16dp"
         android:background="?attr/separator_color" />
 
-    <Button
-        android:id="@+id/startDownloadButton"
+    <!-- قسم الحجم الإجمالي والزر -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="16dp"
-        android:text="Start Download"
-        android:textColor="@android:color/white"
-        android:backgroundTint="?attr/colorPrimary" 
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp">
+
+        <!-- النص الجديد للحجم الإجمالي -->
+        <org.schabi.newpipe.views.NewPipeTextView
+            android:id="@+id/totalSizeTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="end"
+            android:text="Total Est. Size: 0 MB"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorSecondary" />
+
+        <Button
+            android:id="@+id/startDownloadButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Start Download"
+            android:textColor="@android:color/white"
+            android:backgroundTint="?attr/colorPrimary" 
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+            
+    </LinearLayout>
 
 </LinearLayout>
