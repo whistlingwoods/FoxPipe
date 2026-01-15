@@ -52,7 +52,7 @@
         android:clickable="true"
         android:focusable="true"
         app:tint="@android:color/white"
-        app:backgroundTint="#F44336"
+        app:backgroundTint="#CD201F"
         app:borderWidth="0dp"
         xmlns:app="http://schemas.android.com/apk/res-auto" />
 
