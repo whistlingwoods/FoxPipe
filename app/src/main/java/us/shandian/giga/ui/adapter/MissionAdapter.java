@@ -72,9 +72,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.text.DateFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -123,6 +125,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     private Snackbar mSnackbar;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final AtomicBoolean isApplyingChanges = new AtomicBoolean(false);
 
     public MissionAdapter(Context context, @NonNull DownloadManager downloadManager, View emptyMessage, View root) {
         mContext = context;
@@ -168,7 +171,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         ViewHolderItem h = (ViewHolderItem) view;
 
         if (h.item.mission instanceof DownloadMission) {
-            mPendingDownloadsItems.remove(h);
+            synchronized (mPendingDownloadsItems) {
+                mPendingDownloadsItems.remove(h);
+            }
             if (mPendingDownloadsItems.size() < 1) {
                 checkMasterButtonsVisibility();
             }
@@ -262,10 +267,21 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             h.size.setText(length);
             h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
-            mPendingDownloadsItems.add(h);
+            
+            // Add to pending items with synchronization to prevent concurrent modification
+            synchronized (mPendingDownloadsItems) {
+                // Remove first to avoid duplicates if rebinding the same ViewHolder
+                mPendingDownloadsItems.remove(h);
+                mPendingDownloadsItems.add(h);
+            }
 
             h.date.setText("");
         } else {
+            // Not a pending mission, ensure it's removed from the list
+            synchronized (mPendingDownloadsItems) {
+                mPendingDownloadsItems.remove(h);
+            }
+            
             h.progress.setMarquee(false);
             h.status.setText("100%");
             h.progress.setProgress(1.0f);
@@ -791,16 +807,26 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void applyChanges() {
-        android.util.Log.d(TAG, "🔄 applyChanges() called");
-        mIterator.start();
-        android.util.Log.d(TAG, "   📊 Iterator started, calculating diff...");
-        DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
-        android.util.Log.d(TAG, "   ✅ Diff calculated and dispatched");
-        mIterator.end();
+        // Prevent concurrent calls to avoid race conditions
+        if (!isApplyingChanges.compareAndSet(false, true)) {
+            android.util.Log.d(TAG, "⏭️ Skipping applyChanges() - already in progress");
+            return;
+        }
+        
+        try {
+            android.util.Log.d(TAG, "🔄 applyChanges() started");
+            mIterator.start();
+            android.util.Log.d(TAG, "   📊 Iterator started, calculating diff...");
+            DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
+            android.util.Log.d(TAG, "   ✅ Diff calculated and dispatched");
+            mIterator.end();
 
-        checkEmptyMessageVisibility();
-        if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
-        android.util.Log.d(TAG, "   ✅ applyChanges() completed");
+            checkEmptyMessageVisibility();
+            if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
+            android.util.Log.d(TAG, "   ✅ applyChanges() completed");
+        } finally {
+            isApplyingChanges.set(false);
+        }
     }
 
     public void forceUpdate() {
@@ -860,6 +886,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void onDestroy() {
+        // Clean up ALL handler callbacks to prevent memory leaks
+        mHandler.removeCallbacksAndMessages(null);
+        
         compositeDisposable.dispose();
         mDeleter.dispose();
     }
@@ -889,9 +918,20 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     private void updater() {
-        for (ViewHolderItem h : mPendingDownloadsItems) {
-            // check if the mission is running first
-            if (!((DownloadMission) h.item.mission).running) continue;
+        // Create snapshot to avoid ConcurrentModificationException
+        final List<ViewHolderItem> snapshot;
+        synchronized (mPendingDownloadsItems) {
+            snapshot = new ArrayList<>(mPendingDownloadsItems);
+        }
+        
+        for (ViewHolderItem h : snapshot) {
+            // Double-check validity in case mission changed while we were iterating
+            if (h.item == null || !(h.item.mission instanceof DownloadMission)) {
+                continue;
+            }
+            
+            DownloadMission mission = (DownloadMission) h.item.mission;
+            if (!mission.running) continue;
 
             updateProgress(h);
         }
