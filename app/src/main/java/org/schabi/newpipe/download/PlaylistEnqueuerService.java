@@ -54,6 +54,7 @@ public class PlaylistEnqueuerService extends Service {
     private static final String CHANNEL_ID = "playlist_enqueuer_channel";
 
     private final io.reactivex.rxjava3.disposables.CompositeDisposable disposables = new io.reactivex.rxjava3.disposables.CompositeDisposable();
+    private final android.os.Handler mHandler = new android.os.Handler(android.os.Looper.getMainLooper());
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -66,11 +67,21 @@ public class PlaylistEnqueuerService extends Service {
                 
                 startForeground(NOTIFICATION_ID, createNotification(0, urls.size()));
                 
-                // Process directly without needing DownloadManagerService binding
-                processPlaylist(urls, titles, quality);
+                // Start DownloadManagerService first
+                Intent dmIntent = new Intent(this, DownloadManagerService.class);
+                startService(dmIntent);
+                
+                // Wait 500ms for service to initialize, THEN process playlist
+                // This allows onCreate() to complete on Main Thread
+                mHandler.postDelayed(() -> {
+                    android.util.Log.d(TAG, "⏰ Starting playlist processing after delay...");
+                    processPlaylist(urls, titles, quality);
+                }, 500);  // 500ms delay
+                
             } else if (ACTION_CANCEL_ALL.equals(action)) {
                 Log.d(TAG, "Cancelling playlist enqueuing...");
                 disposables.clear();
+                mHandler.removeCallbacksAndMessages(null);  // Cancel any pending tasks
                 stopForeground(true);
                 stopSelf();
                 return START_NOT_STICKY;
@@ -85,8 +96,18 @@ public class PlaylistEnqueuerService extends Service {
         final int total = urls.size();
 
         // ===== 🆕 Add all videos to queue first =====
+        android.util.Log.e(TAG, "========================================");
+        android.util.Log.e(TAG, "🔍 DEBUG: processPlaylist() called");
+        android.util.Log.e(TAG, "   Total videos: " + total);
+        android.util.Log.e(TAG, "   Quality: " + quality);
+        android.util.Log.e(TAG, "========================================");
+        
         DownloadManager downloadManager = getDownloadManager();
+        
         if (downloadManager != null) {
+            android.util.Log.e(TAG, "✅ SUCCESS: DownloadManager obtained!");
+            android.util.Log.e(TAG, "   Adding " + total + " videos to queue...");
+            
             for (int i = 0; i < total; i++) {
                 QueuedMission queued = new QueuedMission();
                 queued.videoUrl = urls.get(i);
@@ -100,7 +121,18 @@ public class PlaylistEnqueuerService extends Service {
                 queued.thumbnailUrl = extractThumbnailFromUrl(urls.get(i));
                 
                 downloadManager.addQueuedMission(queued);
+                android.util.Log.d(TAG, "   ✅ #" + i + ": " + queued.title);
             }
+            
+            android.util.Log.e(TAG, "========================================");
+            android.util.Log.e(TAG, "✅ All " + total + " missions added to queue");
+            android.util.Log.e(TAG, "========================================");
+        } else {
+            android.util.Log.e(TAG, "========================================");
+            android.util.Log.e(TAG, "❌ CRITICAL ERROR: DownloadManager is NULL!");
+            android.util.Log.e(TAG, "   This means QueuedMissions will NOT be added!");
+            android.util.Log.e(TAG, "   Queue section will NOT appear in UI!");
+            android.util.Log.e(TAG, "========================================");
         }
 
         // Use 'range' to handle indices, mapped to parallel execution via flatMap
@@ -212,6 +244,7 @@ public class PlaylistEnqueuerService extends Service {
                     }
 
                     // 4. Start the download
+                    android.util.Log.d(TAG, "📥 Starting download mission for: " + title);
                     DownloadManagerService.startMission(
                         getApplicationContext(),
                         bundle.urls,
@@ -224,10 +257,13 @@ public class PlaylistEnqueuerService extends Service {
                         bundle.nearLength,
                         new ArrayList<>(bundle.recovery)
                     );
+                    android.util.Log.d(TAG, "   ✅ startMission() completed");
 
                     // 🆕 Remove from queue on success
                     if (downloadManager != null) {
+                        android.util.Log.d(TAG, "   🗑️ Removing from queue (index=" + index + ")");
                         downloadManager.removeQueuedMission(index);
+                        android.util.Log.d(TAG, "   ✅ Removed from queue - UI should update now");
                     }
 
                     android.util.Log.d(TAG, "✅ Started download for: " + title);
@@ -256,21 +292,24 @@ public class PlaylistEnqueuerService extends Service {
 
     /**
      * Get DownloadManager instance from DownloadManagerService
+     * Should be called after service has had time to initialize
      */
     private DownloadManager getDownloadManager() {
-        // Access the manager through the service's binder
-        // The service should be running when playlist enqueuing starts
+        android.util.Log.d(TAG, "🔍 Getting DownloadManager...");
+        
         try {
-            // Start the service to ensure it's running
-            Intent intent = new Intent(this, DownloadManagerService.class);
-            startService(intent);
+            DownloadManager dm = DownloadManagerService.getDownloadManager();
             
-            // Get the manager directly through the static accessor if available
-            // Otherwise we need to use binding - for now return null with TODO
-            // The DownloadManagerService needs to expose a static getter
-            return DownloadManagerService.getDownloadManager();
+            if (dm != null) {
+                android.util.Log.d(TAG, "   ✅ DownloadManager retrieved successfully!");
+                return dm;
+            } else {
+                android.util.Log.e(TAG, "   ❌ DownloadManager is still NULL");
+                android.util.Log.e(TAG, "   This should not happen after 500ms delay!");
+                return null;
+            }
         } catch (Exception e) {
-            android.util.Log.e(TAG, "Failed to get DownloadManager", e);
+            android.util.Log.e(TAG, "   ❌ Exception getting DownloadManager", e);
             return null;
         }
     }
@@ -339,6 +378,7 @@ public class PlaylistEnqueuerService extends Service {
     @Override
     public void onDestroy() {
         disposables.clear();
+        mHandler.removeCallbacksAndMessages(null);  // Clean up any pending tasks
         super.onDestroy();
     }
 

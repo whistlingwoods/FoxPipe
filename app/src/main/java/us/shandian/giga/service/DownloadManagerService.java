@@ -114,7 +114,16 @@ public class DownloadManagerService extends Service {
      * @return DownloadManager instance or null if service not running
      */
     public static DownloadManager getDownloadManager() {
-        return sInstance != null ? sInstance.mManager : null;
+        android.util.Log.d(TAG, "📞 getDownloadManager() called");
+        android.util.Log.d(TAG, "   sInstance = " + (sInstance != null ? "available" : "NULL"));
+        
+        if (sInstance != null) {
+            android.util.Log.d(TAG, "   mManager = " + (sInstance.mManager != null ? "available" : "NULL"));
+            return sInstance.mManager;
+        } else {
+            android.util.Log.e(TAG, "   ❌ Returning NULL - service not initialized");
+            return null;
+        }
     }
     private final OnSharedPreferenceChangeListener mPrefChangeListener = this::handlePreferenceChange;
 
@@ -271,11 +280,20 @@ public class DownloadManagerService extends Service {
         return mBinder;
     }
 
-    private boolean handleMessage(@NonNull Message msg) {
-        if (mHandler == null) return true;
+    private boolean handleMessage(@NonNull final Message msg) {
+        android.util.Log.d(TAG, "📨 handleMessage: what=" + msg.what);
+        
+        if (mManager == null) {
+            android.util.Log.e(TAG, "   ❌ mManager is null!");
+            return true;
+        }
+
+        if (msg.what == MESSAGE_RUNNING) {
+           android.util.Log.d(TAG, "   📢 MESSAGE_RUNNING received");
+            android.util.Log.d(TAG, "   Listeners: " + mEchoObservers.size());
+        }
 
         DownloadMission mission = (DownloadMission) msg.obj;
-
         switch (msg.what) {
             case MESSAGE_FINISHED:
                 notifyMediaScanner(mission.storage.getUri());
@@ -283,9 +301,11 @@ public class DownloadManagerService extends Service {
                 mManager.setFinished(mission);
                 handleConnectivityState(false);
                 updateForegroundState(mManager.runMissions());
+                mFailedDownloads.delete(mFailedDownloads.indexOfValue(mission));
                 break;
             case MESSAGE_RUNNING:
                 updateForegroundState(true);
+                handleConnectivityState(false);
                 break;
             case MESSAGE_ERROR:
                 notifyFailedDownload(mission);
@@ -297,11 +317,16 @@ public class DownloadManagerService extends Service {
                 break;
         }
 
-        if (msg.what != MESSAGE_ERROR)
-            mFailedDownloads.remove(mFailedDownloads.indexOfValue(mission));
+        if (msg.what != MESSAGE_ERROR) {
+            mFailedDownloads.delete(mFailedDownloads.indexOfValue(mission));
+        }
 
-        for (Callback observer : mEchoObservers)
-            observer.handleMessage(msg);
+        synchronized (mEchoObservers){
+            android.util.Log.d(TAG, "   🔊 Broadcasting to " + mEchoObservers.size() + " observers");
+            for (final Callback observer : mEchoObservers) {
+                observer.handleMessage(msg);
+            }
+        }
 
         return true;
     }

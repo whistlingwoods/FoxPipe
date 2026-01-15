@@ -461,7 +461,10 @@ public class DownloadManager {
     public void addQueuedMission(QueuedMission mission) {
         synchronized (this) {
             mMissionsQueued.add(mission);
+            android.util.Log.d(TAG, "✅ QueuedMission added: \"" + mission.title + "\"");
+            android.util.Log.d(TAG, "   Total queued: " + mMissionsQueued.size());
             mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+            android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to UI");
         }
     }
 
@@ -500,8 +503,11 @@ public class DownloadManager {
     public void removeQueuedMission(int index) {
         synchronized (this) {
             if (index >= 0 && index < mMissionsQueued.size()) {
-                mMissionsQueued.remove(index);
+                QueuedMission removed = mMissionsQueued.remove(index);
+                android.util.Log.d(TAG, "🗑️ QueuedMission removed: \"" + removed.title + "\"");
+                android.util.Log.d(TAG, "   Remaining in queue: " + mMissionsQueued.size());
                 mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to update UI");
             }
         }
     }

@@ -483,6 +483,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
     @Override
     public boolean handleMessage(@NonNull Message msg) {
+        android.util.Log.d(TAG, "📨 MissionAdapter.handleMessage: what=" + msg.what);
+        
         if (mStartButton != null && mPauseButton != null) {
             checkMasterButtonsVisibility();
         }
@@ -493,6 +495,11 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             case DownloadManagerService.MESSAGE_DELETED:
             case DownloadManagerService.MESSAGE_PAUSED:
                 break;
+            case DownloadManagerService.MESSAGE_RUNNING:
+                android.util.Log.d(TAG, "   📢 MESSAGE_RUNNING received in Adapter!");
+                android.util.Log.d(TAG, "   🔄 Calling applyChanges()...");
+                applyChanges();
+                return true;
             default:
                 return false;
         }
@@ -504,6 +511,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             case DownloadManagerService.MESSAGE_FINISHED:
             case DownloadManagerService.MESSAGE_DELETED:
                 // DownloadManager should mark the download as finished
+                android.util.Log.d(TAG, "   🔄 FINISHED/DELETED - Calling applyChanges()...");
                 applyChanges();
                 return true;
         }
@@ -783,12 +791,16 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void applyChanges() {
+        android.util.Log.d(TAG, "🔄 applyChanges() called");
         mIterator.start();
+        android.util.Log.d(TAG, "   📊 Iterator started, calculating diff...");
         DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
+        android.util.Log.d(TAG, "   ✅ Diff calculated and dispatched");
         mIterator.end();
 
         checkEmptyMessageVisibility();
         if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
+        android.util.Log.d(TAG, "   ✅ applyChanges() completed");
     }
 
     public void forceUpdate() {
