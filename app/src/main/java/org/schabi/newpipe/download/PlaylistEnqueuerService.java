@@ -49,6 +49,7 @@ public class PlaylistEnqueuerService extends Service {
     public static final String EXTRA_URLS = "org.schabi.newpipe.extra.URLS";
     public static final String EXTRA_TITLES = "org.schabi.newpipe.extra.TITLES";
     public static final String EXTRA_QUALITY = "org.schabi.newpipe.extra.QUALITY";
+    public static final String EXTRA_CUSTOM_DIRECTORY = "org.schabi.newpipe.extra.CUSTOM_DIRECTORY"; // 🆕
 
     private static final int NOTIFICATION_ID = 10134;
     private static final String NOTIFICATION_CHANNEL_ID = "playlist_enqueuer_channel";
@@ -79,6 +80,7 @@ public class PlaylistEnqueuerService extends Service {
                 ArrayList<String> urls = intent.getStringArrayListExtra(EXTRA_URLS);
                 ArrayList<String> titles = intent.getStringArrayListExtra(EXTRA_TITLES);
                 String quality = intent.getStringExtra(EXTRA_QUALITY);
+                String customDirectory = intent.getStringExtra(EXTRA_CUSTOM_DIRECTORY); // 🆕
                 
                 startForeground(NOTIFICATION_ID, createNotification(0, urls.size()));
                 
@@ -90,7 +92,7 @@ public class PlaylistEnqueuerService extends Service {
                 // This allows onCreate() to complete on Main Thread
                 mHandler.postDelayed(() -> {
                     android.util.Log.d(TAG, "⏰ Starting playlist processing after delay...");
-                    processPlaylist(urls, titles, quality);
+                    processPlaylist(urls, titles, quality, customDirectory); // 🆕 Pass customDirectory
                 }, 500);  // 500ms delay
                 
             } else if (ACTION_CANCEL_ALL.equals(action)) {
@@ -105,7 +107,12 @@ public class PlaylistEnqueuerService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void processPlaylist(List<String> urls, List<String> titles, String quality) {
+    private void processPlaylist(
+        List<String> urls, 
+        List<String> titles, 
+        String quality,
+        @Nullable String customDirectoryUri // 🆕
+    ) {
         final AtomicInteger progressCounter = new AtomicInteger(0);
         final Random random = new Random(); // For jitter
         final int total = urls.size();
@@ -239,25 +246,35 @@ public class PlaylistEnqueuerService extends Service {
                         }
                         return false;
                     }
-                                // 3. Create Storage directly
+                    
+                    // 3. Create Storage
                     boolean isVideo = bundle.kind == 'v';
-                    String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
-
-                    StoredFileHelper finalStorage;
+                    StoredDirectoryHelper storage;
+                    StoredFileHelper finalStorage; // 🆕 Define outside try block
+                    
+                    // 🆕 Use custom directory if provided
                     try {
-                        String downloadPath = androidx.preference.PreferenceManager
-                            .getDefaultSharedPreferences(this)
-                            .getString(key, null);
+                        if (customDirectoryUri != null && !customDirectoryUri.isEmpty()) {
+                            android.util.Log.d(TAG, "📂 Using custom directory: " + customDirectoryUri);
+                            android.net.Uri pathUri = android.net.Uri.parse(customDirectoryUri);
+                            storage = new StoredDirectoryHelper(this, pathUri, null);
+                        } else {
+                            // Use default path from preferences
+                            String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
+                            String downloadPath = androidx.preference.PreferenceManager
+                                .getDefaultSharedPreferences(this)
+                                .getString(key, null);
 
-                        if (downloadPath == null || downloadPath.isEmpty()) {
-                            java.io.File defaultDir = NewPipeSettings.getDir(
-                                isVideo ? android.os.Environment.DIRECTORY_MOVIES 
-                                       : android.os.Environment.DIRECTORY_MUSIC);
-                            downloadPath = android.net.Uri.fromFile(defaultDir).toString();
+                            if (downloadPath == null || downloadPath.isEmpty()) {
+                                java.io.File defaultDir = NewPipeSettings.getDir(
+                                    isVideo ? android.os.Environment.DIRECTORY_MOVIES 
+                                           : android.os.Environment.DIRECTORY_MUSIC);
+                                downloadPath = android.net.Uri.fromFile(defaultDir).toString();
+                            }
+
+                            android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
+                            storage = new StoredDirectoryHelper(this, pathUri, null);
                         }
-
-                        android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
-                        StoredDirectoryHelper storage = new StoredDirectoryHelper(this, pathUri, null);
 
                         finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
                 

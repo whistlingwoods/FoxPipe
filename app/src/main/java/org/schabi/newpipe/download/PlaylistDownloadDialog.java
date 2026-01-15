@@ -1,8 +1,11 @@
 package org.schabi.newpipe.download;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -16,8 +19,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +32,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard;
+import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.views.NewPipeTextView;
 
 import java.util.ArrayList;
@@ -36,16 +45,27 @@ import org.schabi.newpipe.util.ThemeHelper; // NewPipe يستخدم هذا ال�
 
 public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
+    private static final String TAG = "PlaylistDownloadDialog";
+
     private List<StreamInfoItem> streamList;
     private RecyclerView recyclerView;
     private Spinner qualitySpinner;
     private CheckBox selectAllCheckbox;
     private Button startButton;
-    private NewPipeTextView totalSizeTextView; // نص الحجم الإجمالي
+    private NewPipeTextView totalSizeTextView;
     private ItemsAdapter adapter;
     
-    // معدل البت التقريبي (kbps) لكل جودة
     private long currentBitrate = 0;
+    
+    // 🆕 For askForSavePath feature
+    private boolean askForSavePath;
+    private Uri selectedDirectoryUri = null;
+    
+    private final ActivityResultLauncher<Intent> requestPlaylistFolderLauncher =
+        registerForActivityResult(
+            new StartActivityForResult(),
+            this::requestPlaylistFolderResult
+        );
 
     public PlaylistDownloadDialog(List<StreamInfoItem> items) {
         this.streamList = new ArrayList<>(items);
@@ -74,7 +94,14 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         selectAllCheckbox = view.findViewById(R.id.selectAllCheckbox);
         recyclerView = view.findViewById(R.id.itemsRecyclerView);
         startButton = view.findViewById(R.id.startDownloadButton);
-        totalSizeTextView = view.findViewById(R.id.totalSizeTextView); // ربط النص الجديد
+        totalSizeTextView = view.findViewById(R.id.totalSizeTextView);
+        
+        // 🆕 Read askForSavePath setting
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        askForSavePath = prefs.getBoolean(
+            getString(R.string.downloads_storage_ask),
+            false
+        );
 
         setupQualitySpinner();
         setupRecyclerView();
@@ -178,11 +205,61 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             Toast.makeText(getContext(), "No items selected", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        
+        // 🆕 If askForSavePath is enabled, show folder picker first
+        if (askForSavePath) {
+            launchFolderPicker();
+            return;
+        }
+        
+        // Otherwise proceed with default path
+        proceedWithDownload(null);
+    }
+    
+    // 🆕 Launch folder picker
+    private void launchFolderPicker() {
+        NoFileManagerSafeGuard.launchSafe(
+            requestPlaylistFolderLauncher,
+            StoredDirectoryHelper.getPicker(getContext()),
+            TAG,
+            requireContext()
+        );
+    }
+    
+    // 🆕 Handle folder picker result
+    private void requestPlaylistFolderResult(ActivityResult result) {
+        if (result.getData() == null || result.getResultCode() != Activity.RESULT_OK) {
+            // User cancelled, do nothing
+            return;
+        }
+        
+        Uri selectedUri = result.getData().getData();
+        if (selectedUri == null) {
+            Toast.makeText(getContext(), "Failed to select folder", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
+        // Save URI and proceed with download
+        selectedDirectoryUri = selectedUri;
+        proceedWithDownload(selectedDirectoryUri);
+    }
+    
+    // 🆕 Proceed with download (with or without custom directory)
+    private void proceedWithDownload(@Nullable Uri customDirectory) {
+        List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
         String quality = (String) qualitySpinner.getSelectedItem();
+        
         Intent serviceIntent = new Intent(getContext(), PlaylistEnqueuerService.class);
         serviceIntent.setAction(PlaylistEnqueuerService.ACTION_ENQUEUE_PLAYLIST);
         serviceIntent.putExtra(PlaylistEnqueuerService.EXTRA_QUALITY, quality);
+        
+        // 🆕 Add custom directory if provided
+        if (customDirectory != null) {
+            serviceIntent.putExtra(
+                PlaylistEnqueuerService.EXTRA_CUSTOM_DIRECTORY,
+                customDirectory.toString()
+            );
+        }
         
         ArrayList<String> urls = new ArrayList<>();
         ArrayList<String> titles = new ArrayList<>();
