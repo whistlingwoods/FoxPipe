@@ -762,6 +762,17 @@ public class DownloadManager {
 
             return SPECIAL_NOTHING;
         }
+        
+        /**
+         * Get the index of a queued mission in mMissionsQueued list
+         * @param mission The queued mission to find
+         * @return Index in mMissionsQueued, or -1 if not found
+         */
+        public int getQueuedMissionIndex(QueuedMission mission) {
+            synchronized (DownloadManager.this) {
+                return mMissionsQueued.indexOf(mission);
+            }
+        }
 
 
         public void start() {

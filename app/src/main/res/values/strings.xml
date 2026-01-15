@@ -602,6 +602,7 @@
     <string name="queued_status_extracting">Extracting info...</string>
     <string name="queued_status_preparing">Preparing...</string>
     <string name="queued_status_failed">Failed</string>
+    <string name="queued_mission_cancelled">Queued download cancelled</string>
     <string name="paused">paused</string>
     <string name="queued">queued</string>
     <string name="post_processing">post-processing</string>

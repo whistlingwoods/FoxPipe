@@ -51,10 +51,25 @@ public class PlaylistEnqueuerService extends Service {
     public static final String EXTRA_QUALITY = "org.schabi.newpipe.extra.QUALITY";
 
     private static final int NOTIFICATION_ID = 10134;
-    private static final String CHANNEL_ID = "playlist_enqueuer_channel";
+    private static final String NOTIFICATION_CHANNEL_ID = "playlist_enqueuer_channel";
 
     private final io.reactivex.rxjava3.disposables.CompositeDisposable disposables = new io.reactivex.rxjava3.disposables.CompositeDisposable();
     private final android.os.Handler mHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    
+    // Track cancelled video URLs to stop processing them
+    private static final java.util.Set<String> cancelledUrls = 
+        java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+    
+    /**
+     * Cancel a queued item - called from UI
+     * @param videoUrl The video URL to cancel
+     */
+    public static void cancelQueuedItem(String videoUrl) {
+        if (videoUrl != null && !videoUrl.isEmpty()) {
+            android.util.Log.d(TAG, "🚫 Cancelling queued item: " + videoUrl);
+            cancelledUrls.add(videoUrl);
+        }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -147,17 +162,30 @@ public class PlaylistEnqueuerService extends Service {
                         long jitter = 500 + random.nextInt(1000);
                         Thread.sleep(jitter);
                     } catch (InterruptedException e) {
+                        // If interrupted, it means the service is likely shutting down or the task was cancelled.
+                        // We can just return false to indicate failure for this item.
+                        android.util.Log.d(TAG, "Thread interrupted during jitter sleep for: " + title);
                         return false;
-                    }
-
-                    // 🆕 Update status to EXTRACTING
-                    if (downloadManager != null) {
-                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.EXTRACTING);
                     }
 
                     // Update notification with "Processed / Total" count
                     int current = progressCounter.incrementAndGet();
                     updateNotification(current, total, title);
+
+                    // Check if cancelled before extracting
+                    if (cancelledUrls.contains(url)) {
+                        android.util.Log.d(TAG, "   🚫 Item cancelled before extraction: " + title);
+                        cancelledUrls.remove(url);
+                        if (downloadManager != null) {
+                            downloadManager.removeQueuedMission(index);
+                        }
+                        return false;
+                    }
+
+                    // Update status to EXTRACTING
+                    if (downloadManager != null) {
+                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.EXTRACTING);
+                    }
 
                     // 1. Extract StreamInfo
                     org.schabi.newpipe.extractor.stream.StreamInfo info;
@@ -339,7 +367,7 @@ public class PlaylistEnqueuerService extends Service {
     }
     private Notification createNotification(int progress, int max) {
          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Playlist Download", NotificationManager.IMPORTANCE_LOW);
+            NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "Playlist Download", NotificationManager.IMPORTANCE_LOW);
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
         }
         
@@ -348,7 +376,7 @@ public class PlaylistEnqueuerService extends Service {
         android.app.PendingIntent cancelPendingIntent = android.app.PendingIntent.getService(this, 0, cancelIntent, 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? (android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT) : android.app.PendingIntent.FLAG_UPDATE_CURRENT);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
+        return new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Queueing Playlist Downloads")
                 .setContentText(progress + "/" + max)
                 .setSmallIcon(R.drawable.ic_playlist_add) // verify icon exists
@@ -364,7 +392,7 @@ public class PlaylistEnqueuerService extends Service {
         android.app.PendingIntent cancelPendingIntent = android.app.PendingIntent.getService(this, 0, cancelIntent, 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? (android.app.PendingIntent.FLAG_IMMUTABLE | android.app.PendingIntent.FLAG_UPDATE_CURRENT) : android.app.PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification notification = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
                 .setContentTitle("Queueing Playlist Downloads")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -379,6 +407,7 @@ public class PlaylistEnqueuerService extends Service {
     public void onDestroy() {
         disposables.clear();
         mHandler.removeCallbacksAndMessages(null);  // Clean up any pending tasks
+        cancelledUrls.clear();  // Clear cancelled URLs
         super.onDestroy();
     }
 
