@@ -177,7 +177,7 @@ public class PlaylistEnqueuerService extends Service {
                         android.util.Log.d(TAG, "   🚫 Item cancelled before extraction: " + title);
                         cancelledUrls.remove(url);
                         if (downloadManager != null) {
-                            downloadManager.removeQueuedMission(index);
+                            downloadManager.removeQueuedMissionByUrl(url);
                         }
                         return false;
                     }
@@ -287,11 +287,15 @@ public class PlaylistEnqueuerService extends Service {
                     );
                     android.util.Log.d(TAG, "   ✅ startMission() completed");
 
-                    // 🆕 Remove from queue on success
+                    // 🆕 Remove from queue on success - use URL instead of index
                     if (downloadManager != null) {
-                        android.util.Log.d(TAG, "   🗑️ Removing from queue (index=" + index + ")");
-                        downloadManager.removeQueuedMission(index);
-                        android.util.Log.d(TAG, "   ✅ Removed from queue - UI should update now");
+                        android.util.Log.d(TAG, "   🗑️ Removing from queue: " + url);
+                        boolean removed = downloadManager.removeQueuedMissionByUrl(url);
+                        if (removed) {
+                            android.util.Log.d(TAG, "   ✅ Removed from queue - UI should update now");
+                        } else {
+                            android.util.Log.w(TAG, "   ⚠️ Could not remove from queue (already removed?)");
+                        }
                     }
 
                     android.util.Log.d(TAG, "✅ Started download for: " + title);

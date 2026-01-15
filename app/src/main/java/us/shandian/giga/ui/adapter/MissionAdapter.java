@@ -1118,23 +1118,24 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         h.popupMenu.inflate(R.menu.queued_mission_menu);
         h.popupMenu.setOnMenuItemClickListener(popup -> {
             if (popup.getItemId() == R.id.cancel_queued) {
-                // Find the index of this queued mission
-                int index = mIterator.getQueuedMissionIndex(mission);
-                if (index >= 0) {
-                    // Cancel processing in PlaylistEnqueuerService
-                    if (mission.videoUrl != null) {
-                        org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(mission.videoUrl);
+                // Cancel processing in PlaylistEnqueuerService
+                if (mission.videoUrl != null) {
+                    org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(mission.videoUrl);
+                    
+                    // Remove from queue by URL (thread-safe)
+                    boolean removed = mDownloadManager.removeQueuedMissionByUrl(mission.videoUrl);
+                    
+                    if (removed) {
+                        // Update UI
+                        applyChanges();
+                        
+                        // Show toast
+                        android.widget.Toast.makeText(mContext, 
+                            R.string.queued_mission_cancelled, 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    } else {
+                        android.util.Log.w(TAG, "Could not remove mission from queue: " + mission.title);
                     }
-                    
-                    // Remove from queue
-                    mDownloadManager.removeQueuedMission(index);
-                    // Update UI
-                    applyChanges();
-                    
-                    // Show toast
-                    android.widget.Toast.makeText(mContext, 
-                        R.string.queued_mission_cancelled, 
-                        android.widget.Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }

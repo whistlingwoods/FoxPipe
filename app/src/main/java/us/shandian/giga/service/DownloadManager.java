@@ -511,6 +511,33 @@ public class DownloadManager {
             }
         }
     }
+    
+    /**
+     * Remove a queued mission by URL (thread-safe, avoids index issues)
+     * @param videoUrl The video URL to remove
+     * @return true if removed, false if not found
+     */
+    public boolean removeQueuedMissionByUrl(String videoUrl) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return false;
+            }
+            
+            for (int i = 0; i < mMissionsQueued.size(); i++) {
+                QueuedMission mission = mMissionsQueued.get(i);
+                if (videoUrl.equals(mission.videoUrl)) {
+                    mMissionsQueued.remove(i);
+                    android.util.Log.d(TAG, "🗑️ QueuedMission removed by URL: \"" + mission.title + "\"");
+                    android.util.Log.d(TAG, "   Remaining in queue: " + mMissionsQueued.size());
+                    mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                    android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to update UI");
+                    return true;
+                }
+            }
+            android.util.Log.w(TAG, "⚠️ Could not find queued mission with URL: " + videoUrl);
+            return false;
+        }
+    }
 
     /**
      * Get the count of queued missions
