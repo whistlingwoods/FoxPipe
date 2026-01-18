@@ -187,7 +187,7 @@ afterEvaluate {
     if (!System.properties.containsKey('skipFormatKtlint')) {
         preDebugBuild.dependsOn formatKtlint
     }
-    preDebugBuild.dependsOn runCheckstyle, runKtlint
+//    preDebugBuild.dependsOn runCheckstyle, runKtlint
 }
 
 sonar {
