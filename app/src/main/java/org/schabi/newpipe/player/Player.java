@@ -130,6 +130,7 @@ import org.schabi.newpipe.util.image.PicassoHelper;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -270,6 +271,14 @@ public final class Player implements PlaybackListener, Listener {
     private final SharedPreferences prefs;
     @NonNull
     private final HistoryRecordManager recordManager;
+    @NonNull
+    private final SponsorBlockManager sponsorBlockManager;
+    @NonNull
+    private final SharedPreferences.OnSharedPreferenceChangeListener sponsorBlockPrefsListener;
+
+    // Preference keys
+    private final String SPONSORBLOCK_ENABLE_KEY;
+    private final String SPONSORBLOCK_CATEGORIES_KEY;
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -292,6 +301,10 @@ public final class Player implements PlaybackListener, Listener {
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
         recordManager = new HistoryRecordManager(context);
 
+        // Initialize preference keys
+        SPONSORBLOCK_ENABLE_KEY = context.getString(R.string.sponsorblock_enable_key);
+        SPONSORBLOCK_CATEGORIES_KEY = context.getString(R.string.sponsorblock_categories_key);
+
         setupBroadcastReceiver();
 
         trackSelector = new DefaultTrackSelector(context, PlayerHelper.getQualitySelector());
@@ -313,6 +326,15 @@ public final class Player implements PlaybackListener, Listener {
         audioResolver = new AudioPlaybackResolver(context, dataSource);
 
         currentThumbnailTarget = getCurrentThumbnailTarget();
+
+        sponsorBlockManager = new SponsorBlockManager();
+        sponsorBlockPrefsListener = (prefs, key) -> {
+            if (SPONSORBLOCK_ENABLE_KEY.equals(key) || SPONSORBLOCK_CATEGORIES_KEY.equals(key)) {
+                updateSponsorBlockSettings();
+            }
+        };
+        updateSponsorBlockSettings();
+        prefs.registerOnSharedPreferenceChangeListener(sponsorBlockPrefsListener);
 
         // The UIs added here should always be present. They will be initialized when the player
         // reaches the initialization step. Make sure the media session ui is before the
@@ -696,6 +718,8 @@ public final class Player implements PlaybackListener, Listener {
         setRecovery();
         stopActivityBinding();
 
+        prefs.unregisterOnSharedPreferenceChangeListener(sponsorBlockPrefsListener);
+
         destroyPlayer();
         unregisterBroadcastReceiver();
 
@@ -1005,6 +1029,17 @@ public final class Player implements PlaybackListener, Listener {
                                   final int duration,
                                   final int bufferPercent) {
         if (isPrepared) {
+            // Check for SponsorBlock skips
+            if (prefs.getBoolean(SPONSORBLOCK_ENABLE_KEY, false)) {
+                final double currentPositionSeconds = currentProgress / 1000.0;
+                final double skipTo = sponsorBlockManager.shouldSkip(currentPositionSeconds);
+                if (skipTo > 0) {
+                    Log.d(TAG, "SponsorBlock: Seeking from " + currentPositionSeconds + "s to " + skipTo + "s");
+                    seekTo((long) (skipTo * 1000));
+                    return; // Don't update progress UI for skipped segments
+                }
+            }
+
             UIs.call(ui -> ui.onUpdateProgress(currentProgress, duration, bufferPercent));
             notifyProgressUpdateToListeners(currentProgress, duration, bufferPercent);
         }
@@ -1919,6 +1954,24 @@ public final class Player implements PlaybackListener, Listener {
         loadCurrentThumbnail(info.getThumbnails());
         registerStreamViewed();
 
+        // Load SponsorBlock segments if enabled
+        if (prefs.getBoolean(SPONSORBLOCK_ENABLE_KEY, false)) {
+            sponsorBlockManager.clearSegments();
+            streamItemDisposable.add(
+                sponsorBlockManager.loadSegmentsAsync(info.getUrl())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(segments -> {
+                        // Store the loaded segments in the manager
+                        sponsorBlockManager.setSegments(segments);
+                        Log.d(TAG, "SponsorBlock segments loaded: " + segments.size());
+                    }, error -> {
+                        Log.e(TAG, "Failed to load SponsorBlock segments", error);
+                    })
+            );
+        } else {
+            Log.d(TAG, "SponsorBlock is disabled in settings");
+        }
+
         notifyMetadataUpdateToListeners();
         notifyAudioTrackUpdateToListeners();
         UIs.call(playerUi -> playerUi.onMetadataChanged(info));
@@ -2431,6 +2484,14 @@ public final class Player implements PlaybackListener, Listener {
     @SuppressWarnings("MethodName") // keep the unusual method name
     public PlayerUiList UIs() {
         return UIs;
+    }
+
+    /**
+     * Update SponsorBlock settings from preferences
+     */
+    public void updateSponsorBlockSettings() {
+        final Set<String> enabledCategories = prefs.getStringSet(SPONSORBLOCK_CATEGORIES_KEY, null);
+        sponsorBlockManager.setEnabledCategories(enabledCategories);
     }
 
     /**

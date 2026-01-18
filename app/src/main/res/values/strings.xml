@@ -884,4 +884,17 @@
     <string name="unsupported_content_in_country">This content is not available for the currently selected content country.\n\nChange your selection from \"Settings > Content > Default content country\".</string>
     <string name="show_playback_speed_controls_title">Show playback speed controls</string>
     <string name="show_playback_speed_controls_summary">Toggle the visibility of the playback speed button in the player</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsorblock_enable_title">Enable SponsorBlock</string>
+    <string name="sponsorblock_enable_summary">Automatically skip sponsored segments in YouTube videos</string>
+    <string name="sponsorblock_categories_title">Skip categories</string>
+    <string name="sponsorblock_category_sponsor">Sponsor</string>
+    <string name="sponsorblock_category_intro">Intro</string>
+    <string name="sponsorblock_category_outro">Outro</string>
+    <string name="sponsorblock_category_selfpromo">Self promotion</string>
+    <string name="sponsorblock_category_interaction">Interaction reminder</string>
+    <string name="sponsorblock_category_music_offtopic">Music: off-topic</string>
+    <string name="sponsorblock_category_preview">Preview/Recap</string>
+    <string name="sponsorblock_category_filler">Filler/Tangent</string>
 </resources>
