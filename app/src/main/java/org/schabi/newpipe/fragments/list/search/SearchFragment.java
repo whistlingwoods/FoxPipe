@@ -82,6 +82,7 @@ import java.util.stream.Collectors;
 
 // ADD THIS IMPORT
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
+import org.schabi.newpipe.local.blockedchannel.BlockedChannelManager;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -141,6 +142,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private SuggestionListAdapter suggestionListAdapter;
     private HistoryRecordManager historyRecordManager;
+    private BlockedChannelManager blockedChannelManager;
+    private List<org.schabi.newpipe.database.blockedchannel.BlockedChannelEntity> blockedChannelsCache = new ArrayList<>();
 
     private FragmentSearchBinding searchBinding;
     private View searchToolbarContainer;
@@ -170,6 +173,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         showRemoteSuggestions = NewPipeSettings.showRemoteSearchSuggestions(activity, prefs);
         suggestionListAdapter = new SuggestionListAdapter();
         historyRecordManager = new HistoryRecordManager(context);
+        blockedChannelManager = new BlockedChannelManager(context);
+        loadBlockedChannelsCache();
     }
 
     @Override
@@ -610,6 +615,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                     if (streamItem.isShortFormContent() || streamItem.getDuration() <= 60) {
                         continue;
                     }
+                    // Filter by blocked channels
+                    if (isChannelBlockedCached(streamItem.getServiceId(), streamItem.getUploaderUrl())) {
+                        continue;
+                    }
                 }
                 filteredItems.add(item);
             }
@@ -653,6 +662,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 if (streamItem.isShortFormContent() || streamItem.getDuration() <= 60) {
                     continue;
                 }
+                // Filter by blocked channels
+                if (isChannelBlockedCached(streamItem.getServiceId(), streamItem.getUploaderUrl())) {
+                    continue;
+                }
             }
             filteredItems.add(item);
         }
@@ -668,6 +681,18 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (position == RecyclerView.NO_POSITION) return 0;
         final SuggestionItem item = suggestionListAdapter.getCurrentList().get(position);
         return item.fromHistory ? makeMovementFlags(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) : 0;
+    }
+
+    private void loadBlockedChannelsCache() {
+        disposables.add(blockedChannelManager.blockedChannels()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(channels -> blockedChannelsCache = new ArrayList<>(channels)));
+    }
+
+    private boolean isChannelBlockedCached(final int serviceId, final String url) {
+        return blockedChannelsCache.stream()
+                .anyMatch(channel -> channel.getServiceId() == serviceId && url != null && url.equals(channel.getUrl()));
     }
 
     public void onSuggestionItemSwiped(@NonNull final RecyclerView.ViewHolder viewHolder) {

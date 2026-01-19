@@ -54,6 +54,12 @@
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.BlockedChannelsSettingsFragment"
+        android:icon="@drawable/ic_language"
+        android:title="@string/blocked_channels_title"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.DebugSettingsFragment"
         android:icon="@drawable/ic_bug_report"
         android:key="@string/debug_pref_screen_key"

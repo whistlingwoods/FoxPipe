@@ -6,6 +6,7 @@ import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDat
 import static org.schabi.newpipe.util.SparseItemUtil.fetchUploaderUrlIfSparse;
 
 import android.net.Uri;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -13,6 +14,7 @@ import androidx.annotation.StringRes;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.download.DownloadDialog;
+import org.schabi.newpipe.local.blockedchannel.BlockedChannelManager;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
@@ -148,7 +150,48 @@ public enum StreamDialogDefaultEntry {
                 .onErrorComplete()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe()
-    );
+    ),
+
+    BLOCK_CHANNEL(R.string.block_channel, (fragment, item) -> {
+        final BlockedChannelManager blockedChannelManager =
+                new BlockedChannelManager(fragment.getContext());
+
+        // Check if channel is blocked asynchronously
+        blockedChannelManager.isChannelBlockedAsync(item.getServiceId(), item.getUploaderUrl())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(isBlocked -> {
+                    if (isBlocked) {
+                        // Unblock the channel
+                        blockedChannelManager.unblockChannel(item.getServiceId(), item.getUploaderUrl())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(() -> {
+                                    Toast.makeText(fragment.getContext(),
+                                            "Channel unblocked", Toast.LENGTH_SHORT).show();
+                                }, error -> {
+                                    ErrorUtil.showSnackbar(fragment.requireContext(),
+                                            new ErrorInfo(error, UserAction.OPEN_INFO_ITEM_DIALOG,
+                                                    "Failed to unblock channel"));
+                                });
+                    } else {
+                        // Block the channel
+                        blockedChannelManager.blockChannel(item.getServiceId(),
+                                item.getUploaderUrl(), item.getUploaderName())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(() -> {
+                                    Toast.makeText(fragment.getContext(),
+                                            "Channel blocked", Toast.LENGTH_SHORT).show();
+                                }, error -> {
+                                    ErrorUtil.showSnackbar(fragment.requireContext(),
+                                            new ErrorInfo(error, UserAction.OPEN_INFO_ITEM_DIALOG,
+                                                    "Failed to block channel"));
+                                });
+                    }
+                }, error -> {
+                    ErrorUtil.showSnackbar(fragment.requireContext(),
+                            new ErrorInfo(error, UserAction.OPEN_INFO_ITEM_DIALOG,
+                                    "Failed to check channel block status"));
+                });
+    });
 
 
     @StringRes

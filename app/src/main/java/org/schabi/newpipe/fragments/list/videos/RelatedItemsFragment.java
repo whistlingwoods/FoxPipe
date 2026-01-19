@@ -1,5 +1,6 @@
 package org.schabi.newpipe.fragments.list.videos;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -29,12 +30,16 @@ import java.io.Serializable;
 import java.util.function.Supplier;
 
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, RelatedItemsInfo>
         implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String INFO_KEY = "related_info_key";
 
     private RelatedItemsInfo relatedItemsInfo;
+    private StreamInfo originalStreamInfo;
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     /*//////////////////////////////////////////////////////////////////////////
     // Views
@@ -90,8 +95,31 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
     }
 
     @Override
-    protected Single<ListExtractor.InfoItemsPage<InfoItem>> loadMoreItemsLogic() {
-        return Single.fromCallable(ListExtractor.InfoItemsPage::emptyPage);
+    public void onAttach(@NonNull final Context context) {
+        super.onAttach(context);
+        // Filter blocked channels asynchronously if we have unfiltered items
+        if (originalStreamInfo != null && relatedItemsInfo != null && relatedItemsInfo.getRelatedItems() != null) {
+            // Check if we have unfiltered items (same count as original means no filtering happened)
+            if (relatedItemsInfo.getRelatedItems().size() == originalStreamInfo.getRelatedItems().size()) {
+                // Filter blocked channels on background thread
+                disposables.add(io.reactivex.rxjava3.core.Single.fromCallable(() -> {
+                    relatedItemsInfo.filterBlockedChannels(context.getApplicationContext());
+                    return relatedItemsInfo;
+                }).subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                  .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                  .subscribe(result -> {
+                      // Update the UI if needed
+                      if (getActivity() != null) {
+                          getActivity().runOnUiThread(() -> {
+                              // Notify adapter of changes if the list is already displayed
+                              if (infoListAdapter != null) {
+                                  infoListAdapter.notifyDataSetChanged();
+                              }
+                          });
+                      }
+                  }, Throwable::printStackTrace));
+            }
+        }
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -101,6 +129,11 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
     @Override
     protected Single<RelatedItemsInfo> loadResult(final boolean forceLoad) {
         return Single.fromCallable(() -> relatedItemsInfo);
+    }
+
+    @Override
+    protected Single<ListExtractor.InfoItemsPage<InfoItem>> loadMoreItemsLogic() {
+        return Single.fromCallable(ListExtractor.InfoItemsPage::emptyPage);
     }
 
     @Override
@@ -139,8 +172,10 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
 
     private void setInitialData(final StreamInfo info) {
         super.setInitialData(info.getServiceId(), info.getUrl(), info.getName());
+        this.originalStreamInfo = info; // Store original info
         if (this.relatedItemsInfo == null) {
-            this.relatedItemsInfo = new RelatedItemsInfo(info);
+            // Store the info temporarily, will create RelatedItemsInfo when context is available
+            this.relatedItemsInfo = new RelatedItemsInfo(info, null);
         }
     }
 

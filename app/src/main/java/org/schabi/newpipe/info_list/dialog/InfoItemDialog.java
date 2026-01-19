@@ -69,7 +69,7 @@ public final class InfoItemDialog {
 
         // Get the entry's descriptions which are displayed in the dialog
         final String[] items = entries.stream()
-                .map(entry -> entry.getString(activity)).toArray(String[]::new);
+                .map(entry -> entry.getString(activity, info)).toArray(String[]::new);
 
         // Call an entry's action / onClick method when the entry is selected.
         final DialogInterface.OnClickListener action = (d, index) ->
@@ -211,7 +211,13 @@ public final class InfoItemDialog {
          * @return the current {@link Builder} instance
          */
         public Builder addEntry(@NonNull final StreamDialogDefaultEntry entry) {
-            entries.add(entry.toStreamDialogEntry());
+            if (entry == StreamDialogDefaultEntry.BLOCK_CHANNEL) {
+                // Create entry for BLOCK_CHANNEL with fixed text
+                // The action will handle checking if channel is blocked
+                entries.add(new StreamDialogEntry(R.string.block_channel, entry.action));
+            } else {
+                entries.add(entry.toStreamDialogEntry());
+            }
             return this;
         }
 
@@ -329,6 +335,7 @@ public final class InfoItemDialog {
             );
             addPlayWithKodiEntryIfNeeded();
             addMarkAsWatchedEntryIfNeeded();
+            addEntry(StreamDialogDefaultEntry.BLOCK_CHANNEL);
             addEntry(StreamDialogDefaultEntry.SHOW_CHANNEL_DETAILS);
             return this;
         }

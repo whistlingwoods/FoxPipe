@@ -30,6 +30,7 @@ object Migrations {
     const val DB_VER_7 = 7
     const val DB_VER_8 = 8
     const val DB_VER_9 = 9
+    const val DB_VER_10 = 10
 
     private val TAG = Migrations::class.java.getName()
     private val isDebug = MainActivity.DEBUG
@@ -348,5 +349,17 @@ object Migrations {
         } finally {
             db.endTransaction()
         }
+    }
+
+    val MIGRATION_9_10 = Migration(DB_VER_9, DB_VER_10) { db ->
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `blocked_channels` " +
+                "(`uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`service_id` INTEGER NOT NULL, `url` TEXT, `name` TEXT)"
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX `index_blocked_channels_service_id_url` " +
+                "ON `blocked_channels` (`service_id`, `url`)"
+        )
     }
 }

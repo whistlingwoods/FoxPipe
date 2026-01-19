@@ -17,6 +17,7 @@ import org.schabi.newpipe.database.Migrations.MIGRATION_5_6
 import org.schabi.newpipe.database.Migrations.MIGRATION_6_7
 import org.schabi.newpipe.database.Migrations.MIGRATION_7_8
 import org.schabi.newpipe.database.Migrations.MIGRATION_8_9
+import org.schabi.newpipe.database.Migrations.MIGRATION_9_10
 import kotlin.concurrent.Volatile
 
 object NewPipeDatabase {
@@ -37,7 +38,8 @@ object NewPipeDatabase {
             MIGRATION_5_6,
             MIGRATION_6_7,
             MIGRATION_7_8,
-            MIGRATION_8_9
+            MIGRATION_8_9,
+            MIGRATION_9_10
         ).build()
     }
 
