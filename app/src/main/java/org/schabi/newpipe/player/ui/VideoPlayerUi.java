@@ -152,6 +152,21 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
     private boolean showRemainingTime = false; // New field for time remaining toggle
     private boolean showRemainingTimeRight = false; // New field for time remaining toggle on right
+    private boolean screenLocked = false; // Screen lock state
+    private View.OnTouchListener originalTouchListener; // To save/restore touch listener
+    private Handler unlockButtonHandler = new Handler(Looper.getMainLooper()); // Handler for unlock button auto-hide
+    private Runnable hideUnlockButtonRunnable; // Runnable to hide unlock button after delay
+    private static final long UNLOCK_BUTTON_HIDE_DELAY = 2000; // 2 seconds
+
+    {
+        // Initialize the runnable to hide unlock button
+        hideUnlockButtonRunnable = () -> {
+            final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+            if (screenUnlockOverlayButton != null && screenLocked) {
+                screenUnlockOverlayButton.setVisibility(View.GONE);
+            }
+        };
+    }
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -227,7 +242,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         playerGestureListener = buildGestureListener();
         gestureDetector = new GestureDetector(context, playerGestureListener);
-        binding.getRoot().setOnTouchListener(playerGestureListener);
+        // Save the original touch listener
+        originalTouchListener = playerGestureListener;
+        // Set up touch listener that checks screen lock state
+        binding.getRoot().setOnTouchListener(originalTouchListener);
 
         binding.repeatButton.setOnClickListener(v -> onRepeatClicked());
         binding.shuffleButton.setOnClickListener(v -> onShuffleClicked());
@@ -261,6 +279,17 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                 context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_HIDE_MAIN_PLAYER)
                         .setPackage(App.PACKAGE_NAME))
         ));
+        // Set up screen lock button in secondaryControls
+        final View screenLockButton = binding.getRoot().findViewById(R.id.screenLockButton);
+        if (screenLockButton != null) {
+            screenLockButton.setOnClickListener(v -> onScreenLockClicked());
+        }
+
+        // Set up unlock overlay button
+        final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+        if (screenUnlockOverlayButton != null) {
+            screenUnlockOverlayButton.setOnClickListener(v -> onScreenLockClicked());
+        }
         binding.switchMute.setOnClickListener(makeOnClickListener(player::toggleMute));
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.itemsListPanel, (view, windowInsets) -> {
@@ -713,6 +742,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             Log.d(TAG, "showControlsThenHide() called");
         }
 
+        // Don't show controls if screen is locked
+        if (screenLocked) {
+            return;
+        }
+
         showOrHideButtons();
         showSystemUIPartially();
 
@@ -728,6 +762,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     public void showControls(final long duration) {
         if (DEBUG) {
             Log.d(TAG, "showControls() called");
+        }
+        // Don't show controls if screen is locked
+        if (screenLocked) {
+            return;
         }
         showOrHideButtons();
         showSystemUIPartially();
@@ -1564,6 +1602,98 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (player.getCurrentMetadata() != null) {
             player.pause();
             KoreUtils.playWithKore(context, Uri.parse(player.getVideoUrl()));
+        }
+    }
+
+    private void onScreenLockClicked() {
+        screenLocked = !screenLocked;
+        updateScreenLockButton();
+
+        if (screenLocked) {
+            // Show overlay unlock button in top-right corner and start auto-hide timer
+            showUnlockButtonWithAutoHide();
+            // Disable touch events on the root view to prevent gestures, but allow showing unlock button on tap
+            binding.getRoot().setOnTouchListener((v, event) -> {
+                if (screenLocked) {
+                    // Show unlock button and restart auto-hide timer
+                    showUnlockButtonWithAutoHide();
+                    // Consume the touch event to prevent gestures
+                    return true;
+                }
+                // When unlocked, delegate to gesture listener
+                return playerGestureListener.onTouch(v, event);
+            });
+            // Hide controls immediately when locking
+            hideControlsForLock(0, 0);
+        } else {
+            // Cancel auto-hide timer
+            unlockButtonHandler.removeCallbacks(hideUnlockButtonRunnable);
+            // Hide overlay unlock button
+            final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+            if (screenUnlockOverlayButton != null) {
+                screenUnlockOverlayButton.setVisibility(View.GONE);
+            }
+            // Restore normal touch listener
+            binding.getRoot().setOnTouchListener(originalTouchListener);
+            // Restore all controls and show briefly when unlocking
+            restoreControlsAfterUnlock();
+            showControlsThenHide();
+        }
+    }
+
+    private void showUnlockButtonWithAutoHide() {
+        // Cancel any existing timer
+        unlockButtonHandler.removeCallbacks(hideUnlockButtonRunnable);
+
+        // Show the unlock button
+        final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+        if (screenUnlockOverlayButton != null) {
+            screenUnlockOverlayButton.setVisibility(View.VISIBLE);
+        }
+
+        // Start timer to hide it after 5 seconds
+        unlockButtonHandler.postDelayed(hideUnlockButtonRunnable, UNLOCK_BUTTON_HIDE_DELAY);
+    }
+
+    private void hideControlsForLock(final long duration, final long delay) {
+        if (DEBUG) {
+            Log.d(TAG, "hideControlsForLock() called with: duration = [" + duration
+                    + "], delay = [" + delay + "]");
+        }
+
+        // Hide ALL controls when locked
+        animate(binding.playbackControlRoot, false, duration, AnimationType.ALPHA, 0, null);
+
+        controlsVisibilityHandler.removeCallbacksAndMessages(null);
+        controlsVisibilityHandler.postDelayed(() -> {
+            showHideShadow(false, duration);
+            binding.playbackControlRoot.setVisibility(View.GONE);
+            hideSystemUIIfNeeded();
+        }, delay);
+    }
+
+    private void restoreControlsAfterUnlock() {
+        if (DEBUG) {
+            Log.d(TAG, "restoreControlsAfterUnlock() called");
+        }
+
+        // Restore all controls that were hidden by hideControlsForLock
+        binding.primaryControls.setVisibility(View.VISIBLE);
+        binding.bottomSeekbarPreviewLayout.setVisibility(View.VISIBLE);
+        binding.bottomControls.setVisibility(View.VISIBLE);
+
+        // Animate them back in
+        animate(binding.primaryControls, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        animate(binding.bottomSeekbarPreviewLayout, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        animate(binding.bottomControls, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        showHideShadow(true, DEFAULT_CONTROLS_DURATION);
+    }
+
+    private void updateScreenLockButton() {
+        final View screenLockButton = binding.getRoot().findViewById(R.id.screenLockButton);
+        if (screenLockButton instanceof AppCompatImageButton) {
+            ((AppCompatImageButton) screenLockButton).setImageResource(screenLocked ? R.drawable.ic_lock : R.drawable.ic_lock_open);
+            screenLockButton.setContentDescription(context.getString(screenLocked ? R.string.screen_lock : R.string.screen_lock));
         }
     }
 
