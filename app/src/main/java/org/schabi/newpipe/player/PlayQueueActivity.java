@@ -2,7 +2,6 @@ package org.schabi.newpipe.player;
 
 import static org.schabi.newpipe.QueueItemMenuUtil.openPopupMenu;
 import static org.schabi.newpipe.player.helper.PlayerHelper.formatSpeed;
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -84,7 +83,6 @@ public final class PlayQueueActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
-        assureCorrectAppLanguage(this);
         super.onCreate(savedInstanceState);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
 
@@ -183,7 +181,10 @@ public final class PlayQueueActivity extends AppCompatActivity
     ////////////////////////////////////////////////////////////////////////////
 
     private void bind() {
+        // Note: this code should not really exist, and PlayerHolder should be used instead, but
+        // it will be rewritten when NewPlayer will replace the current player.
         final Intent bindIntent = new Intent(this, PlayerService.class);
+        bindIntent.setAction(PlayerService.BIND_PLAYER_HOLDER_ACTION);
         final boolean success = bindService(bindIntent, serviceConnection, BIND_AUTO_CREATE);
         if (!success) {
             unbindService(serviceConnection);
@@ -221,7 +222,7 @@ public final class PlayQueueActivity extends AppCompatActivity
                 Log.d(TAG, "Player service is connected");
 
                 if (service instanceof PlayerService.LocalBinder) {
-                    player = ((PlayerService.LocalBinder) service).getPlayer();
+                    player = ((PlayerService.LocalBinder) service).getService().getPlayer();
                 }
 
                 if (player == null || player.getPlayQueue() == null || player.exoPlayerIsNull()) {
@@ -569,16 +570,16 @@ public final class PlayQueueActivity extends AppCompatActivity
     private void onPlayModeChanged(final int repeatMode, final boolean shuffled) {
         switch (repeatMode) {
             case com.google.android.exoplayer2.Player.REPEAT_MODE_OFF:
-                queueControlBinding.controlRepeat
-                        .setImageResource(R.drawable.exo_controls_repeat_off);
+                queueControlBinding.controlRepeat.setImageResource(
+                        com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_off);
                 break;
             case com.google.android.exoplayer2.Player.REPEAT_MODE_ONE:
-                queueControlBinding.controlRepeat
-                        .setImageResource(R.drawable.exo_controls_repeat_one);
+                queueControlBinding.controlRepeat.setImageResource(
+                        com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one);
                 break;
             case com.google.android.exoplayer2.Player.REPEAT_MODE_ALL:
-                queueControlBinding.controlRepeat
-                        .setImageResource(R.drawable.exo_controls_repeat_all);
+                queueControlBinding.controlRepeat.setImageResource(
+                        com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_all);
                 break;
         }
 

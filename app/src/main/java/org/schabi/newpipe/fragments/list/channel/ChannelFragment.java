@@ -22,8 +22,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.ColorUtils;
+import androidx.core.view.MenuProvider;
 import androidx.preference.PreferenceManager;
 
+import com.evernote.android.state.State;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.jakewharton.rxbinding4.view.RxView;
@@ -49,16 +51,15 @@ import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.StateSaver;
-import org.schabi.newpipe.util.image.ImageStrategy;
-import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
+import org.schabi.newpipe.util.image.ImageStrategy;
+import org.schabi.newpipe.util.image.PicassoHelper;
 
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
-import icepick.State;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -99,6 +100,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     private MenuItem menuRssButton;
     private MenuItem menuNotifyButton;
     private SubscriptionEntity channelSubscription;
+    private MenuProvider menuProvider;
 
     public static ChannelFragment getInstance(final int serviceId, final String url,
                                               final String name) {
@@ -119,12 +121,6 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
-
-    @Override
     public void onAttach(@NonNull final Context context) {
         super.onAttach(context);
         subscriptionManager = new SubscriptionManager(activity);
@@ -136,6 +132,67 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                              @Nullable final Bundle savedInstanceState) {
         binding = FragmentChannelBinding.inflate(inflater, container, false);
         return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull final View rootView, final Bundle savedInstanceState) {
+        super.onViewCreated(rootView, savedInstanceState);
+            menuProvider = new MenuProvider() {
+                @Override
+                public void onCreateMenu(@NonNull final Menu menu,
+                                         @NonNull final MenuInflater inflater) {
+                    inflater.inflate(R.menu.menu_channel, menu);
+
+                    if (DEBUG) {
+                        Log.d(TAG, "onCreateOptionsMenu() called with: "
+                                + "menu = [" + menu + "], inflater = [" + inflater + "]");
+                    }
+
+                }
+
+                @Override
+                public void onPrepareMenu(@NonNull final Menu menu) {
+                    menuRssButton = menu.findItem(R.id.menu_item_rss);
+                    menuNotifyButton = menu.findItem(R.id.menu_item_notify);
+                    updateRssButton();
+                    updateNotifyButton(channelSubscription);
+                }
+
+                @Override
+                public boolean onMenuItemSelected(@NonNull final MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.menu_item_notify:
+                            final boolean value = !item.isChecked();
+                            item.setEnabled(false);
+                            setNotify(value);
+                            break;
+                        case R.id.action_settings:
+                            NavigationHelper.openSettings(requireContext());
+                            break;
+                        case R.id.menu_item_rss:
+                            if (currentInfo != null) {
+                                ShareUtils.openUrlInApp(requireContext(), currentInfo.getFeedUrl());
+                            }
+                            break;
+                        case R.id.menu_item_openInBrowser:
+                            if (currentInfo != null) {
+                                ShareUtils.openUrlInBrowser(requireContext(),
+                                        currentInfo.getOriginalUrl());
+                            }
+                            break;
+                        case R.id.menu_item_share:
+                            if (currentInfo != null) {
+                                ShareUtils.shareText(requireContext(), name,
+                                        currentInfo.getOriginalUrl(), currentInfo.getAvatars());
+                            }
+                            break;
+                        default:
+                            return false;
+                    }
+                    return true;
+                }
+            };
+            activity.addMenuProvider(menuProvider);
     }
 
     @Override // called from onViewCreated in BaseFragment.onViewCreated
@@ -176,6 +233,14 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (menuProvider != null) {
+            activity.removeMenuProvider(menuProvider);
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         if (currentWorker != null) {
@@ -183,73 +248,15 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         }
         disposables.clear();
         binding = null;
+        menuProvider = null;
     }
-
-
-    /*//////////////////////////////////////////////////////////////////////////
-    // Menu
-    //////////////////////////////////////////////////////////////////////////*/
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull final Menu menu,
-                                    @NonNull final MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_channel, menu);
-
-        if (DEBUG) {
-            Log.d(TAG, "onCreateOptionsMenu() called with: "
-                    + "menu = [" + menu + "], inflater = [" + inflater + "]");
-        }
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(@NonNull final Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menuRssButton = menu.findItem(R.id.menu_item_rss);
-        menuNotifyButton = menu.findItem(R.id.menu_item_notify);
-        updateNotifyButton(channelSubscription);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_item_notify:
-                final boolean value = !item.isChecked();
-                item.setEnabled(false);
-                setNotify(value);
-                break;
-            case R.id.action_settings:
-                NavigationHelper.openSettings(requireContext());
-                break;
-            case R.id.menu_item_rss:
-                if (currentInfo != null) {
-                    ShareUtils.openUrlInApp(requireContext(), currentInfo.getFeedUrl());
-                }
-                break;
-            case R.id.menu_item_openInBrowser:
-                if (currentInfo != null) {
-                    ShareUtils.openUrlInBrowser(requireContext(), currentInfo.getOriginalUrl());
-                }
-                break;
-            case R.id.menu_item_share:
-                if (currentInfo != null) {
-                    ShareUtils.shareText(requireContext(), name, currentInfo.getOriginalUrl(),
-                            currentInfo.getAvatars());
-                }
-                break;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-        return true;
-    }
-
 
     /*//////////////////////////////////////////////////////////////////////////
     // Channel Subscription
     //////////////////////////////////////////////////////////////////////////*/
 
     private void monitorSubscription(final ChannelInfo info) {
-        final Consumer<Throwable> onError = (Throwable throwable) -> {
+        final Consumer<Throwable> onError = (final Throwable throwable) -> {
             animate(binding.channelSubscribeButton, false, 100);
             showSnackBarError(new ErrorInfo(throwable, UserAction.SUBSCRIPTION_GET,
                     "Get subscription status", currentInfo));
@@ -284,14 +291,14 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     }
 
     private Function<Object, Object> mapOnSubscribe(final SubscriptionEntity subscription) {
-        return (@NonNull Object o) -> {
+        return (@NonNull final Object o) -> {
             subscriptionManager.insertSubscription(subscription);
             return o;
         };
     }
 
     private Function<Object, Object> mapOnUnsubscribe(final SubscriptionEntity subscription) {
-        return (@NonNull Object o) -> {
+        return (@NonNull final Object o) -> {
             subscriptionManager.deleteSubscription(subscription);
             return o;
         };
@@ -318,7 +325,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     }
 
     private Disposable monitorSubscribeButton(final Function<Object, Object> action) {
-        final Consumer<Object> onNext = (@NonNull Object o) -> {
+        final Consumer<Object> onNext = (@NonNull final Object o) -> {
             if (DEBUG) {
                 Log.d(TAG, "Changed subscription status to this channel!");
             }
@@ -338,7 +345,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     }
 
     private Consumer<List<SubscriptionEntity>> getSubscribeUpdateMonitor(final ChannelInfo info) {
-        return (List<SubscriptionEntity> subscriptionEntities) -> {
+        return (final List<SubscriptionEntity> subscriptionEntities) -> {
             if (DEBUG) {
                 Log.d(TAG, "subscriptionManager.subscriptionTable.doOnNext() called with: "
                         + "subscriptionEntities = [" + subscriptionEntities + "]");
@@ -354,10 +361,10 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                 final SubscriptionEntity channel = new SubscriptionEntity();
                 channel.setServiceId(info.getServiceId());
                 channel.setUrl(info.getUrl());
-                channel.setData(info.getName(),
-                        ImageStrategy.imageListToDbUrl(info.getAvatars()),
-                        info.getDescription(),
-                        info.getSubscriberCount());
+                channel.setName(info.getName());
+                channel.setAvatarUrl(ImageStrategy.imageListToDbUrl(info.getAvatars()));
+                channel.setDescription(info.getDescription());
+                channel.setSubscriberCount(info.getSubscriberCount());
                 channelSubscription = null;
                 updateNotifyButton(null);
                 subscribeButtonMonitor = monitorSubscribeButton(mapOnSubscribe(channel));
@@ -406,6 +413,13 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         }
 
         animate(binding.channelSubscribeButton, true, 100, AnimationType.LIGHT_SCALE_AND_ALPHA);
+    }
+
+    private void updateRssButton() {
+        if (menuRssButton == null || currentInfo == null) {
+            return;
+        }
+        menuRssButton.setVisible(!TextUtils.isEmpty(currentInfo.getFeedUrl()));
     }
 
     private void updateNotifyButton(@Nullable final SubscriptionEntity subscription) {
@@ -563,7 +577,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                     isLoading.set(false);
                     handleResult(result);
                 }, throwable -> showError(new ErrorInfo(throwable, UserAction.REQUESTED_CHANNEL,
-                        url == null ? "No URL" : url, serviceId)));
+                        url == null ? "No URL" : url, serviceId, url)));
     }
 
     @Override
@@ -610,9 +624,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
             binding.subChannelAvatarView.setVisibility(View.VISIBLE);
         }
 
-        if (menuRssButton != null) {
-            menuRssButton.setVisible(!TextUtils.isEmpty(result.getFeedUrl()));
-        }
+        updateRssButton();
 
         channelContentNotSupported = false;
         for (final Throwable throwable : result.getErrors()) {

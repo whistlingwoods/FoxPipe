@@ -952,11 +952,14 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         super.onRepeatModeChanged(repeatMode);
 
         if (repeatMode == REPEAT_MODE_ALL) {
-            binding.repeatButton.setImageResource(R.drawable.exo_controls_repeat_all);
+            binding.repeatButton.setImageResource(
+                    com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_all);
         } else if (repeatMode == REPEAT_MODE_ONE) {
-            binding.repeatButton.setImageResource(R.drawable.exo_controls_repeat_one);
+            binding.repeatButton.setImageResource(
+                    com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one);
         } else /* repeatMode == REPEAT_MODE_OFF */ {
-            binding.repeatButton.setImageResource(R.drawable.exo_controls_repeat_off);
+            binding.repeatButton.setImageResource(
+                    com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_off);
         }
     }
 
@@ -1411,6 +1414,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.subtitleView.setStyle(captionStyle);
     }
 
+    /**
+     *
+     * @param captionScale Value returned by {@link PlayerHelper#getCaptionScale}.
+     */
     protected abstract void setupSubtitleView(float captionScale);
     //endregion
 
@@ -1547,6 +1554,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     @Override
     public void onVideoSizeChanged(@NonNull final VideoSize videoSize) {
         super.onVideoSizeChanged(videoSize);
+        // Starting with ExoPlayer 2.19.0, the VideoSize will report a width and height of 0
+        // if the renderer is disabled. In that case, we skip updating the aspect ratio.
+        if (videoSize.width == 0 || videoSize.height == 0) {
+            return;
+        }
         binding.surfaceView.setAspectRatio(((float) videoSize.width) / videoSize.height);
     }
     //endregion

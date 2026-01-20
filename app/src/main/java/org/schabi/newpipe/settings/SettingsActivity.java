@@ -1,7 +1,5 @@
 package org.schabi.newpipe.settings;
 
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -21,7 +19,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.evernote.android.state.State;
 import com.jakewharton.rxbinding4.widget.RxTextView;
+import com.livefront.bridge.Bridge;
 
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
@@ -40,9 +40,6 @@ import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.views.FocusOverlayView;
 
 import java.util.concurrent.TimeUnit;
-
-import icepick.Icepick;
-import icepick.State;
 
 /*
  * Created by Christian Schabesberger on 31.08.15.
@@ -90,10 +87,9 @@ public class SettingsActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(final Bundle savedInstanceBundle) {
         setTheme(ThemeHelper.getSettingsThemeStyle(this));
-        assureCorrectAppLanguage(this);
 
         super.onCreate(savedInstanceBundle);
-        Icepick.restoreInstanceState(this, savedInstanceBundle);
+        Bridge.restoreInstanceState(this, savedInstanceBundle);
         final boolean restored = savedInstanceBundle != null;
 
         final SettingsLayoutBinding settingsLayoutBinding =
@@ -125,7 +121,7 @@ public class SettingsActivity extends AppCompatActivity implements
     @Override
     protected void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        Icepick.saveInstanceState(this, outState);
+        Bridge.saveInstanceState(this, outState);
     }
 
     @Override
@@ -229,7 +225,6 @@ public class SettingsActivity extends AppCompatActivity implements
 
         // Build search items
         final Context searchContext = getApplicationContext();
-        assureCorrectAppLanguage(searchContext);
         final PreferenceParser parser = new PreferenceParser(searchContext, config);
         final PreferenceSearcher searcher = new PreferenceSearcher(config);
 

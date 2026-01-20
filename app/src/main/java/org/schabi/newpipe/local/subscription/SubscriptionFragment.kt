@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.SubMenu
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
@@ -20,11 +21,11 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import com.evernote.android.state.State
 import com.xwray.groupie.Group
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.viewbinding.GroupieViewHolder
-import icepick.State
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity.Companion.GROUP_ALL_ID
@@ -460,6 +461,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     }
 
     companion object {
-        const val JSON_MIME_TYPE = "application/json"
+        val JSON_MIME_TYPE = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension("json") ?: "application/octet-stream"
     }
 }

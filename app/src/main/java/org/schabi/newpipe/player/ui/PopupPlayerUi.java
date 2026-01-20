@@ -40,6 +40,7 @@ import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.player.gesture.BasePlayerGestureListener;
 import org.schabi.newpipe.player.gesture.PopupPlayerGestureListener;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.util.DeviceUtils;
 
 public final class PopupPlayerUi extends VideoPlayerUi {
     private static final String TAG = PopupPlayerUi.class.getSimpleName();
@@ -174,6 +175,8 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         binding.topControls.setClickable(false);
         binding.topControls.setFocusable(false);
         binding.bottomControls.bringToFront();
+        // Workaround that UI elements are pushed off screen
+        binding.audioTrackTextView.setMaxWidth(DeviceUtils.dpToPx(48, context));
         super.setupElementsVisibility();
     }
 
@@ -382,7 +385,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
                     private void end() {
                         windowManager.removeView(closeOverlayBinding.getRoot());
                         closeOverlayBinding = null;
-                        player.getService().stopService();
+                        player.getService().destroyPlayerAndStopService();
                     }
                 }).start();
     }
@@ -424,9 +427,8 @@ public final class PopupPlayerUi extends VideoPlayerUi {
 
     @Override
     protected void setupSubtitleView(final float captionScale) {
-        final float captionRatio = (captionScale - 1.0f) / 5.0f + 1.0f;
         binding.subtitleView.setFractionalTextSize(
-                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * captionRatio);
+                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * captionScale);
     }
 
     @Override

@@ -2,6 +2,7 @@ package us.shandian.giga.ui.adapter;
 
 import static android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
+import static android.content.Intent.createChooser;
 import static us.shandian.giga.get.DownloadMission.ERROR_CONNECT_HOST;
 import static us.shandian.giga.get.DownloadMission.ERROR_FILE_CREATION;
 import static us.shandian.giga.get.DownloadMission.ERROR_HTTP_NO_CONTENT;
@@ -71,6 +72,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Date;
+import java.util.Locale;
+import java.text.DateFormat;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -208,11 +212,17 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
             mPendingDownloadsItems.add(h);
+
+            h.date.setText("");
         } else {
             h.progress.setMarquee(false);
             h.status.setText("100%");
             h.progress.setProgress(1.0f);
             h.size.setText(Utility.formatBytes(item.mission.length));
+
+            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault());
+            Date date = new Date(item.mission.timestamp);
+            h.date.setText(dateFormat.format(date));
         }
     }
 
@@ -340,11 +350,15 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (BuildConfig.DEBUG)
             Log.v(TAG, "Mime: " + mimeType + " package: " + BuildConfig.APPLICATION_ID + ".provider");
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(resolveShareableUri(mission), mimeType);
-        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
-        ShareUtils.openIntentInApp(mContext, intent);
+        Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+        viewIntent.setDataAndType(resolveShareableUri(mission), mimeType);
+        viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+        viewIntent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
+
+        Intent chooserIntent = createChooser(viewIntent, null);
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | FLAG_GRANT_READ_URI_PERMISSION);
+
+        ShareUtils.openIntentInApp(mContext, chooserIntent);
     }
 
     private void shareFile(Mission mission) {
@@ -355,8 +369,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         shareIntent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
         shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
-        final Intent intent = new Intent(Intent.ACTION_CHOOSER);
-        intent.putExtra(Intent.EXTRA_INTENT, shareIntent);
+        final Intent intent = createChooser(shareIntent, null);
         // unneeded to set a title to the chooser on Android P and higher because the system
         // ignores this title on these versions
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
@@ -554,16 +567,16 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
         request.append("]");
 
-        String service;
+        Integer service;
         try {
-            service = NewPipe.getServiceByUrl(mission.source).getServiceInfo().getName();
+            service = NewPipe.getServiceByUrl(mission.source).getServiceId();
         } catch (Exception e) {
-            service = ErrorInfo.SERVICE_NONE;
+            service = null;
         }
 
         ErrorUtil.createNotification(mContext,
                 new ErrorInfo(ErrorInfo.Companion.throwableToStringList(mission.errObject), action,
-                        service, request.toString(), reason));
+                        request.toString(), service, reason));
     }
 
     public void clearFinishedDownloads(boolean delete) {
@@ -605,7 +618,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         while (i.hasNext()) {
             Mission mission = i.next();
             if (mission != null) {
-                mDownloadManager.deleteMission(mission);
+                mDownloadManager.deleteMission(mission, true);
                 mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, mission.storage.getUri()));
             }
             i.remove();
@@ -658,12 +671,26 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 shareFile(h.item.mission);
                 return true;
             case R.id.delete:
-                mDeleter.append(h.item.mission);
+                // delete the entry and the file
+                mDeleter.append(h.item.mission, true);
+                applyChanges();
+                checkMasterButtonsVisibility();
+                return true;
+            case R.id.delete_entry:
+                // just delete the entry
+                mDeleter.append(h.item.mission, false);
                 applyChanges();
                 checkMasterButtonsVisibility();
                 return true;
             case R.id.md5:
             case R.id.sha1:
+                final StoredFileHelper storage = h.item.mission.storage;
+                if (!storage.existsAsFile()) {
+                    Toast.makeText(mContext, R.string.missing_file, Toast.LENGTH_SHORT).show();
+                    mDeleter.append(h.item.mission, true);
+                    applyChanges();
+                    return true;
+                }
                 final NotificationManager notificationManager
                         = ContextCompat.getSystemService(mContext, NotificationManager.class);
                 final NotificationCompat.Builder progressNotificationBuilder
@@ -678,7 +705,6 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
                 notificationManager.notify(HASH_NOTIFICATION_ID, progressNotificationBuilder
                         .build());
-                final StoredFileHelper storage = h.item.mission.storage;
                 compositeDisposable.add(
                         Observable.fromCallable(() -> Utility.checksum(storage, id))
                                 .subscribeOn(Schedulers.computation())
@@ -826,6 +852,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         ImageView icon;
         TextView name;
         TextView size;
+        TextView date;
         ProgressDrawable progress;
 
         PopupMenu popupMenu;
@@ -856,6 +883,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             name = itemView.findViewById(R.id.item_name);
             icon = itemView.findViewById(R.id.item_icon);
             size = itemView.findViewById(R.id.item_size);
+            date = itemView.findViewById(R.id.item_date);
 
             name.setSelected(true);
 

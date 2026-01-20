@@ -16,14 +16,12 @@ import org.schabi.newpipe.BuildConfig
 import org.schabi.newpipe.R
 import org.schabi.newpipe.databinding.ActivityAboutBinding
 import org.schabi.newpipe.databinding.FragmentAboutBinding
-import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.ThemeHelper
 import org.schabi.newpipe.util.external_communication.ShareUtils
 
 class AboutActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Localization.assureCorrectAppLanguage(this)
         super.onCreate(savedInstanceState)
         ThemeHelper.setTheme(this)
         title = getString(R.string.title_activity_about)
@@ -138,8 +136,12 @@ class AboutActivity : AppCompatActivity() {
                 "https://github.com/lisawray/groupie", StandardLicenses.MIT
             ),
             SoftwareComponent(
-                "Icepick", "2015", "Frankie Sardo",
-                "https://github.com/frankiesardo/icepick", StandardLicenses.EPL1
+                "Android-State", "2018", "Evernote",
+                "https://github.com/Evernote/android-state", StandardLicenses.EPL1
+            ),
+            SoftwareComponent(
+                "Bridge", "2021", "Livefront",
+                "https://github.com/livefront/bridge", StandardLicenses.APACHE2
             ),
             SoftwareComponent(
                 "Jsoup", "2009 - 2020", "Jonathan Hedley",

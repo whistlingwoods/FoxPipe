@@ -2,7 +2,6 @@ package org.schabi.newpipe.download;
 
 import static org.schabi.newpipe.extractor.stream.DeliveryMethod.PROGRESSIVE_HTTP;
 import static org.schabi.newpipe.util.ListHelper.getStreamsOfSpecifiedDelivery;
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -39,6 +38,8 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.PreferenceManager;
 
+import com.evernote.android.state.State;
+import com.livefront.bridge.Bridge;
 import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipe.MainActivity;
@@ -59,6 +60,8 @@ import org.schabi.newpipe.settings.NewPipeSettings;
 import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
+import org.schabi.newpipe.util.AudioTrackAdapter;
+import org.schabi.newpipe.util.AudioTrackAdapter.AudioTracksWrapper;
 import org.schabi.newpipe.util.FilePickerActivityHelper;
 import org.schabi.newpipe.util.FilenameUtils;
 import org.schabi.newpipe.util.ListHelper;
@@ -67,8 +70,6 @@ import org.schabi.newpipe.util.SecondaryStreamHelper;
 import org.schabi.newpipe.util.SimpleOnSeekBarChangeListener;
 import org.schabi.newpipe.util.StreamItemAdapter;
 import org.schabi.newpipe.util.StreamItemAdapter.StreamInfoWrapper;
-import org.schabi.newpipe.util.AudioTrackAdapter;
-import org.schabi.newpipe.util.AudioTrackAdapter.AudioTracksWrapper;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.io.File;
@@ -79,8 +80,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
-import icepick.Icepick;
-import icepick.State;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import us.shandian.giga.get.MissionRecoveryInfo;
 import us.shandian.giga.postprocessing.Postprocessing;
@@ -214,7 +213,7 @@ public class DownloadDialog extends DialogFragment
         context = getContext();
 
         setStyle(STYLE_NO_TITLE, ThemeHelper.getDialogTheme(context));
-        Icepick.restoreInstanceState(this, savedInstanceState);
+        Bridge.restoreInstanceState(this, savedInstanceState);
 
         this.audioTrackAdapter = new AudioTrackAdapter(wrappedAudioTracks);
         this.subtitleStreamsAdapter = new StreamItemAdapter<>(wrappedSubtitleStreams);
@@ -372,7 +371,7 @@ public class DownloadDialog extends DialogFragment
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        Icepick.saveInstanceState(this, outState);
+        Bridge.saveInstanceState(this, outState);
     }
 
 
@@ -390,8 +389,7 @@ public class DownloadDialog extends DialogFragment
                     }
                 }, throwable -> ErrorUtil.showSnackbar(context,
                         new ErrorInfo(throwable, UserAction.DOWNLOAD_OPEN_DIALOG,
-                                "Downloading video stream size",
-                                currentInfo.getServiceId()))));
+                                "Downloading video stream size", currentInfo))));
         disposables.add(StreamInfoWrapper.fetchMoreInfoForWrapper(getWrappedAudioStreams())
                 .subscribe(result -> {
                     if (dialogBinding.videoAudioGroup.getCheckedRadioButtonId()
@@ -400,8 +398,7 @@ public class DownloadDialog extends DialogFragment
                     }
                 }, throwable -> ErrorUtil.showSnackbar(context,
                         new ErrorInfo(throwable, UserAction.DOWNLOAD_OPEN_DIALOG,
-                                "Downloading audio stream size",
-                                currentInfo.getServiceId()))));
+                                "Downloading audio stream size", currentInfo))));
         disposables.add(StreamInfoWrapper.fetchMoreInfoForWrapper(wrappedSubtitleStreams)
                 .subscribe(result -> {
                     if (dialogBinding.videoAudioGroup.getCheckedRadioButtonId()
@@ -410,8 +407,7 @@ public class DownloadDialog extends DialogFragment
                     }
                 }, throwable -> ErrorUtil.showSnackbar(context,
                         new ErrorInfo(throwable, UserAction.DOWNLOAD_OPEN_DIALOG,
-                                "Downloading subtitle stream size",
-                                currentInfo.getServiceId()))));
+                                "Downloading subtitle stream size", currentInfo))));
     }
 
     private void setupAudioTrackSpinner() {
@@ -751,7 +747,6 @@ public class DownloadDialog extends DialogFragment
     }
 
     private void showFailedDialog(@StringRes final int msg) {
-        assureCorrectAppLanguage(requireContext());
         new AlertDialog.Builder(context)
                 .setTitle(R.string.general_error)
                 .setMessage(msg)
@@ -1138,7 +1133,7 @@ public class DownloadDialog extends DialogFragment
         }
 
         DownloadManagerService.startMission(context, urls, storage, kind, threads,
-                currentInfo.getUrl(), psName, psArgs, nearLength, new ArrayList<>(recoveryInfo));
+                currentInfo, psName, psArgs, nearLength, new ArrayList<>(recoveryInfo));
 
         Toast.makeText(context, getString(R.string.download_has_started),
                 Toast.LENGTH_SHORT).show();

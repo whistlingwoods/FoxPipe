@@ -2,7 +2,6 @@ package org.schabi.newpipe.player.helper;
 
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
 import static org.schabi.newpipe.player.Player.DEBUG;
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 import static org.schabi.newpipe.util.ThemeHelper.resolveDrawable;
 
 import android.app.Dialog;
@@ -24,6 +23,9 @@ import androidx.core.math.MathUtils;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.PreferenceManager;
 
+import com.evernote.android.state.State;
+import com.livefront.bridge.Bridge;
+
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.DialogPlaybackParameterBinding;
 import org.schabi.newpipe.player.ui.VideoPlayerUi;
@@ -36,9 +38,6 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
 import java.util.function.DoubleSupplier;
-
-import icepick.Icepick;
-import icepick.State;
 
 public class PlaybackParameterDialog extends DialogFragment {
     private static final String TAG = "PlaybackParameterDialog";
@@ -135,7 +134,7 @@ public class PlaybackParameterDialog extends DialogFragment {
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        Icepick.saveInstanceState(this, outState);
+        Bridge.saveInstanceState(this, outState);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -145,8 +144,7 @@ public class PlaybackParameterDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
-        assureCorrectAppLanguage(getContext());
-        Icepick.restoreInstanceState(this, savedInstanceState);
+        Bridge.restoreInstanceState(this, savedInstanceState);
 
         binding = DialogPlaybackParameterBinding.inflate(getLayoutInflater());
         initUI();
@@ -342,14 +340,14 @@ public class PlaybackParameterDialog extends DialogFragment {
         final Map<Boolean, TextView> pitchCtrlModeComponentMapping =
                 getPitchControlModeComponentMappings();
         pitchCtrlModeComponentMapping.forEach((v, textView) -> textView.setBackground(
-                resolveDrawable(requireContext(), R.attr.selectableItemBackground)));
+                resolveDrawable(requireContext(), android.R.attr.selectableItemBackground)));
 
         // Mark the selected textview
         final TextView textView = pitchCtrlModeComponentMapping.get(semitones);
         if (textView != null) {
             textView.setBackground(new LayerDrawable(new Drawable[]{
                     resolveDrawable(requireContext(), R.attr.dashed_border),
-                    resolveDrawable(requireContext(), R.attr.selectableItemBackground)
+                    resolveDrawable(requireContext(), android.R.attr.selectableItemBackground)
             }));
         }
 
@@ -415,14 +413,14 @@ public class PlaybackParameterDialog extends DialogFragment {
         // Bring all textviews into a normal state
         final Map<Double, TextView> stepSiteComponentMapping = getStepSizeComponentMappings();
         stepSiteComponentMapping.forEach((v, textView) -> textView.setBackground(
-                resolveDrawable(requireContext(), R.attr.selectableItemBackground)));
+                resolveDrawable(requireContext(), android.R.attr.selectableItemBackground)));
 
         // Mark the selected textview
         final TextView textView = stepSiteComponentMapping.get(newStepSize);
         if (textView != null) {
             textView.setBackground(new LayerDrawable(new Drawable[]{
                     resolveDrawable(requireContext(), R.attr.dashed_border),
-                    resolveDrawable(requireContext(), R.attr.selectableItemBackground)
+                    resolveDrawable(requireContext(), android.R.attr.selectableItemBackground)
             }));
         }
 

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.BundleCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -19,7 +20,6 @@ import org.schabi.newpipe.R
 import org.schabi.newpipe.databinding.FragmentLicensesBinding
 import org.schabi.newpipe.databinding.ItemSoftwareComponentBinding
 import org.schabi.newpipe.ktx.parcelableArrayList
-import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.external_communication.ShareUtils
 
 /**
@@ -34,7 +34,9 @@ class LicenseFragment : Fragment() {
         super.onCreate(savedInstanceState)
         softwareComponents = arguments?.parcelableArrayList<SoftwareComponent>(ARG_COMPONENTS)!!
             .sortedBy { it.name } // Sort components by name
-        activeSoftwareComponent = savedInstanceState?.getSerializable(SOFTWARE_COMPONENT_KEY) as? SoftwareComponent
+        activeSoftwareComponent = savedInstanceState?.let {
+            BundleCompat.getSerializable(it, SOFTWARE_COMPONENT_KEY, SoftwareComponent::class.java)
+        }
     }
 
     override fun onDestroy() {
@@ -100,7 +102,6 @@ class LicenseFragment : Fragment() {
                     val webView = WebView(context)
                     webView.loadData(webViewData, "text/html; charset=UTF-8", "base64")
 
-                    Localization.assureCorrectAppLanguage(context)
                     val builder = AlertDialog.Builder(requireContext())
                         .setTitle(softwareComponent.name)
                         .setView(webView)

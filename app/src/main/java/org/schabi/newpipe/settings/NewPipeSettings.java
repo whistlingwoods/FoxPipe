@@ -13,6 +13,7 @@ import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.App;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.settings.migration.MigrationManager;
 import org.schabi.newpipe.util.DeviceUtils;
 
 import java.io.File;
@@ -46,7 +47,7 @@ public final class NewPipeSettings {
 
     public static void initSettings(final Context context) {
         // first run migrations, then setDefaultValues, since the latter requires the correct types
-        SettingMigrations.runMigrationsIfNeeded(context);
+        MigrationManager.runMigrationsIfNeeded(context);
 
         // readAgain is true so that if new settings are added their default value is set
         PreferenceManager.setDefaultValues(context, R.xml.main_settings, true);
@@ -102,12 +103,12 @@ public final class NewPipeSettings {
     }
 
     public static boolean useStorageAccessFramework(final Context context) {
-        // There's a FireOS bug which prevents SAF open/close dialogs from being confirmed with a
-        // remote (see #6455).
-        if (DeviceUtils.isFireTv()) {
-            return false;
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return true;
+        } else if (DeviceUtils.isFireTv()) {
+            // There's a FireOS bug which prevents SAF open/close dialogs from being confirmed with
+            // a remote (see #6455).
+            return false;
         }
 
         final String key = context.getString(R.string.storage_use_saf);

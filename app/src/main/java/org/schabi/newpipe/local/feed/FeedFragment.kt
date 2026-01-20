@@ -44,11 +44,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.evernote.android.state.State
 import com.xwray.groupie.GroupieAdapter
 import com.xwray.groupie.Item
 import com.xwray.groupie.OnItemClickListener
 import com.xwray.groupie.OnItemLongClickListener
-import icepick.State
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -269,7 +269,12 @@ class FeedFragment : BaseStateFragment<FeedState>() {
 
     override fun onDestroyOptionsMenu() {
         super.onDestroyOptionsMenu()
-        activity?.supportActionBar?.subtitle = null
+        if (
+            (groupName != "") &&
+            (activity?.supportActionBar?.subtitle == groupName)
+        ) {
+            activity?.supportActionBar?.subtitle = null
+        }
     }
 
     override fun onDestroy() {
@@ -281,7 +286,13 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         }
 
         super.onDestroy()
-        activity?.supportActionBar?.subtitle = null
+
+        if (
+            (groupName != "") &&
+            (activity?.supportActionBar?.subtitle == groupName)
+        ) {
+            activity?.supportActionBar?.subtitle = null
+        }
     }
 
     override fun onDestroyView() {
@@ -496,7 +507,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             .setTitle(R.string.feed_load_error)
             .setPositiveButton(R.string.unsubscribe) { _, _ ->
                 SubscriptionManager(requireContext())
-                    .deleteSubscription(subscriptionEntity.serviceId, subscriptionEntity.url)
+                    .deleteSubscription(subscriptionEntity.serviceId, subscriptionEntity.url!!)
                     .subscribe()
                 handleItemsErrors(nextItemsErrors)
             }
@@ -549,7 +560,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
 
             var typeface = Typeface.DEFAULT
             var backgroundSupplier = { ctx: Context ->
-                resolveDrawable(ctx, R.attr.selectableItemBackground)
+                resolveDrawable(ctx, android.R.attr.selectableItemBackground)
             }
             if (doCheck) {
                 // If the uploadDate is null or true we should highlight the item
@@ -562,7 +573,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                         LayerDrawable(
                             arrayOf(
                                 resolveDrawable(ctx, R.attr.dashed_border),
-                                resolveDrawable(ctx, R.attr.selectableItemBackground)
+                                resolveDrawable(ctx, android.R.attr.selectableItemBackground)
                             )
                         )
                     }

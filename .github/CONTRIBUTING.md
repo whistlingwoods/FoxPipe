@@ -3,10 +3,23 @@
 NewPipe contribution guidelines
 ===============================
 
+## AI policy
+
+* Using generative AI to develop new features or making larger code changes is generally prohibited. Please refrain from contributions which are heavily depending on AI generated source code because they are usually lacking a fundamental understanding of the overall project structure and thus come with poor quality. However, you are allowed to use gen. AI if you
+  * are aware of the project structure,
+  * ensure that the generated code follows the project structure,
+  * fully understand the generated code, and
+  * review the generated code completely.
+* Using AI to find the root cause of bugs and generating small fixes might be acceptable. However, gen. AI often does not fix the underlying problem but is trying to fix the symptoms. If you are using AI to fix bugs, ensure that the root cause is tackled.
+* The use of AI to generate documentation is allowed. We ask you to thoroughly check the quality of generated documentation – wrong, misleading or uninformative documentation is useless and wastes the reader's time. Ensure that reasoning is documented.
+* Using generative AI to write or fill in PR or issue templates is prohibited. Those texts are often lengthy and miss critical information.
+* PRs and issues that do not follow this AI policy can be closed without further explanation.
+
+
 ## Crash reporting
 
 Report crashes through the **automated crash report system** of NewPipe.
-This way all the data needed for debugging is included in your bugreport for GitHub.
+This way all the data needed for debugging is included in your bug report for GitHub.
 You'll see *exactly* what is sent, be able to add **your comments**, and then send it.
 
 ## Issue reporting/feature requests
@@ -41,10 +54,6 @@ You'll see *exactly* what is sent, be able to add **your comments**, and then se
 * Please show **intention to maintain your features** and code after you contribute a PR. Unmaintained code is a hassle for core developers. If you do not intend to maintain features you plan to contribute, please rethink your submission, or clearly state that in the PR description.
 * Create PRs that cover only **one specific issue/solution/bug**. Do not create PRs that are huge monoliths and could have been split into multiple independent contributions.
 * NewPipe uses [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) to fetch data from services. If you need to change something there, you must test your changes in NewPipe. Telling NewPipe to use your extractor version can be accomplished by editing the `app/build.gradle` file: the comments under the "NewPipe libraries" section of `dependencies` will help you out.
-
-### Kotlin in NewPipe
-* NewPipe will remain mostly Java for time being
-* Contributions containing a simple conversion from Java to Kotlin should be avoided. Conversions to Kotlin should only be done if Kotlin actually brings improvements like bug fixes or better performance which are not, or only with much more effort, implementable in Java. The core team sees Java as an easier to learn and generally well adopted programming language.
 
 ### Creating a Pull Request (PR)
 
@@ -83,6 +92,6 @@ The [ktlint](https://github.com/pinterest/ktlint) plugin does the same job as ch
 
 ## Communication
 
-* The #newpipe channel on Libera Chat (`ircs://irc.libera.chat:6697/newpipe`) has the core team and other developers in it. [Click here for webchat](https://web.libera.chat/#newpipe)!
-* You can also use a Matrix account to join the NewPipe channel at [#newpipe:libera.chat](https://matrix.to/#/#newpipe:libera.chat). Some convenient clients, available both for phone and desktop, are listed at that link.
-* You can post your suggestions, changes, ideas etc. on either GitHub or IRC.
+* You can use a Matrix account to join the NewPipe channel at [#newpipe:matrix.newpipe-ev.de](https://matrix.to/#/#newpipe:matrix.newpipe-ev.de). Some convenient clients, available both for phone and desktop, are listed at that link.
+* Alternatively, the #newpipe channel on Libera Chat (`ircs://irc.libera.chat:6697/newpipe`) can also be joined, as it is bridged to the Matrix room. [Click here for webchat](https://web.libera.chat/#newpipe)!
+* You can post your suggestions, changes, ideas etc. on either GitHub or Matrix (including via IRC).

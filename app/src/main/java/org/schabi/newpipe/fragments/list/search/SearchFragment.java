@@ -40,6 +40,8 @@ import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.evernote.android.state.State;
+
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.FragmentSearchBinding;
 import org.schabi.newpipe.error.ErrorInfo;
@@ -52,6 +54,7 @@ import org.schabi.newpipe.extractor.MetaInfo;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.StreamingService;
+import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.search.SearchExtractor;
 import org.schabi.newpipe.extractor.search.SearchInfo;
 import org.schabi.newpipe.extractor.services.peertube.linkHandler.PeertubeSearchQueryHandlerFactory;
@@ -77,7 +80,6 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import icepick.State;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
@@ -143,6 +145,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private final SparseArrayCompat<String> menuItemToFilterName = new SparseArrayCompat<>();
     private StreamingService service;
+    @Nullable
     private Page nextPage;
     private boolean showLocalSuggestions = true;
     private boolean showRemoteSuggestions = true;
@@ -218,6 +221,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     public void onViewCreated(@NonNull final View rootView, final Bundle savedInstanceState) {
         searchBinding = FragmentSearchBinding.bind(rootView);
         super.onViewCreated(rootView, savedInstanceState);
+
+        updateService();
+        // Add the service name to search string hint
+        // to make it more obvious which platform is being searched.
+        if (service != null) {
+            searchEditText.setHint(
+                    getString(R.string.search_with_service_name,
+                            service.getServiceInfo().getName()));
+        }
         showSearchOnStart();
         initSearchListeners();
     }
@@ -550,7 +562,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             }
         });
 
-        searchEditText.setOnFocusChangeListener((View v, boolean hasFocus) -> {
+        searchEditText.setOnFocusChangeListener((final View v, final boolean hasFocus) -> {
             if (DEBUG) {
                 Log.d(TAG, "onFocusChange() called with: "
                         + "v = [" + v + "], hasFocus = [" + hasFocus + "]");
@@ -611,7 +623,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         };
         searchEditText.addTextChangedListener(textWatcher);
         searchEditText.setOnEditorActionListener(
-                (TextView v, int actionId, KeyEvent event) -> {
+                (final TextView v, final int actionId, final KeyEvent event) -> {
                     if (DEBUG) {
                         Log.d(TAG, "onEditorAction() called with: v = [" + v + "], "
                                 + "actionId = [" + actionId + "], event = [" + event + "]");
@@ -931,7 +943,21 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             infoListAdapter.clearStreamItemList();
             showEmptyState();
         } else {
-            showError(new ErrorInfo(exception, UserAction.SEARCHED, searchString, serviceId));
+            showError(new ErrorInfo(exception, UserAction.SEARCHED, searchString, serviceId,
+                    getOpenInBrowserUrlForErrors()));
+        }
+    }
+
+    @Nullable
+    private String getOpenInBrowserUrlForErrors() {
+        if (TextUtils.isEmpty(searchString)) {
+            return null;
+        }
+        try {
+            return service.getSearchQHFactory().getUrl(searchString,
+                    Arrays.asList(contentFilter), sortFilter);
+        } catch (final NullPointerException | ParsingException ignored) {
+            return null;
         }
     }
 
@@ -942,6 +968,20 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private void changeContentFilter(final MenuItem item, final List<String> theContentFilter) {
         filterItemCheckedId = item.getItemId();
         item.setChecked(true);
+
+        if (service != null) {
+            final boolean isNotFiltered = theContentFilter.isEmpty()
+                    || "all".equals(theContentFilter.get(0));
+            if (isNotFiltered) {
+                searchEditText.setHint(
+                        getString(R.string.search_with_service_name,
+                                service.getServiceInfo().getName()));
+            } else {
+                searchEditText.setHint(getString(R.string.search_with_service_name_and_filter,
+                        service.getServiceInfo().getName(),
+                        item.getTitle()));
+            }
+        }
 
         contentFilter = theContentFilter.toArray(new String[0]);
 
@@ -1005,7 +1045,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 && !(exceptions.size() == 1
                 && exceptions.get(0) instanceof SearchExtractor.NothingFoundException)) {
             showSnackBarError(new ErrorInfo(result.getErrors(), UserAction.SEARCHED,
-                    searchString, serviceId));
+                    searchString, serviceId, getOpenInBrowserUrlForErrors()));
         }
 
         searchSuggestion = result.getSearchSuggestion();
@@ -1072,15 +1112,26 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     public void handleNextItems(final ListExtractor.InfoItemsPage<?> result) {
         showListFooter(false);
         infoListAdapter.addInfoItemList(result.getItems());
-        nextPage = result.getNextPage();
 
         if (!result.getErrors().isEmpty()) {
-            showSnackBarError(new ErrorInfo(result.getErrors(), UserAction.SEARCHED,
-                    "\"" + searchString + "\" → pageUrl: " + nextPage.getUrl() + ", "
-                            + "pageIds: " + nextPage.getIds() + ", "
-                            + "pageCookies: " + nextPage.getCookies(),
-                    serviceId));
+            // nextPage should be non-null at this point, because it refers to the page
+            // whose results are handled here, but let's check it anyway
+            if (nextPage == null) {
+                showSnackBarError(new ErrorInfo(result.getErrors(), UserAction.SEARCHED,
+                        "\"" + searchString + "\" → nextPage == null", serviceId,
+                        getOpenInBrowserUrlForErrors()));
+            } else {
+                showSnackBarError(new ErrorInfo(result.getErrors(), UserAction.SEARCHED,
+                        "\"" + searchString + "\" → pageUrl: " + nextPage.getUrl() + ", "
+                                + "pageIds: " + nextPage.getIds() + ", "
+                                + "pageCookies: " + nextPage.getCookies(),
+                        serviceId, getOpenInBrowserUrlForErrors()));
+            }
         }
+
+        // keep the reassignment of nextPage after the error handling to ensure that nextPage
+        // still holds the correct value during the error handling
+        nextPage = result.getNextPage();
         super.handleNextItems(result);
     }
 

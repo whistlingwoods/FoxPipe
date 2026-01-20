@@ -17,14 +17,17 @@ import org.acra.config.CoreConfigurationBuilder;
 import org.schabi.newpipe.error.ReCaptchaActivity;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.downloader.Downloader;
+import org.schabi.newpipe.extractor.services.youtube.extractors.YoutubeStreamExtractor;
 import org.schabi.newpipe.ktx.ExceptionUtils;
 import org.schabi.newpipe.settings.NewPipeSettings;
+import org.schabi.newpipe.util.BridgeStateSaverInitializer;
 import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.image.ImageStrategy;
-import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.ServiceHelper;
 import org.schabi.newpipe.util.StateSaver;
+import org.schabi.newpipe.util.image.ImageStrategy;
+import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.image.PreferredImageQuality;
+import org.schabi.newpipe.util.potoken.PoTokenProviderImpl;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -62,11 +65,21 @@ public class App extends Application {
     private static final String TAG = App.class.toString();
 
     private boolean isFirstRun = false;
+    private boolean notificationsRequested = false;
+
     private static App app;
 
     @NonNull
     public static App getApp() {
         return app;
+    }
+
+    public boolean getNotificationsRequested() {
+        return notificationsRequested;
+    }
+
+    public void setNotificationsRequested() {
+        notificationsRequested = true;
     }
 
     @Override
@@ -99,8 +112,9 @@ public class App extends Application {
         NewPipe.init(getDownloader(),
             Localization.getPreferredLocalization(this),
             Localization.getPreferredContentCountry(this));
-        Localization.initPrettyTime(Localization.resolvePrettyTime(getApplicationContext()));
+        Localization.initPrettyTime(Localization.resolvePrettyTime());
 
+        BridgeStateSaverInitializer.init(this);
         StateSaver.init(this);
         initNotificationChannels();
 
@@ -116,6 +130,8 @@ public class App extends Application {
                 && prefs.getBoolean(getString(R.string.show_image_indicators_key), false));
 
         configureRxJavaErrorHandler();
+
+        YoutubeStreamExtractor.setPoTokenProvider(PoTokenProviderImpl.INSTANCE);
     }
 
     @Override

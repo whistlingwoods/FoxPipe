@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.text.HtmlCompat;
 
+import com.evernote.android.state.State;
+
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.CommentRepliesHeaderBinding;
 import org.schabi.newpipe.error.UserAction;
@@ -26,11 +28,11 @@ import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.image.ImageStrategy;
 import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.text.TextLinkifier;
+import org.schabi.newpipe.util.text.LongPressLinkMovementMethod;
 
 import java.util.Queue;
 import java.util.function.Supplier;
 
-import icepick.State;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
@@ -109,7 +111,7 @@ public final class CommentRepliesFragment
             TextLinkifier.fromDescription(binding.commentContent, item.getCommentText(),
                     HtmlCompat.FROM_HTML_MODE_LEGACY, getServiceById(item.getServiceId()),
                     item.getUrl(), disposables, null);
-
+            binding.commentContent.setMovementMethod(LongPressLinkMovementMethod.getInstance());
             return binding.getRoot();
         };
     }

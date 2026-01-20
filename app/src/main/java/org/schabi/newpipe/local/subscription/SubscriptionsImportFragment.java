@@ -27,6 +27,8 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.text.util.LinkifyCompat;
 
+import com.evernote.android.state.State;
+
 import org.schabi.newpipe.BaseFragment;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.error.ErrorInfo;
@@ -43,8 +45,6 @@ import org.schabi.newpipe.util.ServiceHelper;
 
 import java.util.Collections;
 import java.util.List;
-
-import icepick.State;
 
 public class SubscriptionsImportFragment extends BaseFragment {
     @State
@@ -89,8 +89,8 @@ public class SubscriptionsImportFragment extends BaseFragment {
         if (supportedSources.isEmpty() && currentServiceId != Constants.NO_SERVICE_ID) {
             ErrorUtil.showSnackbar(activity,
                     new ErrorInfo(new String[]{}, UserAction.SUBSCRIPTION_IMPORT_EXPORT,
-                            ServiceHelper.getNameOfServiceById(currentServiceId),
                             "Service does not support importing subscriptions",
+                            currentServiceId,
                             R.string.general_error));
             activity.finish();
         }

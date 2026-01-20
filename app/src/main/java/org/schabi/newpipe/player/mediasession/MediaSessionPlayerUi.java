@@ -38,8 +38,10 @@ public class MediaSessionPlayerUi extends PlayerUi
         implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String TAG = "MediaSessUi";
 
-    private MediaSessionCompat mediaSession;
-    private MediaSessionConnector sessionConnector;
+    @NonNull
+    private final MediaSessionCompat mediaSession;
+    @NonNull
+    private final MediaSessionConnector sessionConnector;
 
     private final String ignoreHardwareMediaButtonsKey;
     private boolean shouldIgnoreHardwareMediaButtons = false;
@@ -48,9 +50,13 @@ public class MediaSessionPlayerUi extends PlayerUi
     private List<NotificationActionData> prevNotificationActions = List.of();
 
 
-    public MediaSessionPlayerUi(@NonNull final Player player) {
+    public MediaSessionPlayerUi(@NonNull final Player player,
+                                @NonNull final MediaSessionCompat mediaSession,
+                                @NonNull final MediaSessionConnector sessionConnector) {
         super(player);
-        ignoreHardwareMediaButtonsKey =
+        this.mediaSession = mediaSession;
+        this.sessionConnector = sessionConnector;
+        this.ignoreHardwareMediaButtonsKey =
                 context.getString(R.string.ignore_hardware_media_buttons_key);
     }
 
@@ -59,10 +65,8 @@ public class MediaSessionPlayerUi extends PlayerUi
         super.initPlayer();
         destroyPlayer(); // release previously used resources
 
-        mediaSession = new MediaSessionCompat(context, TAG);
         mediaSession.setActive(true);
 
-        sessionConnector = new MediaSessionConnector(mediaSession);
         sessionConnector.setQueueNavigator(new PlayQueueNavigator(mediaSession, player));
         sessionConnector.setPlayer(getForwardingPlayer());
 
@@ -87,27 +91,18 @@ public class MediaSessionPlayerUi extends PlayerUi
     public void destroyPlayer() {
         super.destroyPlayer();
         player.getPrefs().unregisterOnSharedPreferenceChangeListener(this);
-        if (sessionConnector != null) {
-            sessionConnector.setMediaButtonEventHandler(null);
-            sessionConnector.setPlayer(null);
-            sessionConnector.setQueueNavigator(null);
-            sessionConnector = null;
-        }
-        if (mediaSession != null) {
-            mediaSession.setActive(false);
-            mediaSession.release();
-            mediaSession = null;
-        }
+        sessionConnector.setMediaButtonEventHandler(null);
+        sessionConnector.setPlayer(null);
+        sessionConnector.setQueueNavigator(null);
+        mediaSession.setActive(false);
         prevNotificationActions = List.of();
     }
 
     @Override
     public void onThumbnailLoaded(@Nullable final Bitmap bitmap) {
         super.onThumbnailLoaded(bitmap);
-        if (sessionConnector != null) {
-            // the thumbnail is now loaded: invalidate the metadata to trigger a metadata update
-            sessionConnector.invalidateMediaSessionMetadata();
-        }
+        // the thumbnail is now loaded: invalidate the metadata to trigger a metadata update
+        sessionConnector.invalidateMediaSessionMetadata();
     }
 
 
@@ -195,6 +190,11 @@ public class MediaSessionPlayerUi extends PlayerUi
             // cause any trouble, it also doesn't seem to do anything, so we don't do anything to
             // save battery. Check out NotificationUtil.updateActions() to see what happens on
             // older android versions.
+            return;
+        }
+
+        if (!mediaSession.isActive()) {
+            // mediaSession will be inactive after destroyPlayer is called
             return;
         }
 
