@@ -43,13 +43,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PlaylistEnqueuerService extends Service {
     private static final String TAG = "PlaylistEnqueuer";
     public static final String ACTION_ENQUEUE_PLAYLIST = "org.schabi.newpipe.action.ENQUEUE_PLAYLIST";
+    public static final String ACTION_RETRY_SINGLE = "org.schabi.newpipe.action.RETRY_SINGLE"; // 🆕 For retry
     
     public static final String ACTION_CANCEL_ALL = "org.schabi.newpipe.action.CANCEL_PLAYLIST";
     
     public static final String EXTRA_URLS = "org.schabi.newpipe.extra.URLS";
     public static final String EXTRA_TITLES = "org.schabi.newpipe.extra.TITLES";
     public static final String EXTRA_QUALITY = "org.schabi.newpipe.extra.QUALITY";
-    public static final String EXTRA_CUSTOM_DIRECTORY = "org.schabi.newpipe.extra.CUSTOM_DIRECTORY"; // 🆕
+    public static final String EXTRA_CUSTOM_DIRECTORY = "org.schabi.newpipe.extra.CUSTOM_DIRECTORY";
+    public static final String EXTRA_VIDEO_URL = "org.schabi.newpipe.extra.VIDEO_URL"; // 🆕 For retry
+    public static final String EXTRA_VIDEO_TITLE = "org.schabi.newpipe.extra.VIDEO_TITLE"; // 🆕 For retry
 
     private static final int NOTIFICATION_ID = 10134;
     private static final String NOTIFICATION_CHANNEL_ID = "playlist_enqueuer_channel";
@@ -92,8 +95,29 @@ public class PlaylistEnqueuerService extends Service {
                 // This allows onCreate() to complete on Main Thread
                 mHandler.postDelayed(() -> {
                     android.util.Log.d(TAG, "⏰ Starting playlist processing after delay...");
-                    processPlaylist(urls, titles, quality, customDirectory); // 🆕 Pass customDirectory
+                    processPlaylist(urls, titles, quality, customDirectory);
                 }, 500);  // 500ms delay
+                
+            } else if (ACTION_RETRY_SINGLE.equals(action)) {
+                // 🆕 Retry a single failed item (don't add to queue, just process)
+                String videoUrl = intent.getStringExtra(EXTRA_VIDEO_URL);
+                String videoTitle = intent.getStringExtra(EXTRA_VIDEO_TITLE);
+                String quality = intent.getStringExtra(EXTRA_QUALITY);
+                
+                if (videoUrl != null && !videoUrl.isEmpty()) {
+                    android.util.Log.d(TAG, "🔄 Retrying single item: " + videoTitle);
+                    
+                    startForeground(NOTIFICATION_ID, createNotification(0, 1));
+                    
+                    // Start DownloadManagerService first
+                    Intent dmIntent = new Intent(this, DownloadManagerService.class);
+                    startService(dmIntent);
+                    
+                    // Process single item after delay
+                    mHandler.postDelayed(() -> {
+                        processSingleRetry(videoUrl, videoTitle, quality);
+                    }, 500);
+                }
                 
             } else if (ACTION_CANCEL_ALL.equals(action)) {
                 Log.d(TAG, "Cancelling playlist enqueuing...");
@@ -270,11 +294,20 @@ public class PlaylistEnqueuerService extends Service {
                 
                         if (finalStorage == null) {
                             android.util.Log.e(TAG, "❌ createUniqueFile returned NULL for: " + title);
+                            // 🆕 Mark as FAILED instead of silently disappearing
+                            if (downloadManager != null) {
+                                downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.FAILED, "Failed to create file");
+                            }
                             return false;
                         }
 
                     } catch (IOException e) {
                         android.util.Log.e(TAG, "❌❌ IOException creating storage", e);
+                        // 🆕 Mark as FAILED with error message
+                        if (downloadManager != null) {
+                            String errorMsg = e.getMessage() != null ? e.getMessage() : "Storage error";
+                            downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.FAILED, errorMsg);
+                        }
                         return false;
                     }
 
@@ -317,16 +350,164 @@ public class PlaylistEnqueuerService extends Service {
                     },
                     error -> {
                         android.util.Log.e(TAG, "Error processing playlist item", error);
+                        
+                        // 🆕 Clean up cancelledUrls on error path too
+                        cancelledUrls.clear();
+                        
                         stopForeground(true);
                         stopSelf();
                     },
                     () -> {
                         // All items processed
                         android.util.Log.d(TAG, "Playlist processing complete.");
+                        
+                        // 🆕 Clean up cancelledUrls to prevent memory leak
+                        int clearedCount = cancelledUrls.size();
+                        cancelledUrls.clear();
+                        if (clearedCount > 0) {
+                            android.util.Log.d(TAG, "🧹 Cleared " + clearedCount + " cancelled URLs from memory");
+                        }
+                        
                         stopForeground(true);
                         stopSelf();
                     }
                 ));
+    }
+
+    /**
+     * 🆕 Process a single retry item (already exists in queue)
+     * This method processes the item without adding to queue (prevents duplicates)
+     */
+    private void processSingleRetry(String videoUrl, String videoTitle, String quality) {
+        android.util.Log.d(TAG, "🔄 processSingleRetry: " + videoTitle);
+        
+        DownloadManager downloadManager = getDownloadManager();
+        if (downloadManager == null) {
+            android.util.Log.e(TAG, "❌ DownloadManager is null, cannot retry");
+            stopForeground(true);
+            stopSelf();
+            return;
+        }
+        
+        // Update status to EXTRACTING
+        downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.EXTRACTING, null);
+        // 🆕 Fix #2: Update notification to show current stage
+        updateNotification(0, 1, "Extracting: " + videoTitle);
+        
+        // Process in background
+        disposables.add(io.reactivex.rxjava3.core.Observable.fromCallable(() -> {
+            try {
+                // 1. Extract StreamInfo
+                org.schabi.newpipe.extractor.stream.StreamInfo info;
+                try {
+                    int serviceId = org.schabi.newpipe.extractor.NewPipe.getServiceByUrl(videoUrl).getServiceId();
+                    info = org.schabi.newpipe.extractor.stream.StreamInfo.getInfo(
+                        org.schabi.newpipe.extractor.NewPipe.getService(serviceId), videoUrl);
+                } catch (Exception e) {
+                    android.util.Log.e(TAG, "❌ Failed to extract info for retry: " + videoTitle, e);
+                    downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.FAILED, e.getMessage());
+                    return false;
+                }
+                
+                // Update thumbnail if available
+                if (info.getThumbnails() != null && !info.getThumbnails().isEmpty()) {
+                    QueuedMission mission = downloadManager.getQueuedMissionByUrl(videoUrl);
+                    if (mission != null) {
+                        mission.thumbnailUrl = info.getThumbnails().get(0).getUrl();
+                    }
+                }
+                
+                // Update status to PREPARING
+                downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.PREPARING, null);
+                // 🆕 Fix #2: Update notification to show preparing stage
+                mHandler.post(() -> updateNotification(0, 1, "Preparing: " + videoTitle));
+                
+                // 2. Prepare download bundle
+                PlaylistDownloadLogic.DownloadBundle bundle = 
+                    PlaylistDownloadLogic.prepareDownload(this, info, quality);
+                
+                if (bundle == null) {
+                    android.util.Log.e(TAG, "❌ Bundle is NULL for retry: " + videoTitle);
+                    downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.FAILED, "Failed to prepare download");
+                    return false;
+                }
+                
+                // 3. Create Storage
+                boolean isVideo = bundle.kind == 'v';
+                StoredDirectoryHelper storage;
+                StoredFileHelper finalStorage;
+                
+                try {
+                    String key = getString(isVideo ? R.string.download_path_video_key : R.string.download_path_audio_key);
+                    String downloadPath = androidx.preference.PreferenceManager
+                        .getDefaultSharedPreferences(this)
+                        .getString(key, null);
+                    
+                    if (downloadPath == null || downloadPath.isEmpty()) {
+                        java.io.File defaultDir = NewPipeSettings.getDir(
+                            isVideo ? android.os.Environment.DIRECTORY_MOVIES 
+                                   : android.os.Environment.DIRECTORY_MUSIC);
+                        downloadPath = android.net.Uri.fromFile(defaultDir).toString();
+                    }
+                    
+                    android.net.Uri pathUri = android.net.Uri.parse(downloadPath);
+                    storage = new StoredDirectoryHelper(this, pathUri, null);
+                    
+                    finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
+                    
+                    if (finalStorage == null) {
+                        android.util.Log.e(TAG, "❌ createUniqueFile returned NULL for retry: " + videoTitle);
+                        downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.FAILED, "Failed to create file");
+                        return false;
+                    }
+                } catch (IOException e) {
+                    android.util.Log.e(TAG, "❌ IOException creating storage for retry", e);
+                    String errorMsg = e.getMessage() != null ? e.getMessage() : "Storage error";
+                    downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.FAILED, errorMsg);
+                    return false;
+                }
+                
+                // 4. Start the download
+                android.util.Log.d(TAG, "📥 Starting download mission for retry: " + videoTitle);
+                DownloadManagerService.startMission(
+                    getApplicationContext(),
+                    bundle.urls,
+                    finalStorage,
+                    bundle.kind,
+                    3,
+                    info,
+                    bundle.psName,
+                    bundle.psArgs,
+                    bundle.nearLength,
+                    new ArrayList<>(bundle.recovery)
+                );
+                
+                // Remove from queue on success
+                downloadManager.removeQueuedMissionByUrl(videoUrl);
+                
+                android.util.Log.d(TAG, "✅ Retry successful for: " + videoTitle);
+                return true;
+                
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "❌ Unexpected error during retry", e);
+                downloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.FAILED, e.getMessage());
+                return false;
+            }
+        })
+        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+        .subscribe(
+            success -> {
+                android.util.Log.d(TAG, "🔄 Retry processing complete");
+                stopForeground(true);
+                stopSelf();
+            },
+            error -> {
+                android.util.Log.e(TAG, "❌ Error during retry", error);
+                stopForeground(true);
+                stopSelf();
+            }
+        ));
     }
 
     /**

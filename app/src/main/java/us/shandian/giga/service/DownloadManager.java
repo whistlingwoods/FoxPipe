@@ -555,9 +555,8 @@ public class DownloadManager {
             for (QueuedMission mission : mMissionsQueued) {
                 if (videoUrl.equals(mission.videoUrl)) {
                     mission.status = newStatus;
-                    if (errorMessage != null) {
-                        mission.errorMessage = errorMessage;
-                    }
+                    // 🆕 Fix #4: Always set errorMessage (allows clearing with null)
+                    mission.errorMessage = errorMessage;
                     android.util.Log.d(TAG, "📝 QueuedMission status updated: \"" + mission.title + "\" -> " + newStatus);
                     mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
                     return true;
@@ -926,11 +925,11 @@ public class DownloadManager {
                 QueuedMission oldQueued = (QueuedMission) oldItem;
                 QueuedMission newQueued = (QueuedMission) newItem;
                 
-                // Compare by URL and title since no storage exists yet
-                // Using Objects.equals() for null-safe comparison
+                // 🆕 Fix #6: Compare status AND errorMessage for proper UI updates
                 return java.util.Objects.equals(oldQueued.videoUrl, newQueued.videoUrl) 
                     && java.util.Objects.equals(oldQueued.title, newQueued.title)
-                    && oldQueued.status == newQueued.status;
+                    && oldQueued.status == newQueued.status
+                    && java.util.Objects.equals(oldQueued.errorMessage, newQueued.errorMessage);
             }
 
             // Handle DownloadMission and FinishedMission (have storage)

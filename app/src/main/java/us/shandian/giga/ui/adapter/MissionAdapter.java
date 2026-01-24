@@ -1227,9 +1227,64 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         // Store mission reference for click handler (avoid capturing mutable state)
         final String videoUrl = mission.videoUrl;
         final String title = mission.title;
+        final QueuedMission.Status currentStatus = mission.status;
+        // 🆕 Fix #1: Store quality from mission instead of preferences
+        final String storedQuality = mission.targetQuality;
+        
+        // Show/hide retry button based on status (only for FAILED items)
+        Menu menu = h.popupMenu.getMenu();
+        MenuItem retryItem = menu.findItem(R.id.retry_queued);
+        if (retryItem != null) {
+            retryItem.setVisible(currentStatus == QueuedMission.Status.FAILED);
+        }
         
         h.popupMenu.setOnMenuItemClickListener(popup -> {
-            if (popup.getItemId() == R.id.cancel_queued) {
+            if (popup.getItemId() == R.id.retry_queued) {
+                // Retry failed item - use ACTION_RETRY_SINGLE to process existing item
+                if (videoUrl != null) {
+                    android.util.Log.d(TAG, "🔄 Retrying failed item: " + title);
+                    
+                    // 🆕 Fix #5: Null check for mDownloadManager
+                    if (mDownloadManager == null) {
+                        android.util.Log.e(TAG, "❌ mDownloadManager is null, cannot retry");
+                        android.widget.Toast.makeText(mContext, 
+                            "Download manager not ready", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    
+                    // 🆕 Fix #3: Update UI FIRST before starting service (prevents race condition)
+                    // Reset status to WAITING and clear error message
+                    mDownloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.WAITING, null);
+                    applyChanges(); // Update UI immediately
+                    
+                    // 🆕 Fix #1: Use stored quality from mission, fallback to preferences
+                    String quality = storedQuality;
+                    if (quality == null || quality.isEmpty()) {
+                        quality = androidx.preference.PreferenceManager
+                            .getDefaultSharedPreferences(mContext)
+                            .getString(mContext.getString(R.string.default_resolution_key), "360p");
+                    }
+                    
+                    // Start retry service
+                    android.content.Intent intent = new android.content.Intent(mContext, 
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.class);
+                    intent.setAction(org.schabi.newpipe.download.PlaylistEnqueuerService.ACTION_RETRY_SINGLE);
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_VIDEO_URL, videoUrl);
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_VIDEO_TITLE, title != null ? title : "Unknown");
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_QUALITY, quality);
+                    
+                    mContext.startService(intent);
+                    
+                    android.widget.Toast.makeText(mContext, 
+                        R.string.download_has_started, 
+                        android.widget.Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            } else if (popup.getItemId() == R.id.cancel_queued) {
                 // Cancel processing in PlaylistEnqueuerService
                 if (videoUrl != null) {
                     org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(videoUrl);
