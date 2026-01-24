@@ -8,6 +8,7 @@ package org.schabi.newpipe
 
 import android.content.Context
 import androidx.room.Room.databaseBuilder
+import kotlin.concurrent.Volatile
 import org.schabi.newpipe.database.AppDatabase
 import org.schabi.newpipe.database.Migrations.MIGRATION_1_2
 import org.schabi.newpipe.database.Migrations.MIGRATION_2_3
