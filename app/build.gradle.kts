@@ -214,7 +214,7 @@ dependencies {
 
     /** NewPipe libraries **/
     implementation(libs.newpipe.nanojson)
-    implementation 'com.github.pantsufan:NewPipeExtractor:fix-SNAPSHOT'
+    implementation(libs.newpipe.extractor)
     implementation(libs.newpipe.filepicker)
 
     /** Checkstyle **/
