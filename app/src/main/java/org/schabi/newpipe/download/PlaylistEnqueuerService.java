@@ -189,9 +189,9 @@ public class PlaylistEnqueuerService extends Service {
                         return false;
                     }
 
-                    // Update status to EXTRACTING
+                    // Update status to EXTRACTING (using URL for thread-safety)
                     if (downloadManager != null) {
-                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.EXTRACTING);
+                        downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.EXTRACTING, null);
                     }
 
                     // 1. Extract StreamInfo
@@ -203,29 +203,24 @@ public class PlaylistEnqueuerService extends Service {
                     } catch (Exception e) {
                         android.util.Log.e(TAG, "❌ Failed to extract info for: " + title, e);
                         
-                        // 🆕 Mark as FAILED
+                        // Mark as FAILED (using URL for thread-safety)
                         if (downloadManager != null) {
-                            QueuedMission mission = downloadManager.getQueuedMission(index);
-                            if (mission != null) {
-                                mission.status = QueuedMission.Status.FAILED;
-                                mission.errorMessage = e.getMessage();
-                                downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.FAILED);
-                            }
+                            downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.FAILED, e.getMessage());
                         }
                         return false;
                     }
                     
-                    // 🆕 Update thumbnail URL if available
+                    // Update thumbnail URL if available (using URL for thread-safety)
                     if (downloadManager != null && info.getThumbnails() != null && !info.getThumbnails().isEmpty()) {
-                        QueuedMission mission = downloadManager.getQueuedMission(index);
+                        QueuedMission mission = downloadManager.getQueuedMissionByUrl(url);
                         if (mission != null) {
                             mission.thumbnailUrl = info.getThumbnails().get(0).getUrl();
                         }
                     }
 
-                    // 🆕 Update status to PREPARING
+                    // Update status to PREPARING (using URL for thread-safety)
                     if (downloadManager != null) {
-                        downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.PREPARING);
+                        downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.PREPARING, null);
                     }
 
                     // 2. Prepare complete download bundle
@@ -235,14 +230,9 @@ public class PlaylistEnqueuerService extends Service {
                     if (bundle == null) {
                         android.util.Log.e(TAG, "❌ Bundle is NULL for: " + title);
                         
-                        // 🆕 Mark as FAILED
+                        // Mark as FAILED (using URL for thread-safety)
                         if (downloadManager != null) {
-                            QueuedMission mission = downloadManager.getQueuedMission(index);
-                            if (mission != null) {
-                                mission.status = QueuedMission.Status.FAILED;
-                                mission.errorMessage = "Failed to prepare download";
-                                downloadManager.updateQueuedMissionStatus(index, QueuedMission.Status.FAILED);
-                            }
+                            downloadManager.updateQueuedMissionStatusByUrl(url, QueuedMission.Status.FAILED, "Failed to prepare download");
                         }
                         return false;
                     }

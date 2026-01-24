@@ -538,6 +538,55 @@ public class DownloadManager {
             return false;
         }
     }
+    
+    /**
+     * Update the status of a queued mission by URL (thread-safe, avoids index issues)
+     * @param videoUrl The video URL to find
+     * @param newStatus New status to set
+     * @param errorMessage Optional error message (for FAILED status)
+     * @return true if updated, false if not found
+     */
+    public boolean updateQueuedMissionStatusByUrl(String videoUrl, QueuedMission.Status newStatus, String errorMessage) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return false;
+            }
+            
+            for (QueuedMission mission : mMissionsQueued) {
+                if (videoUrl.equals(mission.videoUrl)) {
+                    mission.status = newStatus;
+                    if (errorMessage != null) {
+                        mission.errorMessage = errorMessage;
+                    }
+                    android.util.Log.d(TAG, "📝 QueuedMission status updated: \"" + mission.title + "\" -> " + newStatus);
+                    mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                    return true;
+                }
+            }
+            android.util.Log.w(TAG, "⚠️ Could not find queued mission with URL for status update: " + videoUrl);
+            return false;
+        }
+    }
+    
+    /**
+     * Get a queued mission by URL (thread-safe)
+     * @param videoUrl The video URL to find
+     * @return The queued mission, or null if not found
+     */
+    public QueuedMission getQueuedMissionByUrl(String videoUrl) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return null;
+            }
+            
+            for (QueuedMission mission : mMissionsQueued) {
+                if (videoUrl.equals(mission.videoUrl)) {
+                    return mission;
+                }
+            }
+            return null;
+        }
+    }
 
     /**
      * Get the count of queued missions
@@ -878,8 +927,9 @@ public class DownloadManager {
                 QueuedMission newQueued = (QueuedMission) newItem;
                 
                 // Compare by URL and title since no storage exists yet
-                return oldQueued.videoUrl.equals(newQueued.videoUrl) 
-                    && oldQueued.title.equals(newQueued.title)
+                // Using Objects.equals() for null-safe comparison
+                return java.util.Objects.equals(oldQueued.videoUrl, newQueued.videoUrl) 
+                    && java.util.Objects.equals(oldQueued.title, newQueued.title)
                     && oldQueued.status == newQueued.status;
             }
 
