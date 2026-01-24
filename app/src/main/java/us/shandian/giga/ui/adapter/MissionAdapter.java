@@ -126,6 +126,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final AtomicBoolean isApplyingChanges = new AtomicBoolean(false);
+    private final AtomicBoolean pendingApplyChanges = new AtomicBoolean(false);
 
     public MissionAdapter(Context context, @NonNull DownloadManager downloadManager, View emptyMessage, View root) {
         mContext = context;
@@ -417,35 +418,83 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (BuildConfig.DEBUG)
             Log.v(TAG, "Mime: " + mimeType + " package: " + BuildConfig.APPLICATION_ID + ".provider");
 
-        Intent viewIntent = new Intent(Intent.ACTION_VIEW);
-        viewIntent.setDataAndType(resolveShareableUri(mission), mimeType);
-        viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-        viewIntent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
+        try {
+            // For SAF URIs (content://), we need to handle them differently
+            if (!mission.storage.isDirect()) {
+                // SAF file - grant URI permission using ClipData
+                Uri uri = mission.storage.getUri();
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+                viewIntent.setDataAndType(uri, mimeType);
+                viewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                
+                // Use ClipData to properly grant URI permission to destination app
+                viewIntent.setClipData(android.content.ClipData.newRawUri("", uri));
+                
+                // Create a chooser to let user select the app
+                Intent chooser = Intent.createChooser(viewIntent, null);
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                chooser.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                
+                mContext.startActivity(chooser);
+            } else {
+                // Direct file - use FileProvider
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+                viewIntent.setDataAndType(resolveShareableUri(mission), mimeType);
+                viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                viewIntent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
 
-        Intent chooserIntent = createChooser(viewIntent, null);
-        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | FLAG_GRANT_READ_URI_PERMISSION);
+                Intent chooserIntent = createChooser(viewIntent, null);
+                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | FLAG_GRANT_READ_URI_PERMISSION);
 
-        ShareUtils.openIntentInApp(mContext, chooserIntent);
+                ShareUtils.openIntentInApp(mContext, chooserIntent);
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException opening file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.general_error, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void shareFile(Mission mission) {
         if (checkInvalidFile(mission)) return;
 
-        final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType(resolveMimeType(mission));
-        shareIntent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
-        shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType(resolveMimeType(mission));
+            
+            // For SAF files, use the storage URI directly with ClipData
+            Uri shareUri = mission.storage.isDirect() 
+                ? resolveShareableUri(mission) 
+                : mission.storage.getUri();
+            
+            shareIntent.putExtra(Intent.EXTRA_STREAM, shareUri);
+            shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+            
+            // Use ClipData for SAF files to grant permission to destination app
+            if (!mission.storage.isDirect()) {
+                shareIntent.setClipData(android.content.ClipData.newRawUri("", shareUri));
+            }
 
-        final Intent intent = createChooser(shareIntent, null);
-        // unneeded to set a title to the chooser on Android P and higher because the system
-        // ignores this title on these versions
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-            intent.putExtra(Intent.EXTRA_TITLE, mContext.getString(R.string.share_dialog_title));
+            final Intent intent = Intent.createChooser(shareIntent, null);
+            // unneeded to set a title to the chooser on Android P and higher because the system
+            // ignores this title on these versions
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+                intent.putExtra(Intent.EXTRA_TITLE, mContext.getString(R.string.share_dialog_title));
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+
+            mContext.startActivity(intent);
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException sharing file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Error sharing file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.general_error, Toast.LENGTH_SHORT).show();
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-
-        mContext.startActivity(intent);
     }
 
     /**
@@ -809,21 +858,28 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     public void applyChanges() {
         // Prevent concurrent calls to avoid race conditions
         if (!isApplyingChanges.compareAndSet(false, true)) {
-            android.util.Log.d(TAG, "⏭️ Skipping applyChanges() - already in progress");
+            // Mark that another update is needed after current one finishes
+            pendingApplyChanges.set(true);
+            android.util.Log.d(TAG, "⏭️ applyChanges() queued - already in progress");
             return;
         }
         
         try {
-            android.util.Log.d(TAG, "🔄 applyChanges() started");
-            mIterator.start();
-            android.util.Log.d(TAG, "   📊 Iterator started, calculating diff...");
-            DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
-            android.util.Log.d(TAG, "   ✅ Diff calculated and dispatched");
-            mIterator.end();
+            do {
+                // Reset pending flag before applying
+                pendingApplyChanges.set(false);
+                
+                android.util.Log.d(TAG, "🔄 applyChanges() started");
+                mIterator.start();
+                DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
+                mIterator.end();
 
-            checkEmptyMessageVisibility();
-            if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
-            android.util.Log.d(TAG, "   ✅ applyChanges() completed");
+                checkEmptyMessageVisibility();
+                if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
+                android.util.Log.d(TAG, "   ✅ applyChanges() completed");
+                
+                // If another update was requested while we were processing, repeat
+            } while (pendingApplyChanges.get());
         } finally {
             isApplyingChanges.set(false);
         }
@@ -878,8 +934,19 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void refreshMissionItems() {
-        for (ViewHolderItem h : mPendingDownloadsItems) {
-            if (((DownloadMission) h.item.mission).running) continue;
+        // Create snapshot to avoid ConcurrentModificationException
+        final List<ViewHolderItem> snapshot;
+        synchronized (mPendingDownloadsItems) {
+            snapshot = new ArrayList<>(mPendingDownloadsItems);
+        }
+        
+        for (ViewHolderItem h : snapshot) {
+            // Safety check for recycled ViewHolders
+            if (h.item == null || !(h.item.mission instanceof DownloadMission)) {
+                continue;
+            }
+            DownloadMission mission = (DownloadMission) h.item.mission;
+            if (mission.running) continue;
             updateProgress(h);
             h.resetSpeedMeasure();
         }
@@ -1148,22 +1215,27 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         // Size unknown
         h.size.setText("--");
         
-        // Hide date for queued items
+        // Hide date for queued items (will be restored in normal mission binding)
         if (h.date != null) {
-            h.date.setVisibility(View.GONE);
+            h.date.setText("");
         }
         
-        // Add Cancel option to menu
+        // Setup menu for QueuedMission (only if needed)
         h.popupMenu.getMenu().clear();
         h.popupMenu.inflate(R.menu.queued_mission_menu);
+        
+        // Store mission reference for click handler (avoid capturing mutable state)
+        final String videoUrl = mission.videoUrl;
+        final String title = mission.title;
+        
         h.popupMenu.setOnMenuItemClickListener(popup -> {
             if (popup.getItemId() == R.id.cancel_queued) {
                 // Cancel processing in PlaylistEnqueuerService
-                if (mission.videoUrl != null) {
-                    org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(mission.videoUrl);
+                if (videoUrl != null) {
+                    org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(videoUrl);
                     
                     // Remove from queue by URL (thread-safe)
-                    boolean removed = mDownloadManager.removeQueuedMissionByUrl(mission.videoUrl);
+                    boolean removed = mDownloadManager.removeQueuedMissionByUrl(videoUrl);
                     
                     if (removed) {
                         // Update UI
@@ -1174,7 +1246,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                             R.string.queued_mission_cancelled, 
                             android.widget.Toast.LENGTH_SHORT).show();
                     } else {
-                        android.util.Log.w(TAG, "Could not remove mission from queue: " + mission.title);
+                        android.util.Log.w(TAG, "Could not remove mission from queue: " + title);
                     }
                 }
                 return true;
