@@ -180,11 +180,35 @@ class SponsorBlockSegmentListAdapter(
             val endText = millisecondsToString(sponsorBlockSegment.endTime)
             itemSegmentEndTimeTextView.text = endText
 
-            if (sponsorBlockSegment.category == SponsorBlockCategory.PENDING || sponsorBlockSegment.uuid == "TEMP" ||
-                sponsorBlockSegment.uuid == ""
-            ) {
-                itemSegmentVoteUpImageView.setVisibility(View.INVISIBLE)
-                itemSegmentVoteDownImageView.setVisibility(View.INVISIBLE)
+            // Update vote button states
+            if (sponsorBlockSegment.category == SponsorBlockCategory.PENDING
+                    || sponsorBlockSegment.uuid == "TEMP"
+                    || sponsorBlockSegment.uuid.isEmpty()) {
+                itemSegmentVoteUpImageView.visibility = View.INVISIBLE
+                itemSegmentVoteDownImageView.visibility = View.INVISIBLE
+            } else {
+                itemSegmentVoteUpImageView.visibility = View.VISIBLE
+                itemSegmentVoteDownImageView.visibility = View.VISIBLE
+
+                // Update button states based on current vote
+                val selectedColor = context.getColor(R.color.sponsor_block_vote_button_selected)
+                val defaultColor = context.getColor(android.R.color.darker_gray)
+
+                when {
+                    hasUpVoted -> {
+                        itemSegmentVoteUpImageView.setColorFilter(selectedColor)
+                        itemSegmentVoteDownImageView.setColorFilter(defaultColor)
+                    }
+                    hasDownVoted -> {
+                        itemSegmentVoteUpImageView.setColorFilter(defaultColor)
+                        itemSegmentVoteDownImageView.setColorFilter(selectedColor)
+                    }
+                    else -> {
+                        // Reset to default colors when no vote
+                        itemSegmentVoteUpImageView.setColorFilter(defaultColor)
+                        itemSegmentVoteDownImageView.setColorFilter(defaultColor)
+                    }
+                }
             }
         }
 
