@@ -17,5 +17,6 @@ const val KEY_SEARCH_STRING = "key_search_string"
 
 const val KEY_THEME_CHANGE = "key_theme_change"
 const val KEY_MAIN_PAGE_CHANGE = "key_main_page_change"
+const val KEY_DRAWER_CHANGE = "key_drawer_change"
 
 const val NO_SERVICE_ID = -1
