@@ -19,7 +19,6 @@ import org.schabi.newpipe.database.Migrations.MIGRATION_6_7
 import org.schabi.newpipe.database.Migrations.MIGRATION_7_8
 import org.schabi.newpipe.database.Migrations.MIGRATION_8_9
 import org.schabi.newpipe.database.Migrations.MIGRATION_9_10
-import kotlin.concurrent.Volatile
 
 object NewPipeDatabase {
 
