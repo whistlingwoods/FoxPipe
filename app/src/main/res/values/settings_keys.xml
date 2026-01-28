@@ -307,6 +307,18 @@
         <item>@string/show_channel_tabs_likes</item>
         <item>@string/show_channel_tabs_about</item>
     </string-array>
+    
+    <!-- Default values for channel tabs in Kids mode -->
+    <string-array name="kids_channel_tabs_value_list">
+        <item>@string/show_channel_tabs_videos</item>
+        <item>@string/show_channel_tabs_tracks</item>
+        <item>@string/show_channel_tabs_shorts</item>
+        <item>@string/show_channel_tabs_livestreams</item>
+        <item>@string/show_channel_tabs_channels</item>
+        <item>@string/show_channel_tabs_playlists</item>
+        <item>@string/show_channel_tabs_albums</item>
+        <item>@string/show_channel_tabs_likes</item>
+    </string-array>
     <string-array name="show_channel_tabs_description_list">
         <item>@string/channel_tab_videos</item>
         <item>@string/channel_tab_tracks</item>
