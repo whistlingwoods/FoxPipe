@@ -9,7 +9,8 @@ Since I'm neither a native Android developer nor have time to make an elegant GU
 __So to sum up:__
 
 - This fork of NewPipe —that I call NewPipe Kids Mode— has minimal and primitive changes but is functional enough so I use it for my children.
-- It disables standard search functionality; indeed, it requires you to type the literal word `password` before any search term.
+- It disables standard search functionality; indeed, it requires you to type the literal word <img width="55" height="18" alt="image" src="https://github.com/user-attachments/assets/0f286156-3871-4bf8-8401-9ea7a07d79d9" />
+ before any search term.
 - There is no GUI to change the password so try to keep it really secret =)
 - This can be installed independently from the original NewPipe.
 - It is re-colored so that you can easily distinguish in case you have both at the same time. Kids also feel themselves special, since their NewPipe has a special color.
