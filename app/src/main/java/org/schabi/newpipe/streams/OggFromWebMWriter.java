@@ -29,7 +29,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * <p>
+ *     This class is used to convert a WebM stream containing Opus or Vorbis audio
+ *     into an Ogg stream.
+ * </p>
+ *
+ * <p>
+ *     The following specifications are used for the implementation:
+ * </p>
+ * <ul>
+ *     <li>Opus: All specs can be found at <a href="https://opus-codec.org/docs/">
+ *         https://opus-codec.org/docs/</a>.
+ *         <a href="https://datatracker.ietf.org/doc/html/rfc7845.html">RFC7845</a>
+ *         defines the Ogg encapsulation for Opus streams, i.e.the container format and metadata.
+ *     </li>
+ *     <li>Vorbis: <a href="https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html">Vorbis I</a></li>
+ * </ul>
+ *
  * @author kapodamy
+ * @author tobigr
  */
 public class OggFromWebMWriter implements Closeable {
     private static final byte FLAG_UNSET = 0x00;
@@ -203,7 +221,7 @@ public class OggFromWebMWriter implements Closeable {
         /* step 2: create packet with code init data */
         if (webmTrack.codecPrivate != null) {
             addPacketSegment(webmTrack.codecPrivate.length);
-            makePacketheader(0x00, header, webmTrack.codecPrivate);
+            makePacketHeader(0x00, header, webmTrack.codecPrivate);
             write(header);
             output.write(webmTrack.codecPrivate);
         }
@@ -212,7 +230,7 @@ public class OggFromWebMWriter implements Closeable {
         final byte[] buffer = makeMetadata();
         if (buffer != null) {
             addPacketSegment(buffer.length);
-            makePacketheader(0x00, header, buffer);
+            makePacketHeader(0x00, header, buffer);
             write(header);
             output.write(buffer);
         }
@@ -251,7 +269,7 @@ public class OggFromWebMWriter implements Closeable {
             elapsedNs = Math.ceil(elapsedNs * resolution);
 
             // create header and calculate page checksum
-            int checksum = makePacketheader((long) elapsedNs, header, null);
+            int checksum = makePacketHeader((long) elapsedNs, header, null);
             checksum = calcCrc32(checksum, page.array(), page.position());
 
             header.putInt(HEADER_CHECKSUM_OFFSET, checksum);
@@ -264,7 +282,7 @@ public class OggFromWebMWriter implements Closeable {
         }
     }
 
-    private int makePacketheader(final long granPos, @NonNull final ByteBuffer buffer,
+    private int makePacketHeader(final long granPos, @NonNull final ByteBuffer buffer,
                                  final byte[] immediatePage) {
         short length = HEADER_SIZE;
 
@@ -297,6 +315,16 @@ public class OggFromWebMWriter implements Closeable {
         return checksumCrc32;
     }
 
+    /**
+     * Creates the metadata header for the selected codec (Opus or Vorbis).
+     *
+     * Opus metadata can contain
+     *
+     * @ImplNote See <a href="https://datatracker.ietf.org/doc/html/rfc7845.html#section-5.2">
+     *     RFC7845 5.2</a>
+     *
+     * @return The binary metadata header, or null if not implemented for the codec
+     */
     @Nullable
     private byte[] makeMetadata() {
         if (DEBUG) {
@@ -331,6 +359,10 @@ public class OggFromWebMWriter implements Closeable {
 
             return makeOpusTagsHeader(metadata);
         } else if ("A_VORBIS".equals(webmTrack.codecId)) {
+            /*
+             * See <a href="https://datatracker.ietf.org/doc/html/rfc7845.html#section-5.2">
+             *  RFC7845 5.2</a>
+             */
             return new byte[]{
                     0x03, // ¿¿¿???
                     0x76, 0x6f, 0x72, 0x62, 0x69, 0x73, // "vorbis" binary string
@@ -408,6 +440,9 @@ public class OggFromWebMWriter implements Closeable {
      * <p>
      * You probably want to use makeOpusMetadata(), which uses this function to create
      * a header with sensible metadata filled in.
+     *
+     * @ImplNote See <a href="https://datatracker.ietf.org/doc/html/rfc7845.html#section-5.2">
+     *     RFC7845 5.2</a>
      *
      * @param keyValueLines A list of pairs of the tags. This can also be though of as a mapping
      *                      from one key to multiple values.
