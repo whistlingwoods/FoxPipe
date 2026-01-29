@@ -44,7 +44,7 @@ okhttp = "5.3.2"
 paging-compose = "3.3.2"
 phoenix = "3.0.0"
 preference = "1.2.1"
-prettytime = "5.0.8.Final"
+prettytime = "5.0.9.Final"
 recyclerview = "1.4.0"
 room = "2.7.2" # Newer versions require minSdk >= 23
 runner = "1.7.0"
