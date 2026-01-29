@@ -569,7 +569,7 @@ class VideoDetailFragment :
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 180)
             binding.detailSecondaryControlPanel.visibility = View.VISIBLE
         } else {
-            binding.detailVideoTitleView.setMaxLines(1)
+            binding.detailVideoTitleView.setMaxLines(4)
             binding.detailToggleSecondaryControlsView
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 0)
             binding.detailSecondaryControlPanel.visibility = View.GONE
@@ -1431,7 +1431,7 @@ class VideoDetailFragment :
         binding.positionView.visibility = View.GONE
 
         binding.detailVideoTitleView.text = title
-        binding.detailVideoTitleView.setMaxLines(1)
+        binding.detailVideoTitleView.setMaxLines(4)
         binding.detailVideoTitleView.animate(true, 0)
 
         binding.detailToggleSecondaryControlsView.visibility = View.GONE
