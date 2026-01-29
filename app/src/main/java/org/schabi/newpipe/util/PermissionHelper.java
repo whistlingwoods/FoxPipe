@@ -12,6 +12,7 @@ import android.provider.Settings;
 import android.text.Html;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -115,6 +116,7 @@ public final class PermissionHelper {
      * @param context {@link Context}
      * @return {@link Settings#canDrawOverlays(Context)}
      **/
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean checkSystemAlertWindowPermission(final Context context) {
         if (!Settings.canDrawOverlays(context)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -172,7 +174,8 @@ public final class PermissionHelper {
      * @return whether the popup is enabled
      */
     public static boolean isPopupEnabledElseAsk(final Context context) {
-        if (checkSystemAlertWindowPermission(context)) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                || checkSystemAlertWindowPermission(context)) {
             return true;
         } else {
             Toast.makeText(context, R.string.msg_popup_permission, Toast.LENGTH_LONG).show();
