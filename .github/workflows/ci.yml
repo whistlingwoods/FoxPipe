@@ -69,7 +69,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - api-level: 23
+          - api-level: 21
             target: default
             arch: x86
           - api-level: 35

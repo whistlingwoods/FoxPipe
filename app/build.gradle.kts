@@ -44,7 +44,7 @@ android {
     defaultConfig {
         applicationId = "org.schabi.newpipe"
         resValue("string", "app_name", "NewPipe")
-        minSdk = 23
+        minSdk = 21
         targetSdk = 35
 
         versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1006
