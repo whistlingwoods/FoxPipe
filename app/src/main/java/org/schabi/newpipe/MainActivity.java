@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
         Localization.migrateAppLanguageSettingIfNecessary(getApplicationContext());
         ThemeHelper.setDayNightMode(this);
-        // YouTube ID is usually 0
         org.schabi.newpipe.util.ServiceHelper.setSelectedServiceId(this, 0);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
 
@@ -396,13 +395,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupDrawerHeader() {
-        // 1. إخفاء زر السهم (الذي يفتح القائمة)
         drawerHeaderBinding.drawerHeaderActionButton.setVisibility(View.GONE);
-
-        // 2. إخفاء السهم الصغير تحديداً (هذا ما كان ينقصك)
         drawerHeaderBinding.drawerArrow.setVisibility(View.GONE);
 
-        // هذا الكود يبقي اسم التطبيق "NewPipe" ظاهراً ومنسقاً
         if (getString(R.string.app_name).length() > "NewPipe".length()) {
             final ViewGroup.LayoutParams layoutParams =
                     drawerHeaderBinding.drawerHeaderNewpipeTitle.getLayoutParams();

@@ -442,26 +442,14 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
                                 @NonNull final MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
-    // نبقي على هذا الجزء لضمان وجود زر الرجوع وشكل الشريط العلوي
     final ActionBar supportActionBar = activity.getSupportActionBar();
     if (supportActionBar != null) {
         supportActionBar.setDisplayShowTitleEnabled(false);
         supportActionBar.setDisplayHomeAsUpEnabled(true);
     }
 
-    // --- بداية الحذف/التعليق ---
-    // قمنا بحذف حلقة التكرار (for loop) التي كانت تضيف الفلاتر هنا
-    // لكي لا يظهر أي زر خيارات في الأعلى
     
-    /* 
-    int itemId = 0;
-    boolean isFirstItem = true;
-    ...
-    (كل الكود الذي كان هنا داخل الـ Loop ومسؤول عن menu.add احذفه أو علق عليه)
-    ...
-    restoreFilterChecked(menu, filterItemCheckedId);
-    */
-    // --- نهاية الحذف ---
+    
 }
 
     @Override
@@ -1161,7 +1149,6 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
         // Filter items based on subscriptions
         final List<InfoItem> filteredItems = filterBySubscriptions(result.getItems());
         infoListAdapter.addInfoItemList(filteredItems);
-        
         // Auto-load more if we still don't have enough items
         // Target: at least 10 total items
         if (infoListAdapter.getItemsList().size() < 10 && Page.isValid(result.getNextPage()) 

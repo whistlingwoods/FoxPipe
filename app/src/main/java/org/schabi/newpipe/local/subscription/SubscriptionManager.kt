@@ -27,10 +27,9 @@ class SubscriptionManager(context: Context) {
 
     fun subscriptionTable(): SubscriptionDAO = subscriptionTable
     fun subscriptions() = subscriptionTable.getAll()
-
     fun getSubscriptionUrls(): io.reactivex.rxjava3.core.Single<List<String>> {
         return subscriptionTable.getAll()
-            .firstOrError() // Get the current list as a Single
+            .firstOrError()
             .map { list -> list.mapNotNull { it.url } }
     }
 

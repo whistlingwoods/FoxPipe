@@ -33,12 +33,10 @@ class OggFromWebmDemuxer extends Postprocessing {
 
     @Override
     int process(SharpStream out, @NonNull SharpStream... sources) throws IOException {
-        // 1. تحميل الصورة (نفس الدالة الموجودة في Postprocessing)
         File cover = downloadCoverArt();
 
         OggFromWebMWriter demuxer = new OggFromWebMWriter(sources[0], out, streamInfo);
-        
-        // 2. تمرير الصورة (تأكد من تطبيق الخطوة التالية في الملف الآخر)
+
         if (cover != null) {
             demuxer.setCover(cover);
         }

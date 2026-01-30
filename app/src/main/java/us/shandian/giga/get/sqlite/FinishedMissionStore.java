@@ -150,7 +150,6 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
         values.put(KEY_DONE, downloadMission.length);
         values.put(KEY_TIMESTAMP, downloadMission.timestamp);
         values.put(KEY_KIND, String.valueOf(downloadMission.kind));
-        
         // Save thumbnail URL if available (works for both DownloadMission and FinishedMission)
         if (downloadMission instanceof DownloadMission) {
             values.put(KEY_THUMBNAIL_URL, ((DownloadMission) downloadMission).thumbnailUrl);
@@ -173,7 +172,6 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
         mission.length = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_DONE));
         mission.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_TIMESTAMP));
         mission.kind = kind.charAt(0);
-        
         // Load thumbnail URL if column exists (for backward compatibility)
         int thumbnailColumnIndex = cursor.getColumnIndex(KEY_THUMBNAIL_URL);
         if (thumbnailColumnIndex != -1) {

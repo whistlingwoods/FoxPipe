@@ -268,7 +268,6 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         }
 
         setupInitialLayout()
-        // تفعيل زر إضافة القناة
         binding.fabAddChannel.setOnClickListener { showAddChannelDialog() }
     }
 
@@ -481,7 +480,6 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val url = input.text.toString().trim()
                 if (url.isNotEmpty()) {
-                    // نرسل الرابط لمحرك البحث ليقوم بفتحه
                     try {
                         NavigationHelper.openSearch(context, ServiceList.YouTube.serviceId, url)
                     } catch (e: Exception) {

@@ -94,7 +94,7 @@ import us.shandian.giga.ui.common.ProgressDrawable;
 import us.shandian.giga.util.Utility;
 
 import org.schabi.newpipe.util.image.PicassoHelper;
-import android.util.TypedValue; // للحصول على لون الثيم
+import android.util.TypedValue; // To get the theme color
 
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final String TAG = "MissionAdapter";
@@ -217,10 +217,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
 
-
-        // --- بداية التعديل الجديد ---
-        
-        // التحقق مما إذا كان هناك رابط صورة مخزن في الـ Mission
+        // Check if a thumbnail URL is stored in the Mission
         String thumbUrl = null;
         if (item.mission instanceof DownloadMission) {
             thumbUrl = ((DownloadMission) item.mission).thumbnailUrl;
@@ -229,46 +226,51 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
 
         if (thumbUrl != null && !thumbUrl.isEmpty()) {
-            // 1. إزالة الفلتر اللوني للصورة الحقيقية
+            // 1. Remove color filter for the actual image
             h.icon.clearColorFilter();
-            h.icon.setPadding(0,0,0,0); // إزالة الحواف للصورة
-            
-            // 2. تحميل الصورة باستخدام Picasso
+            h.icon.setPadding(0, 0, 0, 0); // Remove padding for the image
+
+            // 2. Load image using Picasso
             PicassoHelper.loadThumbnail(thumbUrl)
-                    .placeholder(Utility.getIconForFileType(type)) // صورة مؤقتة
-                    .error(Utility.getIconForFileType(type)) // صورة عند الخطأ
+                    .placeholder(Utility.getIconForFileType(type)) // Placeholder image
+                    .error(Utility.getIconForFileType(type)) // Error image
                     .into(h.icon);
         } else {
-            // 3. العودة للأيقونة الافتراضية (نظام NewPipe القديم)
+            // 3. Revert to default icon (old NewPipe system)
             h.icon.setImageResource(Utility.getIconForFileType(type));
-            
-            // إعادة تطبيق لون الثيم (Action Color) للأيقونات
-            TypedValue typedValue = new TypedValue();
+
+            // Re-apply theme color (Action Color) to icons
+            final TypedValue typedValue = new TypedValue();
             mContext.getTheme().resolveAttribute(R.attr.actionColor, typedValue, true);
             h.icon.setColorFilter(typedValue.data);
-            
-            // إعادة البادينغ للأيقونة لتبدو مناسبة
-            int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, mContext.getResources().getDisplayMetrics());
+
+            // Reset icon padding to look proper
+            final int padding = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    15,
+                    mContext.getResources().getDisplayMetrics()
+            );
             h.icon.setPadding(padding, padding, padding, padding);
         }
-        // --- نهاية التعديل الجديد ---
 
-        // ❌ تم حذف السطر التالي لأنه كان يستبدل الصورة المصغرة المحملة بأيقونة افتراضية
-        // h.icon.setImageResource(Utility.getIconForFileType(type));
-        
         h.name.setText(item.mission.storage.getName());
 
-        h.progress.setColors(Utility.getBackgroundForFileType(mContext, type), Utility.getForegroundForFileType(mContext, type));
+        h.progress.setColors(
+                Utility.getBackgroundForFileType(mContext, type),
+                Utility.getForegroundForFileType(mContext, type)
+        );
 
         if (h.item.mission instanceof DownloadMission) {
-            DownloadMission mission = (DownloadMission) item.mission;
+            final DownloadMission mission = (DownloadMission) item.mission;
             String length = Utility.formatBytes(mission.getLength());
-            if (mission.running && !mission.isPsRunning()) length += " --.- kB/s";
+            if (mission.running && !mission.isPsRunning()) {
+                length += " --.- kB/s";
+            }
 
             h.size.setText(length);
             h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
-            
+
             // Add to pending items with synchronization to prevent concurrent modification
             synchronized (mPendingDownloadsItems) {
                 // Remove first to avoid duplicates if rebinding the same ViewHolder
@@ -282,14 +284,17 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             synchronized (mPendingDownloadsItems) {
                 mPendingDownloadsItems.remove(h);
             }
-            
+
             h.progress.setMarquee(false);
             h.status.setText("100%");
             h.progress.setProgress(1.0f);
             h.size.setText(Utility.formatBytes(item.mission.length));
 
-            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault());
-            Date date = new Date(item.mission.timestamp);
+            final DateFormat dateFormat = DateFormat.getDateInstance(
+                    DateFormat.MEDIUM,
+                    Locale.getDefault()
+            );
+            final Date date = new Date(item.mission.timestamp);
             h.date.setText(dateFormat.format(date));
         }
     }

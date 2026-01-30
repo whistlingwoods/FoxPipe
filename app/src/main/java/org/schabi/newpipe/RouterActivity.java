@@ -122,7 +122,6 @@ public class RouterActivity extends AppCompatActivity {
     private void openPlaylistDownloadDialog() {
         getPersistFragment().openPlaylistDownloadDialog(currentServiceId, currentUrl);
     }
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         ThemeHelper.setDayNightMode(this);
@@ -555,7 +554,6 @@ public class RouterActivity extends AppCompatActivity {
                         getString(R.string.enqueue_stream), R.drawable.ic_add));
             }
 
-            // التعديل: السماح بظهور زر التحميل لكل من الفيديو الفردي وقوائم التشغيل
             if (linkType == LinkType.STREAM || linkType == LinkType.PLAYLIST) {
                 returnedItems.add(new AdapterChoiceItem(getString(R.string.download_key),
                         getString(R.string.download),
@@ -635,12 +633,11 @@ public class RouterActivity extends AppCompatActivity {
             if (PermissionHelper.checkStoragePermissions(this,
                     PermissionHelper.DOWNLOAD_DIALOG_REQUEST_CODE)) {
                 selectionIsDownload = true;
-                
-                // التعديل: التحقق من نوع الرابط
+
                 if (currentLinkType == LinkType.PLAYLIST) {
-                    openPlaylistDownloadDialog(); // دالة جديدة سنضيفها بالأسفل
+                    openPlaylistDownloadDialog();
                 } else {
-                    openDownloadDialog(); // الدالة القديمة للفيديو الفردي
+                    openDownloadDialog();
                 }
             }
             return;
@@ -720,32 +717,36 @@ public class RouterActivity extends AppCompatActivity {
             }
         }
 
-        @SuppressLint("CheckResult")
-        private void openPlaylistDownloadDialog(final int currentServiceId, final String currentUrl) {
-            inFlight(true);
-            final LoadingDialog loadingDialog = new LoadingDialog(R.string.loading_metadata_title); // أو أي نص مناسب
-            loadingDialog.show(getParentFragmentManager(), "loadingDialog");
-            
-            // استخدام ExtractorHelper لجلب معلومات القائمة
-            disposables.add(ExtractorHelper.getPlaylistInfo(currentServiceId, currentUrl, false)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .compose(this::pleaseWait)
-                    .subscribe(result ->
-                        runOnVisible(ctx -> {
-                            loadingDialog.dismiss();
-                            final FragmentManager fm = ctx.getSupportFragmentManager();
-                            
-                            // هنا نفتح الديالوج الخاص بنا ونمرر له الفيديوهات الموجودة في القائمة
-                            // result.getRelatedItems() تعيد قائمة الفيديوهات
-                            PlaylistDownloadDialog playlistDialog = new PlaylistDownloadDialog(result.getRelatedItems());
-                            playlistDialog.show(fm, "playlistDownloadDialog");
-                        }
-                        ), throwable -> runOnVisible(ctx -> {
-                        loadingDialog.dismiss();
+        /**
+     * Opens the playlist download dialog after fetching the necessary metadata.
+     *
+     * @param currentServiceId The service ID of the current content.
+     * @param currentUrl       The URL of the current content.
+     */
+    @SuppressLint("CheckResult")
+    private void openPlaylistDownloadDialog(final int currentServiceId, final String currentUrl) {
+        inFlight(true);
+        final LoadingDialog loadingDialog = new LoadingDialog(R.string.loading_metadata_title);
+        loadingDialog.show(getParentFragmentManager(), "loadingDialog");
+
+        disposables.add(ExtractorHelper.getPlaylistInfo(currentServiceId, currentUrl, false)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this::pleaseWait)
+                .subscribe(result -> runOnVisible(ctx -> {
+                    loadingDialog.dismiss();
+                    final FragmentManager fm = ctx.getSupportFragmentManager();
+
+                    final PlaylistDownloadDialog playlistDialog =
+                            new PlaylistDownloadDialog(result.getRelatedItems());
+                    playlistDialog.show(fm, "playlistDownloadDialog");
+                }), throwable -> runOnVisible(ctx -> {
+                    loadingDialog.dismiss();
+                    if (ctx instanceof RouterActivity) {
                         ((RouterActivity) ctx).showUnsupportedUrlDialog(currentUrl);
-                    })));
-        }
+                    }
+                })));
+    }
 
         @Override
         public void onAttach(@NonNull final Context activityContext) {
