@@ -21,7 +21,6 @@
         android:scaleType="centerCrop"
         android:background="@drawable/rounded_corner_image" />
 
-
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/item_name"
             android:layout_width="match_parent"

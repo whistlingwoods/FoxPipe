@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="?attr/windowBackground"
-    android:paddingBottom="16dp"> 
+    android:paddingBottom="16dp">
 
     <!-- Header -->
     <LinearLayout
@@ -32,7 +32,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" 
+        android:layout_marginTop="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -85,14 +85,14 @@
         android:layout_height="1dp"
         android:background="?attr/separator_color" />
 
-    <!-- قسم الحجم الإجمالي والزر -->
+    <!-- Total size section and button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="16dp">
 
-        <!-- النص الجديد للحجم الإجمالي -->
+        <!-- New total size text -->
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/totalSizeTextView"
             android:layout_width="match_parent"
@@ -110,11 +110,11 @@
             android:layout_height="56dp"
             android:text="Start Download"
             android:textColor="@android:color/white"
-            android:backgroundTint="?attr/colorPrimary" 
+            android:backgroundTint="?attr/colorPrimary"
             android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold" />
-            
+
     </LinearLayout>
 
 </LinearLayout>

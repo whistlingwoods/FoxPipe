@@ -17,8 +17,6 @@
         app:showAsAction="ifRoom"
         tools:visible="true" />
 
-
-
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="1"
