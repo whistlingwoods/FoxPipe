@@ -246,19 +246,7 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             case R.id.menu_item_bookmark:
                 onBookmarkClicked();
                 break;
-            case R.id.menu_item_download_all:
-                if (infoListAdapter != null) {
-                    List<StreamInfoItem> items = new ArrayList<>();
-                    for (InfoItem i : infoListAdapter.getItemsList()) {
-                        if (i instanceof StreamInfoItem) {
-                            items.add((StreamInfoItem) i);
-                        }
-                    }
-                    if (!items.isEmpty()) {
-                        new org.schabi.newpipe.download.PlaylistDownloadDialog(items).show(getParentFragmentManager(), "PlaylistDownloadDialog");
-                    }
-                }
-                break;
+
             case R.id.menu_item_append_playlist:
                 if (currentInfo != null) {
                     disposables.add(PlaylistDialog.createCorrespondingDialog(
@@ -383,6 +371,20 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
                 .subscribe(getPlaylistBookmarkSubscriber());
 
         PlayButtonHelper.initPlaylistControlClickListener(activity, playlistControlBinding, this);
+        playlistControlBinding.playlistCtrlDownloadButton.setOnClickListener(view -> {
+            if (infoListAdapter != null) {
+                final List<StreamInfoItem> items = new ArrayList<>();
+                for (final InfoItem i : infoListAdapter.getItemsList()) {
+                    if (i instanceof StreamInfoItem) {
+                        items.add((StreamInfoItem) i);
+                    }
+                }
+                if (!items.isEmpty()) {
+                    new org.schabi.newpipe.download.PlaylistDownloadDialog(items)
+                            .show(getParentFragmentManager(), "PlaylistDownloadDialog");
+                }
+            }
+        });
     }
 
     public PlayQueue getPlayQueue() {

@@ -79,13 +79,13 @@ public class QueuedMission extends Mission implements Serializable {
 
     // === Mission Abstract Methods Implementation ===
 
-    @Override
+
     public long getLength() {
         // Unknown until extraction completes
         return -1;
     }
 
-    @Override
+
     public boolean isFinished() {
         // Never finished (moves to DownloadMission when ready)
         return false;
