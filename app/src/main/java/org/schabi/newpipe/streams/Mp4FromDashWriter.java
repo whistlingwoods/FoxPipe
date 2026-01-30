@@ -72,7 +72,7 @@ public class Mp4FromDashWriter {
         compatibleBrands.add(0x69736F32); // iso2
     }
 
-    public void setCover(File cover) {
+    public void setCover(final File cover) {
         this.coverArtFile = cover;
     }
 

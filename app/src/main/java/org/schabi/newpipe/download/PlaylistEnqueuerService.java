@@ -158,42 +158,18 @@ public class PlaylistEnqueuerService extends Service {
 
         final DownloadManager downloadManager = getDownloadManager();
 
-        if (downloadManager != null) {
-            Log.e(TAG, "SUCCESS: DownloadManager obtained!");
-            Log.e(TAG, "Adding " + total + " videos to queue...");
-
-            for (int i = 0; i < total; i++) {
-                final QueuedMission queued = new QueuedMission();
-                queued.videoUrl = urls.get(i);
-                queued.title = titles.get(i);
-                queued.targetQuality = quality;
-                queued.status = QueuedMission.Status.WAITING;
-                queued.timestamp = System.currentTimeMillis();
-                queued.positionInPlaylist = i;
-
-                queued.thumbnailUrl = extractThumbnailFromUrl(urls.get(i));
-
-                downloadManager.addQueuedMission(queued);
-                Log.d(TAG, "#" + i + ": " + queued.title);
-            }
-        } else {
-            Log.e(TAG, "CRITICAL ERROR: DownloadManager is NULL!");
-        }
+        // Helper method 1: Queue initial missions
+        queueInitialMissions(downloadManager, urls, titles, quality);
 
         disposables.add(Observable.range(0, total)
                 .flatMap(index -> Observable.fromCallable(() -> {
                     final String url = urls.get(index);
                     final String title = titles.get(index);
 
-                    // --- Safety Mechanism: Random Jitter ---
-                    try {
-                        final long jitter = JITTER_BASE + random.nextInt(JITTER_RANGE);
-                        Thread.sleep(jitter);
-                    } catch (final InterruptedException e) {
-                        Log.d(TAG, "Thread interrupted during jitter sleep for: " + title);
+                    // Helper method 2: Jitter sleep
+                    if (!sleepWithJitter(title, random)) {
                         return false;
                     }
-
                     final int current = progressCounter.incrementAndGet();
                     updateNotification(current, total, title);
 
@@ -205,7 +181,6 @@ public class PlaylistEnqueuerService extends Service {
                         }
                         return false;
                     }
-
                     if (downloadManager != null) {
                         downloadManager.updateQueuedMissionStatusByUrl(url,
                                 QueuedMission.Status.EXTRACTING, null);
@@ -224,7 +199,6 @@ public class PlaylistEnqueuerService extends Service {
                         }
                         return false;
                     }
-
                     if (downloadManager != null
                             && info.getThumbnails() != null
                             && !info.getThumbnails().isEmpty()) {
@@ -233,7 +207,6 @@ public class PlaylistEnqueuerService extends Service {
                             mission.thumbnailUrl = info.getThumbnails().get(0).getUrl();
                         }
                     }
-
                     if (downloadManager != null) {
                         downloadManager.updateQueuedMissionStatusByUrl(url,
                                 QueuedMission.Status.PREPARING, null);
@@ -242,7 +215,6 @@ public class PlaylistEnqueuerService extends Service {
                     // 2. Prepare complete download bundle
                     final PlaylistDownloadLogic.DownloadBundle bundle =
                             PlaylistDownloadLogic.prepareDownload(this, info, quality);
-
                     if (bundle == null) {
                         Log.e(TAG, "Bundle is NULL for: " + title);
                         if (downloadManager != null) {
@@ -251,75 +223,36 @@ public class PlaylistEnqueuerService extends Service {
                         }
                         return false;
                     }
-
-                    // 3. Create Storage
-                    final boolean isVideo = bundle.kind == 'v';
-                    final StoredDirectoryHelper storage;
+                    // 3. Create Storage (Helper method 3)
                     final StoredFileHelper finalStorage;
-
                     try {
-                        if (customDirectoryUri != null && !customDirectoryUri.isEmpty()) {
-                            Log.d(TAG, "Using custom directory: " + customDirectoryUri);
-                            final Uri pathUri = Uri.parse(customDirectoryUri);
-                            storage = new StoredDirectoryHelper(this, pathUri, null);
-                        } else {
-                            final String key = getString(isVideo
-                                    ? R.string.download_path_video_key
-                                    : R.string.download_path_audio_key);
-                            String downloadPath = PreferenceManager
-                                    .getDefaultSharedPreferences(this)
-                                    .getString(key, null);
-
-                            if (downloadPath == null || downloadPath.isEmpty()) {
-                                final File defaultDir = NewPipeSettings.getDir(
-                                        isVideo
-                                        ? Environment.DIRECTORY_MOVIES
-                                        : Environment.DIRECTORY_MUSIC);
-                                downloadPath = Uri.fromFile(defaultDir).toString();
-                            }
-
-                            final Uri pathUri = Uri.parse(downloadPath);
-                            storage = new StoredDirectoryHelper(this, pathUri, null);
-                        }
-
-                        finalStorage = storage.createUniqueFile(bundle.filename, bundle.mimeType);
-
-                        if (finalStorage == null) {
-                            Log.e(TAG, "createUniqueFile returned NULL for: " + title);
-                            if (downloadManager != null) {
-                                downloadManager.updateQueuedMissionStatusByUrl(url,
-                                        QueuedMission.Status.FAILED, "Failed to create file");
-                            }
-                            return false;
-                        }
-
+                        finalStorage = createStorage(customDirectoryUri, bundle);
                     } catch (final IOException e) {
                         Log.e(TAG, "IOException creating storage", e);
                         if (downloadManager != null) {
                             final String errorMsg = e.getMessage() != null
-                                    ? e.getMessage()
-                                    : "Storage error";
+                                    ? e.getMessage() : "Storage error";
                             downloadManager.updateQueuedMissionStatusByUrl(url,
                                     QueuedMission.Status.FAILED, errorMsg);
                         }
                         return false;
                     }
-
+                    if (finalStorage == null) {
+                        Log.e(TAG, "createUniqueFile returned NULL for: " + title);
+                        if (downloadManager != null) {
+                            downloadManager.updateQueuedMissionStatusByUrl(url,
+                                    QueuedMission.Status.FAILED, "Failed to create file");
+                        }
+                        return false;
+                    }
                     // 4. Start the download
                     Log.d(TAG, "Starting download mission for: " + title);
                     DownloadManagerService.startMission(
-                            getApplicationContext(),
-                            bundle.urls,
-                            finalStorage,
-                            bundle.kind,
-                            THREAD_COUNT,
-                            info,
-                            bundle.psName,
-                            bundle.psArgs,
-                            bundle.nearLength,
-                            new ArrayList<>(bundle.recovery)
+                            getApplicationContext(), bundle.urls, finalStorage,
+                            bundle.kind, THREAD_COUNT, info,
+                            bundle.psName, bundle.psArgs,
+                            bundle.nearLength, new ArrayList<>(bundle.recovery)
                     );
-
                     if (downloadManager != null) {
                         final boolean removed = downloadManager.removeQueuedMissionByUrl(url);
                         if (removed) {
@@ -328,7 +261,6 @@ public class PlaylistEnqueuerService extends Service {
                             Log.w(TAG, "Could not remove from queue (already removed?)");
                         }
                     }
-
                     Log.d(TAG, "Started download for: " + title);
                     return true;
 
@@ -336,26 +268,100 @@ public class PlaylistEnqueuerService extends Service {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    success -> {
-                        // Handle individual success if needed
-                    },
-                    error -> {
-                        Log.e(TAG, "Error processing playlist item", error);
-                        CANCELLED_URLS.clear();
-                        stopForeground(true);
-                        stopSelf();
-                    },
-                    () -> {
-                        Log.d(TAG, "Playlist processing complete.");
-                        final int clearedCount = CANCELLED_URLS.size();
-                        CANCELLED_URLS.clear();
-                        if (clearedCount > 0) {
-                            Log.d(TAG, "Cleared " + clearedCount + " cancelled URLs from memory");
+                        success -> {
+                            // Handle individual success if needed
+                        },
+                        error -> {
+                            Log.e(TAG, "Error processing playlist item", error);
+                            CANCELLED_URLS.clear();
+                            stopForeground(true);
+                            stopSelf();
+                        },
+                        () -> {
+                            Log.d(TAG, "Playlist processing complete.");
+                            final int clearedCount = CANCELLED_URLS.size();
+                            CANCELLED_URLS.clear();
+                            if (clearedCount > 0) {
+                                Log.d(TAG,
+                                 "Cleared " + clearedCount + " cancelled URLs from memory");
+                            }
+                            stopForeground(true);
+                            stopSelf();
                         }
-                        stopForeground(true);
-                        stopSelf();
-                    }
                 ));
+    }
+
+    private void queueInitialMissions(final DownloadManager downloadManager,
+                                      final List<String> urls,
+                                      final List<String> titles,
+                                      final String quality) {
+        if (downloadManager == null) {
+            Log.e(TAG, "CRITICAL ERROR: DownloadManager is NULL!");
+            return;
+        }
+
+        final int total = urls.size();
+        Log.e(TAG, "SUCCESS: DownloadManager obtained!");
+        Log.e(TAG, "Adding " + total + " videos to queue...");
+
+        for (int i = 0; i < total; i++) {
+            final QueuedMission queued = new QueuedMission();
+            queued.videoUrl = urls.get(i);
+            queued.title = titles.get(i);
+            queued.targetQuality = quality;
+            queued.status = QueuedMission.Status.WAITING;
+            queued.timestamp = System.currentTimeMillis();
+            queued.positionInPlaylist = i;
+
+            queued.thumbnailUrl = extractThumbnailFromUrl(urls.get(i));
+
+            downloadManager.addQueuedMission(queued);
+            Log.d(TAG, "#" + i + ": " + queued.title);
+        }
+    }
+
+    private boolean sleepWithJitter(final String title, final Random random) {
+        try {
+            final long jitter = JITTER_BASE + random.nextInt(JITTER_RANGE);
+            Thread.sleep(jitter);
+            return true;
+        } catch (final InterruptedException e) {
+            Log.d(TAG, "Thread interrupted during jitter sleep for: " + title);
+            return false;
+        }
+    }
+
+    private StoredFileHelper createStorage(@Nullable final String customDirectoryUri,
+                                           final PlaylistDownloadLogic.DownloadBundle bundle)
+            throws IOException {
+        final boolean isVideo = bundle.kind == 'v';
+        final StoredDirectoryHelper storage;
+
+        if (customDirectoryUri != null && !customDirectoryUri.isEmpty()) {
+            Log.d(TAG, "Using custom directory: " + customDirectoryUri);
+            final Uri pathUri = Uri.parse(customDirectoryUri);
+            storage = new StoredDirectoryHelper(this, pathUri, null);
+        } else {
+            final String key = getString(isVideo
+                    ? R.string.download_path_video_key
+                    : R.string.download_path_audio_key);
+            String downloadPath = PreferenceManager
+                    .getDefaultSharedPreferences(this)
+                    .getString(key, null);
+
+            if (downloadPath == null || downloadPath.isEmpty()) {
+                final File defaultDir = NewPipeSettings.getDir(
+                        isVideo
+                                ? Environment.DIRECTORY_MOVIES
+                                : Environment.DIRECTORY_MUSIC);
+                downloadPath = Uri.fromFile(defaultDir).toString();
+            }
+
+            final Uri pathUri = Uri.parse(downloadPath);
+            storage = new StoredDirectoryHelper(this, pathUri, null);
+        }
+
+        return storage.createUniqueFile(bundle.filename, bundle.mimeType);
     }
 
     /**
@@ -453,8 +459,8 @@ public class PlaylistEnqueuerService extends Service {
                     }
                 } catch (final IOException e) {
                     Log.e(TAG, "IOException creating storage for retry", e);
-                    final String errorMsg = e.getMessage() !=
-                            null ? e.getMessage() : "Storage error";
+                    final String errorMsg = e.getMessage()
+                            != null ? e.getMessage() : "Storage error";
                     downloadManager.updateQueuedMissionStatusByUrl(videoUrl,
                             QueuedMission.Status.FAILED, errorMsg);
                     return false;

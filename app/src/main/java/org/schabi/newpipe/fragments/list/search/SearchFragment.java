@@ -990,8 +990,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         final List<InfoItem> filteredItems = new ArrayList<>();
         for (final InfoItem item : items) {
             if (item instanceof org.schabi.newpipe.extractor.stream.StreamInfoItem) {
-                final String uploaderUrl
-                        = ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
+                final String uploaderUrl =
+                        ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
                         .getUploaderUrl();
                 if (uploaderUrl != null && subscribedUrls.contains(uploaderUrl)) {
                     filteredItems.add(item);
@@ -1003,8 +1003,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             }
         }
 
-        Log.d(TAG, "Filtered " + items.size() +
-                " items to " + filteredItems.size() + " subscribed items");
+        Log.d(TAG, "Filtered " + items.size()
+                + " items to " + filteredItems.size() + " subscribed items");
         return filteredItems;
     }
 
@@ -1068,8 +1068,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (infoListAdapter.getItemsList().isEmpty()) {
             if (!result.getRelatedItems().isEmpty()) {
                 // Filter items based on subscriptions
-                final List<InfoItem> filteredItems
-                        = filterBySubscriptions(result.getRelatedItems());
+                final List<InfoItem> filteredItems =
+                        filterBySubscriptions(result.getRelatedItems());
                 if (!filteredItems.isEmpty()) {
                     infoListAdapter.addInfoItemList(filteredItems);
 
@@ -1083,8 +1083,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 } else {
                     // No filtered items, but there's a next page - try loading it
                     if (Page.isValid(nextPage) && !isLoading.get()) {
-                        Log.d(TAG, "No filtered items in first page," +
-                                " auto-loading next page...");
+                        Log.d(TAG, "No filtered items in first page,"
+                                + " auto-loading next page...");
                         loadMoreItems();
                     } else {
                         // Show custom message for no subscription results

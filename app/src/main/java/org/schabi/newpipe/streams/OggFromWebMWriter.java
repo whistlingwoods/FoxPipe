@@ -91,7 +91,7 @@ public class OggFromWebMWriter implements Closeable {
         populateCrc32Table();
     }
     // --- إضافة: دالة لاستقبال ملف الغلاف ---
-    public void setCover(File cover) {
+    public void setCover(final File cover) {
         this.coverArtFile = cover;
     }
 
