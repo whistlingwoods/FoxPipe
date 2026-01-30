@@ -90,7 +90,6 @@ public class OggFromWebMWriter implements Closeable {
 
         populateCrc32Table();
     }
-    
     // --- إضافة: دالة لاستقبال ملف الغلاف ---
     public void setCover(File cover) {
         this.coverArtFile = cover;
@@ -588,5 +587,5 @@ public class OggFromWebMWriter implements Closeable {
         }
 
         return crc;
-    } 
+    }
 }

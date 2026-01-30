@@ -17,7 +17,8 @@ import us.shandian.giga.get.MissionRecoveryInfo;
 import us.shandian.giga.postprocessing.Postprocessing;
 
 /**
- * Logic for handling playlist downloads and determining the best streams based on quality preferences.
+ * Logic for handling playlist downloads and
+ * determining the best streams based on quality preferences.
  */
 public final class PlaylistDownloadLogic {
 

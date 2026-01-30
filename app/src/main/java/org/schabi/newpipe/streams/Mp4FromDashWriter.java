@@ -728,9 +728,7 @@ public class Mp4FromDashWriter {
             }
             makeTrak(i, durations[i], defaultMediaTime[i], tablesInfo[i], is64);
         }
-        
-        makeUdta(); 
-
+        makeUdta();
         return lengthFor(start);
     }
 

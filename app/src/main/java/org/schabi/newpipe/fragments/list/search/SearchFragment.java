@@ -57,8 +57,6 @@ import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.search.SearchExtractor;
 import org.schabi.newpipe.extractor.search.SearchInfo;
-import org.schabi.newpipe.extractor.services.peertube.linkHandler.PeertubeSearchQueryHandlerFactory;
-import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory;
 import org.schabi.newpipe.fragments.BackPressable;
 import org.schabi.newpipe.fragments.list.BaseListFragment;
 import org.schabi.newpipe.ktx.AnimationType;
@@ -70,7 +68,6 @@ import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.KeyboardUtil;
 import org.schabi.newpipe.util.NavigationHelper;
-import org.schabi.newpipe.util.ServiceHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,10 +154,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private SuggestionListAdapter suggestionListAdapter;
     private HistoryRecordManager historyRecordManager;
     private org.schabi.newpipe.local.subscription.SubscriptionManager subscriptionManager;
-    
     // Cache for subscription URLs to avoid repeated DB queries
     private List<String> cachedSubscriptionUrls = null;
-
     /*//////////////////////////////////////////////////////////////////////////
     // Views
     //////////////////////////////////////////////////////////////////////////*/
@@ -438,19 +433,16 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-public void onCreateOptionsMenu(@NonNull final Menu menu,
-                                @NonNull final MenuInflater inflater) {
-    super.onCreateOptionsMenu(menu, inflater);
+    public void onCreateOptionsMenu(@NonNull final Menu menu,
+                                    @NonNull final MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
 
-    final ActionBar supportActionBar = activity.getSupportActionBar();
-    if (supportActionBar != null) {
-        supportActionBar.setDisplayShowTitleEnabled(false);
-        supportActionBar.setDisplayHomeAsUpEnabled(true);
+        final ActionBar supportActionBar = activity.getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayShowTitleEnabled(false);
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
-
-    
-    
-}
 
     @Override
     public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
@@ -747,14 +739,14 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
 
                     if (showLocalSuggestions && shallShowRemoteSuggestionsNow) {
                         return Observable.zip(
-                                getLocalSuggestionsObservable(query, 3),
-                                getRemoteSuggestionsObservable(query),
-                                (local, remote) -> {
-                                    remote.removeIf(remoteItem -> local.stream().anyMatch(
-                                            localItem -> localItem.equals(remoteItem)));
-                                    local.addAll(remote);
-                                    return local;
-                                })
+                                        getLocalSuggestionsObservable(query, 3),
+                                        getRemoteSuggestionsObservable(query),
+                                        (local, remote) -> {
+                                            remote.removeIf(remoteItem -> local.stream().anyMatch(
+                                                    localItem -> localItem.equals(remoteItem)));
+                                            local.addAll(remote);
+                                            return local;
+                                        })
                                 .materialize();
                     } else if (showLocalSuggestions) {
                         return getLocalSuggestionsObservable(query, 25)
@@ -794,9 +786,10 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
 
     /**
      * Perform a search.
-     * @param theSearchString the trimmed search string
+     *
+     * @param theSearchString  the trimmed search string
      * @param theContentFilter the content filter to use. FIXME: unused param
-     * @param theSortFilter FIXME: unused param
+     * @param theSortFilter    FIXME: unused param
      */
     private void search(@NonNull final String theSearchString,
                         final String[] theContentFilter,
@@ -835,12 +828,11 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
         showMetaInfoInTextView(null, searchBinding.searchMetaInfoTextView,
                 searchBinding.searchMetaInfoSeparator, disposables);
         hideKeyboardSearch();
-        
+
         // Show toast indicating subscription-only search
-        android.widget.Toast.makeText(getContext(), 
-                getString(R.string.searching_subscriptions_only), 
+        android.widget.Toast.makeText(getContext(),
+                getString(R.string.searching_subscriptions_only),
                 android.widget.Toast.LENGTH_SHORT).show();
-        
         // Cache subscription URLs for this search session
         disposables.add(subscriptionManager.getSubscriptionUrls()
                 .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
@@ -873,9 +865,9 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
             searchDisposable.dispose();
         }
         searchDisposable = ExtractorHelper.searchFor(serviceId,
-                searchString,
-                Arrays.asList(contentFilter),
-                sortFilter)
+                        searchString,
+                        Arrays.asList(contentFilter),
+                        sortFilter)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnEvent((searchResult, throwable) -> isLoading.set(false))
@@ -894,11 +886,11 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
             searchDisposable.dispose();
         }
         searchDisposable = ExtractorHelper.getMoreSearchItems(
-                serviceId,
-                searchString,
-                asList(contentFilter),
-                sortFilter,
-                nextPage)
+                        serviceId,
+                        searchString,
+                        asList(contentFilter),
+                        sortFilter,
+                        nextPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnEvent((nextItemsResult, throwable) -> isLoading.set(false))
@@ -995,11 +987,11 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
             subscribedUrls = subscriptionManager.getSubscriptionUrls().blockingGet();
             cachedSubscriptionUrls = subscribedUrls; // Cache for next call
         }
-        
         final List<InfoItem> filteredItems = new ArrayList<>();
         for (final InfoItem item : items) {
             if (item instanceof org.schabi.newpipe.extractor.stream.StreamInfoItem) {
-                final String uploaderUrl = ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
+                final String uploaderUrl
+                        = ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
                         .getUploaderUrl();
                 if (uploaderUrl != null && subscribedUrls.contains(uploaderUrl)) {
                     filteredItems.add(item);
@@ -1010,8 +1002,9 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
                 }
             }
         }
-        
-        Log.d(TAG, "Filtered " + items.size() + " items to " + filteredItems.size() + " subscribed items");
+
+        Log.d(TAG, "Filtered " + items.size() +
+                " items to " + filteredItems.size() + " subscribed items");
         return filteredItems;
     }
 
@@ -1021,7 +1014,8 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
 
     public void handleSuggestions(@NonNull final List<SuggestionItem> suggestions) {
         if (DEBUG) {
-            Log.d(TAG, "handleSuggestions() called with: suggestions = [" + suggestions + "]");
+            Log.d(TAG,
+                    "handleSuggestions() called with: suggestions = [" + suggestions + "]");
         }
         suggestionListAdapter.submitList(suggestions,
                 () -> searchBinding.suggestionsList.scrollToPosition(0));
@@ -1074,29 +1068,34 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
         if (infoListAdapter.getItemsList().isEmpty()) {
             if (!result.getRelatedItems().isEmpty()) {
                 // Filter items based on subscriptions
-                final List<InfoItem> filteredItems = filterBySubscriptions(result.getRelatedItems());
+                final List<InfoItem> filteredItems
+                        = filterBySubscriptions(result.getRelatedItems());
                 if (!filteredItems.isEmpty()) {
                     infoListAdapter.addInfoItemList(filteredItems);
-                    
+
                     // Auto-load more pages if we have too few results
                     // Target: at least 10 items, max 3 auto-loads
                     if (filteredItems.size() < 10 && Page.isValid(nextPage) && !isLoading.get()) {
-                        Log.d(TAG, "Only " + filteredItems.size() + " filtered items, auto-loading more...");
+                        Log.d(TAG, "Only "
+                                + filteredItems.size() + " filtered items, auto-loading more...");
                         loadMoreItems();
                     }
                 } else {
                     // No filtered items, but there's a next page - try loading it
                     if (Page.isValid(nextPage) && !isLoading.get()) {
-                        Log.d(TAG, "No filtered items in first page, auto-loading next page...");
+                        Log.d(TAG, "No filtered items in first page," +
+                                " auto-loading next page...");
                         loadMoreItems();
                     } else {
                         // Show custom message for no subscription results
                         infoListAdapter.clearStreamItemList();
                         showEmptyState();
                         // Override empty state text
-                        if (emptyStateView != null && emptyStateView.findViewById(R.id.empty_state_message) != null) {
-                            ((android.widget.TextView) emptyStateView.findViewById(R.id.empty_state_message))
-                                    .setText(R.string.no_subscription_results);
+                        if (emptyStateView != null && emptyStateView.
+                           findViewById(R.id.empty_state_message) != null) {
+                            ((android.widget.TextView) emptyStateView.
+                              findViewById(R.id.empty_state_message))
+                              .setText(R.string.no_subscription_results);
                         }
                         return;
                     }
@@ -1145,15 +1144,15 @@ public void onCreateOptionsMenu(@NonNull final Menu menu,
     @Override
     public void handleNextItems(final ListExtractor.InfoItemsPage<?> result) {
         showListFooter(false);
-        
+
         // Filter items based on subscriptions
         final List<InfoItem> filteredItems = filterBySubscriptions(result.getItems());
         infoListAdapter.addInfoItemList(filteredItems);
         // Auto-load more if we still don't have enough items
         // Target: at least 10 total items
-        if (infoListAdapter.getItemsList().size() < 10 && Page.isValid(result.getNextPage()) 
+        if (infoListAdapter.getItemsList().size() < 10 && Page.isValid(result.getNextPage())
                 && !isLoading.get()) {
-            Log.d(TAG, "Only " + infoListAdapter.getItemsList().size() 
+            Log.d(TAG, "Only " + infoListAdapter.getItemsList().size()
                     + " total items after pagination, auto-loading more...");
             // Small delay to avoid overwhelming the server
             itemsList.postDelayed(() -> {

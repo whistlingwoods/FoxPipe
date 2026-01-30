@@ -116,9 +116,6 @@ public class RouterActivity extends AppCompatActivity {
     private boolean selectionIsAddToPlaylist = false;
     private AlertDialog alertDialogChoice = null;
     private FragmentManager.FragmentLifecycleCallbacks dismissListener = null;
-
-
-    
     private void openPlaylistDownloadDialog() {
         getPersistFragment().openPlaylistDownloadDialog(currentServiceId, currentUrl);
     }

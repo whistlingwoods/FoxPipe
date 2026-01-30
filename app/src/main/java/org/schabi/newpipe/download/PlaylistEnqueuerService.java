@@ -5,9 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -455,7 +453,8 @@ public class PlaylistEnqueuerService extends Service {
                     }
                 } catch (final IOException e) {
                     Log.e(TAG, "IOException creating storage for retry", e);
-                    final String errorMsg = e.getMessage() != null ? e.getMessage() : "Storage error";
+                    final String errorMsg = e.getMessage() !=
+                            null ? e.getMessage() : "Storage error";
                     downloadManager.updateQueuedMissionStatusByUrl(videoUrl,
                             QueuedMission.Status.FAILED, errorMsg);
                     return false;
