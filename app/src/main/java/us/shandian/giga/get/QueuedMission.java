@@ -9,87 +9,112 @@ import java.io.Serializable;
  * Used by PlaylistEnqueuerService to show items in the queue before actual download starts.
  */
 public class QueuedMission extends Mission implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     /**
-     * Status of the queued mission
+     * Status of the queued mission.
      */
     public enum Status {
-        WAITING,        // Waiting to be processed
-        EXTRACTING,     // Currently extracting stream info
-        PREPARING,      // Preparing download bundle
-        FAILED          // Failed during extraction
+        /** Waiting to be processed. */
+        WAITING,
+        /** Currently extracting stream info. */
+        EXTRACTING,
+        /** Preparing download bundle. */
+        PREPARING,
+        /** Failed during extraction. */
+        FAILED
     }
-    
+
     // === Basic Information ===
-    
-    /** Original video URL */
+
+    /** Original video URL. */
     public String videoUrl;
-    
-    /** Video title from playlist */
+
+    /** Video title from playlist. */
     public String title;
-    
-    /** Thumbnail URL */
+
+    /** Thumbnail URL. */
     public String thumbnailUrl;
-    
-    /** Target quality (e.g., "720p", "Audio High") */
+
+    /** Target quality (e.g., "720p", "Audio High"). */
     public String targetQuality;
-    
-    /** Current status */
+
+    /** Current status. */
     public Status status;
-    
-    /** Error message if status is FAILED */
+
+    /** Error message if status is FAILED. */
     public String errorMessage;
-    
-    /** Timestamp when added to queue */
+
+    /** Timestamp when added to queue. */
     public long timestamp;
-    
-    /** Position in original playlist (0-indexed) */
+
+    /** Position in original playlist (0-indexed). */
     public int positionInPlaylist;
-    
+
     // === Constructors ===
-    
+
+    /**
+     * Default constructor.
+     */
     public QueuedMission() {
+        super();
         this.timestamp = System.currentTimeMillis();
         this.status = Status.WAITING;
     }
-    
-    public QueuedMission(String videoUrl, String title, String targetQuality) {
+
+    /**
+     * Constructor with initial data.
+     *
+     * @param videoUrl      The video URL.
+     * @param title         The video title.
+     * @param targetQuality The target quality.
+     */
+    public QueuedMission(final String videoUrl, final String title, final String targetQuality) {
         this();
         this.videoUrl = videoUrl;
         this.title = title;
         this.targetQuality = targetQuality;
     }
-    
+
     // === Mission Abstract Methods Implementation ===
-    
+
+    @Override
     public long getLength() {
-        return -1;  // Unknown until extraction completes
+        // Unknown until extraction completes
+        return -1;
     }
-    
+
+    @Override
     public boolean isFinished() {
-        return false;  // Never finished (moves to DownloadMission when ready)
+        // Never finished (moves to DownloadMission when ready)
+        return false;
     }
-    
+
     // === Helper Methods ===
-    
+
     /**
-     * Check if this mission is currently being processed
+     * Check if this mission is currently being processed.
+     *
+     * @return True if extracting or preparing.
      */
     public boolean isProcessing() {
         return status == Status.EXTRACTING || status == Status.PREPARING;
     }
-    
+
     /**
-     * Check if this mission failed
+     * Check if this mission failed.
+     *
+     * @return True if failed.
      */
     public boolean isFailed() {
         return status == Status.FAILED;
     }
-    
+
     /**
-     * Get a user-friendly status string
+     * Get a user-friendly status string.
+     *
+     * @return The status string.
      */
     @NonNull
     public String getStatusString() {
@@ -106,14 +131,14 @@ public class QueuedMission extends Mission implements Serializable {
                 return "Unknown";
         }
     }
-    
+
     @NonNull
     @Override
     public String toString() {
-        return "QueuedMission{" +
-                "title='" + title + '\'' +
-                ", status=" + status +
-                ", position=" + positionInPlaylist +
-                '}';
+        return "QueuedMission{"
+                + "title='" + title + '\''
+                + ", status=" + status
+                + ", position=" + positionInPlaylist
+                + '}';
     }
 }

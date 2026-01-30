@@ -16,7 +16,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -34,73 +33,88 @@ import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
+import org.schabi.newpipe.util.ThemeHelper;
+import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.views.NewPipeTextView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import android.view.ContextThemeWrapper; // تأكد من إضافة هذا الاستيراد
-import org.schabi.newpipe.util.ThemeHelper; // NewPipe يستخدم هذا المساعد
-
+/**
+ * A dialog fragment that allows the user to select streams from a playlist
+ * and download them with specific quality settings.
+ */
 public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
     private static final String TAG = "PlaylistDownloadDialog";
+    private static final int BITRATE_MULTIPLIER = 1000;
+    private static final int BITS_PER_BYTE = 8;
+    private static final int BYTES_IN_KB = 1024;
 
-    private List<StreamInfoItem> streamList;
+    private final List<StreamInfoItem> streamList;
     private RecyclerView recyclerView;
     private Spinner qualitySpinner;
     private CheckBox selectAllCheckbox;
     private Button startButton;
     private NewPipeTextView totalSizeTextView;
     private ItemsAdapter adapter;
-    
+
     private long currentBitrate = 0;
-    
-    // 🆕 For askForSavePath feature
     private boolean askForSavePath;
     private Uri selectedDirectoryUri = null;
-    
-    private final ActivityResultLauncher<Intent> requestPlaylistFolderLauncher =
-        registerForActivityResult(
-            new StartActivityForResult(),
-            this::requestPlaylistFolderResult
-        );
 
-    public PlaylistDownloadDialog(List<StreamInfoItem> items) {
+    private final ActivityResultLauncher<Intent> requestPlaylistFolderLauncher =
+            registerForActivityResult(
+                    new StartActivityForResult(),
+                    this::requestPlaylistFolderResult
+            );
+
+    /**
+     * Creates a new instance of the playlist download dialog.
+     *
+     * @param items The list of streams to be displayed for selection.
+     */
+    public PlaylistDownloadDialog(final List<StreamInfoItem> items) {
+        super();
         this.streamList = new ArrayList<>(items);
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        int themeId = ThemeHelper.isLightThemeSelected(getActivity()) 
-                ? org.schabi.newpipe.R.style.LightTheme 
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             @Nullable final ViewGroup container,
+                             @Nullable final Bundle savedInstanceState) {
+        final int themeId = ThemeHelper.isLightThemeSelected(getActivity())
+                ? org.schabi.newpipe.R.style.LightTheme
                 : org.schabi.newpipe.R.style.DarkTheme;
 
-        Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), themeId);
-        LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
-        
+        final Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), themeId);
+        final LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
+
         return localInflater.inflate(R.layout.dialog_playlist_download, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull final View view,
+                              @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ((View) view.getParent()).setBackgroundColor(Color.TRANSPARENT);
+        if (view.getParent() instanceof View) {
+            ((View) view.getParent()).setBackgroundColor(Color.TRANSPARENT);
+        }
 
         qualitySpinner = view.findViewById(R.id.qualitySpinner);
         selectAllCheckbox = view.findViewById(R.id.selectAllCheckbox);
         recyclerView = view.findViewById(R.id.itemsRecyclerView);
         startButton = view.findViewById(R.id.startDownloadButton);
         totalSizeTextView = view.findViewById(R.id.totalSizeTextView);
-        
-        // 🆕 Read askForSavePath setting
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+
+        final SharedPreferences prefs = PreferenceManager
+                .getDefaultSharedPreferences(requireContext());
         askForSavePath = prefs.getBoolean(
-            getString(R.string.downloads_storage_ask),
-            false
+                getString(R.string.downloads_storage_ask),
+                false
         );
 
         setupQualitySpinner();
@@ -109,7 +123,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         selectAllCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (adapter != null) {
                 adapter.selectAll(isChecked);
-                updateTotalSize(); // تحديث الإجمالي عند تحديد الكل
+                updateTotalSize();
             }
         });
 
@@ -117,7 +131,7 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
     }
 
     private void setupQualitySpinner() {
-        String[] options = {
+        final String[] options = {
             PlaylistDownloadLogic.QUAL_BEST_VIDEO,
             PlaylistDownloadLogic.QUAL_1080P,
             PlaylistDownloadLogic.QUAL_720P,
@@ -130,144 +144,189 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             PlaylistDownloadLogic.QUAL_AUDIO_LOW
         };
 
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getActivity(), R.layout.spinner_item_newpipe, options);
+        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                requireActivity(),
+                R.layout.spinner_item_newpipe,
+                options
+        );
         spinnerAdapter.setDropDownViewResource(R.layout.spinner_item_newpipe);
         qualitySpinner.setAdapter(spinnerAdapter);
 
-        // مستمع عند تغيير الجودة لتحديث الأحجام
         qualitySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selectedQuality = options[position];
+            public void onItemSelected(final AdapterView<?> parent,
+                                       final View view,
+                                       final int position,
+                                       final long id) {
+                final String selectedQuality = options[position];
                 currentBitrate = getEstimatedBitrate(selectedQuality);
-                
+
                 if (adapter != null) {
-                    adapter.updateBitrate(currentBitrate); // تحديث الأحجام الفردية
+                    adapter.updateBitrate(currentBitrate);
                 }
-                updateTotalSize(); // تحديث الحجم الإجمالي
+                updateTotalSize();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(final AdapterView<?> parent) {
+                // No action needed
+            }
         });
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ItemsAdapter(streamList, this::updateTotalSize); // تمرير دالة التحديث
+        adapter = new ItemsAdapter(streamList, this::updateTotalSize);
         recyclerView.setAdapter(adapter);
     }
 
-    // حساب الحجم الإجمالي للعناصر المحددة
+    /**
+     * calculates the total estimated size of the selected items.
+     */
     private void updateTotalSize() {
-        if (adapter == null) return;
-        List<StreamInfoItem> selected = adapter.getSelectedItems();
-        long totalBytes = 0;
-        
-        for (StreamInfoItem item : selected) {
-            // الحجم = (المدة بالثواني * البت ريت) / 8 لتحويلها لبايت
-            totalBytes += (item.getDuration() * (currentBitrate * 1000)) / 8;
+        if (adapter == null) {
+            return;
         }
-        
+        final List<StreamInfoItem> selected = adapter.getSelectedItems();
+        long totalBytes = 0;
+
+        for (final StreamInfoItem item : selected) {
+            totalBytes += (item.getDuration()
+                    * (currentBitrate * BITRATE_MULTIPLIER)) / BITS_PER_BYTE;
+        }
+
         totalSizeTextView.setText("Total Est. Size: " + formatFileSize(totalBytes));
     }
 
-    // تقدير معدل البت (kbps) بناءً على الجودة (Video + Audio)
-    private long getEstimatedBitrate(String quality) {
+    /**
+     * Estimates the bitrate in kbps based on the quality string.
+     *
+     * @param quality The quality string constant.
+     * @return The estimated bitrate.
+     */
+    private long getEstimatedBitrate(final String quality) {
         switch (quality) {
-            case PlaylistDownloadLogic.QUAL_1080P: return 4500; // ~4.5 Mbps
-            case PlaylistDownloadLogic.QUAL_720P: return 2500;
-            case PlaylistDownloadLogic.QUAL_480P: return 1200;
-            case PlaylistDownloadLogic.QUAL_360P: return 700;
-            case PlaylistDownloadLogic.QUAL_240P: return 350;
-            case PlaylistDownloadLogic.QUAL_144P: return 150; // Video + Audio
-            
-            case PlaylistDownloadLogic.QUAL_AUDIO_HIGH: return 160;
-            case PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM: return 128;
-            case PlaylistDownloadLogic.QUAL_AUDIO_LOW: return 48;
-            
-            case PlaylistDownloadLogic.QUAL_BEST_VIDEO: default: return 5000;
+            case PlaylistDownloadLogic.QUAL_1080P:
+                return 4500; // ~4.5 Mbps
+            case PlaylistDownloadLogic.QUAL_720P:
+                return 2500;
+            case PlaylistDownloadLogic.QUAL_480P:
+                return 1200;
+            case PlaylistDownloadLogic.QUAL_360P:
+                return 700;
+            case PlaylistDownloadLogic.QUAL_240P:
+                return 350;
+            case PlaylistDownloadLogic.QUAL_144P:
+                return 150; // Video + Audio
+            case PlaylistDownloadLogic.QUAL_AUDIO_HIGH:
+                return 160;
+            case PlaylistDownloadLogic.QUAL_AUDIO_MEDIUM:
+                return 128;
+            case PlaylistDownloadLogic.QUAL_AUDIO_LOW:
+                return 48;
+            case PlaylistDownloadLogic.QUAL_BEST_VIDEO:
+            default:
+                return 5000;
         }
     }
 
-    // دالة مساعدة لتنسيق الحجم
-    public static String formatFileSize(long size) {
-        if (size <= 0) return "0 MB";
+    /**
+     * Formats a file size in bytes into a human-readable string.
+     *
+     * @param size The size in bytes.
+     * @return Formatted string (e.g., "5.2 MB").
+     */
+    public static String formatFileSize(final long size) {
+        if (size <= 0) {
+            return "0 MB";
+        }
         final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
-        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
-        return String.format(Locale.US, "%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
+        final int digitGroups = (int) (Math.log10(size) / Math.log10(BYTES_IN_KB));
+        return String.format(
+                Locale.US,
+                "%.1f %s",
+                size / Math.pow(BYTES_IN_KB, digitGroups),
+                units[digitGroups]
+        );
     }
 
     private void startDownload() {
-        if(adapter == null) return;
-        List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
+        if (adapter == null) {
+            return;
+        }
+        final List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
         if (selectedItems.isEmpty()) {
             Toast.makeText(getContext(), "No items selected", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        // 🆕 If askForSavePath is enabled, show folder picker first
+
         if (askForSavePath) {
             launchFolderPicker();
             return;
         }
-        
-        // Otherwise proceed with default path
+
         proceedWithDownload(null);
     }
-    
-    // 🆕 Launch folder picker
+
+    /**
+     * Launches the system folder picker safely.
+     */
     private void launchFolderPicker() {
         NoFileManagerSafeGuard.launchSafe(
-            requestPlaylistFolderLauncher,
-            StoredDirectoryHelper.getPicker(getContext()),
-            TAG,
-            requireContext()
+                requestPlaylistFolderLauncher,
+                StoredDirectoryHelper.getPicker(getContext()),
+                TAG,
+                requireContext()
         );
     }
-    
-    // 🆕 Handle folder picker result
-    private void requestPlaylistFolderResult(ActivityResult result) {
+
+    /**
+     * Handles the result from the folder picker activity.
+     *
+     * @param result The activity result.
+     */
+    private void requestPlaylistFolderResult(final ActivityResult result) {
         if (result.getData() == null || result.getResultCode() != Activity.RESULT_OK) {
-            // User cancelled, do nothing
             return;
         }
-        
-        Uri selectedUri = result.getData().getData();
+
+        final Uri selectedUri = result.getData().getData();
         if (selectedUri == null) {
             Toast.makeText(getContext(), "Failed to select folder", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        // Save URI and proceed with download
+
         selectedDirectoryUri = selectedUri;
         proceedWithDownload(selectedDirectoryUri);
     }
-    
-    // 🆕 Proceed with download (with or without custom directory)
-    private void proceedWithDownload(@Nullable Uri customDirectory) {
-        List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
-        String quality = (String) qualitySpinner.getSelectedItem();
-        
-        Intent serviceIntent = new Intent(getContext(), PlaylistEnqueuerService.class);
+
+    /**
+     * Enqueues the selected items for download.
+     *
+     * @param customDirectory The URI of a custom directory to save files to, or null for default.
+     */
+    private void proceedWithDownload(@Nullable final Uri customDirectory) {
+        final List<StreamInfoItem> selectedItems = adapter.getSelectedItems();
+        final String quality = (String) qualitySpinner.getSelectedItem();
+
+        final Intent serviceIntent = new Intent(getContext(), PlaylistEnqueuerService.class);
         serviceIntent.setAction(PlaylistEnqueuerService.ACTION_ENQUEUE_PLAYLIST);
         serviceIntent.putExtra(PlaylistEnqueuerService.EXTRA_QUALITY, quality);
-        
-        // 🆕 Add custom directory if provided
+
         if (customDirectory != null) {
             serviceIntent.putExtra(
-                PlaylistEnqueuerService.EXTRA_CUSTOM_DIRECTORY,
-                customDirectory.toString()
+                    PlaylistEnqueuerService.EXTRA_CUSTOM_DIRECTORY,
+                    customDirectory.toString()
             );
         }
-        
-        ArrayList<String> urls = new ArrayList<>();
-        ArrayList<String> titles = new ArrayList<>();
-        for (StreamInfoItem item : selectedItems) {
+
+        final ArrayList<String> urls = new ArrayList<>();
+        final ArrayList<String> titles = new ArrayList<>();
+        for (final StreamInfoItem item : selectedItems) {
             urls.add(item.getUrl());
             titles.add(item.getName());
         }
-        
+
         serviceIntent.putStringArrayListExtra(PlaylistEnqueuerService.EXTRA_URLS, urls);
         serviceIntent.putStringArrayListExtra(PlaylistEnqueuerService.EXTRA_TITLES, titles);
 
@@ -275,78 +334,95 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
         dismiss();
     }
 
+    /**
+     * Adapter for displaying the list of stream items in the RecyclerView.
+     */
     private static class ItemsAdapter extends RecyclerView.Adapter<ItemsAdapter.ViewHolder> {
         private final List<StreamInfoItem> items;
         private final boolean[] selected;
         private long currentBitrate = 0;
-        private final Runnable onSelectionChanged; // Callback لتحديث الإجمالي
+        private final Runnable onSelectionChanged;
 
-        ItemsAdapter(List<StreamInfoItem> items, Runnable onSelectionChanged) {
+        /**
+         * Creates a new ItemsAdapter.
+         *
+         * @param items              The list of items to display.
+         * @param onSelectionChanged Callback invoked when selection changes.
+         */
+        ItemsAdapter(final List<StreamInfoItem> items, final Runnable onSelectionChanged) {
             this.items = items;
             this.onSelectionChanged = onSelectionChanged;
             this.selected = new boolean[items.size()];
-            for(int i=0; i<selected.length; i++) selected[i] = true;
+            for (int i = 0; i < selected.length; i++) {
+                selected[i] = true;
+            }
         }
 
-        void updateBitrate(long bitrate) {
+        void updateBitrate(final long bitrate) {
             this.currentBitrate = bitrate;
-            notifyDataSetChanged(); // إعادة رسم القائمة بالأحجام الجديدة
-        }
-
-        void selectAll(boolean isSelected) {
-            for(int i=0; i<selected.length; i++) selected[i] = isSelected;
             notifyDataSetChanged();
         }
-        
+
+        void selectAll(final boolean isSelected) {
+            for (int i = 0; i < selected.length; i++) {
+                selected[i] = isSelected;
+            }
+            notifyDataSetChanged();
+        }
+
         List<StreamInfoItem> getSelectedItems() {
-            List<StreamInfoItem> result = new ArrayList<>();
-            for(int i=0; i<items.size(); i++) {
-                if(selected[i]) result.add(items.get(i));
+            final List<StreamInfoItem> result = new ArrayList<>();
+            for (int i = 0; i < items.size(); i++) {
+                if (selected[i]) {
+                    result.add(items.get(i));
+                }
             }
             return result;
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_playlist_selection, parent, false);
-             return new ViewHolder(v);
+        public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
+            final View v = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_playlist_selection, parent, false);
+            return new ViewHolder(v);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            StreamInfoItem item = items.get(position);
-            
+        public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+            final StreamInfoItem item = items.get(position);
+
             holder.title.setText(item.getName());
             holder.uploader.setText(item.getUploaderName());
             holder.checkBox.setChecked(selected[position]);
-            
-            // حساب الحجم الفردي
+
             if (currentBitrate > 0 && item.getDuration() > 0) {
-                long estimatedSize = (item.getDuration() * (currentBitrate * 1000)) / 8;
+                final long estimatedSize = (item.getDuration()
+                        * (currentBitrate * BITRATE_MULTIPLIER)) / BITS_PER_BYTE;
                 holder.sizeText.setText(formatFileSize(estimatedSize));
                 holder.sizeText.setVisibility(View.VISIBLE);
             } else {
                 holder.sizeText.setVisibility(View.GONE);
             }
 
-            org.schabi.newpipe.util.image.PicassoHelper.loadThumbnail(item.getThumbnails())
-                .into(holder.thumbnail);
-            
+            PicassoHelper.loadThumbnail(item.getThumbnails()).into(holder.thumbnail);
+
             holder.itemView.setOnClickListener(v -> {
                 holder.checkBox.toggle();
                 updateSelection(holder.getBindingAdapterPosition(), holder.checkBox.isChecked());
             });
-            
+
             holder.checkBox.setOnClickListener(v -> {
                 updateSelection(holder.getBindingAdapterPosition(), holder.checkBox.isChecked());
             });
         }
 
-        private void updateSelection(int position, boolean isChecked) {
+        private void updateSelection(final int position, final boolean isChecked) {
             if (position != RecyclerView.NO_POSITION) {
                 selected[position] = isChecked;
-                if (onSelectionChanged != null) onSelectionChanged.run(); // تحديث الإجمالي
+                if (onSelectionChanged != null) {
+                    onSelectionChanged.run();
+                }
             }
         }
 
@@ -355,19 +431,22 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             return items.size();
         }
 
+        /**
+         * ViewHolder class for stream items.
+         */
         static class ViewHolder extends RecyclerView.ViewHolder {
-            final android.widget.CheckBox checkBox;
-            final NewPipeTextView title;
-            final NewPipeTextView uploader;
-            final NewPipeTextView sizeText; // النص الجديد للحجم
-            final android.widget.ImageView thumbnail;
+            private final CheckBox checkBox;
+            private final NewPipeTextView title;
+            private final NewPipeTextView uploader;
+            private final NewPipeTextView sizeText;
+            private final android.widget.ImageView thumbnail;
 
-            ViewHolder(View itemView) {
+            ViewHolder(final View itemView) {
                 super(itemView);
                 checkBox = itemView.findViewById(R.id.itemCheckBox);
                 title = itemView.findViewById(R.id.itemVideoTitleView);
                 uploader = itemView.findViewById(R.id.itemUploaderView);
-                sizeText = itemView.findViewById(R.id.itemSizeView); // تأكد من إضافته للـ XML
+                sizeText = itemView.findViewById(R.id.itemSizeView);
                 thumbnail = itemView.findViewById(R.id.itemThumbnailView);
             }
         }
