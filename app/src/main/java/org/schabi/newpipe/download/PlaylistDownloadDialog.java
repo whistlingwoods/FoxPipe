@@ -48,11 +48,12 @@ import java.util.Locale;
 public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
 
     private static final String TAG = "PlaylistDownloadDialog";
+    private static final String ARG_STREAM_LIST = "arg_stream_list";
     private static final int BITRATE_MULTIPLIER = 1000;
     private static final int BITS_PER_BYTE = 8;
     private static final int BYTES_IN_KB = 1024;
 
-    private final List<StreamInfoItem> streamList;
+    private List<StreamInfoItem> streamList;
     private RecyclerView recyclerView;
     private Spinner qualitySpinner;
     private CheckBox selectAllCheckbox;
@@ -71,13 +72,38 @@ public class PlaylistDownloadDialog extends BottomSheetDialogFragment {
             );
 
     /**
+     * Required empty public constructor for Fragment re-instantiation.
+     * Use {@link #newInstance(List)} to create a new instance.
+     */
+    public PlaylistDownloadDialog() {
+        // Required empty public constructor
+    }
+
+    /**
      * Creates a new instance of the playlist download dialog.
      *
      * @param items The list of streams to be displayed for selection.
+     * @return A new instance of PlaylistDownloadDialog.
      */
-    public PlaylistDownloadDialog(final List<StreamInfoItem> items) {
-        super();
-        this.streamList = new ArrayList<>(items);
+    public static PlaylistDownloadDialog newInstance(final List<StreamInfoItem> items) {
+        final PlaylistDownloadDialog fragment = new PlaylistDownloadDialog();
+        final Bundle args = new Bundle();
+        args.putSerializable(ARG_STREAM_LIST, new ArrayList<>(items));
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void onCreate(@Nullable final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            streamList = (ArrayList<StreamInfoItem>) getArguments()
+                    .getSerializable(ARG_STREAM_LIST);
+        }
+        if (streamList == null) {
+            streamList = new ArrayList<>();
+        }
     }
 
     @Nullable

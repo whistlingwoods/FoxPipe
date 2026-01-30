@@ -380,7 +380,7 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
                     }
                 }
                 if (!items.isEmpty()) {
-                    new org.schabi.newpipe.download.PlaylistDownloadDialog(items)
+                    org.schabi.newpipe.download.PlaylistDownloadDialog.newInstance(items)
                             .show(getParentFragmentManager(), "PlaylistDownloadDialog");
                 }
             }

@@ -738,7 +738,7 @@ public class RouterActivity extends AppCompatActivity {
                     final FragmentManager fm = ctx.getSupportFragmentManager();
 
                     final PlaylistDownloadDialog playlistDialog =
-                            new PlaylistDownloadDialog(result.getRelatedItems());
+                            PlaylistDownloadDialog.newInstance(result.getRelatedItems());
                     playlistDialog.show(fm, "playlistDownloadDialog");
                 }), throwable -> runOnVisible(ctx -> {
                     loadingDialog.dismiss();
