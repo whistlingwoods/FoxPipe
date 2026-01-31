@@ -37,8 +37,8 @@ android {
     namespace = "org.schabi.newpipe"
 
     defaultConfig {
-        applicationId = "org.schabi.newpipe"
-        resValue("string", "app_name", "NewPipe")
+        applicationId = "apps.palmtree.purepipe"
+        resValue("string", "app_name", "PurePipe")
         minSdk = 21
         targetSdk = 35
 
@@ -64,17 +64,17 @@ android {
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                 // default values when branch name could not be determined or is master or dev
                 applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
+                resValue("string", "app_name", "PurePipe Debug")
             } else {
                 applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "PurePipe $workingBranch")
             }
         }
 
         release {
             System.getProperty("packageSuffix")?.let { suffix ->
                 applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+                resValue("string", "app_name", "PurePipe $suffix")
             }
             isMinifyEnabled = true
             isShrinkResources = false // disabled to fix F-Droid"s reproducible build

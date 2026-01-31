@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/retry_queued"
+        android:title="@string/retry"
+        android:icon="@drawable/ic_refresh" />
+    <item
+        android:id="@+id/cancel_queued"
+        android:title="@string/cancel"
+        android:icon="@drawable/ic_close" />
+</menu>

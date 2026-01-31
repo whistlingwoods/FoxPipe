@@ -62,6 +62,19 @@ public final class PlayButtonHelper {
             NavigationHelper.enqueueOnPlayer(activity, fragment.getPlayQueue(), PlayerType.AUDIO);
             return true;
         });
+
+        // download button click listener
+        playlistControlBinding.playlistCtrlDownloadButton.setOnClickListener(view -> {
+            final var streamItems = fragment.getStreamItems();
+            if (streamItems.isEmpty()) {
+                Toast.makeText(activity, R.string.no_streams_available_download,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final var dialog = org.schabi.newpipe.download.PlaylistDownloadDialog
+                    .newInstance(streamItems);
+            dialog.show(activity.getSupportFragmentManager(), "PlaylistDownloadDialog");
+        });
     }
 
     /**
