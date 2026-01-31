@@ -866,15 +866,14 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         hideKeyboardSearch();
 
         // store search query if search history is enabled
-
-        historyRecordManager.onSearched(serviceId, theSearchString)
+        disposables.add(historyRecordManager.onSearched(serviceId, theSearchString)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         ignored -> {
                         },
                         throwable -> showSnackBarError(new ErrorInfo(throwable, UserAction.SEARCHED,
                                 theSearchString, serviceId))
-                );
+                ));
 
         // load search results
         suggestionPublisher.onNext(theSearchString);
