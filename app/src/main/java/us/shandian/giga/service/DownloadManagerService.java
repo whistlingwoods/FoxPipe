@@ -119,6 +119,9 @@ public class DownloadManagerService extends Service {
 
     private PendingIntent mOpenDownloadList;
 
+    // Static instance for access from PlaylistEnqueuerService
+    private static DownloadManagerService sInstance;
+
     /**
      * notify media scanner on downloaded media file ...
      *
@@ -142,6 +145,7 @@ public class DownloadManagerService extends Service {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         mManager = new DownloadManager(this, mHandler, loadMainVideoStorage(), loadMainAudioStorage());
+        sInstance = this; // Set static instance
 
         Intent openDownloadListIntent = new Intent(this, DownloadActivity.class)
                 .setAction(Intent.ACTION_MAIN);
@@ -584,6 +588,25 @@ public class DownloadManagerService extends Service {
             mDownloadNotificationEnable = enable;
         }
 
+    }
+
+    // ========== Static Access Methods ==========
+
+    /**
+     * Get the current DownloadManager instance.
+     * @return DownloadManager or null if service is not running.
+     */
+    @Nullable
+    public static DownloadManager getDownloadManager() {
+        return sInstance != null ? sInstance.mManager : null;
+    }
+
+    /**
+     * Check if service is currently running.
+     * @return true if running.
+     */
+    public static boolean isRunning() {
+        return sInstance != null;
     }
 
 }

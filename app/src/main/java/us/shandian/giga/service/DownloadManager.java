@@ -18,6 +18,7 @@ import java.util.List;
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.get.sqlite.FinishedMissionStore;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
@@ -35,6 +36,7 @@ public class DownloadManager {
     public static final int SPECIAL_NOTHING = 0;
     public static final int SPECIAL_PENDING = 1;
     public static final int SPECIAL_FINISHED = 2;
+    public static final int SPECIAL_QUEUED = 3;
 
     public static final String TAG_AUDIO = "audio";
     public static final String TAG_VIDEO = "video";
@@ -44,6 +46,7 @@ public class DownloadManager {
 
     private final ArrayList<DownloadMission> mMissionsPending = new ArrayList<>();
     private final ArrayList<FinishedMission> mMissionsFinished;
+    private final ArrayList<QueuedMission> mMissionsQueued = new ArrayList<>();
 
     private final Handler mHandler;
     private final File mPendingMissionsDir;
@@ -494,6 +497,127 @@ public class DownloadManager {
         }
     }
 
+    // ========== QueuedMission Management ==========
+
+    /**
+     * Add a mission to the queue.
+     *
+     * @param mission The queued mission to add.
+     */
+    public void addQueuedMission(final QueuedMission mission) {
+        synchronized (this) {
+            mission.timestamp = System.currentTimeMillis();
+            mMissionsQueued.add(mission);
+        }
+    }
+
+    /**
+     * Remove a mission from the queue.
+     *
+     * @param mission The queued mission to remove.
+     */
+    public void removeQueuedMission(final QueuedMission mission) {
+        synchronized (this) {
+            mMissionsQueued.remove(mission);
+        }
+    }
+
+    /**
+     * Update status of a queued mission.
+     *
+     * @param mission The queued mission to update.
+     * @param status  The new status.
+     * @param error   Optional error message for FAILED status.
+     */
+    public void updateQueuedMissionStatus(final QueuedMission mission,
+                                          final QueuedMission.Status status,
+                                          final String error) {
+        synchronized (this) {
+            mission.status = status;
+            mission.errorMessage = error;
+        }
+    }
+
+    /**
+     * Get count of queued missions.
+     *
+     * @return Number of queued missions.
+     */
+    public int getQueuedCount() {
+        synchronized (this) {
+            return mMissionsQueued.size();
+        }
+    }
+
+    /**
+     * Get all queued missions.
+     *
+     * @return Copy of queued missions list.
+     */
+    public ArrayList<QueuedMission> getQueuedMissions() {
+        synchronized (this) {
+            return new ArrayList<>(mMissionsQueued);
+        }
+    }
+
+    /**
+     * Clear all queued missions.
+     */
+    public void clearQueuedMissions() {
+        synchronized (this) {
+            mMissionsQueued.clear();
+        }
+    }
+
+    /**
+     * Get a queued mission by video URL.
+     *
+     * @param videoUrl The video URL.
+     * @return The queued mission or null if not found.
+     */
+    @Nullable
+    public QueuedMission getQueuedMissionByUrl(final String videoUrl) {
+        synchronized (this) {
+            for (QueuedMission m : mMissionsQueued) {
+                if (m.videoUrl != null && m.videoUrl.equals(videoUrl)) {
+                    return m;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Remove a queued mission by video URL.
+     *
+     * @param videoUrl The video URL.
+     * @return true if a mission was removed, false otherwise.
+     */
+    public boolean removeQueuedMissionByUrl(final String videoUrl) {
+        synchronized (this) {
+            return mMissionsQueued.removeIf(m -> m.videoUrl != null && m.videoUrl.equals(videoUrl));
+        }
+    }
+
+    /**
+     * Update status of a queued mission by video URL.
+     *
+     * @param videoUrl The video URL.
+     * @param status   The new status.
+     * @param error    Optional error message for FAILED status.
+     */
+    public void updateQueuedMissionStatusByUrl(final String videoUrl,
+                                               final QueuedMission.Status status,
+                                               final String error) {
+        synchronized (this) {
+            final QueuedMission m = getQueuedMissionByUrl(videoUrl);
+            if (m != null) {
+                m.status = status;
+                m.errorMessage = error;
+            }
+        }
+    }
+
     private boolean canDownloadInCurrentNetwork() {
         if (mLastNetworkStatus == NetworkState.Unavailable) return false;
         return !(mPrefMeteredDownloads && mLastNetworkStatus == NetworkState.MeteredOperating);
@@ -593,6 +717,7 @@ public class DownloadManager {
     public class MissionIterator extends DiffUtil.Callback {
         final Object FINISHED = new Object();
         final Object PENDING = new Object();
+        final Object QUEUED = new Object();
 
         ArrayList<Object> snapshot;
         ArrayList<Object> current;
@@ -608,6 +733,7 @@ public class DownloadManager {
 
         private ArrayList<Object> getSpecialItems() {
             synchronized (DownloadManager.this) {
+                ArrayList<Mission> queued = new ArrayList<>(mMissionsQueued);
                 ArrayList<Mission> pending = new ArrayList<>(mMissionsPending);
                 ArrayList<Mission> finished = new ArrayList<>(mMissionsFinished);
                 List<Mission> remove = new ArrayList<>(hidden);
@@ -617,16 +743,23 @@ public class DownloadManager {
                     if (mission instanceof DownloadMission dm && canRecoverMission(dm)) {
                         return false; // Don't remove recoverable missions
                     }
-                    return pending.remove(mission) || finished.remove(mission);
+                    return queued.remove(mission) || pending.remove(mission) || finished.remove(mission);
                 });
 
-                int fakeTotal = pending.size();
+                int fakeTotal = queued.size();
                 if (fakeTotal > 0) fakeTotal++;
+
+                fakeTotal += pending.size();
+                if (pending.size() > 0) fakeTotal++;
 
                 fakeTotal += finished.size();
                 if (finished.size() > 0) fakeTotal++;
 
                 ArrayList<Object> list = new ArrayList<>(fakeTotal);
+                if (queued.size() > 0) {
+                    list.add(QUEUED);
+                    list.addAll(queued);
+                }
                 if (pending.size() > 0) {
                     list.add(PENDING);
                     list.addAll(pending);
@@ -647,6 +780,7 @@ public class DownloadManager {
 
             if (object == PENDING) return new MissionItem(SPECIAL_PENDING);
             if (object == FINISHED) return new MissionItem(SPECIAL_FINISHED);
+            if (object == QUEUED) return new MissionItem(SPECIAL_QUEUED);
 
             return new MissionItem(SPECIAL_NOTHING, (Mission) object);
         }
@@ -656,6 +790,7 @@ public class DownloadManager {
 
             if (object == PENDING) return SPECIAL_PENDING;
             if (object == FINISHED) return SPECIAL_FINISHED;
+            if (object == QUEUED) return SPECIAL_QUEUED;
 
             return SPECIAL_NOTHING;
         }

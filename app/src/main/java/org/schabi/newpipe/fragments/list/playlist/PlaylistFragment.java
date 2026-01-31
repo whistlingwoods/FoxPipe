@@ -376,6 +376,17 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
         return getPlayQueue(0);
     }
 
+    @Override
+    public List<StreamInfoItem> getStreamItems() {
+        final List<StreamInfoItem> items = new ArrayList<>();
+        for (final InfoItem i : infoListAdapter.getItemsList()) {
+            if (i instanceof StreamInfoItem) {
+                items.add((StreamInfoItem) i);
+            }
+        }
+        return items;
+    }
+
     private PlayQueue getPlayQueue(final int index) {
         final List<StreamInfoItem> infoItems = new ArrayList<>();
         for (final InfoItem i : infoListAdapter.getItemsList()) {

@@ -84,6 +84,7 @@ import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
 import us.shandian.giga.get.MissionRecoveryInfo;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.ui.common.Deleter;
@@ -149,6 +150,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         switch (viewType) {
             case DownloadManager.SPECIAL_PENDING:
             case DownloadManager.SPECIAL_FINISHED:
+            case DownloadManager.SPECIAL_QUEUED:
                 return new ViewHolderHeader(mInflater.inflate(R.layout.missions_header, parent, false));
         }
 
@@ -184,6 +186,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             int str;
             if (item.special == DownloadManager.SPECIAL_PENDING) {
                 str = R.string.missions_header_pending;
+            } else if (item.special == DownloadManager.SPECIAL_QUEUED) {
+                str = R.string.missions_header_queued;
             } else {
                 str = R.string.missions_header_finished;
                 if (mClear != null) mClear.setVisible(true);
@@ -195,6 +199,37 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
         ViewHolderItem h = (ViewHolderItem) view;
         h.item = item;
+
+        // Handle QueuedMission specially (no storage yet)
+        if (h.item.mission instanceof QueuedMission) {
+            QueuedMission qm = (QueuedMission) h.item.mission;
+            h.icon.setImageResource(R.drawable.ic_file_download);
+            h.name.setText(qm.title != null ? qm.title : "Unknown");
+            h.progress.setMarquee(qm.isProcessing());
+            h.progress.setProgress(0f);
+
+            // Show status based on queue state
+            switch (qm.status) {
+                case WAITING:
+                    h.status.setText(R.string.queued_status_waiting);
+                    break;
+                case EXTRACTING:
+                    h.status.setText(R.string.queued_status_extracting);
+                    break;
+                case PREPARING:
+                    h.status.setText(R.string.queued_status_preparing);
+                    break;
+                case FAILED:
+                    h.status.setText(R.string.queued_status_failed);
+                    break;
+                default:
+                    h.status.setText("");
+            }
+
+            h.size.setText(qm.targetQuality != null ? qm.targetQuality : "");
+            h.date.setText("");
+            return;
+        }
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
 

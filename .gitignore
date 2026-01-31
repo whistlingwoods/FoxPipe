@@ -19,3 +19,7 @@ app/release/
 bin/
 .vscode/
 *.code-workspace
+newly add/
+changes.txt
+full_changes_utf8.txt
+full_changes.txt
