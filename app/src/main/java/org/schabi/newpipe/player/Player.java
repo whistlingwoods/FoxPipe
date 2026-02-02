@@ -235,6 +235,9 @@ public final class Player implements PlaybackListener, Listener {
     private boolean isAudioOnly = false;
     private boolean isPrepared = false;
 
+    // flag to indicate we're waiting for recovery position to be loaded from database
+    private boolean isLoadingRecoveryFromDatabase = false;
+
     /*//////////////////////////////////////////////////////////////////////////
     // UIs, listeners and disposables
     //////////////////////////////////////////////////////////////////////////*/
@@ -537,6 +540,10 @@ public final class Player implements PlaybackListener, Listener {
                 && !newQueue.isEmpty()
                 && newQueue.getItem() != null
                 && newQueue.getItem().getRecoveryPosition() == PlayQueueItem.RECOVERY_UNSET) {
+            if (DEBUG) {
+                Log.d(TAG, "Starting async recovery position load from database");
+            }
+            isLoadingRecoveryFromDatabase = true;
             databaseUpdateDisposable.add(recordManager.loadStreamState(newQueue.getItem())
                     .observeOn(AndroidSchedulers.mainThread())
                     // Do not place initPlayback() in doFinally() because
@@ -544,11 +551,24 @@ public final class Player implements PlaybackListener, Listener {
                     //.doFinally()
                     .subscribe(
                             state -> {
-                                if (!state.isFinished(newQueue.getItem().getDuration())) {
-                                    // resume playback only if the stream was not played to the end
-                                    newQueue.setRecovery(newQueue.getIndex(),
-                                            state.getProgressMillis());
+                                // Always resume playback from the saved position.
+                                // The isFinished() check is used for UI purposes (e.g., marking
+                                // videos as watched in feeds) but shouldn't prevent resuming
+                                // playback, as users may want to finish the last few seconds.
+                                if (DEBUG) {
+                                    Log.d(TAG, "Recovery position loaded from database: "
+                                            + state.getProgressMillis() + "ms");
+                                    Log.d(TAG, "Setting recovery on queue - index: "
+                                            + newQueue.getIndex() + ", size: " + newQueue.size()
+                                            + ", position: " + state.getProgressMillis() + "ms");
                                 }
+                                newQueue.setRecovery(newQueue.getIndex(),
+                                        state.getProgressMillis());
+                                if (DEBUG && newQueue.getItem() != null) {
+                                    Log.d(TAG, "After setRecovery, item recovery position: "
+                                            + newQueue.getItem().getRecoveryPosition() + "ms");
+                                }
+                                isLoadingRecoveryFromDatabase = false;
                                 initPlayback(newQueue, playWhenReady);
                             },
                             error -> {
@@ -556,10 +576,15 @@ public final class Player implements PlaybackListener, Listener {
                                     Log.w(TAG, "Failed to start playback", error);
                                 }
                                 // In case any error we can start playback without history
+                                isLoadingRecoveryFromDatabase = false;
                                 initPlayback(newQueue, playWhenReady);
                             },
                             () -> {
                                 // Completed but not found in history
+                                if (DEBUG) {
+                                    Log.d(TAG, "No recovery position found in database");
+                                }
+                                isLoadingRecoveryFromDatabase = false;
                                 initPlayback(newQueue, playWhenReady);
                             }
                     ));
@@ -746,8 +771,36 @@ public final class Player implements PlaybackListener, Listener {
         final long windowPos = simpleExoPlayer.getCurrentPosition();
         final long duration = simpleExoPlayer.getDuration();
 
+        if (DEBUG) {
+            Log.d(TAG, "setRecovery() called - windowPos: " + windowPos
+                    + ", duration: " + duration + ", queue index: " + queuePos);
+        }
+
+        // Don't overwrite existing recovery position with 0 if player hasn't started yet
+        // This prevents losing the recovery position loaded from database
+        final PlayQueueItem queueItem = playQueue.getItem();
+        if (windowPos == 0 && queueItem != null
+                && queueItem.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET
+                && queueItem.getRecoveryPosition() > 0) {
+            if (DEBUG) {
+                Log.d(TAG, "setRecovery() - Player at position 0, but item already has recovery "
+                        + "position " + queueItem.getRecoveryPosition()
+                        + "ms - NOT overwriting!");
+            }
+            return; // Don't overwrite existing recovery position
+        }
+
         // No checks due to https://github.com/TeamNewPipe/NewPipe/pull/7195#issuecomment-962624380
-        setRecovery(queuePos, MathUtils.clamp(windowPos, 0, duration));
+        // But we must handle C.TIME_UNSET (-9223372036854775807) which indicates unknown duration
+        // Don't clamp to TIME_UNSET as it would set an invalid recovery position
+        // TIME_UNSET is negative, so checking duration >= 0 covers both TIME_UNSET and negatives
+        if (duration >= 0) {
+            setRecovery(queuePos, MathUtils.clamp(windowPos, 0, duration));
+        } else {
+            // Duration is unknown (TIME_UNSET or negative),
+            // use current position without upper bound
+            setRecovery(queuePos, Math.max(0, windowPos));
+        }
     }
 
     private void setRecovery(final int queuePos, final long windowPos) {
@@ -1498,12 +1551,10 @@ public final class Player implements PlaybackListener, Listener {
         switch (discontinuityReason) {
             case DISCONTINUITY_REASON_AUTO_TRANSITION:
             case DISCONTINUITY_REASON_REMOVE:
-                // When player is in single repeat mode and a period transition occurs,
-                // we need to register a view count here since no metadata has changed
                 if (getRepeatMode() == REPEAT_MODE_ONE && newIndex == playQueue.getIndex()) {
                     registerStreamViewed();
-                    break;
                 }
+                break;
             case DISCONTINUITY_REASON_SEEK:
                 if (DEBUG) {
                     Log.d(TAG, "ExoPlayer - onSeekProcessed() called");
@@ -1511,16 +1562,18 @@ public final class Player implements PlaybackListener, Listener {
                 if (isPrepared) {
                     saveStreamProgressState();
                 }
+                break;
             case DISCONTINUITY_REASON_SEEK_ADJUSTMENT:
             case DISCONTINUITY_REASON_INTERNAL:
-                // Player index may be invalid when playback is blocked
-                if (getCurrentState() != STATE_BLOCKED && newIndex != playQueue.getIndex()) {
-                    saveStreamProgressStateCompleted(); // current stream has ended
-                    playQueue.setIndex(newIndex);
-                }
                 break;
             case DISCONTINUITY_REASON_SKIP:
-                break; // only makes Android Studio linter happy, as there are no ads
+                return;
+        }
+
+        // Player index may be invalid when playback is blocked
+        if (getCurrentState() != STATE_BLOCKED && newIndex != playQueue.getIndex()) {
+            saveStreamProgressStateCompleted(); // current stream has ended
+            playQueue.setIndex(newIndex);
         }
     }
 
@@ -1598,6 +1651,7 @@ public final class Player implements PlaybackListener, Listener {
         switch (error.errorCode) {
             case ERROR_CODE_BEHIND_LIVE_WINDOW:
                 isCatchableException = true;
+                Log.e(TAG, "ExoPlayer - onPlayerError() called with: ", error);
                 simpleExoPlayer.seekToDefaultPosition();
                 simpleExoPlayer.prepare();
                 // Inform the user that we are reloading the stream by
@@ -1747,11 +1801,36 @@ public final class Player implements PlaybackListener, Listener {
             }
 
             // sync the player index with the queue index, and seek to the correct position
-            if (item.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET) {
+            if (item.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET
+                    && item.getRecoveryPosition() >= 0
+                    && item.getRecoveryPosition() != com.google.android.exoplayer2.C.TIME_UNSET) {
+                // Valid recovery position - seek to it
+                if (DEBUG) {
+                    Log.d(TAG, "Playback - Seeking to recovery position: "
+                            + item.getRecoveryPosition() + "ms");
+                }
                 simpleExoPlayer.seekTo(playQueueIndex, item.getRecoveryPosition());
                 playQueue.unsetRecovery(playQueueIndex);
-            } else {
+            } else if (!isLoadingRecoveryFromDatabase
+                    && (wasBlocked || playlistIndex != playQueueIndex)) {
+                // Only seek to default position if we're not waiting for recovery position
+                // to be loaded from database. If we are, the seek will happen after the
+                // async database call completes and sets the recovery position.
+                if (DEBUG) {
+                    if (item.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET
+                            && item.getRecoveryPosition() < 0) {
+                        Log.w(TAG, "Playback - Invalid recovery position: "
+                                + item.getRecoveryPosition() + "ms, seeking to default");
+                    } else {
+                        Log.d(TAG, "Playback - Seeking to default position");
+                    }
+                }
                 simpleExoPlayer.seekToDefaultPosition(playQueueIndex);
+            } else if (isLoadingRecoveryFromDatabase) {
+                if (DEBUG) {
+                    Log.d(TAG, "Playback - Skipping seek, waiting for recovery position "
+                            + "from database");
+                }
             }
         }
     }
@@ -1769,7 +1848,7 @@ public final class Player implements PlaybackListener, Listener {
 
     private void seekBy(final long offsetMillis) {
         if (DEBUG) {
-            Log.d(TAG, "seekBy() called with: offsetMillis = [" + offsetMillis + "]");
+            Log.d(TAG, "seekBy() 123 called with: offsetMillis = [" + offsetMillis + "]");
         }
         seekTo(simpleExoPlayer.getCurrentPosition() + offsetMillis);
     }
