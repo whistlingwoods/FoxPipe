@@ -594,16 +594,19 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (player.getCurrentState() != STATE_PAUSED_SEEK) {
             binding.playbackSeekBar.setProgress(currentProgress);
         }
-        // Toggle between current time and remaining time on the left
-        if (showRemainingTime) {
-            binding.playbackCurrentTime.setText(getTimeString(duration - currentProgress));
-        } else {
-            binding.playbackCurrentTime.setText(getTimeString(currentProgress));
-        }
+        
+        // Get current playback speed
+        final float playbackSpeed = player.getPlaybackSpeed();
 
+        // Timestamp
+        binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        
         // Toggle between total duration and remaining time on the right
         if (showRemainingTimeRight) {
-            binding.playbackEndTime.setText("- " + getTimeString(duration - currentProgress));
+            // Calculate remaining time adjusted for playback speed
+            final long remainingTimeMs = duration - currentProgress;
+            final long adjustedRemainingTimeMs = (long) (remainingTimeMs / playbackSpeed);
+            binding.playbackEndTime.setText("- " + getTimeString((int) adjustedRemainingTimeMs));
         } else {
             binding.playbackEndTime.setText(getTimeString(duration));
         }
