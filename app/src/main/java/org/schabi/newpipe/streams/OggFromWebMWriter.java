@@ -28,6 +28,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import us.shandian.giga.postprocessing.ImageUtils;
+
 /**
  * <p>
  *     This class is used to convert a WebM stream containing Opus or Vorbis audio
@@ -50,15 +52,50 @@ import java.util.stream.Collectors;
  * @author tobigr
  */
 public class OggFromWebMWriter implements Closeable {
+    private static final String TAG = OggFromWebMWriter.class.getSimpleName();
+
+    /**
+     * No flags set.
+     */
     private static final byte FLAG_UNSET = 0x00;
-    //private static final byte FLAG_CONTINUED = 0x01;
+    /**
+     * The packet is continued from previous the previous page.
+     */
+    private static final byte FLAG_CONTINUED = 0x01;
+    /**
+     * BOS (beginning of stream).
+     */
     private static final byte FLAG_FIRST = 0x02;
+    /**
+     * EOS (end of stream).
+     */
     private static final byte FLAG_LAST = 0x04;
 
     private static final byte HEADER_CHECKSUM_OFFSET = 22;
     private static final byte HEADER_SIZE = 27;
 
-    private static final int TIME_SCALE_NS = 1000000000;
+    private static final int TIME_SCALE_NS = 1_000_000_000;
+
+    /**
+     * The maximum size of a segment in the Ogg page, in bytes.
+     * This is a fixed value defined by the Ogg specification.
+     */
+    private static final int OGG_SEGMENT_SIZE = 255;
+
+    /**
+     * The maximum size of the Opus packet in bytes, to be included in the Ogg page.
+     */
+    private static final int OPUS_MAX_PACKETS_SIZE = 61_140;
+
+    /**
+     * <p>The maximum size of the compressed thumbnail image in bytes,
+     * to be included in the Opus metadata.</p>
+     *
+     * This is a safe size to avoid creating metadata tags that are too large for the Ogg page,
+     * since the metadata header and other tags can also take up space in the page.
+     */
+    private static final int MAX_THUMBNAIL_SIZE = OPUS_MAX_PACKETS_SIZE - 4500;
+
 
     private boolean done = false;
     private boolean parsed = false;
@@ -80,7 +117,7 @@ public class OggFromWebMWriter implements Closeable {
     private long webmBlockNearDuration = 0;
 
     private short segmentTableSize = 0;
-    private final byte[] segmentTable = new byte[255];
+    private final byte[] segmentTable = new byte[OGG_SEGMENT_SIZE];
     private long segmentTableNextTimestamp = TIME_SCALE_NS;
 
     private final int[] crc32Table = new int[256];
@@ -323,12 +360,12 @@ public class OggFromWebMWriter implements Closeable {
      * @ImplNote See <a href="https://datatracker.ietf.org/doc/html/rfc7845.html#section-5.2">
      *     RFC7845 5.2</a>
      *
-     * @return
+     * @return The binary metadata header, or null if not implemented for the codec
      */
     @Nullable
     private byte[] makeMetadata() {
         if (DEBUG) {
-            Log.d("OggFromWebMWriter", "Downloading media with codec ID " + webmTrack.codecId);
+            Log.d(TAG, "Downloading media with codec ID " + webmTrack.codecId);
         }
 
         if ("A_OPUS".equals(webmTrack.codecId)) {
@@ -343,18 +380,21 @@ public class OggFromWebMWriter implements Closeable {
                         .getLocalDateTime()
                         .format(DateTimeFormatter.ISO_DATE)));
                  if (thumbnail != null) {
-                     metadata.add(makeOpusPictureTag(thumbnail));
+                     final var pictureTag = makeOpusPictureTag(thumbnail, MAX_THUMBNAIL_SIZE);
+                     if (pictureTag != null) {
+                         metadata.add(pictureTag);
+                     }
                  }
             }
 
             if (DEBUG) {
-                Log.d("OggFromWebMWriter", "Creating metadata header with this data:");
-                metadata.forEach(p -> Log.d("OggFromWebMWriter", p.first + "=" + p.second));
+                Log.d(TAG, "Creating metadata header with this data:");
+                metadata.forEach(p -> Log.d(TAG, p.first + "=" + p.second));
             }
 
             return makeOpusTagsHeader(metadata);
         } else if ("A_VORBIS".equals(webmTrack.codecId)) {
-            /**
+            /*
              * See <a href="https://datatracker.ietf.org/doc/html/rfc7845.html#section-5.2">
              *  RFC7845 5.2</a>
              */
@@ -399,21 +439,40 @@ public class OggFromWebMWriter implements Closeable {
      * </p>
      *
      * @param bitmap The bitmap to use as cover art
+     * @param maxSize The maximum size of the compressed image in bytes.
+     *                If the compressed image exceeds this size,
+     *                it will be further compressed until it fits.
+     *                This is necessary to avoid creating metadata tags
+     *                that are too large for the Ogg page.
      * @return The key-value pair representing the tag
+     * or null if the image cannot be compressed to the maxSize
      */
-    private static Pair<String, String> makeOpusPictureTag(final Bitmap bitmap) {
+    @Nullable
+    private static Pair<String, String> makeOpusPictureTag(final Bitmap bitmap, final int maxSize) {
         // FLAC picture block format (big-endian):
         // uint32 picture_type
-        // uint32 mime_length, mime_string
-        // uint32 desc_length, desc_string
+        // uint32 mime_length,
+        //        mime_string
+        // uint32 desc_length,
+        //        desc_string
         // uint32 width
         // uint32 height
         // uint32 color_depth
         // uint32 colors_indexed
-        // uint32 data_length, data_bytes
+        // uint32 data_length,
+        //        data_bytes
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+
+        final var compressedThumbnail = ImageUtils.INSTANCE.compressToSize(bitmap, maxSize);
+        if (compressedThumbnail == null) {
+            if (DEBUG) {
+                Log.d(TAG, "failed to compress thumbnail to target size " + maxSize);
+            }
+            return null;
+        }
+        compressedThumbnail.getBitmap().compress(
+                Bitmap.CompressFormat.JPEG, compressedThumbnail.getQuality(), baos);
 
         final byte[] imageData = baos.toByteArray();
         final byte[] mimeBytes = "image/jpeg".getBytes(StandardCharsets.UTF_8);
@@ -421,21 +480,27 @@ public class OggFromWebMWriter implements Closeable {
         // fixed ints + mime + desc
         final int headerSize = 4 * 8 + mimeBytes.length + descBytes.length;
         final ByteBuffer buf = ByteBuffer.allocate(headerSize + imageData.length);
-        buf.putInt(3); // picture type: 3 = Cover (front)
+        // See https://id3.org/id3v2.3.0#Attached_picture for a full list of picture types
+        // TODO: allow specifying other picture types, i.e. cover (front) for music albums;
+        //       but this info needs to be provided by the extractor first.
+        buf.putInt(3); // picture type: 0 = Other
         buf.putInt(mimeBytes.length);
         buf.put(mimeBytes);
         buf.putInt(descBytes.length);
-        // no description
         if (descBytes.length > 0) {
+            // currently no description available, might be added later.
             buf.put(descBytes);
         }
-        buf.putInt(bitmap.getWidth()); // width (unknown)
-        buf.putInt(bitmap.getHeight()); // height (unknown)
-        buf.putInt(0); // color depth
-        buf.putInt(0); // colors indexed
+        buf.putInt(compressedThumbnail.getBitmap().getWidth());
+        buf.putInt(compressedThumbnail.getBitmap().getHeight());
+        buf.putInt(24); // color depth for JPEG and PNG is usually 24 bits
+        buf.putInt(0); // colors indexed (0 for non-indexed images, i.e. JPEG, PNG)
         buf.putInt(imageData.length);
         buf.put(imageData);
+
         final String b64 = Base64.getEncoder().encodeToString(buf.array());
+        Log.d(TAG, "Compressed thumbnail size: " + imageData.length
+                + " bytes, base64 metadata size: " + b64.length() + " characters");
         return Pair.create("METADATA_BLOCK_PICTURE", b64);
     }
 
@@ -457,7 +522,7 @@ public class OggFromWebMWriter implements Closeable {
                 .stream()
                 .filter(p -> !p.second.isBlank())
                 .map(OggFromWebMWriter::makeOpusMetadataTag)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         final var tagsBytes = tags.stream().collect(Collectors.summingInt(arr -> arr.length));
 
@@ -554,13 +619,13 @@ public class OggFromWebMWriter implements Closeable {
                     String.format("page size is %s but cannot be larger than 65025", size));
         }
 
-        int available = (segmentTable.length - segmentTableSize) * 255;
-        final boolean extra = (size % 255) == 0;
+        int available = (segmentTable.length - segmentTableSize) * OGG_SEGMENT_SIZE;
+        final boolean extra = (size % OGG_SEGMENT_SIZE) == 0;
 
         if (extra) {
             // add a zero byte entry in the table
-            // required to indicate the sample size is multiple of 255
-            available -= 255;
+            // required to indicate the sample size is multiple of 255 / MAX_SEGMENT_SIZE
+            available -= OGG_SEGMENT_SIZE;
         }
 
         // check if possible add the segment, without overflow the table
@@ -568,8 +633,8 @@ public class OggFromWebMWriter implements Closeable {
             return false; // not enough space on the page
         }
 
-        for (int seg = size; seg > 0; seg -= 255) {
-            segmentTable[segmentTableSize++] = (byte) Math.min(seg, 255);
+        for (int seg = size; seg > 0; seg -= OGG_SEGMENT_SIZE) {
+            segmentTable[segmentTableSize++] = (byte) Math.min(seg, OGG_SEGMENT_SIZE);
         }
 
         if (extra) {
