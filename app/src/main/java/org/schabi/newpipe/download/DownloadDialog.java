@@ -1093,6 +1093,8 @@ public class DownloadDialog extends DialogFragment
                     if (secondary.getSizeInBytes() > 0 && videoSize > 0) {
                         nearLength = secondary.getSizeInBytes() + videoSize;
                     }
+                } else if (selectedStream.getFormat() == MediaFormat.MPEG_4) {
+                    psName = Postprocessing.ALGORITHM_MP4_METADATA;
                 }
                 break;
             case R.id.subtitle_button:
