@@ -40,6 +40,7 @@ import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.download.DownloadActivity;
+import org.schabi.newpipe.extractor.Image;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.player.helper.LockManager;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
@@ -390,7 +391,7 @@ public class DownloadManagerService extends Service {
         String[] psArgs = intent.getStringArrayExtra(EXTRA_POSTPROCESSING_ARGS);
         long nearLength = intent.getLongExtra(EXTRA_NEAR_LENGTH, 0);
         String tag = intent.getStringExtra(EXTRA_STORAGE_TAG);
-        StreamInfo streamInfo = (StreamInfo)intent.getSerializableExtra(EXTRA_STREAM_INFO);
+        StreamInfo streamInfo = (StreamInfo) intent.getSerializableExtra(EXTRA_STREAM_INFO);
         final var recovery = IntentCompat.getParcelableArrayListExtra(intent, EXTRA_RECOVERY_INFO,
                 MissionRecoveryInfo.class);
         Objects.requireNonNull(recovery);
@@ -408,7 +409,8 @@ public class DownloadManagerService extends Service {
         else
             ps = Postprocessing.getAlgorithm(psName, psArgs, streamInfo);
 
-        final DownloadMission mission = new DownloadMission(urls, storage, kind, ps);
+        final DownloadMission mission = new DownloadMission(
+                urls, storage, kind, ps, streamInfo, getApplicationContext());
         mission.threadCount = threads;
         mission.source = streamInfo.getUrl();
         mission.nearLength = nearLength;
@@ -417,7 +419,18 @@ public class DownloadManagerService extends Service {
         if (ps != null)
             ps.setTemporalDir(DownloadManager.pickAvailableTemporalDir(this));
 
-        handleConnectivityState(true);// first check the actual network status
+        if (streamInfo != null) {
+            new Thread(() -> {
+                try {
+                    mission.fetchThumbnail(streamInfo.getThumbnails());
+                } catch (Exception e) {
+                    Log.w(TAG, "failed to fetch thumbnail for mission: "
+                            + mission.storage.getName(), e);
+                }
+            }, "ThumbnailFetcher").start();
+        }
+
+        handleConnectivityState(true); // first check the actual network status
 
         mManager.startMission(mission);
     }
