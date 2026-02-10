@@ -1,5 +1,7 @@
 package org.schabi.newpipe.local.subscription;
 
+import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
+
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,26 +12,23 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import com.evernote.android.state.State;
+import com.livefront.bridge.Bridge;
+
 import org.schabi.newpipe.R;
-
-import icepick.Icepick;
-import icepick.State;
-
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 public class ImportConfirmationDialog extends DialogFragment {
     @State
     protected Intent resultServiceIntent;
+    static final String EXTRA_RESULT_SERVICE_INTENT = "extra_result_service_intent";
 
     public static void show(@NonNull final Fragment fragment,
                             @NonNull final Intent resultServiceIntent) {
         final ImportConfirmationDialog confirmationDialog = new ImportConfirmationDialog();
-        confirmationDialog.setResultServiceIntent(resultServiceIntent);
+        final Bundle args = new Bundle();
+        args.putParcelable(EXTRA_RESULT_SERVICE_INTENT, resultServiceIntent);
+        confirmationDialog.setArguments(args);
         confirmationDialog.show(fragment.getParentFragmentManager(), null);
-    }
-
-    public void setResultServiceIntent(final Intent resultServiceIntent) {
-        this.resultServiceIntent = resultServiceIntent;
     }
 
     @NonNull
@@ -53,16 +52,20 @@ public class ImportConfirmationDialog extends DialogFragment {
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getArguments() != null) {
+            resultServiceIntent = getArguments().getParcelable(EXTRA_RESULT_SERVICE_INTENT);
+        }
+
         if (resultServiceIntent == null) {
             throw new IllegalStateException("Result intent is null");
         }
 
-        Icepick.restoreInstanceState(this, savedInstanceState);
+        Bridge.restoreInstanceState(this, savedInstanceState);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        Icepick.saveInstanceState(this, outState);
+        Bridge.saveInstanceState(this, outState);
     }
 }
