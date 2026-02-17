@@ -259,10 +259,83 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
                     ));
                 }
                 break;
+            case R.id.menu_item_download_all:
+                startBulkDownload();
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    private void startBulkDownload() {
+        if (currentInfo == null) {
+            return;
+        }
+
+        // Show progress dialog while fetching all playlist items
+        final android.app.ProgressDialog progressDialog =
+            new android.app.ProgressDialog(requireContext());
+        progressDialog.setMessage(getString(R.string.fetching_playlist_items));
+        progressDialog.setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setMax(100);
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        disposables.add(
+            org.schabi.newpipe.util.PlaylistFetcher.fetchAllPlaylistItems(
+                serviceId,
+                url,
+                currentInfo,
+                (itemsFetched, totalItems) -> {
+                    // Update progress on UI thread
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (totalItems > 0) {
+                                progressDialog.setMax(totalItems);
+                                progressDialog.setProgress(itemsFetched);
+                            } else {
+                                progressDialog.setProgress(itemsFetched);
+                            }
+                            progressDialog.setMessage(
+                                getString(R.string.fetching_playlist_items)
+                                    + " (" + itemsFetched
+                                    + (totalItems > 0 ? "/" + totalItems : "")
+                                    + ")"
+                            );
+                        });
+                    }
+                }
+            )
+            .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+            .subscribe(
+                allItems -> {
+                    progressDialog.dismiss();
+                    if (allItems.isEmpty()) {
+                        if (getActivity() != null) {
+                            android.widget.Toast.makeText(
+                                requireContext(),
+                                "No items found in playlist",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    } else {
+                        // Show bulk download dialog
+                        showBulkDownloadDialog(allItems);
+                    }
+                },
+                error -> {
+                    progressDialog.dismiss();
+                    ErrorUtil.showUiErrorSnackbar(this, "Fetching playlist items", error);
+                }
+            )
+        );
+    }
+
+    private void showBulkDownloadDialog(final java.util.List<StreamInfoItem> allItems) {
+        final org.schabi.newpipe.download.BulkDownloadDialog dialog =
+            org.schabi.newpipe.download.BulkDownloadDialog.newInstance(currentInfo, allItems);
+        dialog.show(getParentFragmentManager(), "BulkDownloadDialog");
     }
 
 

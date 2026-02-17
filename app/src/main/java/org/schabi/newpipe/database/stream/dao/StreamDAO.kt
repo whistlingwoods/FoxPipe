@@ -32,6 +32,9 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
     @Query("UPDATE streams SET uploader_url = :uploaderUrl WHERE url = :url AND service_id = :serviceId")
     abstract fun setUploaderUrl(serviceId: Long, url: String, uploaderUrl: String): Completable
 
+    @Query("UPDATE streams SET user_rating = :rating WHERE uid = :streamId")
+    abstract fun updateRating(streamId: Long, rating: Int?): Int
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     internal abstract fun silentInsertInternal(stream: StreamEntity): Long
 
@@ -43,7 +46,7 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
 
     @Query(
         """
-        SELECT uid, stream_type, textual_upload_date, upload_date, is_upload_date_approximation, duration 
+        SELECT uid, stream_type, textual_upload_date, upload_date, is_upload_date_approximation, duration, user_rating
         FROM streams WHERE url = :url AND service_id = :serviceId
         """
     )
@@ -105,6 +108,11 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
                 newerStream.duration = existentMinimalStream.duration
             }
         }
+
+        // Preserve user rating when updating stream metadata
+        if (newerStream.userRating == null && existentMinimalStream.userRating != null) {
+            newerStream.userRating = existentMinimalStream.userRating
+        }
     }
 
     @Query(
@@ -122,6 +130,70 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
         """
     )
     abstract fun deleteOrphans(): Int
+
+    // Statistics queries for rating dashboard
+
+    @Query("SELECT COUNT(*) FROM streams WHERE user_rating IS NOT NULL")
+    abstract fun getRatedTracksCount(): Flowable<Long>
+
+    @Query("SELECT COUNT(*) FROM streams WHERE user_rating IS NULL")
+    abstract fun getUnratedTracksCount(): Flowable<Long>
+
+    @Query(
+        """
+        SELECT user_rating as rating, COUNT(*) as count
+        FROM streams
+        WHERE user_rating IS NOT NULL
+        GROUP BY user_rating
+        ORDER BY user_rating DESC
+        """
+    )
+    abstract fun getRatingDistribution(): Flowable<List<RatingDistributionEntry>>
+
+    @Query(
+        """
+        SELECT uploader, COUNT(*) as ratedCount
+        FROM streams
+        WHERE user_rating IS NOT NULL
+        GROUP BY uploader
+        ORDER BY ratedCount DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun getMostRatedArtists(limit: Int): Flowable<List<ArtistRatingCount>>
+
+    @Query(
+        """
+        SELECT COALESCE(SUM(sh.repeat_count * s.duration), 0) as totalMillis
+        FROM stream_history sh
+        INNER JOIN streams s ON sh.stream_id = s.uid
+        """
+    )
+    abstract fun getTotalListeningTime(): Flowable<Long>
+
+    @Query(
+        """
+        SELECT s.uploader, SUM(sh.repeat_count) as playCount
+        FROM stream_history sh
+        INNER JOIN streams s ON sh.stream_id = s.uid
+        GROUP BY s.uploader
+        ORDER BY playCount DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun getMostPlayedArtists(limit: Int): Flowable<List<ArtistPlayCount>>
+
+    @Query(
+        """
+        SELECT s.*, sh.repeat_count as watch_count
+        FROM stream_history sh
+        INNER JOIN streams s ON sh.stream_id = s.uid
+        WHERE s.user_rating IS NULL
+        ORDER BY sh.repeat_count DESC
+        LIMIT :limit
+        """
+    )
+    abstract fun getMostPlayedUnratedTracks(limit: Int): Flowable<List<UnratedTrackEntry>>
 
     /**
      * Minimal entry class used when comparing/updating an existent stream.
@@ -143,6 +215,36 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
         var isUploadDateApproximation: Boolean? = null,
 
         @ColumnInfo(name = StreamEntity.STREAM_DURATION)
-        var duration: Long
+        var duration: Long,
+
+        @ColumnInfo(name = StreamEntity.STREAM_USER_RATING)
+        var userRating: Int? = null
+    )
+
+    /**
+     * Statistics data classes for rating dashboard.
+     */
+    data class RatingDistributionEntry(
+        @ColumnInfo(name = "rating") val rating: Int,
+        @ColumnInfo(name = "count") val count: Long
+    )
+
+    data class ArtistRatingCount(
+        @ColumnInfo(name = "uploader") val artistName: String?,
+        @ColumnInfo(name = "ratedCount") val ratedCount: Long
+    )
+
+    data class ArtistPlayCount(
+        @ColumnInfo(name = "uploader") val artistName: String?,
+        @ColumnInfo(name = "playCount") val playCount: Long
+    )
+
+    data class UnratedTrackEntry(
+        @ColumnInfo(name = "uid") val streamId: Long,
+        @ColumnInfo(name = "service_id") val serviceId: Int,
+        @ColumnInfo(name = "url") val url: String,
+        @ColumnInfo(name = "title") val title: String,
+        @ColumnInfo(name = "uploader") val uploader: String?,
+        @ColumnInfo(name = "watch_count") val watchCount: Long
     )
 }

@@ -41,7 +41,10 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.AttrRes;
@@ -50,6 +53,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.AppCompatSeekBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
@@ -226,6 +230,11 @@ public final class VideoDetailFragment
     private FragmentVideoDetailBinding binding;
 
     private TabAdapter pageAdapter;
+
+    private AppCompatSeekBar ratingSlider;
+    private TextView ratingValueText;
+    private LinearLayout ratingPanel;
+    private Integer currentRating = null;
 
     private ContentObserver settingsContentObserver;
     @Nullable
@@ -648,6 +657,79 @@ public final class VideoDetailFragment
 
         setOnClickListeners();
         setOnLongClickListeners();
+
+        // Initialize rating views
+        ratingPanel = binding.detailRatingPanel;
+        ratingSlider = binding.detailRatingSlider;
+        ratingValueText = binding.detailRatingValue;
+
+        // Setup rating slider listener
+        ratingSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(final SeekBar seekBar, final int progress,
+                                           final boolean fromUser) {
+                ratingValueText.setText(String.valueOf(progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(final SeekBar seekBar) {
+                // No action needed
+            }
+
+            @Override
+            public void onStopTrackingTouch(final SeekBar seekBar) {
+                if (currentInfo == null) {
+                    return;
+                }
+
+                final int rating = seekBar.getProgress();
+                final HistoryRecordManager recordManager =
+                        new HistoryRecordManager(requireContext());
+
+                disposables.add(recordManager.saveStreamRating(currentInfo, rating)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    currentRating = rating;
+                                    Toast.makeText(getContext(),
+                                            getString(R.string.rating_saved, rating),
+                                            Toast.LENGTH_SHORT).show();
+                                },
+                                throwable -> Log.e(TAG, "Failed to save rating", throwable)
+                        ));
+            }
+        });
+
+        // Long press to clear rating
+        ratingSlider.setOnLongClickListener(v -> {
+            if (currentInfo == null) {
+                return false;
+            }
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.rating_label)
+                    .setMessage("Remove rating?")
+                    .setPositiveButton(R.string.ok, (dialog, which) -> {
+                        final HistoryRecordManager recordManager =
+                                new HistoryRecordManager(requireContext());
+                        disposables.add(recordManager.saveStreamRating(currentInfo, null)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(
+                                        () -> {
+                                            currentRating = null;
+                                            ratingPanel.setVisibility(View.GONE);
+                                            Toast.makeText(getContext(),
+                                                    R.string.rating_cleared,
+                                                    Toast.LENGTH_SHORT).show();
+                                        },
+                                        throwable -> Log.e(TAG,
+                                                "Failed to clear rating", throwable)
+                                ));
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
+            return true;
+        });
 
         final View.OnTouchListener controlsTouchListener = (view, motionEvent) -> {
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
@@ -1588,6 +1670,27 @@ public final class VideoDetailFragment
                 .into(binding.detailThumbnailImageView);
         showMetaInfoInTextView(info.getMetaInfo(), binding.detailMetaInfoTextView,
                 binding.detailMetaInfoSeparator, disposables);
+
+        // Load existing rating
+        final HistoryRecordManager recordManager = new HistoryRecordManager(requireContext());
+        disposables.add(recordManager.getStreamRating(info.getServiceId(), info.getUrl())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        rating -> {
+                            currentRating = rating;
+                            ratingSlider.setProgress(rating);
+                            ratingValueText.setText(String.valueOf(rating));
+                            ratingPanel.setVisibility(View.VISIBLE);
+                        },
+                        throwable -> Log.e(TAG, "Failed to load rating", throwable),
+                        () -> {
+                            // No rating found - show panel with default value
+                            currentRating = null;
+                            ratingSlider.setProgress(5);
+                            ratingValueText.setText("5");
+                            ratingPanel.setVisibility(View.VISIBLE);
+                        }
+                ));
 
         if (!isPlayerAvailable() || player.isStopped()) {
             updateOverlayData(info.getName(), info.getUploaderName(), info.getThumbnails());

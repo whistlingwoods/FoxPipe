@@ -30,6 +30,7 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
     public final TextView itemDurationView;
     private final View itemHandleView;
     private final AnimatedProgressBar itemProgressView;
+    public final TextView itemRatingView;
 
     LocalPlaylistStreamItemHolder(final LocalItemBuilder infoItemBuilder, final int layoutId,
                                   final ViewGroup parent) {
@@ -41,6 +42,7 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemHandleView = itemView.findViewById(R.id.itemHandle);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
+        itemRatingView = itemView.findViewById(R.id.itemRatingView);
     }
 
     public LocalPlaylistStreamItemHolder(final LocalItemBuilder infoItemBuilder,
@@ -101,6 +103,10 @@ public class LocalPlaylistStreamItemHolder extends LocalItemHolder {
         });
 
         itemHandleView.setOnTouchListener(getOnTouchListener(item));
+
+        // Display rating badge
+        org.schabi.newpipe.util.RatingHelper.displayRating(itemRatingView,
+                item.getStreamEntity().getUserRating());
     }
 
     @Override
