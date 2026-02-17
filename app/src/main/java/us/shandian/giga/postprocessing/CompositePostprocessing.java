@@ -85,8 +85,8 @@ class CompositePostprocessing extends Postprocessing {
         System.arraycopy(args, 2, metadataArgs, 0, args.length - 2);
 
         // Create the two algorithms
-        final Postprocessing algo1 = Postprocessing.getAlgorithm(algo1Name, null);
-        final Postprocessing algo2 = Postprocessing.getAlgorithm(algo2Name, metadataArgs);
+        final Postprocessing algo1 = Postprocessing.getAlgorithm(algo1Name, null, streamInfo);
+        final Postprocessing algo2 = Postprocessing.getAlgorithm(algo2Name, metadataArgs, streamInfo);
 
         this.chain = new Postprocessing[]{algo1, algo2};
     }

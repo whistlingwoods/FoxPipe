@@ -86,7 +86,7 @@ public abstract class Postprocessing implements Serializable {
      */
     private final String name;
 
-    private String[] args;
+    protected String[] args;
     protected StreamInfo streamInfo;
 
     private transient DownloadMission mission;

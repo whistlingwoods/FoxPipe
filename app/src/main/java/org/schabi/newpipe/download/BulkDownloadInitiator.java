@@ -541,7 +541,7 @@ public final class BulkDownloadInitiator {
             storage,
             kind,
             3, // default thread count
-            streamInfo.getUrl(),
+            streamInfo,
             psName,
             psArgs,
             0, // nearLength - not known
