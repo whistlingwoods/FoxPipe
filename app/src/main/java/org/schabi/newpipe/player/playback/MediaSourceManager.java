@@ -43,6 +43,15 @@ import static org.schabi.newpipe.player.mediasource.FailedMediaSource.StreamInfo
 import static org.schabi.newpipe.player.playqueue.PlayQueue.DEBUG;
 import static org.schabi.newpipe.util.ServiceHelper.getCacheExpirationMillis;
 
+import android.content.Context;
+import android.net.Uri;
+
+import com.google.android.exoplayer2.MediaItem;
+
+import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.player.mediaitem.StreamInfoTag;
+import org.schabi.newpipe.util.OfflinePlaybackHelper;
+
 public class MediaSourceManager {
     @NonNull
     private final String TAG = "MediaSourceManager@" + hashCode();
@@ -73,6 +82,8 @@ public class MediaSourceManager {
     private final PlaybackListener playbackListener;
     @NonNull
     private final PlayQueue playQueue;
+    @NonNull
+    private final Context context;
 
     /**
      * Determines the gap time between the playback position and the playback duration which
@@ -125,14 +136,16 @@ public class MediaSourceManager {
 
     private final Handler removeMediaSourceHandler = new Handler();
 
-    public MediaSourceManager(@NonNull final PlaybackListener listener,
+    public MediaSourceManager(@NonNull final Context context,
+                              @NonNull final PlaybackListener listener,
                               @NonNull final PlayQueue playQueue) {
-        this(listener, playQueue, 400L,
+        this(context, listener, playQueue, 400L,
                 /*playbackNearEndGapMillis=*/TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS),
                 /*progressUpdateIntervalMillis*/TimeUnit.MILLISECONDS.convert(2, TimeUnit.SECONDS));
     }
 
-    private MediaSourceManager(@NonNull final PlaybackListener listener,
+    private MediaSourceManager(@NonNull final Context context,
+                               @NonNull final PlaybackListener listener,
                                @NonNull final PlayQueue playQueue,
                                final long loadDebounceMillis,
                                final long playbackNearEndGapMillis,
@@ -146,6 +159,7 @@ public class MediaSourceManager {
                     + " ms] for them to be useful.");
         }
 
+        this.context = context;
         this.playbackListener = listener;
         this.playQueue = playQueue;
 
@@ -420,30 +434,39 @@ public class MediaSourceManager {
     }
 
     private Single<ManagedMediaSource> getLoadedMediaSource(@NonNull final PlayQueueItem stream) {
-        return stream.getStream()
-                .map(streamInfo -> Optional
-                        .ofNullable(playbackListener.sourceOf(stream, streamInfo))
-                        .<ManagedMediaSource>flatMap(source ->
-                                MediaItemTag.from(source.getMediaItem())
-                                        .map(tag -> {
-                                            final int serviceId = streamInfo.getServiceId();
-                                            final long expiration = System.currentTimeMillis()
-                                                    + getCacheExpirationMillis(serviceId);
-                                            return new LoadedMediaSource(source, tag, stream,
-                                                    expiration);
-                                        })
-                        )
-                        .orElseGet(() -> {
-                            final String message = "Unable to resolve source from stream info. "
-                                    + "URL: " + stream.getUrl()
-                                    + ", audio count: " + streamInfo.getAudioStreams().size()
-                                    + ", video count: " + streamInfo.getVideoOnlyStreams().size()
-                                    + ", " + streamInfo.getVideoStreams().size();
-                            return FailedMediaSource.of(stream,
-                                    new MediaSourceResolutionException(message));
-                        })
-                )
+        // Check for offline file first - if available, create media source directly
+        // without fetching StreamInfo (which requires internet)
+        return Single.fromCallable(() -> {
+                    try {
+                        final String offlineUri = OfflinePlaybackHelper.getOfflineFileUriSync(
+                                context, stream.getServiceId(), stream.getUrl());
+                        return Optional.ofNullable(offlineUri);
+                    } catch (final Exception e) {
+                        Log.w(TAG, "Error checking for offline file: " + e.getMessage());
+                        return Optional.<String>empty();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .flatMap(offlineUriOpt -> {
+                    if (offlineUriOpt.isPresent()) {
+                        // Offline file found - create media source from local file
+                        Log.i(TAG, "Loading offline file for: " + stream.getTitle());
+                        return createOfflineMediaSource(stream, offlineUriOpt.get())
+                                .onErrorResumeNext(error -> {
+                                    Log.e(TAG, "Failed to create offline source, "
+                                            + "trying to stream instead", error);
+                                    return fetchStreamFromInternet(stream);
+                                });
+                    } else {
+                        // No offline file - fetch StreamInfo from internet
+                        Log.d(TAG, "No offline file, fetching from internet: "
+                                + stream.getTitle());
+                        return fetchStreamFromInternet(stream);
+                    }
+                })
                 .onErrorReturn(throwable -> {
+                    Log.e(TAG, "Error loading media source for: " + stream.getTitle(),
+                            throwable);
                     if (throwable instanceof ExtractionException) {
                         return FailedMediaSource.of(stream, new StreamInfoLoadException(throwable));
                     }
@@ -453,6 +476,362 @@ public class MediaSourceManager {
                             TimeUnit.SECONDS);
                     return FailedMediaSource.of(stream, new Exception(throwable), allowRetryIn);
                 });
+    }
+
+    private Single<ManagedMediaSource> fetchStreamFromInternet(
+            @NonNull final PlayQueueItem stream) {
+        return stream.getStream()
+                .map(streamInfo -> Optional
+                        .ofNullable(playbackListener.sourceOf(stream, streamInfo))
+                        .<ManagedMediaSource>flatMap(source ->
+                                MediaItemTag.from(source.getMediaItem())
+                                        .map(tag -> {
+                                            final int serviceId = streamInfo.getServiceId();
+                                            final long expiration = System.currentTimeMillis()
+                                                    + getCacheExpirationMillis(serviceId);
+                                            return new LoadedMediaSource(
+                                                    source, tag, stream, expiration);
+                                        })
+                        )
+                        .orElseGet(() -> {
+                            final String message = "Unable to resolve source from "
+                                    + "stream info. URL: " + stream.getUrl();
+                            return FailedMediaSource.of(stream,
+                                    new MediaSourceResolutionException(message));
+                        })
+                );
+    }
+
+    private Single<ManagedMediaSource> createOfflineMediaSource(
+            @NonNull final PlayQueueItem stream,
+            @NonNull final String offlineUri) {
+        return Single.fromCallable(() -> {
+            Log.i(TAG, "Creating offline media source from URI: " + offlineUri);
+
+            // Query database for StreamEntity to get correct metadata
+            // (not from PlayQueueItem which may have corrupted playlist data)
+            StreamInfo offlineStreamInfo = null;
+            // Store reference to existing entity for checking later
+            org.schabi.newpipe.database.stream.model.StreamEntity existingEntity = null;
+
+            try {
+                final org.schabi.newpipe.database.stream.dao.StreamDAO streamDAO =
+                        org.schabi.newpipe.NewPipeDatabase.getInstance(context).streamDAO();
+                final java.util.List<org.schabi.newpipe.database.stream.model.StreamEntity>
+                        entities = streamDAO.getStream(
+                                stream.getServiceId(), stream.getUrl()).blockingFirst();
+
+                if (!entities.isEmpty()) {
+                    existingEntity = entities.get(0);
+                    Log.d(TAG, "=== Database StreamEntity ===");
+                    Log.d(TAG, "Title: '" + existingEntity.getTitle() + "'");
+                    Log.d(TAG, "Uploader: '" + existingEntity.getUploader() + "'");
+                    Log.d(TAG, "UploaderUrl: '" + existingEntity.getUploaderUrl() + "'");
+                    Log.d(TAG, "URL: '" + existingEntity.getUrl() + "'");
+                    Log.d(TAG, "Thumbnail: '" + existingEntity.getThumbnailUrl() + "'");
+
+                    // Only use database data if it has valid title
+                    // (empty title means corrupted data, use PlayQueueItem fallback)
+                    if (existingEntity.getTitle() != null
+                            && !existingEntity.getTitle().isEmpty()) {
+                        // Create StreamInfo from database entity
+                        // Constructor: serviceId, url, originalUrl, streamType, id, name
+                        offlineStreamInfo = new StreamInfo(
+                                existingEntity.getServiceId(),
+                                existingEntity.getUrl(),
+                                existingEntity.getUrl(),        // originalUrl
+                                existingEntity.getStreamType(),
+                                existingEntity.getUrl(),        // id
+                                existingEntity.getTitle(),      // name
+                                0                               // ageLimit
+                        );
+
+                        // Set additional fields using setters
+                        offlineStreamInfo.setUploaderName(existingEntity.getUploader());
+                        offlineStreamInfo.setUploaderUrl(
+                                existingEntity.getUploaderUrl() != null
+                                        ? existingEntity.getUploaderUrl() : "");
+                        offlineStreamInfo.setDuration(existingEntity.getDuration());
+
+                        // Set thumbnails from database
+                        offlineStreamInfo.setThumbnails(
+                                org.schabi.newpipe.util.image.ImageStrategy.dbUrlToImageList(
+                                        existingEntity.getThumbnailUrl()));
+
+                        // If database has no thumbnail or has a base64 data URI,
+                        // try to extract from embedded file metadata
+                        final boolean needsExtraction = existingEntity.getThumbnailUrl() == null
+                                || existingEntity.getThumbnailUrl().isEmpty()
+                                || existingEntity.getThumbnailUrl().startsWith("data:");
+                        if (needsExtraction) {
+                            Log.i(TAG, "Database entry missing thumbnail, extracting from file");
+                            try {
+                                android.media.MediaMetadataRetriever retriever = null;
+                                try {
+                                    retriever = new android.media.MediaMetadataRetriever();
+                                    retriever.setDataSource(context,
+                                            android.net.Uri.parse(offlineUri));
+
+                                    final byte[] artBytes = retriever.getEmbeddedPicture();
+                                    if (artBytes != null && artBytes.length > 0) {
+                                        // Save album art as file
+                                        final String thumbnailPath = saveAlbumArtToFile(
+                                                context, stream.getUrl(), artBytes);
+
+                                        if (thumbnailPath != null) {
+                                            // Create Image list with file:// URL
+                                            final java.util.List<org.schabi.newpipe.extractor.Image>
+                                                    thumbnails = new java.util.ArrayList<>();
+                                            thumbnails.add(new org.schabi.newpipe.extractor.Image(
+                                                    thumbnailPath, -1, -1,
+                                                    org.schabi.newpipe.extractor.Image
+                                                            .ResolutionLevel.UNKNOWN));
+                                            offlineStreamInfo.setThumbnails(thumbnails);
+
+                                            // Update database with the file path
+                                            final org.schabi.newpipe.database.stream.model
+                                                    .StreamEntity updatedEntity =
+                                                    new org.schabi.newpipe.database.stream.model
+                                                            .StreamEntity(offlineStreamInfo);
+                                            org.schabi.newpipe.NewPipeDatabase.getInstance(context)
+                                                    .streamDAO().upsert(updatedEntity);
+
+                                            Log.i(TAG, "Extracted and saved album art to file: "
+                                                    + thumbnailPath);
+                                        }
+                                    }
+                                } finally {
+                                    if (retriever != null) {
+                                        try {
+                                            retriever.release();
+                                        } catch (final Exception ignored) {
+                                            // Ignore
+                                        }
+                                    }
+                                }
+                            } catch (final Exception e) {
+                                Log.w(TAG, "Failed to extract album art: " + e.getMessage());
+                            }
+                        }
+
+                        Log.d(TAG, "=== Created StreamInfo from database ===");
+                        Log.d(TAG, "getName(): '" + offlineStreamInfo.getName() + "'");
+                        Log.d(TAG, "getUploaderName(): '"
+                                + offlineStreamInfo.getUploaderName() + "'");
+                        Log.d(TAG, "getUploaderUrl(): '"
+                                + offlineStreamInfo.getUploaderUrl() + "'");
+                    } else {
+                        Log.w(TAG, "Database entity has empty title, will use PlayQueueItem"
+                                + " fallback");
+                    }
+                }
+            } catch (final Exception e) {
+                Log.w(TAG, "Failed to load StreamEntity from database: " + e.getMessage());
+            }
+
+            // Fallback to PlayQueueItem data if database query failed or had empty title
+            if (offlineStreamInfo == null) {
+                String title = stream.getTitle();
+                String uploader = stream.getUploader();
+                byte[] embeddedArtBytes = null;
+
+                // If PlayQueueItem also has empty data, try to extract from file metadata
+                if ((title == null || title.isEmpty()) && offlineUri != null) {
+                    try {
+                        Log.w(TAG, "PlayQueueItem has empty title, extracting from file");
+
+                        // First try to read embedded metadata tags (ID3, etc.)
+                        android.media.MediaMetadataRetriever retriever = null;
+                        try {
+                            retriever = new android.media.MediaMetadataRetriever();
+                            retriever.setDataSource(context, android.net.Uri.parse(offlineUri));
+
+                            // Extract metadata from audio file
+                            final String embeddedTitle = retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_TITLE);
+                            final String embeddedArtist = retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                            final String embeddedAlbum = retriever.extractMetadata(
+                                    android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM);
+
+                            if (embeddedTitle != null && !embeddedTitle.isEmpty()) {
+                                title = embeddedTitle;
+                                Log.i(TAG, "Extracted title from file metadata: " + title);
+                            }
+                            if (embeddedArtist != null && !embeddedArtist.isEmpty()) {
+                                uploader = embeddedArtist;
+                                Log.i(TAG, "Extracted artist from file metadata: " + uploader);
+                            }
+
+                            // Extract embedded album art
+                            embeddedArtBytes = retriever.getEmbeddedPicture();
+                            if (embeddedArtBytes != null) {
+                                Log.i(TAG, "Found embedded album art, size: "
+                                        + embeddedArtBytes.length);
+                            }
+                        } catch (final Exception e) {
+                            Log.w(TAG, "Failed to read embedded metadata: " + e.getMessage());
+                        } finally {
+                            if (retriever != null) {
+                                try {
+                                    retriever.release();
+                                } catch (final Exception ignored) {
+                                    // Ignore
+                                }
+                            }
+                        }
+
+                        // Fallback to filename parsing if metadata extraction failed
+                        if (title == null || title.isEmpty()) {
+                            Log.w(TAG, "No embedded metadata, parsing filename");
+
+                            // For content:// URIs, decode and extract the actual file path
+                            final String decodedPath =
+                                    java.net.URLDecoder.decode(offlineUri, "UTF-8");
+                            Log.d(TAG, "Decoded URI: " + decodedPath);
+
+                            // Extract path after "raw:" or "raw%3A"
+                            final String filePath;
+                            if (decodedPath.contains("raw:")) {
+                                filePath = decodedPath.substring(
+                                        decodedPath.lastIndexOf("raw:") + 4);
+                            } else {
+                                filePath = decodedPath;
+                            }
+                            Log.d(TAG, "Extracted file path: " + filePath);
+
+                            // Get filename from path
+                            final String filename =
+                                    filePath.substring(filePath.lastIndexOf('/') + 1);
+                            // Remove file extension
+                            final String nameWithoutExt = filename.replaceFirst("\\.[^.]+$", "");
+                            // Remove track number prefix like "05 - "
+                            final String extractedTitle =
+                                    nameWithoutExt.replaceFirst("^\\d+\\s*-\\s*", "");
+                            title = extractedTitle;
+                            Log.i(TAG, "Extracted title from filename: " + title);
+
+                            // Extract folder name (artist/album) if still no artist
+                            if (uploader == null || uploader.isEmpty()) {
+                                final int lastSlash = filePath.lastIndexOf('/');
+                                if (lastSlash > 0) {
+                                    final int secondLastSlash =
+                                            filePath.lastIndexOf('/', lastSlash - 1);
+                                    if (secondLastSlash > 0) {
+                                        uploader = filePath.substring(
+                                                secondLastSlash + 1, lastSlash);
+                                        Log.i(TAG, "Extracted artist from folder: " + uploader);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (final Exception e) {
+                        Log.w(TAG, "Failed to extract metadata: " + e.getMessage());
+                    }
+                }
+
+                Log.w(TAG, "Using PlayQueueItem/filename fallback - Title: " + title);
+                // Constructor: (serviceId, url, originalUrl, streamType, id, name, ageLimit)
+                offlineStreamInfo = new StreamInfo(
+                        stream.getServiceId(),
+                        stream.getUrl(),
+                        stream.getUrl(),                                       // originalUrl
+                        stream.getStreamType(),
+                        stream.getUrl(),                                       // id
+                        title != null && !title.isEmpty() ? title : "Unknown", // name
+                        0                                                      // ageLimit
+                );
+
+                // Set additional fields using setters
+                offlineStreamInfo.setUploaderName(
+                        uploader != null && !uploader.isEmpty() ? uploader : "Unknown");
+                offlineStreamInfo.setUploaderUrl(
+                        stream.getUploaderUrl() != null ? stream.getUploaderUrl() : "");
+                offlineStreamInfo.setDuration(stream.getDuration());
+
+                // Add embedded album art as thumbnail if available
+                if (embeddedArtBytes != null && embeddedArtBytes.length > 0) {
+                    try {
+                        // Save album art as file
+                        final String thumbnailPath = saveAlbumArtToFile(
+                                context, stream.getUrl(), embeddedArtBytes);
+
+                        if (thumbnailPath != null) {
+                            // Create Image list and set as thumbnails
+                            final java.util.List<org.schabi.newpipe.extractor.Image> thumbnails =
+                                    new java.util.ArrayList<>();
+                            thumbnails.add(new org.schabi.newpipe.extractor.Image(
+                                    thumbnailPath, -1, -1,
+                                    org.schabi.newpipe.extractor.Image.ResolutionLevel.UNKNOWN));
+                            offlineStreamInfo.setThumbnails(thumbnails);
+
+                            Log.i(TAG, "Added embedded album art from file: " + thumbnailPath);
+                        }
+                    } catch (final Exception e) {
+                        Log.w(TAG, "Failed to save album art: " + e.getMessage());
+                    }
+                }
+
+                // Update the corrupted database entry with correct metadata
+                // ONLY if:
+                // 1. We successfully extracted non-empty metadata
+                // 2. The existing database entry was corrupted (empty title)
+                if (title != null && !title.isEmpty()
+                        && (existingEntity == null
+                        || existingEntity.getTitle() == null
+                        || existingEntity.getTitle().isEmpty())) {
+                    try {
+                        final org.schabi.newpipe.database.stream.dao.StreamDAO streamDAO =
+                                org.schabi.newpipe.NewPipeDatabase.getInstance(context)
+                                        .streamDAO();
+                        final org.schabi.newpipe.database.stream.model.StreamEntity newEntity =
+                                new org.schabi.newpipe.database.stream.model.StreamEntity(
+                                        offlineStreamInfo);
+                        streamDAO.upsert(newEntity);
+                        Log.i(TAG, "Updated corrupted database entry with recovered metadata"
+                                + " - Title: " + title + ", Artist: " + uploader);
+                    } catch (final Exception e) {
+                        Log.w(TAG, "Failed to update database with recovered metadata: "
+                                + e.getMessage());
+                    }
+                } else if (existingEntity != null && existingEntity.getTitle() != null
+                        && !existingEntity.getTitle().isEmpty()) {
+                    Log.d(TAG, "NOT updating database - existing entry has valid data");
+                } else {
+                    Log.w(TAG, "NOT updating database - extracted metadata is still empty");
+                }
+            }
+
+            Log.d(TAG, "Final StreamInfo - getName(): " + offlineStreamInfo.getName()
+                    + ", getUploaderName(): " + offlineStreamInfo.getUploaderName());
+
+            // Create tag for the media item
+            final MediaItemTag tag = StreamInfoTag.of(offlineStreamInfo);
+
+            // Create media item with offline file URI and proper metadata
+            // Use tag.asMediaItem() to get MediaMetadata, then override URI for offline playback
+            final MediaItem mediaItem = tag.asMediaItem()
+                    .buildUpon()
+                    .setUri(Uri.parse(offlineUri))
+                    .build();
+
+            // Create progressive media source directly for offline file
+            // Don't go through resolvers - just play the local file
+            final com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory factory =
+                    new com.google.android.exoplayer2.source.ProgressiveMediaSource.Factory(
+                            new com.google.android.exoplayer2.upstream
+                                    .DefaultDataSource.Factory(context));
+            final com.google.android.exoplayer2.source.ProgressiveMediaSource
+                    progressiveSource = factory.createMediaSource(mediaItem);
+
+            final long expiration = System.currentTimeMillis()
+                    + TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS);
+
+            Log.i(TAG, "Offline media source created successfully - Title: "
+                    + offlineStreamInfo.getName() + ", Artist: "
+                    + offlineStreamInfo.getUploaderName());
+            return new LoadedMediaSource(progressiveSource, tag, stream, expiration);
+        });
     }
 
     private void onMediaSourceReceived(@NonNull final PlayQueueItem item,
@@ -591,6 +970,44 @@ public class MediaSourceManager {
         neighbors.remove(currentItem);
 
         return new ItemsToLoad(currentItem, neighbors);
+    }
+
+    /**
+     * Saves album art bytes to a file in the app's cache directory.
+     *
+     * @param context the application context
+     * @param streamUrl the URL of the stream (used to generate filename)
+     * @param artBytes the album art image bytes
+     * @return the file:// URL of the saved file, or null if save failed
+     */
+    @Nullable
+    private static String saveAlbumArtToFile(@NonNull final android.content.Context context,
+                                             @NonNull final String streamUrl,
+                                             @NonNull final byte[] artBytes) {
+        try {
+            // Create thumbnails directory in cache
+            final java.io.File thumbnailDir = new java.io.File(
+                    context.getCacheDir(), "offline_thumbnails");
+            if (!thumbnailDir.exists() && !thumbnailDir.mkdirs()) {
+                Log.w("MediaSourceManager", "Failed to create thumbnail directory");
+                return null;
+            }
+
+            // Generate filename from stream URL hash to avoid collisions
+            final String filename = String.valueOf(streamUrl.hashCode()) + ".jpg";
+            final java.io.File thumbnailFile = new java.io.File(thumbnailDir, filename);
+
+            // Write bytes to file
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(thumbnailFile)) {
+                fos.write(artBytes);
+            }
+
+            // Return file:// URL
+            return "file://" + thumbnailFile.getAbsolutePath();
+        } catch (final java.io.IOException e) {
+            Log.w("MediaSourceManager", "Failed to save album art to file: " + e.getMessage());
+            return null;
+        }
     }
 
     private static class ItemsToLoad {

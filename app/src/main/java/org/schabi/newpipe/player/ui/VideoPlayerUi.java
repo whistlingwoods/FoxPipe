@@ -516,6 +516,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     public void onUpdateProgress(final int currentProgress,
                                  final int duration,
                                  final int bufferPercent) {
+        android.util.Log.d("VideoPlayerUi", "onUpdateProgress: current=" + currentProgress
+                + "ms, duration=" + duration + "ms, seekBarMax="
+                + binding.playbackSeekBar.getMax());
 
         if (duration != binding.playbackSeekBar.getMax()) {
             setVideoDurationToControls(duration);
@@ -555,7 +558,14 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * @param duration the video duration, in milliseconds
      */
     private void setVideoDurationToControls(final int duration) {
+        android.util.Log.d("VideoPlayerUi", "setVideoDurationToControls called with duration: "
+                + duration + "ms = " + getTimeString(duration));
+        android.util.Log.d("VideoPlayerUi", "playbackEndTime visibility before: "
+                + binding.playbackEndTime.getVisibility());
         binding.playbackEndTime.setText(getTimeString(duration));
+        android.util.Log.d("VideoPlayerUi", "playbackEndTime visibility after: "
+                + binding.playbackEndTime.getVisibility() + ", text: '"
+                + binding.playbackEndTime.getText() + "'");
 
         binding.playbackSeekBar.setMax(duration);
         // This is important for Android TVs otherwise it would apply the default from
@@ -1017,6 +1027,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         updateStreamRelatedViews();
 
+        // Log what we're about to display
+        android.util.Log.d("VideoPlayerUi", "onMetadataChanged - info.getName(): "
+                + info.getName() + ", info.getUploaderName(): " + info.getUploaderName());
+
         binding.titleTextView.setText(info.getName());
         binding.channelTextView.setText(info.getUploaderName());
 
@@ -1024,7 +1038,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     private void updateStreamRelatedViews() {
+        android.util.Log.d("VideoPlayerUi", "updateStreamRelatedViews called, "
+                + "getCurrentStreamInfo present: " + player.getCurrentStreamInfo().isPresent());
         player.getCurrentStreamInfo().ifPresent(info -> {
+            android.util.Log.d("VideoPlayerUi", "StreamType: " + info.getStreamType());
             binding.qualityTextView.setVisibility(View.GONE);
             binding.audioTrackTextView.setVisibility(View.GONE);
             binding.playbackSpeed.setVisibility(View.GONE);
@@ -1035,9 +1052,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             switch (info.getStreamType()) {
                 case AUDIO_STREAM:
                 case POST_LIVE_AUDIO_STREAM:
+                    android.util.Log.d("VideoPlayerUi", "Case: AUDIO_STREAM");
                     binding.surfaceView.setVisibility(View.GONE);
                     binding.endScreen.setVisibility(View.VISIBLE);
                     binding.playbackEndTime.setVisibility(View.VISIBLE);
+                    android.util.Log.d("VideoPlayerUi", "Set playbackEndTime to VISIBLE");
                     break;
 
                 case AUDIO_LIVE_STREAM:
@@ -1058,6 +1077,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                             && player.getCurrentMetadata().getMaybeQuality().isEmpty()
                             || (info.getVideoStreams().isEmpty()
                             && info.getVideoOnlyStreams().isEmpty())) {
+                        // Still need to show playback time for offline/audio-only content
+                        binding.playbackEndTime.setVisibility(View.VISIBLE);
                         break;
                     }
 
@@ -1068,14 +1089,22 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                     binding.surfaceView.setVisibility(View.VISIBLE);
                     // fallthrough
                 default:
+                    android.util.Log.d("VideoPlayerUi", "Case: default (VIDEO_STREAM)");
                     binding.endScreen.setVisibility(View.GONE);
                     binding.playbackEndTime.setVisibility(View.VISIBLE);
+                    android.util.Log.d("VideoPlayerUi", "Set playbackEndTime to VISIBLE (default)");
                     break;
             }
+
+            android.util.Log.d("VideoPlayerUi", "After switch, playbackEndTime visibility: "
+                    + binding.playbackEndTime.getVisibility());
 
             buildPlaybackSpeedMenu();
             binding.playbackSpeed.setVisibility(View.VISIBLE);
         });
+
+        android.util.Log.d("VideoPlayerUi", "End of updateStreamRelatedViews, "
+                + "playbackEndTime visibility: " + binding.playbackEndTime.getVisibility());
     }
     //endregion
 

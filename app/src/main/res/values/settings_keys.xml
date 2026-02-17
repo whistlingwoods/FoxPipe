@@ -20,6 +20,57 @@
     <string name="popup_remember_size_pos_key">popup_remember_size_pos_key</string>
     <string name="use_inexact_seek_key">use_inexact_seek_key</string>
     <string name="auto_queue_key">auto_queue_key</string>
+    <string name="use_weighted_shuffle_key">use_weighted_shuffle_key</string>
+    <string name="weighted_shuffle_unrated_weight_key">weighted_shuffle_unrated_weight_key</string>
+    <string name="weighted_shuffle_curve_exponent_key">weighted_shuffle_curve_exponent_key</string>
+    <string name="rating_statistics_key">rating_statistics_key</string>
+
+    <string-array name="weighted_shuffle_unrated_weight_description">
+        <item>1 (Very Low)</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5 (Medium)</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10 (Maximum - Default)</item>
+    </string-array>
+    <string-array name="weighted_shuffle_unrated_weight_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
+    <string-array name="weighted_shuffle_curve_exponent_description">
+        <item>1.0 (Linear - Default)</item>
+        <item>1.2</item>
+        <item>1.4</item>
+        <item>1.6</item>
+        <item>1.8</item>
+        <item>2.0 (Quadratic)</item>
+        <item>2.5</item>
+        <item>3.0 (Cubic)</item>
+    </string-array>
+    <string-array name="weighted_shuffle_curve_exponent_values">
+        <item>10</item>
+        <item>12</item>
+        <item>14</item>
+        <item>16</item>
+        <item>18</item>
+        <item>20</item>
+        <item>25</item>
+        <item>30</item>
+    </string-array>
+
     <string name="screen_brightness_key">screen_brightness_key</string>
     <string name="screen_brightness_timestamp_key">screen_brightness_timestamp_key</string>
     <string name="clear_queue_confirmation_key">clear_queue_confirmation_key</string>

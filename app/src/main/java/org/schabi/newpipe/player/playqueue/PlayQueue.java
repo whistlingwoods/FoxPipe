@@ -475,6 +475,44 @@ public abstract class PlayQueue implements Serializable {
     }
 
     /**
+     * Shuffles the current play queue using weighted shuffle based on ratings.
+     * Unrated tracks get maximum weight to encourage users to rate them.
+     * <p>
+     * This method first backs up the existing play queue and item being played. Then a newly
+     * shuffled play queue will be generated using weighted random selection based on ratings.
+     * The currently playing item will be placed at the beginning of the queue.
+     * </p>
+     * <p>
+     * Will emit a {@link ReorderEvent} if shuffled.
+     * </p>
+     *
+     * @param context the context for database access
+     * @implNote Does nothing if the queue has a size <= 2
+     */
+    public synchronized void weightedShuffle(final android.content.Context context) {
+        // Create a backup if it doesn't already exist
+        if (backup == null) {
+            backup = new ArrayList<>(streams);
+        }
+        // Can't shuffle a list that's empty or only has one element
+        if (size() <= 2) {
+            return;
+        }
+
+        final int originalIndex = getIndex();
+        final PlayQueueItem currentItem = getItem();
+
+        // Use weighted shuffle helper
+        streams = org.schabi.newpipe.util.WeightedShuffleHelper.weightedShuffle(
+                context, streams, currentItem);
+
+        queueIndex.set(0);
+        history.add(currentItem);
+
+        broadcast(new ReorderEvent(originalIndex, 0));
+    }
+
+    /**
      * Unshuffles the current play queue if a backup play queue exists.
      * <p>
      * This method undoes shuffling and index will be set to the previously playing item if found,

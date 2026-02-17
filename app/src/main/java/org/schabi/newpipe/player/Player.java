@@ -234,6 +234,15 @@ public final class Player implements PlaybackListener, Listener {
     private boolean isPrepared = false;
 
     /*//////////////////////////////////////////////////////////////////////////
+    // Playback statistics tracking
+    //////////////////////////////////////////////////////////////////////////*/
+
+    private long playbackStartPositionMillis = 0;
+    private long accumulatedPlayTimeMillis = 0;
+    private long currentStreamDatabaseId = -1;
+    private long currentStreamDuration = 0;
+
+    /*//////////////////////////////////////////////////////////////////////////
     // UIs, listeners and disposables
     //////////////////////////////////////////////////////////////////////////*/
 
@@ -737,7 +746,7 @@ public final class Player implements PlaybackListener, Listener {
         }
 
         if (playQueue != null) {
-            playQueueManager = new MediaSourceManager(this, playQueue);
+            playQueueManager = new MediaSourceManager(context, this, playQueue);
         }
     }
 
@@ -1027,8 +1036,30 @@ public final class Player implements PlaybackListener, Listener {
             return;
         }
 
+        // Get duration from ExoPlayer, but fall back to metadata if unavailable
+        long durationMillis = simpleExoPlayer.getDuration();
+        if (DEBUG) {
+            Log.d(TAG, "triggerProgressUpdate - ExoPlayer duration: " + durationMillis);
+        }
+
+        if (durationMillis <= 0 && currentMetadata != null) {
+            // ExoPlayer doesn't have duration yet (e.g., for offline files),
+            // use duration from metadata (in seconds, convert to millis)
+            final long metadataDurationSeconds = currentMetadata.getDurationSeconds();
+            durationMillis = metadataDurationSeconds * 1000;
+            if (DEBUG) {
+                Log.d(TAG, "Using metadata duration: " + metadataDurationSeconds + "s = "
+                        + durationMillis + "ms");
+            }
+        }
+
+        if (DEBUG && durationMillis <= 0) {
+            Log.w(TAG, "Duration still <= 0 after fallback. Metadata: "
+                    + (currentMetadata != null ? currentMetadata.getTitle() : "null"));
+        }
+
         onUpdateProgress(Math.max((int) simpleExoPlayer.getCurrentPosition(), 0),
-                (int) simpleExoPlayer.getDuration(), simpleExoPlayer.getBufferedPercentage());
+                (int) durationMillis, simpleExoPlayer.getBufferedPercentage());
     }
 
     private Disposable getProgressUpdateDisposable() {
@@ -1207,6 +1238,11 @@ public final class Player implements PlaybackListener, Listener {
             startProgressLoop();
         }
 
+        // Start tracking playtime
+        startPlaybackTimeTracking();
+        // Record play/resume event
+        recordPlayEvent();
+
         UIs.call(PlayerUi::onPlaying);
     }
 
@@ -1227,6 +1263,11 @@ public final class Player implements PlaybackListener, Listener {
             stopProgressLoop();
         }
 
+        // Save accumulated playtime when pausing
+        saveAccumulatedPlayTime();
+        // Record pause event
+        recordPauseEvent();
+
         UIs.call(PlayerUi::onPaused);
     }
 
@@ -1244,6 +1285,10 @@ public final class Player implements PlaybackListener, Listener {
         if (playQueue == null) {
             return;
         }
+
+        // Record completion and save playtime (track played to completion)
+        checkAndRecordCompletion();
+        saveAccumulatedPlayTime(true);
 
         UIs.call(PlayerUi::onCompleted);
 
@@ -1306,7 +1351,14 @@ public final class Player implements PlaybackListener, Listener {
 
         if (playQueue != null) {
             if (shuffleModeEnabled) {
-                playQueue.shuffle();
+                // Check if weighted shuffle is enabled in settings
+                final boolean useWeightedShuffle = prefs.getBoolean(
+                        context.getString(R.string.use_weighted_shuffle_key), true);
+                if (useWeightedShuffle) {
+                    playQueue.weightedShuffle(context);
+                } else {
+                    playQueue.shuffle();
+                }
             } else {
                 playQueue.unshuffle();
             }
@@ -1338,6 +1390,8 @@ public final class Player implements PlaybackListener, Listener {
         } else {
             audioReactor.abandonAudioFocus();
         }
+        // Track volume change event
+        recordVolumeChangeEvent();
         UIs.call(playerUi -> playerUi.onMuteUnmuteChanged(!wasMuted));
         notifyPlaybackUpdateToListeners();
     }
@@ -1400,7 +1454,13 @@ public final class Player implements PlaybackListener, Listener {
                 }
                 if (previousInfo == null || !previousInfo.getUrl().equals(info.getUrl())) {
                     // only update with the new stream info if it has actually changed
+                    // Save playback time for previous stream before switching
+                    if (previousInfo != null) {
+                        saveAccumulatedPlayTime();
+                    }
                     updateMetadataWith(info);
+                    // Initialize tracking for new stream
+                    initializePlaybackTracking(info);
                 } else if (previousAudioTrack == null
                         || tag.getMaybeAudioTrack()
                         .map(t -> t.getSelectedAudioStreamIndex()
@@ -1448,6 +1508,9 @@ public final class Player implements PlaybackListener, Listener {
 
         // Refresh the playback if there is a transition to the next video
         final int newIndex = newPosition.mediaItemIndex;
+        final boolean isAutoTransition = discontinuityReason == DISCONTINUITY_REASON_AUTO_TRANSITION
+                || discontinuityReason == DISCONTINUITY_REASON_REMOVE;
+
         switch (discontinuityReason) {
             case DISCONTINUITY_REASON_AUTO_TRANSITION:
             case DISCONTINUITY_REASON_REMOVE:
@@ -1461,6 +1524,17 @@ public final class Player implements PlaybackListener, Listener {
                 if (DEBUG) {
                     Log.d(TAG, "ExoPlayer - onSeekProcessed() called");
                 }
+                // Check if this is a restart (seeking back to beginning)
+                if (oldPosition.mediaItemIndex == newPosition.mediaItemIndex) {
+                    final boolean isRestart = checkAndRecordRestart(
+                            oldPosition.positionMs,
+                            newPosition.positionMs
+                    );
+                    // Record seek event (unless it's a restart, which is already recorded)
+                    if (!isRestart) {
+                        recordSeekEvent();
+                    }
+                }
                 if (isPrepared) {
                     saveStreamProgressState();
                 }
@@ -1468,6 +1542,15 @@ public final class Player implements PlaybackListener, Listener {
             case DISCONTINUITY_REASON_INTERNAL:
                 // Player index may be invalid when playback is blocked
                 if (getCurrentState() != STATE_BLOCKED && newIndex != playQueue.getIndex()) {
+                    if (isAutoTransition) {
+                        // Track auto-transitioned (played to completion)
+                        checkAndRecordCompletion();
+                        saveAccumulatedPlayTime(true);
+                    } else {
+                        // Track if this was a skip (didn't reach completion)
+                        checkAndRecordSkip();
+                        saveAccumulatedPlayTime(false);
+                    }
                     saveStreamProgressStateCompleted(); // current stream has ended
                     playQueue.setIndex(newIndex);
                 }
@@ -2460,5 +2543,221 @@ public final class Player implements PlaybackListener, Listener {
                 // No video renderer index with at least one track found: return unavailable index
                 .orElse(RENDERER_UNAVAILABLE);
     }
+
+    /*//////////////////////////////////////////////////////////////////////////
+    // Playback Statistics Tracking
+    //////////////////////////////////////////////////////////////////////////*/
+    //region Playback Statistics Tracking
+
+    private void initializePlaybackTracking(@Nullable final StreamInfo info) {
+        if (info == null) {
+            return;
+        }
+
+        // Get or create the stream ID in the database
+        databaseUpdateDisposable.add(
+            recordManager.getOrCreateStreamId(info)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    streamId -> {
+                        currentStreamDatabaseId = streamId;
+                        currentStreamDuration = info.getDuration() * 1000; // convert to millis
+                        accumulatedPlayTimeMillis = 0;
+                        playbackStartPositionMillis = 0;
+                        if (DEBUG) {
+                            Log.d(TAG, "Playback tracking initialized for stream ID: " + streamId
+                                    + ", duration: " + currentStreamDuration + "ms, state: "
+                                    + currentState);
+                        }
+                        // If already playing when ID arrives, start tracking now
+                        if (currentState == STATE_PLAYING) {
+                            startPlaybackTimeTracking();
+                        }
+                    },
+                    error -> {
+                        if (DEBUG) {
+                            Log.e(TAG, "Failed to get stream ID for playback tracking", error);
+                        }
+                    }
+                )
+        );
+    }
+
+    private void startPlaybackTimeTracking() {
+        if (currentStreamDatabaseId == -1 || exoPlayerIsNull()) {
+            if (DEBUG) {
+                Log.d(TAG, "Cannot start playback tracking - streamId: "
+                        + currentStreamDatabaseId + ", exoPlayer null: " + exoPlayerIsNull());
+            }
+            return;
+        }
+        playbackStartPositionMillis = simpleExoPlayer.getCurrentPosition();
+        if (DEBUG) {
+            Log.d(TAG, "Started playback tracking at position: " + playbackStartPositionMillis);
+        }
+    }
+
+    private void saveAccumulatedPlayTime() {
+        saveAccumulatedPlayTime(false);
+    }
+
+    private void saveAccumulatedPlayTime(final boolean isCompletion) {
+        if (currentStreamDatabaseId == -1) {
+            if (DEBUG) {
+                Log.d(TAG, "Cannot save playtime - streamId not set");
+            }
+            return;
+        }
+
+        final long playedMillis;
+        if (isCompletion) {
+            // Track completed/transitioned - use duration from start position to end
+            playedMillis = currentStreamDuration - playbackStartPositionMillis;
+        } else if (exoPlayerIsNull()) {
+            if (DEBUG) {
+                Log.d(TAG, "Cannot save playtime - exoPlayer is null");
+            }
+            return;
+        } else {
+            final long currentPosition = simpleExoPlayer.getCurrentPosition();
+            playedMillis = currentPosition - playbackStartPositionMillis;
+        }
+
+        if (playedMillis > 0) {
+            accumulatedPlayTimeMillis += playedMillis;
+
+            if (DEBUG) {
+                Log.d(TAG, "Saving playtime: " + playedMillis + "ms (total: "
+                        + accumulatedPlayTimeMillis + "ms) for stream ID: "
+                        + currentStreamDatabaseId);
+            }
+
+            // Save to database
+            databaseUpdateDisposable.add(
+                recordManager.addPlayTime(currentStreamDatabaseId, playedMillis)
+                    .subscribe(
+                        () -> {
+                            if (DEBUG) {
+                                Log.d(TAG, "Successfully saved " + playedMillis
+                                        + "ms to database");
+                            }
+                        },
+                        error -> {
+                            if (DEBUG) {
+                                Log.e(TAG, "Failed to save playtime", error);
+                            }
+                        }
+                    )
+            );
+        } else {
+            if (DEBUG) {
+                Log.d(TAG, "Skipping playtime save - playedMillis: " + playedMillis);
+            }
+        }
+    }
+
+    private void checkAndRecordCompletion() {
+        if (currentStreamDatabaseId == -1 || currentStreamDuration == 0 || exoPlayerIsNull()) {
+            return;
+        }
+
+        final long currentPosition = simpleExoPlayer.getCurrentPosition();
+        final double completionPercentage = (double) currentPosition / currentStreamDuration;
+
+        // Consider >90% as completion
+        if (completionPercentage > 0.9) {
+            databaseUpdateDisposable.add(
+                recordManager.recordCompletion(currentStreamDatabaseId)
+                    .onErrorComplete()
+                    .subscribe()
+            );
+        }
+    }
+
+    private void checkAndRecordSkip() {
+        if (currentStreamDatabaseId == -1 || currentStreamDuration == 0 || exoPlayerIsNull()) {
+            return;
+        }
+
+        final long currentPosition = simpleExoPlayer.getCurrentPosition();
+        final double completionPercentage = (double) currentPosition / currentStreamDuration;
+
+        // If we haven't reached 90%, it's a skip
+        if (completionPercentage <= 0.9) {
+            databaseUpdateDisposable.add(
+                recordManager.recordSkip(currentStreamDatabaseId)
+                    .onErrorComplete()
+                    .subscribe()
+            );
+        }
+    }
+
+    private boolean checkAndRecordRestart(final long oldPositionMs, final long newPositionMs) {
+        if (currentStreamDatabaseId == -1) {
+            return false;
+        }
+
+        // If seeking from >10s to <5s, consider it a restart
+        if (oldPositionMs > 10000 && newPositionMs < 5000) {
+            databaseUpdateDisposable.add(
+                recordManager.recordRestart(currentStreamDatabaseId)
+                    .onErrorComplete()
+                    .subscribe()
+            );
+            return true;
+        }
+        return false;
+    }
+
+    private void recordVolumeChangeEvent() {
+        if (currentStreamDatabaseId == -1) {
+            return;
+        }
+
+        databaseUpdateDisposable.add(
+            recordManager.recordVolumeChange(currentStreamDatabaseId)
+                .onErrorComplete()
+                .subscribe()
+        );
+    }
+
+    private void recordPauseEvent() {
+        if (currentStreamDatabaseId == -1) {
+            return;
+        }
+
+        databaseUpdateDisposable.add(
+            recordManager.recordPause(currentStreamDatabaseId)
+                .onErrorComplete()
+                .subscribe()
+        );
+    }
+
+    private void recordPlayEvent() {
+        if (currentStreamDatabaseId == -1) {
+            return;
+        }
+
+        databaseUpdateDisposable.add(
+            recordManager.recordPlay(currentStreamDatabaseId)
+                .onErrorComplete()
+                .subscribe()
+        );
+    }
+
+    private void recordSeekEvent() {
+        if (currentStreamDatabaseId == -1) {
+            return;
+        }
+
+        databaseUpdateDisposable.add(
+            recordManager.recordSeek(currentStreamDatabaseId)
+                .onErrorComplete()
+                .subscribe()
+        );
+    }
+
+    //endregion
     //endregion
 }

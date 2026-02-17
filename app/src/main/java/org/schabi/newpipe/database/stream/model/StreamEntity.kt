@@ -62,7 +62,10 @@ data class StreamEntity(
     var uploadDate: OffsetDateTime? = null,
 
     @ColumnInfo(name = STREAM_IS_UPLOAD_DATE_APPROXIMATION)
-    var isUploadDateApproximation: Boolean? = null
+    var isUploadDateApproximation: Boolean? = null,
+
+    @ColumnInfo(name = STREAM_USER_RATING)
+    var userRating: Int? = null
 ) : Serializable {
     @Ignore
     constructor(item: StreamInfoItem) : this(
@@ -124,5 +127,6 @@ data class StreamEntity(
         const val STREAM_TEXTUAL_UPLOAD_DATE = "textual_upload_date"
         const val STREAM_UPLOAD_DATE = "upload_date"
         const val STREAM_IS_UPLOAD_DATE_APPROXIMATION = "is_upload_date_approximation"
+        const val STREAM_USER_RATING = "user_rating"
     }
 }

@@ -9,6 +9,9 @@ package org.schabi.newpipe
 import android.content.Context
 import androidx.room.Room.databaseBuilder
 import org.schabi.newpipe.database.AppDatabase
+import org.schabi.newpipe.database.Migrations.MIGRATION_10_11
+import org.schabi.newpipe.database.Migrations.MIGRATION_11_12
+import org.schabi.newpipe.database.Migrations.MIGRATION_12_13
 import org.schabi.newpipe.database.Migrations.MIGRATION_1_2
 import org.schabi.newpipe.database.Migrations.MIGRATION_2_3
 import org.schabi.newpipe.database.Migrations.MIGRATION_3_4
@@ -17,6 +20,7 @@ import org.schabi.newpipe.database.Migrations.MIGRATION_5_6
 import org.schabi.newpipe.database.Migrations.MIGRATION_6_7
 import org.schabi.newpipe.database.Migrations.MIGRATION_7_8
 import org.schabi.newpipe.database.Migrations.MIGRATION_8_9
+import org.schabi.newpipe.database.Migrations.MIGRATION_9_10
 import kotlin.concurrent.Volatile
 
 object NewPipeDatabase {
@@ -37,7 +41,11 @@ object NewPipeDatabase {
             MIGRATION_5_6,
             MIGRATION_6_7,
             MIGRATION_7_8,
-            MIGRATION_8_9
+            MIGRATION_8_9,
+            MIGRATION_9_10,
+            MIGRATION_10_11,
+            MIGRATION_11_12,
+            MIGRATION_12_13
         ).build()
     }
 

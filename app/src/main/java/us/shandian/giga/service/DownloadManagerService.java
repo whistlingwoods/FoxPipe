@@ -38,8 +38,12 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.IntentCompat;
 import androidx.preference.PreferenceManager;
 
+import org.schabi.newpipe.NewPipeDatabase;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.database.download.model.OfflineFileMappingEntity;
 import org.schabi.newpipe.download.DownloadActivity;
+import org.schabi.newpipe.extractor.ServiceList;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.player.helper.LockManager;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
@@ -47,6 +51,7 @@ import org.schabi.newpipe.util.Localization;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -80,6 +85,8 @@ public class DownloadManagerService extends Service {
     private static final String EXTRA_PARENT_PATH = "DownloadManagerService.extra.storageParentPath";
     private static final String EXTRA_STORAGE_TAG = "DownloadManagerService.extra.storageTag";
     private static final String EXTRA_RECOVERY_INFO = "DownloadManagerService.extra.recoveryInfo";
+    private static final String EXTRA_PLAYLIST_METADATA = "DownloadManagerService.extra.playlistMetadata";
+    private static final String EXTRA_CREATE_OFFLINE_MAPPING = "DownloadManagerService.extra.createOfflineMapping";
 
     private static final String ACTION_RESET_DOWNLOAD_FINISHED = APPLICATION_ID + ".reset_download_finished";
     private static final String ACTION_OPEN_DOWNLOADS_FINISHED = APPLICATION_ID + ".open_downloads_finished";
@@ -262,6 +269,7 @@ public class DownloadManagerService extends Service {
                 notifyMediaScanner(mission.storage.getUri());
                 notifyFinishedDownload(mission.storage.getName());
                 mManager.setFinished(mission);
+                saveOfflineMappingIfRequested(mission);
                 handleConnectivityState(false);
                 updateForegroundState(mManager.runMissions());
                 break;
@@ -362,6 +370,32 @@ public class DownloadManagerService extends Service {
                                     char kind, int threads, String source, String psName,
                                     String[] psArgs, long nearLength,
                                     ArrayList<MissionRecoveryInfo> recoveryInfo) {
+        startMission(context, urls, storage, kind, threads, source, psName, psArgs,
+            nearLength, recoveryInfo, null, false);
+    }
+
+    /**
+     * Start a new download mission with playlist metadata and offline mapping support.
+     *
+     * @param context             the activity context
+     * @param urls                array of urls to download
+     * @param storage             where the file is saved
+     * @param kind                type of file (a: audio  v: video  s: subtitle ?: file-extension defined)
+     * @param threads             the number of threads maximal used to download chunks of the file
+     * @param source              source url of the resource
+     * @param psName              the name of the required post-processing algorithm, or {@code null} to ignore
+     * @param psArgs              the arguments for the post-processing algorithm
+     * @param nearLength          the approximated final length of the file
+     * @param recoveryInfo        array of MissionRecoveryInfo, in case is required recover the download
+     * @param playlistMetadata    optional playlist metadata for audio tagging, or null
+     * @param createOfflineMapping whether to create offline file mapping after download completes
+     */
+    public static void startMission(Context context, String[] urls, StoredFileHelper storage,
+                                    char kind, int threads, String source, String psName,
+                                    String[] psArgs, long nearLength,
+                                    ArrayList<MissionRecoveryInfo> recoveryInfo,
+                                    @Nullable us.shandian.giga.get.DownloadMission.PlaylistMetadata playlistMetadata,
+                                    boolean createOfflineMapping) {
         final Intent intent = new Intent(context, DownloadManagerService.class)
                 .setAction(Intent.ACTION_RUN)
                 .putExtra(EXTRA_URLS, urls)
@@ -374,7 +408,9 @@ public class DownloadManagerService extends Service {
                 .putExtra(EXTRA_RECOVERY_INFO, recoveryInfo)
                 .putExtra(EXTRA_PARENT_PATH, storage.getParentUri())
                 .putExtra(EXTRA_PATH, storage.getUri())
-                .putExtra(EXTRA_STORAGE_TAG, storage.getTag());
+                .putExtra(EXTRA_STORAGE_TAG, storage.getTag())
+                .putExtra(EXTRA_PLAYLIST_METADATA, playlistMetadata)
+                .putExtra(EXTRA_CREATE_OFFLINE_MAPPING, createOfflineMapping);
 
         context.startService(intent);
     }
@@ -394,6 +430,13 @@ public class DownloadManagerService extends Service {
                 MissionRecoveryInfo.class);
         Objects.requireNonNull(recovery);
 
+        // Extract new extras for playlist downloads
+        final us.shandian.giga.get.DownloadMission.PlaylistMetadata playlistMetadata =
+            (us.shandian.giga.get.DownloadMission.PlaylistMetadata)
+                intent.getSerializableExtra(EXTRA_PLAYLIST_METADATA);
+        final boolean createOfflineMapping =
+            intent.getBooleanExtra(EXTRA_CREATE_OFFLINE_MAPPING, false);
+
         StoredFileHelper storage;
         try {
             storage = new StoredFileHelper(this, parentPath, path, tag);
@@ -412,6 +455,10 @@ public class DownloadManagerService extends Service {
         mission.source = source;
         mission.nearLength = nearLength;
         mission.recoveryInfo = recovery.toArray(new MissionRecoveryInfo[0]);
+
+        // Set playlist metadata and offline mapping flag
+        mission.playlistMetadata = playlistMetadata;
+        mission.createOfflineMapping = createOfflineMapping;
 
         if (ps != null)
             ps.setTemporalDir(DownloadManager.pickAvailableTemporalDir(this));
@@ -527,6 +574,70 @@ public class DownloadManagerService extends Service {
         }
 
         return null;
+    }
+
+    /**
+     * Saves an offline file mapping to the database if requested.
+     * This enables the app to detect that a stream has been downloaded for offline playback.
+     *
+     * @param mission the completed download mission
+     */
+    private void saveOfflineMappingIfRequested(final DownloadMission mission) {
+        if (!mission.createOfflineMapping) {
+            return;
+        }
+
+        // Need serviceId from playlist metadata
+        if (mission.playlistMetadata == null) {
+            Log.w(TAG, "Cannot create offline mapping: playlistMetadata is null");
+            return;
+        }
+
+        final int serviceId = mission.playlistMetadata.serviceId;
+        final String streamUrl = mission.source;
+        final String localFileUri = mission.storage.getUri().toString();
+        final long fileSize = mission.storage.length();
+
+        // Determine MIME type from file kind
+        String mimeType;
+        switch (mission.kind) {
+            case 'a':
+                mimeType = "audio/*";
+                break;
+            case 'v':
+                mimeType = "video/*";
+                break;
+            case 's':
+                mimeType = "text/*";
+                break;
+            default:
+                mimeType = "application/octet-stream";
+                break;
+        }
+
+        // Create the mapping entity
+        final OfflineFileMappingEntity mapping = new OfflineFileMappingEntity(
+            0, // uid will be auto-generated
+            serviceId,
+            streamUrl,
+            localFileUri,
+            fileSize,
+            mimeType,
+            OffsetDateTime.now(),
+            true // isAvailable
+        );
+
+        // Insert into database (run in background thread)
+        new Thread(() -> {
+            try {
+                NewPipeDatabase.getInstance(this)
+                    .offlineFileMappingDAO()
+                    .insertMapping(mapping);
+                Log.i(TAG, "Saved offline file mapping for: " + streamUrl);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to save offline file mapping", e);
+            }
+        }).start();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
