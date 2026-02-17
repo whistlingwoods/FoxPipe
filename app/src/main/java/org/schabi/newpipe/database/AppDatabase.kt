@@ -9,6 +9,8 @@ package org.schabi.newpipe.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import org.schabi.newpipe.database.download.dao.OfflineFileMappingDAO
+import org.schabi.newpipe.database.download.model.OfflineFileMappingEntity
 import org.schabi.newpipe.database.feed.dao.FeedDAO
 import org.schabi.newpipe.database.feed.dao.FeedGroupDAO
 import org.schabi.newpipe.database.feed.model.FeedEntity
@@ -19,6 +21,8 @@ import org.schabi.newpipe.database.history.dao.SearchHistoryDAO
 import org.schabi.newpipe.database.history.dao.StreamHistoryDAO
 import org.schabi.newpipe.database.history.model.SearchHistoryEntry
 import org.schabi.newpipe.database.history.model.StreamHistoryEntity
+import org.schabi.newpipe.database.playback.dao.PlaybackStatisticsDAO
+import org.schabi.newpipe.database.playback.model.PlaybackStatisticsEntity
 import org.schabi.newpipe.database.playlist.dao.PlaylistDAO
 import org.schabi.newpipe.database.playlist.dao.PlaylistRemoteDAO
 import org.schabi.newpipe.database.playlist.dao.PlaylistStreamDAO
@@ -34,7 +38,7 @@ import org.schabi.newpipe.database.subscription.SubscriptionEntity
 
 @TypeConverters(Converters::class)
 @Database(
-    version = Migrations.DB_VER_9,
+    version = Migrations.DB_VER_13,
     entities = [
         SubscriptionEntity::class,
         SearchHistoryEntry::class,
@@ -47,7 +51,9 @@ import org.schabi.newpipe.database.subscription.SubscriptionEntity
         FeedEntity::class,
         FeedGroupEntity::class,
         FeedGroupSubscriptionEntity::class,
-        FeedLastUpdatedEntity::class
+        FeedLastUpdatedEntity::class,
+        OfflineFileMappingEntity::class,
+        PlaybackStatisticsEntity::class
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -61,6 +67,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun streamHistoryDAO(): StreamHistoryDAO
     abstract fun streamStateDAO(): StreamStateDAO
     abstract fun subscriptionDAO(): SubscriptionDAO
+    abstract fun offlineFileMappingDAO(): OfflineFileMappingDAO
+    abstract fun playbackStatisticsDAO(): PlaybackStatisticsDAO
 
     companion object {
         const val DATABASE_NAME: String = "newpipe.db"

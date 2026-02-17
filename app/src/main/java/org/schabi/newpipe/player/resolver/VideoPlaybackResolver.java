@@ -71,6 +71,9 @@ public class VideoPlaybackResolver implements PlaybackResolver {
             return liveSource;
         }
 
+        // Note: Offline file check is now handled in MediaSourceManager before this resolver
+        // is called, so we don't need to check here anymore
+
         final List<MediaSource> mediaSources = new ArrayList<>();
 
         // Create video stream source

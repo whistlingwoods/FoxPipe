@@ -61,6 +61,7 @@ import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
+import org.schabi.newpipe.util.OfflineMetadataExtractor;
 import org.schabi.newpipe.util.OnClickGesture;
 import org.schabi.newpipe.util.PlayButtonHelper;
 import org.schabi.newpipe.util.debounce.DebounceSavable;
@@ -246,10 +247,35 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
 
         isLoadingComplete.set(false);
 
+        // First, extract metadata for offline files in background
         playlistManager.getPlaylistStreams(playlistId)
-                .onBackpressureLatest()
+                .firstElement()
+                .flatMapCompletable(entries -> {
+                    // Extract stream entities from playlist entries
+                    final List<StreamEntity> streams = new ArrayList<>();
+                    for (final PlaylistStreamEntry entry : entries) {
+                        streams.add(entry.getStreamEntity());
+                    }
+                    // Extract metadata for offline files
+                    return OfflineMetadataExtractor.extractAndUpdateMetadata(
+                            requireContext(), streams);
+                })
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(getPlaylistObserver());
+                .subscribe(() -> {
+                    // After metadata extraction, load playlist normally
+                    playlistManager.getPlaylistStreams(playlistId)
+                            .onBackpressureLatest()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(getPlaylistObserver());
+                }, error -> {
+                    // If metadata extraction fails, still load playlist
+                    Log.w(TAG, "Failed to extract metadata: " + error.getMessage());
+                    playlistManager.getPlaylistStreams(playlistId)
+                            .onBackpressureLatest()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(getPlaylistObserver());
+                });
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -366,6 +392,8 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     public boolean onOptionsItemSelected(final MenuItem item) {
         if (item.getItemId() == R.id.menu_item_share_playlist) {
             createShareConfirmationDialog();
+        } else if (item.getItemId() == R.id.menu_item_download_all) {
+            startBulkDownload();
         } else if (item.getItemId() == R.id.menu_item_rename_playlist) {
             createRenameDialog();
         } else if (item.getItemId() == R.id.menu_item_remove_watched) {
@@ -380,6 +408,51 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
             return super.onOptionsItemSelected(item);
         }
         return true;
+    }
+
+    /**
+     * Starts bulk download for all items in the local playlist.
+     */
+    private void startBulkDownload() {
+        if (itemListAdapter == null || itemListAdapter.getItemsList().isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_streams_available_download,
+                Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Convert PlaylistStreamEntry to StreamInfoItem
+        final List<LocalItem> items = itemListAdapter.getItemsList();
+        final List<StreamInfoItem> streamInfoItems = new ArrayList<>(items.size());
+        for (final LocalItem item : items) {
+            if (item instanceof PlaylistStreamEntry) {
+                streamInfoItems.add(((PlaylistStreamEntry) item).toStreamInfoItem());
+            }
+        }
+
+        if (streamInfoItems.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_streams_available_download,
+                Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showBulkDownloadDialog(streamInfoItems);
+    }
+
+    /**
+     * Shows the bulk download dialog for the playlist items.
+     *
+     * @param streamInfoItems the list of stream items to download
+     */
+    private void showBulkDownloadDialog(final List<StreamInfoItem> streamInfoItems) {
+        // Get service ID from first stream (local playlists can have mixed services)
+        final int serviceId = streamInfoItems.get(0).getServiceId();
+
+        final org.schabi.newpipe.download.BulkDownloadDialog dialog =
+            org.schabi.newpipe.download.BulkDownloadDialog.newInstance(
+                name != null ? name : "Local Playlist",
+                serviceId,
+                streamInfoItems);
+        dialog.show(getParentFragmentManager(), "BulkDownloadDialog");
     }
 
     /**

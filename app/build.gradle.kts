@@ -299,6 +299,9 @@ dependencies {
     // Date and time formatting
     implementation(libs.ocpsoft.prettytime)
 
+    // Audio metadata tagging
+    implementation("net.jthink:jaudiotagger:3.0.1")
+
     /** Debugging **/
     // Memory leak detection
     debugImplementation(libs.squareup.leakcanary.watcher)

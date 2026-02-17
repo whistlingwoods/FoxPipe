@@ -96,6 +96,11 @@
             android:exported="false"
             android:label="@string/title_activity_about" />
 
+        <activity
+            android:name=".local.history.RatingStatisticsActivity"
+            android:exported="false"
+            android:label="@string/rating_statistics_title" />
+
         <service
             android:name=".local.subscription.services.SubscriptionsImportService"
             android:foregroundServiceType="dataSync" />

@@ -51,6 +51,7 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
     @Nullable
     public final TextView itemAdditionalDetails;
     private final AnimatedProgressBar itemProgressView;
+    public final TextView itemRatingView;
 
     public LocalStatisticStreamItemHolder(final LocalItemBuilder itemBuilder,
                                           final ViewGroup parent) {
@@ -67,6 +68,7 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemAdditionalDetails = itemView.findViewById(R.id.itemAdditionalDetails);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
+        itemRatingView = itemView.findViewById(R.id.itemRatingView);
     }
 
     private String getStreamInfoDetailLine(final StreamStatisticsEntry entry,
@@ -133,6 +135,10 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
             }
             return true;
         });
+
+        // Display rating badge
+        org.schabi.newpipe.util.RatingHelper.displayRating(itemRatingView,
+                item.getStreamEntity().getUserRating());
     }
 
     @Override

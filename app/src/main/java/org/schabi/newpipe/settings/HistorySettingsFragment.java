@@ -26,6 +26,7 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
     private String viewsHistoryClearKey;
     private String playbackStatesClearKey;
     private String searchHistoryClearKey;
+    private String ratingStatisticsKey;
     private HistoryRecordManager recordManager;
     private CompositeDisposable disposables;
 
@@ -37,6 +38,7 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
         viewsHistoryClearKey = getString(R.string.clear_views_history_key);
         playbackStatesClearKey = getString(R.string.clear_playback_states_key);
         searchHistoryClearKey = getString(R.string.clear_search_history_key);
+        ratingStatisticsKey = getString(R.string.rating_statistics_key);
         recordManager = new HistoryRecordManager(getActivity());
         disposables = new CompositeDisposable();
 
@@ -68,10 +70,17 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
             openDeletePlaybackStatesDialog(requireContext(), recordManager, disposables);
         } else if (preference.getKey().equals(searchHistoryClearKey)) {
             openDeleteSearchHistoryDialog(requireContext(), recordManager, disposables);
+        } else if (preference.getKey().equals(ratingStatisticsKey)) {
+            openRatingStatistics();
         } else {
             return super.onPreferenceTreeClick(preference);
         }
         return true;
+    }
+
+    private void openRatingStatistics() {
+        startActivity(new android.content.Intent(requireContext(),
+                org.schabi.newpipe.local.history.RatingStatisticsActivity.class));
     }
 
     private static Disposable getDeletePlaybackStatesDisposable(

@@ -29,6 +29,10 @@ object Migrations {
     const val DB_VER_7 = 7
     const val DB_VER_8 = 8
     const val DB_VER_9 = 9
+    const val DB_VER_10 = 10
+    const val DB_VER_11 = 11
+    const val DB_VER_12 = 12
+    const val DB_VER_13 = 13
 
     private val TAG = Migrations::class.java.getName()
     private val isDebug = MainActivity.DEBUG
@@ -346,6 +350,104 @@ object Migrations {
             db.setTransactionSuccessful()
         } finally {
             db.endTransaction()
+        }
+    }
+
+    val MIGRATION_9_10 = object : Migration(DB_VER_9, DB_VER_10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            if (isDebug) {
+                Log.d(TAG, "Start migrating database from v9 to v10")
+            }
+            // Add user_rating column (NULL = unrated, 1-10 = rating value)
+            db.execSQL("ALTER TABLE streams ADD COLUMN user_rating INTEGER DEFAULT NULL")
+        }
+    }
+
+    val MIGRATION_10_11 = object : Migration(DB_VER_10, DB_VER_11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            if (isDebug) {
+                Log.d(TAG, "Start migrating database from v10 to v11")
+            }
+
+            // Create offline_file_mappings table for mapping remote streams to local files
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `offline_file_mappings` (" +
+                    "`mapping_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`stream_service_id` INTEGER NOT NULL, " +
+                    "`stream_url` TEXT NOT NULL, " +
+                    "`local_file_uri` TEXT NOT NULL, " +
+                    "`file_size` INTEGER NOT NULL, " +
+                    "`mime_type` TEXT NOT NULL, " +
+                    "`download_timestamp` INTEGER NOT NULL, " +
+                    "`is_available` INTEGER NOT NULL DEFAULT 1)"
+            )
+
+            // Create unique index on (service_id, url) to prevent duplicate mappings
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                    "`index_offline_file_mappings_service_url` " +
+                    "ON `offline_file_mappings` (`stream_service_id`, `stream_url`)"
+            )
+
+            if (isDebug) {
+                Log.d(TAG, "Finished migrating database from v10 to v11")
+            }
+        }
+    }
+
+    val MIGRATION_11_12 = object : Migration(DB_VER_11, DB_VER_12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            if (isDebug) {
+                Log.d(TAG, "Start migrating database from v11 to v12")
+            }
+
+            // Create playback_statistics table for detailed playback tracking
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `playback_statistics` (" +
+                    "`stats_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`stream_id` INTEGER NOT NULL, " +
+                    "`total_play_time_millis` INTEGER NOT NULL DEFAULT 0, " +
+                    "`skip_count` INTEGER NOT NULL DEFAULT 0, " +
+                    "`completion_count` INTEGER NOT NULL DEFAULT 0, " +
+                    "`restart_count` INTEGER NOT NULL DEFAULT 0, " +
+                    "`volume_change_count` INTEGER NOT NULL DEFAULT 0, " +
+                    "`last_updated` INTEGER NOT NULL, " +
+                    "FOREIGN KEY(`stream_id`) REFERENCES `streams`(`uid`) " +
+                    "ON UPDATE CASCADE ON DELETE CASCADE)"
+            )
+
+            // Create index on stream_id for fast lookups
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_playback_statistics_stream_id` " +
+                    "ON `playback_statistics` (`stream_id`)"
+            )
+
+            if (isDebug) {
+                Log.d(TAG, "Finished migrating database from v11 to v12")
+            }
+        }
+    }
+
+    val MIGRATION_12_13 = object : Migration(DB_VER_12, DB_VER_13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            if (isDebug) {
+                Log.d(TAG, "Start migrating database from v12 to v13")
+            }
+
+            // Add new interaction tracking columns to playback_statistics
+            db.execSQL(
+                "ALTER TABLE playback_statistics ADD COLUMN pause_count INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execSQL(
+                "ALTER TABLE playback_statistics ADD COLUMN play_count INTEGER NOT NULL DEFAULT 0"
+            )
+            db.execSQL(
+                "ALTER TABLE playback_statistics ADD COLUMN seek_count INTEGER NOT NULL DEFAULT 0"
+            )
+
+            if (isDebug) {
+                Log.d(TAG, "Finished migrating database from v12 to v13")
+            }
         }
     }
 }

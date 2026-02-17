@@ -30,8 +30,52 @@
 
 > [!warning]
 > <b>THIS APP IS IN BETA, SO YOU MAY ENCOUNTER BUGS. IF YOU DO, OPEN AN ISSUE IN OUR GITHUB REPOSITORY BY FILLING OUT THE ISSUE TEMPLATE.</b>
-> 
+>
 > <b>PUTTING NEWPIPE, OR ANY FORK OF IT, INTO THE GOOGLE PLAY STORE VIOLATES THEIR TERMS AND CONDITIONS.</b>
+
+## Fork Features
+
+This fork extends NewPipe with powerful features for music enthusiasts and offline listening:
+
+### Rating System
+- **10-star rating system** for all videos and streams
+- Rate content directly from the player, video details, or playlist items
+- Ratings persist across app restarts and are stored in the local database
+- Long-press any stream in playlists or history to rate it
+
+### Weighted Shuffle
+- **Smart shuffle** that prioritizes your favorite tracks based on ratings
+- Unrated tracks get maximum weight to encourage you to rate them
+- Fully configurable in Settings → Video & Audio → Shuffle Settings:
+  - Toggle weighted/unweighted shuffle
+  - Adjust unrated track weight (1-10, default: 10)
+  - Customize curve exponent for different weighting behaviors (1.0=linear, 2.0=quadratic, 3.0=cubic)
+
+### Offline Playback
+- **True offline playback** for downloaded media files
+- Downloaded tracks appear in playlists and play seamlessly without re-downloading
+- Database tracking ensures downloads are recognized and played from local storage
+- Perfect for listening when you're offline or saving mobile data
+
+### Professional Audio Metadata
+- **Automatic ID3 tagging** for all downloaded audio files
+- Embeds complete metadata:
+  - Track title and artist (with automatic cleanup of YouTube channel suffixes like "- Topic", "VEVO")
+  - Album name (playlist name)
+  - Track number (position in playlist)
+  - **High-quality album art** (automatically selects highest resolution thumbnail available)
+- Properly tagged files work perfectly with music players, car stereos, and media libraries
+
+### Bulk Playlist Downloads
+- **Download entire playlists** with a single tap
+- Menu option in playlist and video detail screens: "Bulk download playlist"
+- Configurable options:
+  - Audio-only or video downloads
+  - Automatic audio metadata tagging
+  - Organize downloads in playlist subdirectories
+- Progress tracking and notifications for large downloads
+
+All features are fully integrated into the existing NewPipe UI and work seamlessly with the app's core functionality.
 
 ## Screenshots
 
