@@ -42,7 +42,7 @@ android {
         minSdk = 21
         targetSdk = 35
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1006
+        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1008
 
         versionName = "0.28.1"
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
