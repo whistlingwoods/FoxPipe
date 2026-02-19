@@ -25,7 +25,10 @@ import org.schabi.newpipe.info_list.ItemViewMode;
 import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
 import org.schabi.newpipe.ktx.ViewUtils;
 
+import org.schabi.newpipe.local.subscription.SubscriptionManager;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import io.reactivex.rxjava3.core.Single;
@@ -100,7 +103,35 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
 
     @Override
     protected Single<RelatedItemsInfo> loadResult(final boolean forceLoad) {
-        return Single.fromCallable(() -> relatedItemsInfo);
+        if (relatedItemsInfo != null) {
+            return Single.fromCallable(() -> relatedItemsInfo);
+        }
+
+        return Single.fromCallable(() -> {
+            final SubscriptionManager subscriptionManager =
+                    new SubscriptionManager(requireContext());
+            final List<String> subscribedUrls = subscriptionManager
+                    .getSubscriptionUrls().blockingGet();
+
+            final List<InfoItem> filteredItems = new ArrayList<>();
+            for (final InfoItem item : currentStreamInfo.getRelatedItems()) {
+                if (item instanceof org.schabi.newpipe.extractor.stream.StreamInfoItem) {
+                    final String uploaderUrl =
+                            ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
+                                    .getUploaderUrl();
+                    if (uploaderUrl != null && subscribedUrls.contains(uploaderUrl)) {
+                        filteredItems.add(item);
+                    }
+                } else if (item instanceof org.schabi.newpipe.extractor.channel.ChannelInfoItem) {
+                    if (subscribedUrls.contains(item.getUrl())) {
+                        filteredItems.add(item);
+                    }
+                }
+            }
+
+            this.relatedItemsInfo = new RelatedItemsInfo(currentStreamInfo, filteredItems);
+            return this.relatedItemsInfo;
+        });
     }
 
     @Override
@@ -137,11 +168,11 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
         // Nothing to do - override parent
     }
 
+    private StreamInfo currentStreamInfo;
+
     private void setInitialData(final StreamInfo info) {
         super.setInitialData(info.getServiceId(), info.getUrl(), info.getName());
-        if (this.relatedItemsInfo == null) {
-            this.relatedItemsInfo = new RelatedItemsInfo(info);
-        }
+        this.currentStreamInfo = info;
     }
 
     @Override
