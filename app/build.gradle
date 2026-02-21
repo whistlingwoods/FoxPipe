@@ -128,6 +128,8 @@ ext {
 
     leakCanaryVersion = '2.12'
     stethoVersion = '1.6.0'
+
+    coilVersion = '3.0.4'
 }
 
 configurations {
@@ -276,8 +278,9 @@ dependencies {
     implementation "com.github.lisawray.groupie:groupie-viewbinding:${groupieVersion}"
 
     // Image loading
-    //noinspection GradleDependency --> 2.8 is the last version, not 2.71828!
-    implementation "com.squareup.picasso:picasso:2.8"
+    implementation "io.coil-kt.coil3:coil-compose:${coilVersion}"
+    implementation "io.coil-kt.coil3:coil-network-okhttp:${coilVersion}"
+
 
     // Markdown library for Android
     implementation "io.noties.markwon:core:${markwonVersion}"
