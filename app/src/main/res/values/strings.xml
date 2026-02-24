@@ -354,6 +354,7 @@
     <string name="no_dir_yet">No download folder set yet, choose the default download folder now</string>
     <string name="msg_popup_permission">This permission is needed to\nopen in popup mode</string>
     <string name="one_item_deleted">1 item deleted.</string>
+    <string name="download_embed_metadata">Embed metadata such as title, author, thumbnail</string>
     <!-- reCAPTCHA -->
     <string name="title_activity_recaptcha">reCAPTCHA challenge</string>
     <string name="subtitle_activity_recaptcha">Press \"Done\" when solved</string>
@@ -500,6 +501,7 @@
     <string name="crash_the_app">Crash the app</string>
     <string name="show_error_snackbar">Show an error snackbar</string>
     <string name="create_error_notification">Create an error notification</string>
+    <string name="settings_layout_redesign">Enable the Redesigned Settings page</string>
     <!-- Subscriptions import/export -->
     <string name="import_title">Import</string>
     <string name="import_from">Import from</string>
@@ -508,6 +510,11 @@
     <string name="export_ongoing">Exporting…</string>
     <string name="import_file_title">Import file</string>
     <string name="previous_export">Previous export</string>
+    <string name="import_subscriptions_title">Import subscriptions"</string>
+    <string name="export_subscriptions_title">Export subscriptions</string>
+    <string name="import_subscriptions_summary">Import subscriptions from a previous .json export"</string>
+    <string name="export_subscriptions_summary">Export your subscriptions to a .json file</string>
+    <string name="import_from_previous_export">Import from previous export</string>
     <string name="subscriptions_import_unsuccessful">Could not import subscriptions</string>
     <string name="subscriptions_export_unsuccessful">Could not export subscriptions</string>
     <string name="import_youtube_instructions">Import YouTube subscriptions from Google takeout:
@@ -868,6 +875,24 @@
     <string name="import_settings_vulnerable_format">The settings in the export being imported use a vulnerable format that was deprecated since NewPipe 0.27.0. Make sure the export being imported is from a trusted source, and prefer using only exports obtained from NewPipe 0.27.0 or newer in the future. Support for importing settings in this vulnerable format will soon be removed completely, and then old versions of NewPipe will not be able to import settings of exports from new versions anymore.</string>
     <string name="migration_info_6_7_title">SoundCloud Top 50 page removed</string>
     <string name="migration_info_6_7_message">SoundCloud has discontinued the original Top 50 charts. The corresponding tab has been removed from your main page.</string>
+    <string name="auto_queue_description">Next</string>
+    <string name="newpipe_extractor_description">NewPipeExtractor is a library for extracting things from streaming sites. It is a core component of NewPipe, but could be used independently.</string>
+    <plurals name="comments">
+        <item quantity="one">%d comment</item>
+        <item quantity="other">%d comments</item>
+    </plurals>
+    <plurals name="export_subscriptions">
+        <item quantity="one">Exporting %d subscription…</item>
+        <item quantity="other">Exporting %d subscriptions…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">Loading %d subscription…</item>
+        <item quantity="other">Loading %d subscriptions…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">Importing %d subscription…</item>
+        <item quantity="other">Importing %d subscriptions…</item>
+    </plurals>
     <string name="migration_info_7_8_title">YouTube combined trending removed</string>
     <string name="migration_info_7_8_message">YouTube has discontinued the combined trending page as of 21st July 2025. NewPipe replaced the default trending page with the trending livestreams.\n\nYou can also select different trending pages in \"Settings > Content > Content of main page\".</string>
     <string name="trending_gaming">Gaming trends</string>

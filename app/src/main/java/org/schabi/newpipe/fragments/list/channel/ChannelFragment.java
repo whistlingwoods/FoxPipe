@@ -3,6 +3,7 @@ package org.schabi.newpipe.fragments.list.channel;
 import static org.schabi.newpipe.ktx.TextViewUtils.animateTextColor;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.ktx.ViewUtils.animateBackgroundColor;
+import static org.schabi.newpipe.ui.emptystate.EmptyStateUtil.setEmptyStateComposable;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -10,7 +11,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -45,6 +45,7 @@ import org.schabi.newpipe.fragments.detail.TabAdapter;
 import org.schabi.newpipe.ktx.AnimationType;
 import org.schabi.newpipe.local.feed.notifications.NotificationHelper;
 import org.schabi.newpipe.local.subscription.SubscriptionManager;
+import org.schabi.newpipe.ui.emptystate.EmptyStateSpec;
 import org.schabi.newpipe.util.ChannelTabHelper;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.ExtractorHelper;
@@ -193,6 +194,8 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     @Override // called from onViewCreated in BaseFragment.onViewCreated
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
+
+        setEmptyStateComposable(binding.emptyStateView, EmptyStateSpec.ContentNotSupported);
 
         tabAdapter = new TabAdapter(getChildFragmentManager());
         binding.viewPager.setAdapter(tabAdapter);
@@ -647,8 +650,6 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
             return;
         }
 
-        binding.errorContentNotSupported.setVisibility(View.VISIBLE);
-        binding.channelKaomoji.setText("(︶︹︺)");
-        binding.channelKaomoji.setTextSize(TypedValue.COMPLEX_UNIT_SP, 45f);
+        binding.emptyStateView.setVisibility(View.VISIBLE);
     }
 }

@@ -16,6 +16,7 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.getTimeString;
 import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSaveToPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -23,7 +24,6 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -233,7 +233,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             ShareUtils.copyToClipboard(context, player.getVideoUrlAtCurrentTime());
             return true;
         });
-        binding.fullScreenButton.setOnClickListener(makeOnClickListener(() -> {
+        binding.fullscreenToggleButtonSecondaryMenu.setOnClickListener(makeOnClickListener(() -> {
             player.setRecovery();
             NavigationHelper.playOnMainPlayer(context,
                     Objects.requireNonNull(player.getPlayQueue()), true);
@@ -300,8 +300,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.moreOptionsButton.setOnLongClickListener(null);
         binding.share.setOnClickListener(null);
         binding.share.setOnLongClickListener(null);
-        binding.fullScreenButton.setOnClickListener(null);
-        binding.screenRotationButton.setOnClickListener(null);
+        binding.fullscreenToggleButtonSecondaryMenu.setOnClickListener(null);
+        binding.fullscreenToggleButton.setOnClickListener(null);
         binding.playWithKodi.setOnClickListener(null);
         binding.openInBrowser.setOnClickListener(null);
         binding.playerCloseButton.setOnClickListener(null);
@@ -761,7 +761,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     /**
-     * Update the play/pause button ({@link R.id.playPauseButton}) to reflect the action
+     * Update the play/pause button (`R.id.playPauseButton`) to reflect the action
      * that will be performed when the button is clicked..
      * @param action the action that is performed when the play/pause button is clicked
      */
@@ -947,6 +947,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         player.toggleShuffleModeEnabled();
     }
 
+    // TODO: don’t reference internal exoplayer2 resources
+    @SuppressLint("PrivateResource")
     @Override
     public void onRepeatModeChanged(@RepeatMode final int repeatMode) {
         super.onRepeatModeChanged(repeatMode);
@@ -1452,7 +1454,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                         if (player.getCurrentState() == STATE_PLAYING && !isSomePopupMenuVisible) {
                             if (v == binding.playPauseButton
                                     // Hide controls in fullscreen immediately
-                                    || (v == binding.screenRotationButton && isFullscreen())) {
+                                    || (v == binding.fullscreenToggleButton && isFullscreen())) {
                                 hideControls(0, 0);
                             } else {
                                 hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
@@ -1584,19 +1586,15 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             // make sure there is nothing left over from previous calls
             clearVideoSurface();
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // >=API23
-                surfaceHolderCallback = new SurfaceHolderCallback(context, player.getExoPlayer());
-                binding.surfaceView.getHolder().addCallback(surfaceHolderCallback);
+            surfaceHolderCallback = new SurfaceHolderCallback(context, player.getExoPlayer());
+            binding.surfaceView.getHolder().addCallback(surfaceHolderCallback);
 
-                // ensure player is using an unreleased surface, which the surfaceView might not be
-                // when starting playback on background or during player switching
-                if (binding.surfaceView.getHolder().getSurface().isValid()) {
-                    // initially set the surface manually otherwise
-                    // onRenderedFirstFrame() will not be called
-                    player.getExoPlayer().setVideoSurfaceHolder(binding.surfaceView.getHolder());
-                }
-            } else {
-                player.getExoPlayer().setVideoSurfaceView(binding.surfaceView);
+            // ensure player is using an unreleased surface, which the surfaceView might not be
+            // when starting playback on background or during player switching
+            if (binding.surfaceView.getHolder().getSurface().isValid()) {
+                // initially set the surface manually otherwise
+                // onRenderedFirstFrame() will not be called
+                player.getExoPlayer().setVideoSurfaceHolder(binding.surfaceView.getHolder());
             }
 
             surfaceIsSetup = true;
@@ -1604,8 +1602,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     private void clearVideoSurface() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M // >=API23
-                && surfaceHolderCallback != null) {
+        if (surfaceHolderCallback != null) {
             binding.surfaceView.getHolder().removeCallback(surfaceHolderCallback);
             surfaceHolderCallback.release();
             surfaceHolderCallback = null;

@@ -2,16 +2,21 @@
  * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+import com.mikepenz.aboutlibraries.plugin.DuplicateMode
 
 import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.jetbrains.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.kapt)
-    alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.kotlin.parcelize)
+    alias(libs.plugins.jetbrains.kotlinx.serialization)
+    alias(libs.plugins.google.ksp)
     alias(libs.plugins.sonarqube)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.about.libraries)
     checkstyle
 }
 
@@ -41,7 +46,7 @@ configure<ApplicationExtension> {
     defaultConfig {
         applicationId = "org.schabi.newpipe"
         resValue("string", "app_name", "NewPipe")
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
 
         versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1008
@@ -111,6 +116,7 @@ configure<ApplicationExtension> {
 
     buildFeatures {
         viewBinding = true
+        compose = true
         buildConfig = true
         resValues = true
     }
@@ -210,6 +216,13 @@ sonar {
     }
 }
 
+aboutLibraries {
+    // note: offline mode prevents the plugin from fetching licenses at build time, which would be
+    // harmful for reproducible builds
+    offlineMode = true
+    duplicationMode = DuplicateMode.MERGE
+}
+
 dependencies {
     /** Desugaring **/
     coreLibraryDesugaring(libs.android.desugar)
@@ -223,16 +236,18 @@ dependencies {
     checkstyle(libs.puppycrawl.checkstyle)
     ktlint(libs.pinterest.ktlint)
 
+    /** Kotlin **/
+    implementation(libs.kotlin.stdlib)
+
     /** AndroidX **/
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.core)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.documentfile)
-    implementation(libs.androidx.fragment)
+    implementation(libs.androidx.fragment.compose)
     implementation(libs.androidx.lifecycle.livedata)
-    implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.localbroadcastmanager)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.media)
     implementation(libs.androidx.preference)
     implementation(libs.androidx.recyclerview)
@@ -240,13 +255,44 @@ dependencies {
     implementation(libs.androidx.room.rxjava3)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.swiperefreshlayout)
-    implementation(libs.androidx.viewpager2)
-    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.work.rxjava3)
     implementation(libs.google.android.material)
     implementation(libs.androidx.webkit)
 
+    /** Compose & other modern patterns **/
+    // Jetpack Compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.adaptive)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.compose.ui.text) // Needed for parsing HTML to AnnotatedString
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    // Jetpack Compose related dependencies
+    implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.navigation.compose)
+
+    // Coroutines interop
+    implementation(libs.kotlinx.coroutines.rx3)
+
+    // Library loading for About screen
+    implementation(libs.about.libraries.compose.m3)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    // Scroll
+    implementation(libs.lazy.column.scrollbar)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
+
     /** Third-party libraries **/
+    // Instance state boilerplate elimination
     implementation(libs.livefront.bridge)
     implementation(libs.evernote.statesaver.core)
     kapt(libs.evernote.statesaver.compiler)
@@ -305,6 +351,9 @@ dependencies {
     debugImplementation(libs.facebook.stetho.core)
     debugImplementation(libs.facebook.stetho.okhttp3)
 
+    // Jetpack Compose
+    debugImplementation(libs.androidx.compose.ui.tooling)
+
     /** Testing **/
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
@@ -313,4 +362,7 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.assertj.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

@@ -3,7 +3,6 @@ package org.schabi.newpipe.error
 import android.content.Context
 import android.os.Parcelable
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
 import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.Loader
@@ -29,6 +28,7 @@ import org.schabi.newpipe.extractor.exceptions.YoutubeMusicPremiumContentExcepti
 import org.schabi.newpipe.ktx.isNetworkRelated
 import org.schabi.newpipe.player.mediasource.FailedMediaSource
 import org.schabi.newpipe.player.resolver.PlaybackResolver
+import org.schabi.newpipe.util.Localization
 
 /**
  * An error has occurred in the app. This class contains plain old parcelable data that can be used
@@ -147,13 +147,11 @@ class ErrorInfo private constructor(
             private vararg val formatArgs: String
         ) : Parcelable {
             fun getString(context: Context): String {
+                // use Localization.compatGetString() just in case context is not AppCompatActivity
                 return if (formatArgs.isEmpty()) {
-                    // use ContextCompat.getString() just in case context is not AppCompatActivity
-                    ContextCompat.getString(context, stringRes)
+                    Localization.compatGetString(context, stringRes)
                 } else {
-                    // ContextCompat.getString() with formatArgs does not exist, so we just
-                    // replicate its source code but with formatArgs
-                    ContextCompat.getContextForLanguage(context).getString(stringRes, *formatArgs)
+                    Localization.compatGetString(context, stringRes, *formatArgs)
                 }
             }
         }
@@ -162,7 +160,7 @@ class ErrorInfo private constructor(
 
         private fun getServiceName(serviceId: Int?) = // not using getNameOfServiceById since we want to accept a nullable serviceId and we
             // want to default to SERVICE_NONE
-            ServiceList.all().firstOrNull { it.serviceId == serviceId }?.serviceInfo?.name
+            ServiceList.all()?.firstOrNull { it.serviceId == serviceId }?.serviceInfo?.name
                 ?: SERVICE_NONE
 
         fun throwableToStringList(throwable: Throwable) = arrayOf(throwable.stackTraceToString())

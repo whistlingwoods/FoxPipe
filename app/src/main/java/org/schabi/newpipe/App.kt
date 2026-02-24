@@ -15,6 +15,7 @@ import coil3.request.allowRgb565
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import com.jakewharton.processphoenix.ProcessPhoenix
+import dagger.hilt.android.HiltAndroidApp
 import io.reactivex.rxjava3.exceptions.CompositeException
 import io.reactivex.rxjava3.exceptions.MissingBackpressureException
 import io.reactivex.rxjava3.exceptions.OnErrorNotImplementedException
@@ -58,6 +59,7 @@ import org.schabi.newpipe.util.potoken.PoTokenProviderImpl
  * You should have received a copy of the GNU General Public License
  * along with NewPipe.  If not, see <http://www.gnu.org/licenses/>.
  */
+@HiltAndroidApp
 open class App :
     Application(),
     SingletonImageLoader.Factory {

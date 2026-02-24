@@ -402,9 +402,9 @@ public final class ShareUtils {
             }
 
             final ClipData clipData = ClipData.newUri(applicationContext.getContentResolver(), "",
-                    FileProvider.getUriForFile(applicationContext,
-                            BuildConfig.APPLICATION_ID + ".provider",
-                            path.toFile()));
+                        FileProvider.getUriForFile(applicationContext,
+                                BuildConfig.APPLICATION_ID + ".provider",
+                                path.toFile()));
 
             if (DEBUG) {
                 Log.d(TAG, "ClipData successfully generated for Android share sheet: " + clipData);

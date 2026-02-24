@@ -73,13 +73,14 @@ public class ContentSettingsFragment extends BasePreferenceFragment {
         requirePreference(R.string.image_quality_key).setOnPreferenceChangeListener(
             (preference, newValue) -> {
                 ImageStrategy.setPreferredImageQuality(PreferredImageQuality
-                    .fromPreferenceKey(requireContext(), (String) newValue));
+                        .fromPreferenceKey(requireContext(), (String) newValue));
                 final var loader = SingletonImageLoader.get(preference.getContext());
                 loader.getMemoryCache().clear();
                 loader.getDiskCache().clear();
                 Toast.makeText(preference.getContext(),
                                 R.string.thumbnail_cache_wipe_complete_notice, Toast.LENGTH_SHORT)
                         .show();
+
                 return true;
             });
     }

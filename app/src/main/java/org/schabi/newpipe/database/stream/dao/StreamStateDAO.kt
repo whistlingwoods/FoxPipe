@@ -12,6 +12,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Maybe
 import org.schabi.newpipe.database.BasicDAO
 import org.schabi.newpipe.database.stream.model.StreamStateEntity
 
@@ -29,12 +30,12 @@ interface StreamStateDAO : BasicDAO<StreamStateEntity> {
     }
 
     @Query("SELECT * FROM " + StreamStateEntity.STREAM_STATE_TABLE + " WHERE " + StreamStateEntity.JOIN_STREAM_ID + " = :streamId")
-    fun getState(streamId: Long): Flowable<MutableList<StreamStateEntity>>
+    fun getState(streamId: Long): Maybe<StreamStateEntity>
 
     @Query("DELETE FROM " + StreamStateEntity.STREAM_STATE_TABLE + " WHERE " + StreamStateEntity.JOIN_STREAM_ID + " = :streamId")
     fun deleteState(streamId: Long): Int
 
-    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun silentInsertInternal(streamState: StreamStateEntity)
 
     @Transaction

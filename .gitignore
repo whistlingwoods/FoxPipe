@@ -11,6 +11,7 @@ captures/
 *.class
 app/debug/
 app/release/
+.kotlin/
 
 # vscode / eclipse files
 *.classpath
@@ -19,3 +20,6 @@ app/release/
 bin/
 .vscode/
 *.code-workspace
+
+# logs
+*.log

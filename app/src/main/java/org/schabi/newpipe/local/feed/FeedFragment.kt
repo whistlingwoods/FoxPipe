@@ -76,6 +76,7 @@ import org.schabi.newpipe.ktx.slideUp
 import org.schabi.newpipe.local.feed.item.StreamItem
 import org.schabi.newpipe.local.feed.service.FeedLoadService
 import org.schabi.newpipe.local.subscription.SubscriptionManager
+import org.schabi.newpipe.ui.emptystate.setEmptyStateComposable
 import org.schabi.newpipe.util.DeviceUtils
 import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.NavigationHelper
@@ -135,6 +136,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
     override fun onViewCreated(rootView: View, savedInstanceState: Bundle?) {
         // super.onViewCreated() calls initListeners() which require the binding to be initialized
         _feedBinding = FragmentFeedBinding.bind(rootView)
+        feedBinding.emptyStateView.setEmptyStateComposable()
         super.onViewCreated(rootView, savedInstanceState)
 
         val factory = FeedViewModel.getFactory(requireContext(), groupId)
@@ -204,6 +206,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
     // Menu
     // /////////////////////////////////////////////////////////////////////////
 
+    @Deprecated("Deprecated in Java")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
@@ -214,6 +217,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         inflater.inflate(R.menu.menu_feed_fragment, menu)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.menu_item_feed_help) {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -269,6 +273,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             .show()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onDestroyOptionsMenu() {
         super.onDestroyOptionsMenu()
         if (

@@ -360,15 +360,9 @@ public class RouterActivity extends AppCompatActivity {
         // Default / Ask always
         final List<AdapterChoiceItem> availableChoices = choiceChecker.getAvailableChoices();
         switch (availableChoices.size()) {
-            case 1:
-                handleChoice(availableChoices.get(0).key);
-                break;
-            case 0:
-                handleChoice(getString(R.string.show_info_key));
-                break;
-            default:
-                showDialog(availableChoices);
-                break;
+            case 1 -> handleChoice(availableChoices.get(0).key);
+            case 0 -> handleChoice(getString(R.string.show_info_key));
+            default -> showDialog(availableChoices);
         }
     }
 
@@ -541,7 +535,7 @@ public class RouterActivity extends AppCompatActivity {
             // Enqueue is only shown if the current queue is not empty.
             // However, if the playqueue or the player is cleared after this item was chosen and
             // while the item is extracted, it will automatically fall back to background player.
-            if (PlayerHolder.getInstance().getQueueSize() > 0) {
+            if (PlayerHolder.INSTANCE.getQueueSize() > 0) {
                 returnedItems.add(new AdapterChoiceItem(getString(R.string.enqueue_key),
                         getString(R.string.enqueue_stream), R.drawable.ic_add));
             }
@@ -684,7 +678,7 @@ public class RouterActivity extends AppCompatActivity {
         }
 
         // ...the player is not running or in normal Video-mode/type
-        final PlayerType playerType = PlayerHolder.getInstance().getType();
+        final PlayerType playerType = PlayerHolder.INSTANCE.getType();
         return playerType == null || playerType == PlayerType.MAIN;
     }
 
