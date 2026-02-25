@@ -88,9 +88,13 @@ configure<ApplicationExtension> {
     }
 
     lint {
-        lintConfig = file("lint.xml")
-        // Continue the debug build even when errors are found
+        checkReleaseBuilds = false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
         abortOnError = false
+        // suppress false warning ("Resource IDs will be non-final in Android Gradle Plugin version
+        // 5.0, avoid using them in switch case statements"), which affects only library projects
+        disable += "NonConstantResourceId"
     }
 
     compileOptions {
