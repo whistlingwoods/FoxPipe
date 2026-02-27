@@ -88,6 +88,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.schabi.newpipe.download.PlaylistDownloadDialog;
 
@@ -346,7 +347,7 @@ public class RouterActivity extends AppCompatActivity {
                 return;
             }
 
-            final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+            final Set<StreamingService.ServiceInfo.MediaCapability> capabilities =
                     currentService.getServiceInfo().getMediaCapabilities();
 
             // Check if the service supports the choice
@@ -531,7 +532,7 @@ public class RouterActivity extends AppCompatActivity {
         final List<AdapterChoiceItem> returnedItems = new ArrayList<>();
         returnedItems.add(showInfo); // Always present
 
-        final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+        final Set<StreamingService.ServiceInfo.MediaCapability> capabilities =
                 service.getServiceInfo().getMediaCapabilities();
 
         if (linkType == LinkType.STREAM || linkType == LinkType.PLAYLIST) {
