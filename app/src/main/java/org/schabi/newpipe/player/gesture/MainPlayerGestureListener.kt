@@ -225,6 +225,14 @@ class MainPlayerGestureListener(
         }
     }
 
+    override fun onSpeedUpStarted() {
+        binding.playbackSpeed.text = PlayerHelper.formatSpeed(2.0)
+    }
+
+    override fun onSpeedUpEnded() {
+        binding.playbackSpeed.text = PlayerHelper.formatSpeed(player.playbackSpeed.toDouble())
+    }
+
     companion object {
         private val TAG = MainPlayerGestureListener::class.java.simpleName
         private val DEBUG = MainActivity.DEBUG

@@ -161,9 +161,12 @@ class PopupPlayerGestureListener(
     }
 
     override fun onLongPress(e: MotionEvent) {
-        playerUi.updateScreenSize()
-        playerUi.checkPopupPositionBounds()
-        playerUi.changePopupSize(playerUi.screenWidth)
+        super.onLongPress(e)
+        if (!isSpeedingUp) {
+            playerUi.updateScreenSize()
+            playerUi.checkPopupPositionBounds()
+            playerUi.changePopupSize(playerUi.screenWidth)
+        }
     }
 
     override fun onFling(
