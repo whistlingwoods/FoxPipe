@@ -210,6 +210,14 @@
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
+            android:key="@string/hold_to_speed_key"
+            android:summary="@string/hold_to_speed_summary"
+            android:title="@string/hold_to_speed_title"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
             android:key="@string/popup_remember_size_pos_key"
             android:summary="@string/popup_remember_size_pos_summary"
             android:title="@string/popup_remember_size_pos_title"
