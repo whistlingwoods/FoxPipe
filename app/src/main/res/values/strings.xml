@@ -114,6 +114,8 @@
     <string name="left_gesture_control_title">Left gesture action</string>
     <string name="right_gesture_control_summary">Choose gesture for right half of player screen</string>
     <string name="right_gesture_control_title">Right gesture action</string>
+    <string name="hold_to_speed_title">Hold to speed up</string>
+    <string name="hold_to_speed_summary">Long press on video to play at 2x speed</string>
     <string name="brightness">Brightness</string>
     <string name="volume">Volume</string>
     <string name="none">None</string>
