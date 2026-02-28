@@ -84,6 +84,11 @@ public final class DownloaderImpl extends Downloader {
         return instance;
     }
 
+    /**
+     * Returns the OkHttpClient configured with DNS-over-HTTPS.
+     *
+     * @return the OkHttpClient instance
+     */
     public OkHttpClient getClient() {
         return client;
     }

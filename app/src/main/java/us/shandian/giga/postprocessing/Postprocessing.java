@@ -156,7 +156,8 @@ public abstract class Postprocessing implements Serializable {
             tempCover = new java.io.File(tempFile.getParentFile(),
                     "cover_" + System.nanoTime() + ".jpg");
 
-            final java.net.URLConnection connection = url.openConnection();
+            final java.net.URLConnection connection =
+                    org.schabi.newpipe.util.DnsHelper.openConnectionWithDoH(url);
             connection.setConnectTimeout(timeout);
             connection.setReadTimeout(timeout);
 
