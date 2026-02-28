@@ -52,8 +52,10 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NoRouteToHostException;
+import java.net.Socket;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +63,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
+import okhttp3.Dns;
 
 /**
  * An {@link HttpDataSource} that uses Android's {@link HttpURLConnection}, based on
@@ -703,12 +711,50 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
 
     /**
      * Creates an {@link HttpURLConnection} that is connected with the {@code url}.
+     * Uses DNS-over-HTTPS (via DownloaderImpl's OkHttpClient) to resolve the hostname,
+     * bypassing any system-level Private DNS blocking.
      *
      * @param url the {@link URL} to create an {@link HttpURLConnection}
      * @return an {@link HttpURLConnection} created with the {@code url}
      */
     private HttpURLConnection openConnection(@NonNull final URL url) throws IOException {
-        return (HttpURLConnection) url.openConnection();
+        final String host = url.getHost();
+        final Dns dns = DownloaderImpl.getInstance().getClient().dns();
+
+        // Try to resolve via our DoH-configured OkHttpClient DNS
+        final List<InetAddress> addresses;
+        try {
+            addresses = dns.lookup(host);
+        } catch (final Exception e) {
+            // Fallback to default connection if DoH resolution fails
+            return (HttpURLConnection) url.openConnection();
+        }
+
+        if (addresses.isEmpty()) {
+            return (HttpURLConnection) url.openConnection();
+        }
+
+        // Build a URL with the resolved IP instead of hostname
+        final String ip = addresses.get(0).getHostAddress();
+        final int port = url.getPort() == -1 ? url.getDefaultPort() : url.getPort();
+        final URL ipUrl = new URL(url.getProtocol(), ip, port, url.getFile());
+        final HttpURLConnection httpConn = (HttpURLConnection) ipUrl.openConnection();
+
+        // Set the Host header to the original hostname
+        httpConn.setRequestProperty("Host", host);
+
+        // For HTTPS, configure SNI so the TLS handshake uses the original hostname
+        if (httpConn instanceof HttpsURLConnection) {
+            final HttpsURLConnection httpsConn = (HttpsURLConnection) httpConn;
+            final SSLSocketFactory originalFactory = httpsConn.getSSLSocketFactory();
+
+            httpsConn.setSSLSocketFactory(new SniSslSocketFactory(originalFactory, host));
+            httpsConn.setHostnameVerifier((hostname, session) ->
+                    host.equalsIgnoreCase(hostname)
+                    || HttpsURLConnection.getDefaultHostnameVerifier().verify(host, session));
+        }
+
+        return httpConn;
     }
 
     /**
@@ -941,6 +987,87 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
             rangeParameter.append(position + length - 1);
         }
         return rangeParameter.toString();
+    }
+
+    /**
+     * An {@link SSLSocketFactory} that sets the SNI hostname on the created {@link SSLSocket},
+     * so that HTTPS connections to an IP address still send the correct hostname during the
+     * TLS handshake (required for Google video servers).
+     */
+    private static final class SniSslSocketFactory extends SSLSocketFactory {
+        private final SSLSocketFactory delegate;
+        private final String hostname;
+
+        SniSslSocketFactory(final SSLSocketFactory delegate, final String hostname) {
+            this.delegate = delegate;
+            this.hostname = hostname;
+        }
+
+        @Override
+        public String[] getDefaultCipherSuites() {
+            return delegate.getDefaultCipherSuites();
+        }
+
+        @Override
+        public String[] getSupportedCipherSuites() {
+            return delegate.getSupportedCipherSuites();
+        }
+
+        @Override
+        public Socket createSocket(final Socket s, final String host,
+                                   final int port, final boolean autoClose)
+                throws IOException {
+            final Socket socket = delegate.createSocket(s, hostname, port, autoClose);
+            setSni(socket);
+            return socket;
+        }
+
+        @Override
+        public Socket createSocket(final String host, final int port) throws IOException {
+            final Socket socket = delegate.createSocket(hostname, port);
+            setSni(socket);
+            return socket;
+        }
+
+        @Override
+        public Socket createSocket(final String host, final int port,
+                                   final InetAddress localHost, final int localPort)
+                throws IOException {
+            final Socket socket = delegate.createSocket(hostname, port, localHost, localPort);
+            setSni(socket);
+            return socket;
+        }
+
+        @Override
+        public Socket createSocket(final InetAddress host, final int port) throws IOException {
+            final Socket socket = delegate.createSocket(host, port);
+            setSni(socket);
+            return socket;
+        }
+
+        @Override
+        public Socket createSocket(final InetAddress address, final int port,
+                                   final InetAddress localAddress, final int localPort)
+                throws IOException {
+            final Socket socket = delegate.createSocket(address, port, localAddress, localPort);
+            setSni(socket);
+            return socket;
+        }
+
+        private void setSni(@NonNull final Socket socket) {
+            if (socket instanceof SSLSocket) {
+                final SSLSocket sslSocket = (SSLSocket) socket;
+                // setHostname triggers SNI extension in the TLS ClientHello
+                try {
+                    final Method setHostname = sslSocket.getClass()
+                            .getMethod("setHostname", String.class);
+                    setHostname.invoke(sslSocket, hostname);
+                } catch (final Exception e) {
+                    // Fallback: SNI may not work on this device, log quietly
+                    Log.w(TAG, "Failed to set SNI hostname", e);
+                }
+            }
+        }
     }
 
     private static final class NullFilteringHeadersMap

@@ -119,7 +119,8 @@ android {
             excludes += setOf(
                 "META-INF/README.md",
                 "META-INF/CHANGES",
-                "META-INF/COPYRIGHT" // "COPYRIGHT" belongs to RxJava...
+                "META-INF/COPYRIGHT", // "COPYRIGHT" belongs to RxJava...
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
             )
         }
     }
@@ -246,6 +247,7 @@ dependencies {
 
     // HTTP client
     implementation(libs.squareup.okhttp)
+    implementation(libs.squareup.okhttp.dnsoverhttps)
 
     // Media player
     implementation(libs.google.exoplayer.core)

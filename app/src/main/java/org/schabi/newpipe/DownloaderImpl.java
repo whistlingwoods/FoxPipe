@@ -14,6 +14,8 @@ import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
 import org.schabi.newpipe.util.InfoCache;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +25,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public final class DownloaderImpl extends Downloader {
     public static final String USER_AGENT =
@@ -40,6 +44,22 @@ public final class DownloaderImpl extends Downloader {
     private final OkHttpClient client;
 
     private DownloaderImpl(final OkHttpClient.Builder builder) {
+        final OkHttpClient bootstrapClient = new OkHttpClient.Builder().build();
+        DnsOverHttps dns = null;
+        try {
+            dns = new DnsOverHttps.Builder().client(bootstrapClient)
+                .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
+                .bootstrapDnsHosts(InetAddress.getByName("1.1.1.1"),
+                InetAddress.getByName("1.0.0.1"))
+                .build();
+        } catch (final UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        if (dns != null) {
+            builder.dns(dns);
+        }
+
         this.client = builder
                 .readTimeout(30, TimeUnit.SECONDS)
 //                .cache(new Cache(new File(context.getExternalCacheDir(), "okhttp"),
@@ -62,6 +82,10 @@ public final class DownloaderImpl extends Downloader {
 
     public static DownloaderImpl getInstance() {
         return instance;
+    }
+
+    public OkHttpClient getClient() {
+        return client;
     }
 
     public String getCookies(final String url) {
