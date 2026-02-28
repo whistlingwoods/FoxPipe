@@ -254,6 +254,7 @@ dependencies {
     implementation(libs.google.exoplayer.dash)
     implementation(libs.google.exoplayer.database)
     implementation(libs.google.exoplayer.datasource)
+    implementation(libs.google.exoplayer.ext.okhttp)
     implementation(libs.google.exoplayer.hls)
     implementation(libs.google.exoplayer.mediasession)
     implementation(libs.google.exoplayer.smoothstreaming)
