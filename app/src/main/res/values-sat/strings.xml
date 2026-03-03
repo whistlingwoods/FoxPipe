@@ -209,7 +209,7 @@
     <string name="error_report_notification_toast">ᱢᱤᱫ ᱵᱷᱩᱞ ᱦᱩᱭ ᱞᱮᱱᱟ, ᱱᱤᱴᱤᱯᱷᱤᱠᱮᱥᱚᱱ ᱧᱮᱞ ᱢᱮ</string>
     <string name="error_report_open_issue_button_text">GitHub ᱨᱮ ᱚᱱᱚᱞ</string>
     <string name="error_snackbar_action">ᱨᱤᱯᱚᱨᱴ</string>
-    <string name="info_labels">What:\\nRequest:\\nContent Language:\\nContent ᱫᱤᱥᱚᱢ:\\nApp Language:\\nService:\\nGMT ᱚᱠᱛᱚ:\\nPackage:\\nVersion:\\nOS version:</string>
+    <string name="info_labels">What:\nRequest:\nContent Language:\nContent ᱫᱤᱥᱚᱢ:\nApp Language:\nService:\nGMT ᱚᱠᱛᱚ:\nPackage:\nVersion:\nOS version:</string>
     <string name="your_comment">ᱟᱢᱟᱜ ᱯᱟᱹᱛᱭᱟᱹᱣ (ᱤᱝᱞᱤᱥ ᱛᱮ):</string>
     <string name="detail_uploader_thumbnail_view_description">ᱚᱯᱞᱚᱰᱟᱨᱟᱜ ᱟᱵᱟᱛᱟᱨ ᱛᱷᱩᱱᱤᱠᱟ</string>
     <string name="detail_likes_img_view_description">ᱞᱟᱭᱠ</string>
@@ -313,7 +313,7 @@
     <string name="remove_watched">ᱧᱮᱞᱚᱜ ᱟᱠᱟᱱ ᱥᱟᱯᱲᱟᱣ ᱢᱮ</string>
     <string name="remove_watched_popup_title">ᱧᱮᱞ ᱟᱠᱟᱱ ᱵᱷᱤᱰᱤᱭᱳ ᱠᱚ ᱪᱷᱩᱴᱟᱹᱣ?</string>
     <string name="remove_duplicates">ᱫᱩᱯᱞᱟᱹᱲ ᱠᱚ ᱦᱮᱡ ᱢᱮ</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">ᱭ, ᱟᱨ ᱵᱷᱤᱰᱤᱭᱳ ᱠᱚ ᱡᱟᱦᱟᱸ ᱞᱮᱠᱟ ᱧᱮᱞᱚᱜᱼᱟ</string>
+    <string name="remove_watched_popup_partially_watched_streams">ᱭ, ᱟᱨ ᱵᱷᱤᱰᱤᱭᱳ ᱠᱚ ᱡᱟᱦᱟᱸ ᱞᱮᱠᱟ ᱧᱮᱞᱚᱜᱼᱟ</string>
     <string name="feed_groups_header_title">ᱪᱟᱱᱮᱞ ᱜᱨᱩᱯ</string>
     <string name="feed_oldest_subscription_update">ᱯᱷᱤᱰ ᱢᱩᱪᱟᱹᱫ ᱵᱚᱫᱚᱞᱟᱠᱟᱱ: %s</string>
     <string name="feed_subscription_not_loaded_count">ᱵᱟᱝ ᱞᱚᱰ ᱟᱠᱟᱱᱟ: %d</string>

@@ -141,7 +141,7 @@
     <string name="error_snackbar_action">Teata</string>
     <string name="what_device_headline">Info:</string>
     <string name="what_happened_headline">Mis juhtus:</string>
-    <string name="info_labels">Mis:\\nPäring:\\nSisu keel:\\nSisu maa:\\nRakenduse keel:\\nTeenus:\\nGMT aeg:\\nPakett:\\nVersioon:\\nOS versioon:</string>
+    <string name="info_labels">Mis:\nPäring:\nSisu keel:\nSisu maa:\nRakenduse keel:\nTeenus:\nGMT aeg:\nPakett:\nVersioon:\nOS versioon:</string>
     <string name="your_comment">Oma kommentaar (inglise keeles):</string>
     <string name="error_details_headline">Üksikasjad:</string>
     <string name="detail_thumbnail_view_description">Esita video, kestus:</string>
@@ -530,10 +530,9 @@
         <item quantity="one">%d sekund</item>
         <item quantity="other">%d sekundit</item>
     </plurals>
-    <string name="remove_watched_popup_warning">Sellega eemaldame vaadatud videod ja esitusloendisse lisatud videod.
-\nKas sa oled kindel\? Seda tegevust ei saa hiljem tagasi pöörata!</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">Jah, sealhulgas videod, mille vaatmine jäi pooleli</string>
-    <string name="remove_watched_popup_title">Kas eemaldame vaadatud videod\?</string>
+    <string name="remove_watched_popup_warning">Sellega eemaldame vaadatud meediavood ja esitusloendisse lisatud sisu. \nKas sa oled kindel?</string>
+    <string name="remove_watched_popup_partially_watched_streams">Jah, sealhulgas videod, mille vaatmine jäi pooleli</string>
+    <string name="remove_watched_popup_title">Kas eemaldame vaadatud meediavood?</string>
     <string name="remove_watched">Eemalda vaadatud videod</string>
     <string name="systems_language">Kasuta süsteemi keelt</string>
     <string name="app_language_title">Rakenduse keel</string>

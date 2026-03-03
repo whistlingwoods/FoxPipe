@@ -252,7 +252,7 @@
     <string name="detail_likes_img_view_description">inta ka heshay</string>
     <string name="detail_uploader_thumbnail_view_description">Sawirka u saaran soosaareha</string>
     <string name="detail_thumbnail_view_description">Daar muuqaalka, intuu socdo:</string>
-    <string name="info_labels">Shayga:\\nCodsiga:\\nLuuqada Shayga:\\nWadanka Shayga:\\nLuuqada Appka:\\nAdeega:\\nWakhtiga oo GMT ah:\\nXidhmada:\\nTirsiga Appka:\\nTirsiga Nooca Barnaamijka:</string>
+    <string name="info_labels">Shayga:\nCodsiga:\nLuuqada Shayga:\nWadanka Shayga:\nLuuqada Appka:\nAdeega:\nWakhtiga oo GMT ah:\nXidhmada:\nTirsiga Appka:\nTirsiga Nooca Barnaamijka:</string>
     <string name="error_details_headline">Faahfaahin:</string>
     <string name="your_comment">Faalladaada (oo Ingiriis ah):</string>
     <string name="what_happened_headline">Waxa dhacay:</string>
@@ -490,10 +490,9 @@
         <item quantity="other">%d ilbiriqsi</item>
     </plurals>
     <string name="new_seek_duration_toast">Ayadooy ugu wacantahay xayiraad xaga ExoPlayer-ka ah xadka dhaaf-dhaafinta waa %d ilbiriqsi</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">Haa, sidoo kale ku dar muuqaalada qayb laga daawaday</string>
-    <string name="remove_watched_popup_warning">Muuqaalada la daawaday kahor iyo kadib markii xulka lagu daray waa la saari doonaa.
-\nMa hubtaa\? Arrinkan dib looma soocelin karo!</string>
-    <string name="remove_watched_popup_title">Saar muuqaalada la daawaday\?</string>
+    <string name="remove_watched_popup_partially_watched_streams">Haa, sidoo kale ku dar muuqaalada qayb laga daawaday</string>
+    <string name="remove_watched_popup_warning">Muuqaalada la daawaday kahor iyo kadib markii xulka lagu daray waa la saari doonaa. \nMa hubtaa? Arrinkan dib looma soocelin karo!</string>
+    <string name="remove_watched_popup_title">Saar muuqaalada la daawaday?</string>
     <string name="remove_watched">Saar kuwa la daawaday</string>
     <string name="systems_language">Aaladu saytahay</string>
     <string name="app_language_title">Luuqada Appka</string>

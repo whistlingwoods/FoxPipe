@@ -114,6 +114,7 @@ import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipe.player.resolver.AudioPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver;
 import org.schabi.newpipe.player.resolver.VideoPlaybackResolver.SourceType;
+import org.schabi.newpipe.player.ui.BackgroundPlayerUi;
 import org.schabi.newpipe.player.ui.MainPlayerUi;
 import org.schabi.newpipe.player.ui.PlayerUi;
 import org.schabi.newpipe.player.ui.PlayerUiList;
@@ -271,6 +272,7 @@ public final class Player implements PlaybackListener, Listener {
     @NonNull
     private final HistoryRecordManager recordManager;
 
+    private boolean screenOn = true;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -565,15 +567,12 @@ public final class Player implements PlaybackListener, Listener {
         if (queueCache == null) {
             return null;
         }
-        final PlayQueue newQueue = SerializedCache.getInstance().take(queueCache, PlayQueue.class);
-        if (newQueue == null) {
-            return null;
-        }
-        return newQueue;
+        return SerializedCache.getInstance().take(queueCache, PlayQueue.class);
     }
 
     private void initUIsForCurrentPlayerType() {
         if ((UIs.get(MainPlayerUi.class).isPresent() && playerType == PlayerType.MAIN)
+                || (UIs.get(BackgroundPlayerUi.class).isPresent() && playerType == PlayerType.AUDIO)
                 || (UIs.get(PopupPlayerUi.class).isPresent() && playerType == PlayerType.POPUP)) {
             // correct UI already in place
             return;
@@ -592,14 +591,17 @@ public final class Player implements PlaybackListener, Listener {
         switch (playerType) {
             case MAIN:
                 UIs.destroyAll(PopupPlayerUi.class);
+                UIs.destroyAll(BackgroundPlayerUi.class);
                 UIs.addAndPrepare(new MainPlayerUi(this, binding));
                 break;
             case POPUP:
                 UIs.destroyAll(MainPlayerUi.class);
+                UIs.destroyAll(BackgroundPlayerUi.class);
                 UIs.addAndPrepare(new PopupPlayerUi(this, binding));
                 break;
             case AUDIO:
-                UIs.destroyAll(VideoPlayerUi.class);
+                UIs.destroyAll(VideoPlayerUi.class); // destroys both MainPlayerUi and PopupPlayerUi
+                UIs.addAndPrepare(new BackgroundPlayerUi(this));
                 break;
         }
     }
@@ -841,6 +843,12 @@ public final class Player implements PlaybackListener, Listener {
                 break;
             case ACTION_SHUFFLE:
                 toggleShuffleModeEnabled();
+                break;
+            case Intent.ACTION_SCREEN_OFF:
+                screenOn = false;
+                break;
+            case Intent.ACTION_SCREEN_ON:
+                screenOn = true;
                 break;
             case Intent.ACTION_CONFIGURATION_CHANGED:
                 if (DEBUG) {
@@ -2029,7 +2037,7 @@ public final class Player implements PlaybackListener, Listener {
         // resolver was called when the app was in background, the app will only stream audio when
         // the user come back to the app and will never fetch the video stream.
         // Note that the video is not fetched when the app is in background because the video
-        // renderer is fully disabled (see useVideoSource method), except for HLS streams
+        // renderer is fully disabled (see useVideoAndSubtitles method), except for HLS streams
         // (see https://github.com/google/ExoPlayer/issues/9282).
         return videoResolver.resolve(info);
     }
@@ -2195,12 +2203,19 @@ public final class Player implements PlaybackListener, Listener {
         }
     }
 
-    public void useVideoSource(final boolean videoEnabled) {
-        if (playQueue == null || audioPlayerSelected()) {
+    public void useVideoAndSubtitles(final boolean videoAndSubtitlesEnabled) {
+        if (playQueue == null) {
             return;
         }
 
-        isAudioOnly = !videoEnabled;
+        isAudioOnly = !videoAndSubtitlesEnabled;
+
+        final var item = playQueue.getItem();
+        final boolean hasPendingRecovery =
+                item != null && item.getRecoveryPosition() != PlayQueueItem.RECOVERY_UNSET;
+        final boolean hasTimeline =
+                !exoPlayerIsNull() && !simpleExoPlayer.getCurrentTimeline().isEmpty();
+
 
         getCurrentStreamInfo().ifPresentOrElse(info -> {
             // In case we don't know the source type, fall back to either video-with-audio, or
@@ -2208,27 +2223,34 @@ public final class Player implements PlaybackListener, Listener {
             final SourceType sourceType = videoResolver.getStreamSourceType()
                     .orElse(SourceType.VIDEO_WITH_AUDIO_OR_AUDIO_ONLY);
 
+            if (hasTimeline || !hasPendingRecovery) {
+                // making sure to save playback position before reloadPlayQueueManager()
+                setRecovery();
+            }
+
             if (playQueueManagerReloadingNeeded(sourceType, info, getVideoRendererIndex())) {
                 reloadPlayQueueManager();
             }
-
-            setRecovery();
-
-            // Disable or enable video and subtitles renderers depending of the videoEnabled value
-            trackSelector.setParameters(trackSelector.buildUponParameters()
-                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !videoEnabled)
-                    .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !videoEnabled));
         }, () -> {
             /*
             The current metadata may be null sometimes (for e.g. when using an unstable connection
-            in livestreams) so we will be not able to execute the block below
+            in livestreams) so we will be not able to execute the block above
 
             Reload the play queue manager in this case, which is the behavior when we don't know the
             index of the video renderer or playQueueManagerReloadingNeeded returns true
             */
+            if (hasTimeline || !hasPendingRecovery) {
+                // making sure to save playback position before reloadPlayQueueManager()
+                setRecovery();
+            }
             reloadPlayQueueManager();
-            setRecovery();
         });
+
+        // Disable or enable video and subtitles renderers depending of the
+        // videoAndSubtitlesEnabled value
+        trackSelector.setParameters(trackSelector.buildUponParameters()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !videoAndSubtitlesEnabled)
+                .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !videoAndSubtitlesEnabled));
     }
 
     /**
@@ -2461,4 +2483,11 @@ public final class Player implements PlaybackListener, Listener {
                 .orElse(RENDERER_UNAVAILABLE);
     }
     //endregion
+
+    /**
+     * @return whether the device screen is turned on.
+     */
+    public boolean isScreenOn() {
+        return screenOn;
+    }
 }
