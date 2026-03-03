@@ -8,8 +8,8 @@ import androidx.room.Transaction
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Maybe
-import org.schabi.newpipe.database.playback.model.PlaybackStatisticsEntity
 import java.time.OffsetDateTime
+import org.schabi.newpipe.database.playback.model.PlaybackStatisticsEntity
 
 @Dao
 abstract class PlaybackStatisticsDAO {

@@ -74,44 +74,39 @@ public final class OfflinePlaybackHelper {
     }
 
     /**
-     * Checks if a stream has been downloaded (synchronous).
-     * Use this sparingly - prefer getOfflineFileUri() for actual playback.
+     * Checks if a stream has been downloaded (async).
      *
      * @param context   the context
      * @param serviceId the service ID
      * @param streamUrl the stream URL
-     * @return true if an offline file exists and is available
+     * @return Single emitting true if an offline file exists and is available
      */
-    public static boolean hasOfflineFile(
+    public static Single<Boolean> hasOfflineFile(
             @NonNull final Context context,
             final int serviceId,
             @NonNull final String streamUrl) {
 
-        try {
-            final OfflineFileMappingDAO dao =
-                NewPipeDatabase.getInstance(context).offlineFileMappingDAO();
+        final OfflineFileMappingDAO dao =
+            NewPipeDatabase.getInstance(context).offlineFileMappingDAO();
 
-            final List<OfflineFileMappingEntity> mappings =
-                dao.getMapping(serviceId, streamUrl)
-                    .firstOrError()
-                    .blockingGet();
-
-            if (mappings.isEmpty()) {
-                return false;
-            }
-
-            final OfflineFileMappingEntity mapping = mappings.get(0);
-            return mapping.isAvailable();
-
-        } catch (final Exception e) {
-            Log.e(TAG, "Error checking offline file", e);
-            return false;
-        }
+        return dao.getMapping(serviceId, streamUrl)
+            .firstOrError()
+            .map(mappings -> {
+                if (mappings.isEmpty()) {
+                    return false;
+                }
+                final OfflineFileMappingEntity mapping = mappings.get(0);
+                return mapping.isAvailable();
+            })
+            .timeout(5, java.util.concurrent.TimeUnit.SECONDS)
+            .onErrorReturnItem(false)
+            .subscribeOn(Schedulers.io());
     }
 
     /**
-     * Gets the offline file URI synchronously.
-     * Use this for playback to avoid blocking issues.
+     * Gets the offline file URI (blocking - must be called from background thread).
+     * This method performs blocking I/O and database operations.
+     * IMPORTANT: Caller is responsible for ensuring this runs on a background thread.
      *
      * @param context   the context
      * @param serviceId the service ID
@@ -119,7 +114,7 @@ public final class OfflinePlaybackHelper {
      * @return the file URI if available, null otherwise
      */
     @Nullable
-    public static String getOfflineFileUriSync(
+    public static String getOfflineFileUriBlocking(
             @NonNull final Context context,
             final int serviceId,
             @NonNull final String streamUrl) {
@@ -131,7 +126,7 @@ public final class OfflinePlaybackHelper {
             final List<OfflineFileMappingEntity> mappings =
                 dao.getMapping(serviceId, streamUrl)
                     .firstOrError()
-                    .timeout(1, java.util.concurrent.TimeUnit.SECONDS)
+                    .timeout(5, java.util.concurrent.TimeUnit.SECONDS)
                     .blockingGet();
 
             if (mappings.isEmpty()) {
@@ -148,8 +143,15 @@ public final class OfflinePlaybackHelper {
             // Verify file actually exists
             final android.net.Uri fileUri = android.net.Uri.parse(mapping.getLocalFileUri());
             if (!fileExists(fileUri)) {
-                // File was deleted, mark as unavailable
-                dao.updateAvailability(mapping.getUid(), false);
+                // File was deleted, mark as unavailable (async update - fire and forget)
+                io.reactivex.rxjava3.core.Completable.fromAction(() ->
+                    dao.updateAvailability(mapping.getUid(), false)
+                )
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(
+                        () -> Log.d(TAG, "Marked file as unavailable: " + streamUrl),
+                        error -> Log.e(TAG, "Error updating availability", error)
+                    );
                 return null;
             }
 

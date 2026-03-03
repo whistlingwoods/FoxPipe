@@ -53,7 +53,7 @@ public final class OfflineMetadataExtractor {
                 // Check if offline file exists
                 final String offlineUri;
                 try {
-                    offlineUri = OfflinePlaybackHelper.getOfflineFileUriSync(
+                    offlineUri = OfflinePlaybackHelper.getOfflineFileUriBlocking(
                             context, stream.getServiceId(), stream.getUrl());
                     if (offlineUri == null) {
                         continue;
@@ -119,8 +119,9 @@ public final class OfflineMetadataExtractor {
                     if (retriever != null) {
                         try {
                             retriever.release();
-                        } catch (final Exception ignored) {
-                            // Ignore
+                        } catch (final Exception e) {
+                            // Log but don't fail - resource cleanup errors shouldn't block execution
+                            Log.w(TAG, "Error releasing MediaMetadataRetriever", e);
                         }
                     }
                 }

@@ -588,14 +588,23 @@ public class DownloadManagerService extends Service {
             return;
         }
 
-        // Need serviceId from playlist metadata
+        // Need serviceId and streamUrl from playlist metadata
         if (mission.playlistMetadata == null) {
             Log.w(TAG, "Cannot create offline mapping: playlistMetadata is null");
             return;
         }
 
         final int serviceId = mission.playlistMetadata.serviceId;
-        final String streamUrl = mission.source;
+        // Use the original stream URL from playlistMetadata, not mission.source
+        // mission.source contains the normalized URL from StreamInfo, but we need
+        // the original URL from StreamInfoItem to match playback queries
+        final String streamUrl = mission.playlistMetadata.streamUrl;
+
+        if (streamUrl == null || streamUrl.isEmpty()) {
+            Log.w(TAG, "Cannot create offline mapping: streamUrl is null or empty");
+            return;
+        }
+
         final String localFileUri = mission.storage.getUri().toString();
         final long fileSize = mission.storage.length();
 

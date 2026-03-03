@@ -438,7 +438,7 @@ public class MediaSourceManager {
         // without fetching StreamInfo (which requires internet)
         return Single.fromCallable(() -> {
                     try {
-                        final String offlineUri = OfflinePlaybackHelper.getOfflineFileUriSync(
+                        final String offlineUri = OfflinePlaybackHelper.getOfflineFileUriBlocking(
                                 context, stream.getServiceId(), stream.getUrl());
                         return Optional.ofNullable(offlineUri);
                     } catch (final Exception e) {

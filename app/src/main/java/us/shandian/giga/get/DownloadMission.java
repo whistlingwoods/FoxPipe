@@ -867,6 +867,8 @@ public class DownloadMission extends Mission {
      * Used to tag audio files with proper track numbers, album info, etc.
      */
     public static class PlaylistMetadata implements Serializable {
+        private static final long serialVersionUID = 2L;
+
         /**
          * Service ID (e.g., YouTube = 0)
          */
@@ -896,5 +898,11 @@ public class DownloadMission extends Mission {
          * Title of the video (used as track title)
          */
         public String videoTitle;
+
+        /**
+         * Original stream URL (used for offline file mapping)
+         * This is the URL from the StreamInfoItem, not the normalized URL from StreamInfo.
+         */
+        public String streamUrl;
     }
 }

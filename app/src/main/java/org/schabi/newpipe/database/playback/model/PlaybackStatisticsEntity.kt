@@ -5,8 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import org.schabi.newpipe.database.stream.model.StreamEntity
 import java.time.OffsetDateTime
+import org.schabi.newpipe.database.stream.model.StreamEntity
 
 /**
  * Entity tracking detailed playback statistics for streams.

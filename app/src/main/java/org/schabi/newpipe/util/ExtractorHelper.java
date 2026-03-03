@@ -301,7 +301,9 @@ public final class ExtractorHelper {
             try {
                 // Check if an offline file exists for this stream
                 final android.content.Context context = App.getApp();
-                if (!OfflinePlaybackHelper.hasOfflineFile(context, serviceId, url)) {
+                final Boolean hasOffline = OfflinePlaybackHelper.hasOfflineFile(context, serviceId, url)
+                    .blockingGet();
+                if (!hasOffline) {
                     return Maybe.empty();
                 }
 

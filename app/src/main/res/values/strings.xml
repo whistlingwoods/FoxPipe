@@ -528,6 +528,8 @@
     <string name="show_crash_the_player_summary">Shows a crash option when using the player</string>
     <string name="check_new_streams">Run check for new streams</string>
     <string name="crash_the_app">Crash the app</string>
+    <string name="repair_stream_metadata">Repair stream metadata</string>
+    <string name="repair_stream_metadata_summary">Extract metadata from downloaded files and repair corrupted database entries</string>
     <string name="show_error_snackbar">Show an error snackbar</string>
     <string name="create_error_notification">Create an error notification</string>
     <!-- Subscriptions import/export -->

@@ -134,9 +134,31 @@ public final class BulkDownloadInitiator {
 
         // Bind to DownloadManagerService and start queueing downloads
         final Intent intent = new Intent(context, DownloadManagerService.class);
-        context.bindService(intent, new ServiceConnection() {
+        final ServiceConnection[] connection = new ServiceConnection[1];
+        final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        final boolean[] isConnected = {false};
+
+        // Timeout runnable - unbind if service doesn't connect within 5 seconds
+        final Runnable timeoutRunnable = () -> {
+            if (!isConnected[0] && connection[0] != null) {
+                Log.w(TAG, "Service binding timeout - unbinding");
+                try {
+                    context.unbindService(connection[0]);
+                } catch (final IllegalArgumentException e) {
+                    // Service was never bound
+                }
+                connection[0] = null;
+                Toast.makeText(context, "Download service connection timeout",
+                    Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        connection[0] = new ServiceConnection() {
             @Override
             public void onServiceConnected(final ComponentName name, final IBinder service) {
+                isConnected[0] = true;
+                timeoutHandler.removeCallbacks(timeoutRunnable);
+
                 final DownloadManagerService.DownloadManagerBinder binder =
                     (DownloadManagerService.DownloadManagerBinder) service;
 
@@ -148,21 +170,36 @@ public final class BulkDownloadInitiator {
                     Toast.makeText(context, "Error: Download storage not configured",
                         Toast.LENGTH_LONG).show();
                     context.unbindService(this);
+                    connection[0] = null;
                     return;
                 }
 
                 // Start queueing downloads progressively
+                // Don't unbind immediately - let queueDownloads complete first
                 queueDownloads(context, streamItems, config, serviceId,
-                    playlistName, thumbnailUrl, mainStorage);
-
-                context.unbindService(this);
+                    playlistName, thumbnailUrl, mainStorage, connection[0]);
             }
 
             @Override
             public void onServiceDisconnected(final ComponentName name) {
-                // Service disconnected
+                // Service disconnected unexpectedly
+                isConnected[0] = false;
+                timeoutHandler.removeCallbacks(timeoutRunnable);
+                connection[0] = null;
+                Log.w(TAG, "Download service disconnected unexpectedly");
             }
-        }, Context.BIND_AUTO_CREATE);
+        };
+
+        // Attempt to bind service with timeout
+        if (context.bindService(intent, connection[0], Context.BIND_AUTO_CREATE)) {
+            // Schedule timeout
+            timeoutHandler.postDelayed(timeoutRunnable, 5000);  // 5 second timeout
+        } else {
+            // Binding failed immediately
+            Toast.makeText(context, "Failed to bind to download service",
+                Toast.LENGTH_SHORT).show();
+            connection[0] = null;
+        }
     }
 
     /**
@@ -176,6 +213,7 @@ public final class BulkDownloadInitiator {
      * @param playlistName  the playlist name
      * @param thumbnailUrl  the playlist thumbnail URL
      * @param mainStorage   the storage directory helper
+     * @param connection    the service connection to unbind when complete
      */
     private static void queueDownloads(
             @NonNull final Context context,
@@ -184,7 +222,8 @@ public final class BulkDownloadInitiator {
             final int serviceId,
             final String playlistName,
             final String thumbnailUrl,
-            @NonNull final StoredDirectoryHelper mainStorage) {
+            @NonNull final StoredDirectoryHelper mainStorage,
+            @NonNull final android.content.ServiceConnection connection) {
 
         final CompositeDisposable disposables = new CompositeDisposable();
         final AtomicInteger successCount = new AtomicInteger(0);
@@ -347,6 +386,15 @@ public final class BulkDownloadInitiator {
                                 + "%d failed", successCount.get(), failureCount.get()),
                             Toast.LENGTH_LONG).show();
                         disposables.dispose();
+                        // Unbind service after all downloads are queued
+                        if (connection != null) {
+                            try {
+                                context.unbindService(connection);
+                            } catch (final IllegalArgumentException e) {
+                                // Service was already unbound
+                                Log.w(TAG, "Service was already unbound");
+                            }
+                        }
                     },
                     error -> {
                         // Unexpected error (individual errors are handled in doOnError)
@@ -357,6 +405,15 @@ public final class BulkDownloadInitiator {
                                 successCount.get(), failureCount.get()),
                             Toast.LENGTH_LONG).show();
                         disposables.dispose();
+                        // Unbind service even on error
+                        if (connection != null) {
+                            try {
+                                context.unbindService(connection);
+                            } catch (final IllegalArgumentException e) {
+                                // Service was already unbound
+                                Log.w(TAG, "Service was already unbound");
+                            }
+                        }
                     }
                 )
         );
@@ -579,6 +636,7 @@ public final class BulkDownloadInitiator {
         metadata.playlistThumbnailUrl = thumbnailUrl;
         metadata.uploaderName = cleanArtistName(streamItem.getUploaderName());
         metadata.videoTitle = streamItem.getName();
+        metadata.streamUrl = streamItem.getUrl();
 
         return metadata;
     }
