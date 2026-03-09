@@ -577,8 +577,19 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private boolean isSearchEditBlank() { return isBlank(getSearchEditString()); }
 
     public void handleSuggestions(@NonNull final List<SuggestionItem> suggestions) {
-        suggestionListAdapter.submitList(suggestions, () -> searchBinding.suggestionsList.scrollToPosition(0));
-        if (suggestionsPanelVisible && isErrorPanelVisible()) { hideLoading(); }
+        if (DEBUG) {
+            Log.d(TAG, "handleSuggestions() called with: suggestions = [" + suggestions + "]");
+        }
+        suggestionListAdapter.submitList(suggestions,
+                () -> {
+                    if (searchBinding != null) {
+                        searchBinding.suggestionsList.scrollToPosition(0);
+                    }
+                });
+
+        if (suggestionsPanelVisible && isErrorPanelVisible()) {
+            hideLoading();
+        }
     }
 
     @Override public void hideLoading() { super.hideLoading(); showListFooter(false); }
