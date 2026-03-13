@@ -20,12 +20,8 @@ dependencyResolutionManagement {
     }
 }
 include (":app")
+include(":extractor")
+project(":extractor").projectDir = file("PipePipeExtractor/extractor")
 
-// Use the PipePipeExtractor git submodule so this fork builds with BiliBili support
-// while staying pinned to the upstream extractor repository.
-includeBuild("PipePipeExtractor") {
-    dependencySubstitution {
-        substitute(module("com.github.TeamNewPipe:NewPipeExtractor"))
-            .using(project(":extractor"))
-    }
-}
+include(":timeago-parser")
+project(":timeago-parser").projectDir = file("PipePipeExtractor/timeago-parser")
