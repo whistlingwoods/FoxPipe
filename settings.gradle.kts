@@ -21,8 +21,8 @@ dependencyResolutionManagement {
 }
 include (":app")
 
-// Use the vendored PipePipe extractor so this fork builds with BiliBili support
-// without requiring a sibling checkout outside this repository.
+// Use the PipePipeExtractor git submodule so this fork builds with BiliBili support
+// while staying pinned to the upstream extractor repository.
 includeBuild("PipePipeExtractor") {
     dependencySubstitution {
         substitute(module("com.github.TeamNewPipe:NewPipeExtractor"))

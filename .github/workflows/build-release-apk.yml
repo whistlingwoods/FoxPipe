@@ -10,6 +10,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: 'master'
+          submodules: recursive
 
       - uses: actions/setup-java@v5
         with:

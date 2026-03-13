@@ -1,0 +1,3 @@
+[submodule "PipePipeExtractor"]
+	path = PipePipeExtractor
+	url = https://github.com/InfinityLoop1308/PipePipeExtractor.git
