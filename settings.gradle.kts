@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 }
 include (":app")
 include(":extractor")
-project(":extractor").projectDir = file("PipePipeExtractor/extractor")
+project(":extractor").projectDir = file("PipePipeModules/extractor")
 
 include(":timeago-parser")
-project(":timeago-parser").projectDir = file("PipePipeExtractor/timeago-parser")
+project(":timeago-parser").projectDir = file("PipePipeModules/timeago-parser")
