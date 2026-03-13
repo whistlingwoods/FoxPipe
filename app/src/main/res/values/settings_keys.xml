@@ -1512,4 +1512,9 @@
         <item>@string/image_quality_medium_key</item>
         <item>@string/image_quality_high_key</item>
     </string-array>
+
+    <!-- SponsorBlock -->
+    <string name="sponsor_block_enable_key">sponsor_block_enable_key</string>
+    <string name="sponsor_block_notifications_key">sponsor_block_notifications_key</string>
+    <string name="sponsor_block_user_id_key">sponsor_block_user_id_key</string>
 </resources>

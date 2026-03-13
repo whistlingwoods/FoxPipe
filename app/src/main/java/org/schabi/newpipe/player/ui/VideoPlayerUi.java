@@ -82,8 +82,10 @@ import org.schabi.newpipe.player.seekbarpreview.SeekbarPreviewThumbnailHolder;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
+import org.schabi.newpipe.util.SponsorBlockHelper;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
+import org.schabi.newpipe.views.MarkableSeekBar;
 import org.schabi.newpipe.views.player.PlayerFastSeekOverlay;
 
 import java.util.List;
@@ -1021,6 +1023,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.channelTextView.setText(info.getUploaderName());
 
         this.seekbarPreviewThumbnailHolder.resetFrom(player.getContext(), info.getPreviewFrames());
+        SponsorBlockHelper.markSegments(
+                player.getContext(), (MarkableSeekBar) binding.playbackSeekBar, info);
     }
 
     private void updateStreamRelatedViews() {

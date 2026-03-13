@@ -222,6 +222,18 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                             final String sourceUrl,
                                             @C.ContentType final int type,
                                             final MediaItemTag metadata) throws ResolverException {
+        if (metadata.getServiceId() == ServiceList.BiliBili.getServiceId()) {
+            return dataSource.getBiliMediaSourceFactory(sourceUrl).createMediaSource(
+                    new MediaItem.Builder()
+                            .setTag(metadata)
+                            .setUri(Uri.parse(sourceUrl))
+                            .setLiveConfiguration(
+                                    new MediaItem.LiveConfiguration.Builder()
+                                            .setTargetOffsetMs(LIVE_STREAM_EDGE_GAP_MILLIS)
+                                            .build())
+                            .build());
+        }
+
         final MediaSource.Factory factory;
         switch (type) {
             case C.CONTENT_TYPE_SS:
@@ -264,6 +276,9 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                         final MediaItemTag metadata) throws ResolverException {
         if (streamInfo.getService() == ServiceList.YouTube) {
             return createYoutubeMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
+        }
+        if (streamInfo.getService() == ServiceList.BiliBili) {
+            return createBiliBiliMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
         }
 
         final DeliveryMethod deliveryMethod = stream.getDeliveryMethod();
@@ -528,6 +543,21 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
             final MediaItemTag metadata) {
         return dataSource.getYoutubeProgressiveMediaSourceFactory()
                 .createMediaSource(new MediaItem.Builder()
+                        .setTag(metadata)
+                        .setUri(Uri.parse(stream.getContent()))
+                        .setCustomCacheKey(cacheKey)
+                        .build());
+    }
+
+    private static MediaSource createBiliBiliMediaSource(final Stream stream,
+                                                         final StreamInfo streamInfo,
+                                                         final PlayerDataSource dataSource,
+                                                         final String cacheKey,
+                                                         final MediaItemTag metadata)
+            throws ResolverException {
+        throwResolverExceptionIfUrlNullOrEmpty(stream.getContent());
+        return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
+                new MediaItem.Builder()
                         .setTag(metadata)
                         .setUri(Uri.parse(stream.getContent()))
                         .setCustomCacheKey(cacheKey)

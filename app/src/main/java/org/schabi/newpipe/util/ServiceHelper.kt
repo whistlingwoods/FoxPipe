@@ -17,6 +17,7 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.StreamingService
 import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockApiSettings
 import org.schabi.newpipe.ktx.getStringSafe
 
 object ServiceHelper {
@@ -31,6 +32,7 @@ object ServiceHelper {
             2 -> R.drawable.ic_placeholder_media_ccc
             3 -> R.drawable.ic_placeholder_peertube
             4 -> R.drawable.ic_placeholder_bandcamp
+            5 -> R.drawable.ic_bilibili
             else -> R.drawable.ic_circle
         }
     }
@@ -46,9 +48,19 @@ object ServiceHelper {
             "users" -> context.getString(R.string.users)
             "conferences" -> context.getString(R.string.conferences)
             "events" -> context.getString(R.string.events)
+            "lives" -> context.getString(R.string.lives)
+            "animes" -> context.getString(R.string.animes)
+            "movies_and_tv" -> context.getString(R.string.movies_and_tv)
+            "tags_only" -> context.getString(R.string.tags_only)
             "music_songs" -> context.getString(R.string.songs)
             "music_albums" -> context.getString(R.string.albums)
             "music_artists" -> context.getString(R.string.artists)
+            "sort_view" -> context.getString(R.string.sort_view)
+            "sort_bookmark" -> context.getString(R.string.sort_bookmark)
+            "sort_comments" -> context.getString(R.string.sort_comments)
+            "sort_bullet_comments" -> context.getString(R.string.sort_bullet_comments)
+            "sort_publish_time" -> context.getString(R.string.sort_publish_time)
+            "sort_overall" -> context.getString(R.string.sort_overall)
             else -> filter
         }
     }
@@ -163,6 +175,31 @@ object ServiceHelper {
 
     @JvmStatic
     fun initServices(context: Context) {
-        ServiceList.all().forEach { initService(context, it.serviceId) }
+        val sponsorBlockApiSettings = buildSponsorBlockApiSettings(context)
+        ServiceList.all().forEach {
+            initService(context, it.serviceId)
+            it.sponsorBlockApiSettings = sponsorBlockApiSettings
+        }
+    }
+
+    private fun buildSponsorBlockApiSettings(context: Context): SponsorBlockApiSettings? {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        if (!prefs.getBoolean(context.getString(R.string.sponsor_block_enable_key), false)) {
+            return null
+        }
+
+        return SponsorBlockApiSettings().apply {
+            apiUrl = context.getString(R.string.sponsor_block_api_url_default)
+            userId = SponsorBlockHelper.getUserId(context)
+            includeSponsorCategory = true
+            includeIntroCategory = true
+            includeOutroCategory = true
+            includeInteractionCategory = true
+            includeHighlightCategory = true
+            includeSelfPromoCategory = true
+            includeMusicCategory = true
+            includePreviewCategory = true
+            includeFillerCategory = true
+        }
     }
 }

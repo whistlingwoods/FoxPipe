@@ -11,6 +11,7 @@ import org.schabi.newpipe.extractor.downloader.Downloader;
 import org.schabi.newpipe.extractor.downloader.Request;
 import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.util.InfoCache;
 
 import java.io.IOException;
@@ -119,7 +120,11 @@ public final class DownloaderImpl extends Downloader {
      */
     public long getContentLength(final String url) throws IOException {
         try {
-            final Response response = head(url);
+            final Response response = head(
+                    url,
+                    BilibiliService.isBiliBiliDownloadUrl(url)
+                            ? BilibiliService.getUserAgentHeaders(BilibiliService.WWW_REFERER)
+                            : null);
             return Long.parseLong(response.getHeader("Content-Length"));
         } catch (final NumberFormatException e) {
             throw new IOException("Invalid content length", e);

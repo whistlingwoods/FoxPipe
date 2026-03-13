@@ -24,6 +24,7 @@ import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvicto
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 
 import org.schabi.newpipe.DownloaderImpl;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 import org.schabi.newpipe.extractor.services.youtube.dashmanifestcreators.YoutubeOtfDashManifestCreator;
 import org.schabi.newpipe.extractor.services.youtube.dashmanifestcreators.YoutubePostLiveStreamDvrDashManifestCreator;
 import org.schabi.newpipe.extractor.services.youtube.dashmanifestcreators.YoutubeProgressiveDashManifestCreator;
@@ -31,6 +32,7 @@ import org.schabi.newpipe.player.datasource.NonUriHlsDataSourceFactory;
 import org.schabi.newpipe.player.datasource.YoutubeHttpDataSource;
 
 import java.io.File;
+import java.util.Map;
 
 public class PlayerDataSource {
     public static final String TAG = PlayerDataSource.class.getSimpleName();
@@ -70,6 +72,8 @@ public class PlayerDataSource {
     // Generic Data Source Factories (without or with cache)
     private final DataSource.Factory cachelessDataSourceFactory;
     private final CacheFactory cacheDataSourceFactory;
+    private final DataSource.Factory biliCachelessDataSourceFactory;
+    private final CacheFactory biliCacheDataSourceFactory;
 
     // YouTube-specific Data Source Factories (with cache)
     // They use YoutubeHttpDataSource.Factory, with different parameters each
@@ -92,6 +96,17 @@ public class PlayerDataSource {
                 .setTransferListener(transferListener);
         cacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
                 new DefaultHttpDataSource.Factory().setUserAgent(DownloaderImpl.USER_AGENT));
+        biliCachelessDataSourceFactory = new DefaultDataSource.Factory(context,
+                new DefaultHttpDataSource.Factory()
+                        .setUserAgent(DownloaderImpl.USER_AGENT)
+                        .setDefaultRequestProperties(Map.of(
+                                "Referer", BilibiliService.WWW_REFERER)))
+                .setTransferListener(transferListener);
+        biliCacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
+                new DefaultHttpDataSource.Factory()
+                        .setUserAgent(DownloaderImpl.USER_AGENT)
+                        .setDefaultRequestProperties(Map.of(
+                                "Referer", BilibiliService.WWW_REFERER)));
 
         // YouTube-specific data source factories use getYoutubeHttpDataSourceFactory()
         ytHlsCacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
@@ -158,6 +173,14 @@ public class PlayerDataSource {
 
     public ProgressiveMediaSource.Factory getProgressiveMediaSourceFactory() {
         return new ProgressiveMediaSource.Factory(cacheDataSourceFactory)
+                .setContinueLoadingCheckIntervalBytes(progressiveLoadIntervalBytes);
+    }
+
+    public ProgressiveMediaSource.Factory getBiliMediaSourceFactory(final String url) {
+        final DataSource.Factory factory = url.contains("live.bilibili.com")
+                ? biliCachelessDataSourceFactory
+                : biliCacheDataSourceFactory;
+        return new ProgressiveMediaSource.Factory(factory)
                 .setContinueLoadingCheckIntervalBytes(progressiveLoadIntervalBytes);
     }
 
