@@ -470,7 +470,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                     .getDefaultSharedPreferences(context);
 
             for (final ListLinkHandler linkHandler : currentInfo.getTabs()) {
-                final String tab = linkHandler.getContentFilters().get(0).getName();
+                final String tab = linkHandler.getContentFilters().get(0);
                 if (ChannelTabHelper.showChannelTab(context, preferences, tab)) {
                     final ChannelTabFragment channelTabFragment =
                             ChannelTabFragment.getInstance(serviceId, linkHandler, name);
@@ -599,7 +599,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
 
         CoilHelper.INSTANCE.loadAvatar(binding.channelAvatarView, result.getAvatars());
         CoilHelper.INSTANCE.loadAvatar(binding.subChannelAvatarView,
-                result.getParentChannelAvatarUrl());
+                result.getParentChannelAvatars());
 
         binding.channelTitleView.setText(result.getName());
         binding.channelSubscriberView.setVisibility(View.VISIBLE);

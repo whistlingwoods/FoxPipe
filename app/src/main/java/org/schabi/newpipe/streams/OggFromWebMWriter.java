@@ -297,8 +297,7 @@ public class OggFromWebMWriter implements Closeable {
                 metadata.add(Pair.create("TITLE", streamInfo.getName()));
                 metadata.add(Pair.create("DATE", streamInfo
                         .getUploadDate()
-                        .offsetDateTime()
-                        .toLocalDate()
+                        .getLocalDateTime()
                         .format(DateTimeFormatter.ISO_DATE)));
             }
 

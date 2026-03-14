@@ -16,6 +16,7 @@ import androidx.preference.PreferenceManager;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.AudioStream;
+import org.schabi.newpipe.extractor.stream.AudioTrackType;
 import org.schabi.newpipe.extractor.stream.DeliveryMethod;
 import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.VideoStream;
@@ -45,6 +46,14 @@ public final class ListHelper {
             List.of(MediaFormat.MP3, MediaFormat.M4A, MediaFormat.WEBMA);
     // Use a Set for better performance
     private static final Set<String> HIGH_RESOLUTION_LIST = Set.of("1440p", "2160p");
+    // Audio track types in order of priority. 0=lowest, n=highest
+    private static final List<AudioTrackType> AUDIO_TRACK_TYPE_RANKING =
+            List.of(AudioTrackType.DESCRIPTIVE, AudioTrackType.SECONDARY, AudioTrackType.DUBBED,
+                    AudioTrackType.ORIGINAL);
+    // Audio track types in order of priority when descriptive audio is preferred.
+    private static final List<AudioTrackType> AUDIO_TRACK_TYPE_RANKING_DESCRIPTIVE =
+            List.of(AudioTrackType.SECONDARY, AudioTrackType.DUBBED, AudioTrackType.ORIGINAL,
+                    AudioTrackType.DESCRIPTIVE);
 
     /**
      * List of supported YouTube Itag ids.
@@ -776,7 +785,12 @@ public final class ListHelper {
      * <ol>
      * <li>If {@code preferOriginalAudio}: use original audio</li>
      * <li>Language matches {@code preferredLanguage}</li>
-     * <li>Track metadata best matches the preferred audio type</li>
+     * <li>
+     *     Track type ranks highest in this order:
+     *     <i>Original</i> > <i>Dubbed</i> > <i>Descriptive</i>
+     *     <p>If {@code preferDescriptiveAudio}:
+     *     <i>Descriptive</i> > <i>Dubbed</i> > <i>Original</i></p>
+     * </li>
      * <li>Language is English</li>
      * </ol>
      *
@@ -808,7 +822,12 @@ public final class ListHelper {
      * <ol>
      * <li>If {@code preferOriginalAudio}: use original audio</li>
      * <li>Language matches {@code preferredLanguage}</li>
-     * <li>Track metadata best matches the preferred audio type</li>
+     * <li>
+     *     Track type ranks highest in this order:
+     *     <i>Original</i> > <i>Dubbed</i> > <i>Descriptive</i>
+     *     <p>If {@code preferDescriptiveAudio}:
+     *     <i>Descriptive</i> > <i>Dubbed</i> > <i>Original</i></p>
+     * </li>
      * <li>Language is English</li>
      * </ol>
      *
@@ -823,14 +842,25 @@ public final class ListHelper {
             final Locale preferredLanguage,
             final boolean preferOriginalAudio,
             final boolean preferDescriptiveAudio) {
-        return Comparator.comparingInt((AudioStream audioStream) ->
-                        preferOriginalAudio ? audioTrackPriority(audioStream, false) : 0)
-                .thenComparing(audioStream ->
-                        matchesPreferredLanguage(audioStream.getAudioLocale(), preferredLanguage))
-                .thenComparingInt(audioStream ->
-                        audioTrackPriority(audioStream, preferDescriptiveAudio))
-                .thenComparing(audioStream ->
-                        matchesPreferredLanguage(audioStream.getAudioLocale(), Locale.ENGLISH));
+        final String langCode = preferredLanguage.getISO3Language();
+        final List<AudioTrackType> trackTypeRanking = preferDescriptiveAudio
+                ? AUDIO_TRACK_TYPE_RANKING_DESCRIPTIVE : AUDIO_TRACK_TYPE_RANKING;
+
+        return Comparator.comparing(AudioStream::getAudioTrackType, (o1, o2) -> {
+                    if (preferOriginalAudio) {
+                        return Boolean.compare(
+                                o1 == AudioTrackType.ORIGINAL, o2 == AudioTrackType.ORIGINAL);
+                    }
+                    return 0;
+                }).thenComparing(AudioStream::getAudioLocale,
+                        Comparator.nullsFirst(Comparator.comparing(
+                                locale -> locale.getISO3Language().equals(langCode))))
+                .thenComparing(AudioStream::getAudioTrackType,
+                        Comparator.nullsFirst(Comparator.comparingInt(trackTypeRanking::indexOf)))
+                .thenComparing(AudioStream::getAudioLocale,
+                        Comparator.nullsFirst(Comparator.comparing(
+                                locale -> locale.getISO3Language().equals(
+                                        Locale.ENGLISH.getISO3Language()))));
     }
 
     /**
@@ -842,83 +872,9 @@ public final class ListHelper {
     private static Comparator<AudioStream> getAudioTrackNameComparator() {
         final Locale appLoc = Localization.getAppLocale();
 
-        return Comparator.comparing(
-                        (AudioStream audioStream) -> getAudioLocaleDisplayName(
-                                audioStream.getAudioLocale(), appLoc),
-                        Comparator.nullsLast(String::compareToIgnoreCase))
-                .thenComparing(audioStream -> audioStream.getAudioTrackName() == null
-                                ? audioStream.getAudioTrackId()
-                                : audioStream.getAudioTrackName(),
-                        Comparator.nullsLast(String::compareToIgnoreCase));
-    }
-
-    @Nullable
-    private static Locale parseAudioLocale(@Nullable final String audioLocale) {
-        if (audioLocale == null || audioLocale.trim().isEmpty()) {
-            return null;
-        }
-
-        final Locale locale = Locale.forLanguageTag(audioLocale.replace('_', '-'));
-        return locale.getLanguage().isEmpty() ? null : locale;
-    }
-
-    private static boolean matchesPreferredLanguage(@Nullable final String audioLocale,
-                                                    @NonNull final Locale preferredLanguage) {
-        final Locale locale = parseAudioLocale(audioLocale);
-        return locale != null && locale.getLanguage().equals(preferredLanguage.getLanguage());
-    }
-
-    @Nullable
-    private static String getAudioLocaleDisplayName(@Nullable final String audioLocale,
-                                                    @NonNull final Locale appLocale) {
-        final Locale locale = parseAudioLocale(audioLocale);
-        if (locale != null) {
-            return locale.getDisplayName(appLocale);
-        }
-        return audioLocale;
-    }
-
-    private static int audioTrackPriority(@NonNull final AudioStream audioStream,
-                                          final boolean preferDescriptiveAudio) {
-        final String rawMetadata = ((audioStream.getAudioTrackName() == null
-                ? "" : audioStream.getAudioTrackName()) + " "
-                + (audioStream.getAudioTrackId() == null ? "" : audioStream.getAudioTrackId()))
-                .toLowerCase(Locale.ROOT);
-
-        final boolean isOriginal = rawMetadata.contains("original")
-                || rawMetadata.contains("default");
-        final boolean isDubbed = rawMetadata.contains("dubbed");
-        final boolean isSecondary = rawMetadata.contains("secondary");
-        final boolean isDescriptive = rawMetadata.contains("descriptive");
-
-        if (preferDescriptiveAudio) {
-            if (isSecondary) {
-                return 0;
-            }
-            if (isDubbed) {
-                return 1;
-            }
-            if (isOriginal) {
-                return 2;
-            }
-            if (isDescriptive) {
-                return 3;
-            }
-        } else {
-            if (isDescriptive) {
-                return 0;
-            }
-            if (isSecondary) {
-                return 1;
-            }
-            if (isDubbed) {
-                return 2;
-            }
-            if (isOriginal) {
-                return 3;
-            }
-        }
-
-        return -1;
+        return Comparator.comparing(AudioStream::getAudioLocale, Comparator.nullsLast(
+                        Comparator.comparing(locale -> locale.getDisplayName(appLoc))))
+                .thenComparing(AudioStream::getAudioTrackType, Comparator.nullsLast(
+                        Comparator.naturalOrder()));
     }
 }

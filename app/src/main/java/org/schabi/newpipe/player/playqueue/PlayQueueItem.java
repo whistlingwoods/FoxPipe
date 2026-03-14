@@ -8,7 +8,6 @@ import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.util.ExtractorHelper;
-import org.schabi.newpipe.util.image.ImageStrategy;
 
 import java.io.Serializable;
 import java.util.List;
@@ -51,7 +50,7 @@ public class PlayQueueItem implements Serializable {
 
     PlayQueueItem(@NonNull final StreamInfoItem item) {
         this(item.getName(), item.getUrl(), item.getServiceId(), item.getDuration(),
-                ImageStrategy.dbUrlToImageList(item.getThumbnailUrl()), item.getUploaderName(),
+                item.getThumbnails(), item.getUploaderName(),
                 item.getUploaderUrl(), item.getStreamType());
     }
 

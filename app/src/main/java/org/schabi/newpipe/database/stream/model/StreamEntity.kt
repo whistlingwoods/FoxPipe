@@ -69,7 +69,7 @@ data class StreamEntity(
         serviceId = item.serviceId, url = item.url, title = item.name,
         streamType = item.streamType, duration = item.duration, uploader = item.uploaderName,
         uploaderUrl = item.uploaderUrl,
-        thumbnailUrl = item.thumbnailUrl, viewCount = item.viewCount,
+        thumbnailUrl = ImageStrategy.imageListToDbUrl(item.thumbnails), viewCount = item.viewCount,
         textualUploadDate = item.textualUploadDate, uploadDate = item.uploadDate?.offsetDateTime(),
         isUploadDateApproximation = item.uploadDate?.isApproximation
     )
@@ -101,7 +101,7 @@ data class StreamEntity(
         item.duration = duration
         item.uploaderName = uploader
         item.uploaderUrl = uploaderUrl
-        item.thumbnailUrl = thumbnailUrl
+        item.thumbnails = ImageStrategy.dbUrlToImageList(thumbnailUrl)
 
         if (viewCount != null) item.viewCount = viewCount as Long
         item.textualUploadDate = textualUploadDate

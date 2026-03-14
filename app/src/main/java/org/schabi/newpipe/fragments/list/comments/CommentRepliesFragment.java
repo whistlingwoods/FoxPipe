@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.text.HtmlCompat;
 
 import com.evernote.android.state.State;
 
@@ -83,7 +84,7 @@ public final class CommentRepliesFragment
             final CommentsInfoItem item = commentsInfoItem;
 
             // load the author avatar
-            CoilHelper.INSTANCE.loadAvatar(binding.authorAvatar, item.getUploaderAvatarUrl());
+            CoilHelper.INSTANCE.loadAvatar(binding.authorAvatar, item.getUploaderAvatars());
             binding.authorAvatar.setVisibility(ImageStrategy.shouldLoadImages()
                     ? View.VISIBLE : View.GONE);
 
@@ -107,8 +108,8 @@ public final class CommentRepliesFragment
             binding.pinnedImage.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
 
             // setup comment content
-            TextLinkifier.fromPlainText(binding.commentContent, item.getCommentText(),
-                    getServiceById(item.getServiceId()),
+            TextLinkifier.fromDescription(binding.commentContent, item.getCommentText(),
+                    HtmlCompat.FROM_HTML_MODE_LEGACY, getServiceById(item.getServiceId()),
                     item.getUrl(), disposables, null);
             binding.commentContent.setMovementMethod(LongPressLinkMovementMethod.getInstance());
             return binding.getRoot();

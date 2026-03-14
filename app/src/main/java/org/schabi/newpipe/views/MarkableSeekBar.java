@@ -1,10 +1,16 @@
 package org.schabi.newpipe.views;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.util.AttributeSet;
+
+import androidx.core.content.ContextCompat;
+
+import org.schabi.newpipe.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,17 +51,21 @@ public class MarkableSeekBar extends FocusAwareSeekBar {
         }
 
         final int width = getMeasuredWidth() - (getPaddingStart() + getPaddingEnd());
-        if (!(originalProgressDrawable instanceof LayerDrawable)) {
-            return;
-        }
         LayerDrawable layerDrawable = (LayerDrawable) originalProgressDrawable;
 
         final ArrayList<Drawable> markerDrawables = new ArrayList<>();
         markerDrawables.add(layerDrawable);
 
         for (final SeekBarMarker seekBarMarker : seekBarMarkers) {
-            final Drawable markerDrawable = new ColorDrawable(seekBarMarker.color);
-            markerDrawable.setAlpha(0x99);
+            @SuppressLint("PrivateResource")
+            final Drawable markerDrawable = ContextCompat.getDrawable(
+                    getContext(), R.drawable.abc_scrubber_primary_mtrl_alpha);
+            if (markerDrawable == null) {
+                continue;
+            }
+
+            markerDrawable.setColorFilter(
+                    new PorterDuffColorFilter(seekBarMarker.color, PorterDuff.Mode.SRC_IN));
             markerDrawables.add(markerDrawable);
         }
 

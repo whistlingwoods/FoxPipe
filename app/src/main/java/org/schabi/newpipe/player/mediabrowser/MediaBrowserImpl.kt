@@ -227,7 +227,7 @@ class MediaBrowserImpl(
             else -> return null
         }
 
-        item.thumbnailUrl?.let {
+        ImageStrategy.choosePreferredImage(item.thumbnails)?.let {
             builder.setIconUri(imageUriOrNullIfDisabled(it))
         }
 
@@ -292,7 +292,7 @@ class MediaBrowserImpl(
             .setTitle(item.name)
             .setSubtitle(item.uploaderName)
 
-        item.thumbnailUrl?.let {
+        ImageStrategy.choosePreferredImage(item.thumbnails)?.let {
             builder.setIconUri(imageUriOrNullIfDisabled(it))
         }
 
@@ -403,9 +403,9 @@ class MediaBrowserImpl(
         )
     }
 
-    private fun searchMusicBySongTitle(query: String): Single<SearchInfo> {
+    private fun searchMusicBySongTitle(query: String?): Single<SearchInfo> {
         val serviceId = ServiceHelper.getSelectedServiceId(context)
-        return ExtractorHelper.searchFor(serviceId, query, emptyList(), null)
+        return ExtractorHelper.searchFor(serviceId, query, listOf(), "")
     }
     //endregion
 

@@ -4,6 +4,7 @@ import static androidx.recyclerview.widget.ItemTouchHelper.Callback.makeMovement
 import static org.schabi.newpipe.extractor.utils.Utils.isBlank;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.util.ExtractorHelper.showMetaInfoInTextView;
+import static java.util.Arrays.asList;
 
 import android.app.Activity;
 import android.content.Context;
@@ -56,9 +57,6 @@ import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.search.SearchExtractor;
 import org.schabi.newpipe.extractor.search.SearchInfo;
-import org.schabi.newpipe.extractor.search.filter.Filter;
-import org.schabi.newpipe.extractor.search.filter.FilterGroup;
-import org.schabi.newpipe.extractor.search.filter.FilterItem;
 import org.schabi.newpipe.extractor.services.peertube.linkHandler.PeertubeSearchQueryHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory;
 import org.schabi.newpipe.fragments.BackPressable;
@@ -124,10 +122,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
      * be aware of this when implementing an extractor.
      */
     @State
-    int[] contentFilter = new int[0];
+    String[] contentFilter = new String[0];
 
     @State
-    int[] sortFilter = new int[0];
+    String sortFilter;
 
     // these represents the last search
     @State
@@ -145,7 +143,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     @State
     boolean wasSearchFocused = false;
 
-    private final SparseArrayCompat<Integer> menuItemToFilterId = new SparseArrayCompat<>();
+    private final SparseArrayCompat<String> menuItemToFilterName = new SparseArrayCompat<>();
     private StreamingService service;
     @Nullable
     private Page nextPage;
@@ -181,7 +179,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     public static SearchFragment getInstance(final int serviceId, final String searchString) {
         final SearchFragment searchFragment = new SearchFragment();
-        searchFragment.setQuery(serviceId, searchString, new int[0], new int[0]);
+        searchFragment.setQuery(serviceId, searchString, new String[0], "");
 
         if (!TextUtils.isEmpty(searchString)) {
             searchFragment.setSearchOnResume();
@@ -419,7 +417,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 && !isSearchEditBlank())) {
             search(!TextUtils.isEmpty(searchString)
                     ? searchString
-                    : getSearchEditString(), this.contentFilter, sortFilter);
+                    : getSearchEditString(), this.contentFilter, "");
         } else {
             if (searchEditText != null) {
                 searchEditText.setText("");
@@ -453,35 +451,28 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             updateService();
         }
 
-        final Filter availableContentFilter = service.getSearchQHFactory()
-                .getAvailableContentFilter();
-        if (availableContentFilter != null) {
-            for (final FilterGroup filterGroup : availableContentFilter.getFilterGroups()) {
-                for (final FilterItem filterItem : filterGroup.filterItems) {
-                    final String filterName = filterItem.getName();
-                    if (filterName.equals(YoutubeSearchQueryHandlerFactory.MUSIC_SONGS)) {
-                        final MenuItem musicItem = menu.add(2,
-                                itemId++,
-                                0,
-                                "YouTube Music");
-                        musicItem.setEnabled(false);
-                    } else if (filterName.equals(PeertubeSearchQueryHandlerFactory.SEPIA_VIDEOS)) {
-                        final MenuItem sepiaItem = menu.add(2,
-                                itemId++,
-                                0,
-                                "Sepia Search");
-                        sepiaItem.setEnabled(false);
-                    }
-                    menuItemToFilterId.put(itemId, filterItem.getIdentifier());
-                    final MenuItem menuItem = menu.add(1,
-                            itemId++,
-                            0,
-                            ServiceHelper.getTranslatedFilterString(filterName, c));
-                    if (isFirstItem) {
-                        menuItem.setChecked(true);
-                        isFirstItem = false;
-                    }
-                }
+        for (final String filter : service.getSearchQHFactory().getAvailableContentFilter()) {
+            if (filter.equals(YoutubeSearchQueryHandlerFactory.MUSIC_SONGS)) {
+                final MenuItem musicItem = menu.add(2,
+                        itemId++,
+                        0,
+                        "YouTube Music");
+                musicItem.setEnabled(false);
+            } else if (filter.equals(PeertubeSearchQueryHandlerFactory.SEPIA_VIDEOS)) {
+                final MenuItem sepiaItem = menu.add(2,
+                        itemId++,
+                        0,
+                        "Sepia Search");
+                sepiaItem.setEnabled(false);
+            }
+            menuItemToFilterName.put(itemId, filter);
+            final MenuItem item = menu.add(1,
+                    itemId++,
+                    0,
+                    ServiceHelper.getTranslatedFilterString(filter, c));
+            if (isFirstItem) {
+                item.setChecked(true);
+                isFirstItem = false;
             }
         }
         menu.setGroupCheckable(1, true, true);
@@ -491,11 +482,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     @Override
     public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
-        final Integer filterId = menuItemToFilterId.get(item.getItemId());
-        if (filterId == null) {
-            return false;
-        }
-        changeContentFilter(item, new int[]{filterId});
+        final var filter = Collections.singletonList(menuItemToFilterName.get(item.getItemId()));
+        changeContentFilter(item, filter);
         return true;
     }
 
@@ -588,7 +576,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         suggestionListAdapter.setListener(new SuggestionListAdapter.OnSuggestionItemSelected() {
             @Override
             public void onSuggestionItemSelected(final SuggestionItem item) {
-                search(item.query, new int[0], new int[0]);
+                search(item.query, new String[0], "");
                 searchEditText.setText(item.query);
             }
 
@@ -646,7 +634,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                             && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER
                             || event.getAction() == EditorInfo.IME_ACTION_SEARCH)) {
                         searchEditText.setText(getSearchEditString().trim());
-                        search(getSearchEditString(), new int[0], new int[0]);
+                        search(getSearchEditString(), new String[0], "");
                         return true;
                     }
                     return false;
@@ -839,8 +827,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
      * @param theSortFilter FIXME: unused param
      */
     private void search(@NonNull final String theSearchString,
-                        final int[] theContentFilter,
-                        final int[] theSortFilter) {
+                        final String[] theContentFilter,
+                        final String theSortFilter) {
         if (DEBUG) {
             Log.d(TAG, "search() called with: query = [" + theSearchString + "]");
         }
@@ -870,8 +858,6 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         // prepare search
         lastSearchedString = this.searchString;
         this.searchString = theSearchString;
-        contentFilter = Arrays.copyOf(theContentFilter, theContentFilter.length);
-        sortFilter = Arrays.copyOf(theSortFilter, theSortFilter.length);
         infoListAdapter.clearStreamItemList();
         hideSuggestionsPanel();
         showMetaInfoInTextView(null, searchBinding.searchMetaInfoTextView,
@@ -902,8 +888,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         searchDisposable = ExtractorHelper.searchFor(serviceId,
                 searchString,
-                getSelectedContentFilters(),
-                getSelectedSortFilters())
+                Arrays.asList(contentFilter),
+                sortFilter)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnEvent((searchResult, throwable) -> isLoading.set(false))
@@ -924,8 +910,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         searchDisposable = ExtractorHelper.getMoreSearchItems(
                 serviceId,
                 searchString,
-                getSelectedContentFilters(),
-                getSelectedSortFilters(),
+                asList(contentFilter),
+                sortFilter,
                 nextPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -961,7 +947,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         try {
             return service.getSearchQHFactory().getUrl(searchString,
-                    getSelectedContentFilters(), getSelectedSortFilters());
+                    Arrays.asList(contentFilter), sortFilter);
         } catch (final NullPointerException | ParsingException ignored) {
             return null;
         }
@@ -971,55 +957,13 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     // Utils
     //////////////////////////////////////////////////////////////////////////*/
 
-    @NonNull
-    private List<FilterItem> getSelectedContentFilters() {
-        return getSelectedFilters(contentFilter);
-    }
-
-    @Nullable
-    private List<FilterItem> getSelectedSortFilters() {
-        if (sortFilter.length == 0) {
-            return null;
-        }
-
-        final List<FilterItem> selectedSortFilters = getSelectedFilters(sortFilter);
-        return selectedSortFilters.isEmpty() ? null : selectedSortFilters;
-    }
-
-    @NonNull
-    private List<FilterItem> getSelectedFilters(final int[] filterIds) {
-        if (service == null || filterIds.length == 0) {
-            return Collections.emptyList();
-        }
-
-        final List<FilterItem> selectedFilters = new ArrayList<>(filterIds.length);
-        for (final int filterId : filterIds) {
-            final FilterItem filterItem = service.getSearchQHFactory().getFilterItem(filterId);
-            if (filterItem != null) {
-                selectedFilters.add(filterItem);
-            }
-        }
-        return selectedFilters;
-    }
-
-    @Nullable
-    private String getFilterName(final int[] filterIds) {
-        if (service == null || filterIds.length == 0) {
-            return null;
-        }
-
-        final FilterItem filterItem = service.getSearchQHFactory().getFilterItem(filterIds[0]);
-        return filterItem != null ? filterItem.getName() : null;
-    }
-
-    private void changeContentFilter(final MenuItem item, final int[] theContentFilter) {
+    private void changeContentFilter(final MenuItem item, final List<String> theContentFilter) {
         filterItemCheckedId = item.getItemId();
         item.setChecked(true);
 
         if (service != null) {
-            final String selectedFilterName = getFilterName(theContentFilter);
-            final boolean isNotFiltered = selectedFilterName == null
-                    || "all".equals(selectedFilterName);
+            final boolean isNotFiltered = theContentFilter.isEmpty()
+                    || "all".equals(theContentFilter.get(0));
             if (isNotFiltered) {
                 searchEditText.setHint(
                         getString(R.string.search_with_service_name,
@@ -1031,7 +975,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             }
         }
 
-        contentFilter = theContentFilter;
+        contentFilter = theContentFilter.toArray(new String[0]);
 
         if (!TextUtils.isEmpty(searchString)) {
             search(searchString, contentFilter, sortFilter);
@@ -1040,8 +984,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private void setQuery(final int theServiceId,
                           final String theSearchString,
-                          final int[] theContentFilter,
-                          final int[] theSortFilter) {
+                          final String[] theContentFilter,
+                          final String theSortFilter) {
         serviceId = theServiceId;
         searchString = theSearchString;
         contentFilter = theContentFilter;

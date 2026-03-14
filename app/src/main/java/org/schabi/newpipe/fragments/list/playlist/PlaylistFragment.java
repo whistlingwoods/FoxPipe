@@ -238,7 +238,7 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             ShareUtils.openUrlInBrowser(requireContext(), url);
         } else if (itemId == R.id.menu_item_share) {
             ShareUtils.shareText(requireContext(), name, url,
-                    currentInfo == null ? "" : currentInfo.getThumbnailUrl());
+                    currentInfo == null ? List.of() : currentInfo.getThumbnails());
         } else if (itemId == R.id.menu_item_bookmark) {
             onBookmarkClicked();
         } else if (itemId == R.id.menu_item_append_playlist) {
@@ -322,13 +322,13 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             );
         } else {
             CoilHelper.INSTANCE.loadAvatar(headerBinding.uploaderAvatarView,
-                    result.getUploaderAvatarUrl());
+                    result.getUploaderAvatars());
         }
 
         streamCount = result.getStreamCount();
         setStreamCountAndOverallDuration(result.getRelatedItems(), !result.hasNextPage());
 
-        final Description description = Description.EMPTY_DESCRIPTION;
+        final Description description = result.getDescription();
         if (description != null && description != Description.EMPTY_DESCRIPTION
                 && !isBlank(description.getContent())) {
             final TextEllipsizer ellipsizer = new TextEllipsizer(

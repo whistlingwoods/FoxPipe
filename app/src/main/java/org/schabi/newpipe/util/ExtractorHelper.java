@@ -41,14 +41,13 @@ import org.schabi.newpipe.extractor.MetaInfo;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
-import org.schabi.newpipe.extractor.channel.ChannelTabInfo;
+import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.search.SearchInfo;
-import org.schabi.newpipe.extractor.search.filter.FilterItem;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
@@ -76,8 +75,8 @@ public final class ExtractorHelper {
     }
 
     public static Single<SearchInfo> searchFor(final int serviceId, final String searchString,
-                                               final List<FilterItem> contentFilter,
-                                               @Nullable final List<FilterItem> sortFilter) {
+                                               final List<String> contentFilter,
+                                               final String sortFilter) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 SearchInfo.getInfo(NewPipe.getService(serviceId),
@@ -89,8 +88,8 @@ public final class ExtractorHelper {
     public static Single<InfoItemsPage<InfoItem>> getMoreSearchItems(
             final int serviceId,
             final String searchString,
-            final List<FilterItem> contentFilter,
-            @Nullable final List<FilterItem> sortFilter,
+            final List<String> contentFilter,
+            final String sortFilter,
             final Page page) {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->

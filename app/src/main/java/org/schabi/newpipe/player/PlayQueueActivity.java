@@ -647,7 +647,7 @@ public final class PlayQueueActivity extends AppCompatActivity
                     getString(R.string.play_queue_audio_track, trackName));
 
             final String shortName = s.getAudioLocale() != null
-                    ? s.getAudioLocale() : trackName;
+                    ? s.getAudioLocale().getLanguage() : trackName;
             audioTrackSelector.setTitleCondensed(
                     shortName.substring(0, Math.min(shortName.length(), 2)));
             audioTrackSelector.setVisible(true);
