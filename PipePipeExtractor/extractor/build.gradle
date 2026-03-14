@@ -44,6 +44,7 @@ dependencies {
     // Android already provides org.json at runtime; bundling json-java causes VerifyError
     // because its JSONException hierarchy differs from the framework one.
     compileOnly "org.json:json:20231013"
+    runtimeOnly 'org.slf4j:slf4j-nop:1.7.36'
     // do not upgrade to 1.7.14, since in 1.7.14 Rhino uses the `SourceVersion` class, which is not
     // available on Android (even when using desugaring), and `NoClassDefFoundError` is thrown
     implementation 'org.mozilla:rhino:1.7.13'
