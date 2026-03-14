@@ -328,29 +328,29 @@ public class BilibiliService extends StreamingService {
     static public String getResolution(int code) {
         switch (code) {
             case 127:
-                return "8K 超高清";
+                return "4320p";
             case 126:
-                return "杜比视界";
+                return "2160p";
             case 125:
-                return "HDR 真彩色";
+                return "2160p";
             case 120:
-                return "4K 超清";
+                return "2160p";
             case 116:
-                return "1080P60 高帧率";
+                return "1080p60";
             case 112:
-                return "1080P+ 高码率";
+                return "1080p";
             case 80:
-                return "1080P 高清";
+                return "1080p";
             case 74:
-                return "720P60 高帧率";
+                return "720p60";
             case 64:
-                return "720P 高清";
+                return "720p";
             case 32:
-                return "480P 清晰";
+                return "480p";
             case 16:
-                return "360P 流畅";
+                return "360p";
             case 6:
-                return "240P 极速";
+                return "240p";
             default:
                 return "Unknown resolution";
         }

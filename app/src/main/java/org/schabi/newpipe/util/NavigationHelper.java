@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -684,6 +685,13 @@ public final class NavigationHelper {
 
     public static void openSettings(final Context context) {
         final Intent intent = new Intent(context, SettingsActivity.class);
+        context.startActivity(intent);
+    }
+
+    public static void openSettings(final Context context,
+                                    final Class<? extends Fragment> fragmentClass) {
+        final Intent intent = new Intent(context, SettingsActivity.class);
+        intent.putExtra(SettingsActivity.EXTRA_INITIAL_FRAGMENT, fragmentClass.getName());
         context.startActivity(intent);
     }
 

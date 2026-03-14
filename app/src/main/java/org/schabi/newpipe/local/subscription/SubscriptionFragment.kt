@@ -59,6 +59,7 @@ import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService
 import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.KEY_MODE
 import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.KEY_VALUE
 import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.PREVIOUS_EXPORT_MODE
+import org.schabi.newpipe.settings.BackupRestoreSettingsFragment
 import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard
 import org.schabi.newpipe.streams.io.StoredFileHelper
 import org.schabi.newpipe.util.NavigationHelper
@@ -219,6 +220,10 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         )
     }
 
+    private fun onBackupSelected() {
+        NavigationHelper.openSettings(requireContext(), BackupRestoreSettingsFragment::class.java)
+    }
+
     private fun openReorderDialog() {
         FeedGroupReorderDialog().show(parentFragmentManager, null)
     }
@@ -331,6 +336,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
                     FeedImportExportItem(
                         onImportPreviousSelected = ::onImportPreviousSelected,
                         onImportFromServiceSelected = ::onImportFromServiceSelected,
+                        onBackupSelected = ::onBackupSelected,
                         onExportSelected = ::onExportSelected
                     )
                 )

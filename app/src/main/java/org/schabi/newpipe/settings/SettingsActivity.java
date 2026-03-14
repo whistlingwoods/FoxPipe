@@ -66,6 +66,7 @@ public class SettingsActivity extends AppCompatActivity implements
         PreferenceSearchResultListener {
     private static final String TAG = "SettingsActivity";
     private static final boolean DEBUG = MainActivity.DEBUG;
+    public static final String EXTRA_INITIAL_FRAGMENT = "initial_fragment";
 
     @IdRes
     private static final int FRAGMENT_HOLDER_ID = R.id.settings_fragment_holder;
@@ -108,8 +109,14 @@ public class SettingsActivity extends AppCompatActivity implements
                 }
             }
         } else {
+            final String initialFragmentClass =
+                    getIntent().getStringExtra(EXTRA_INITIAL_FRAGMENT);
+            final Fragment initialFragment =
+                    TextUtils.isEmpty(initialFragmentClass)
+                            ? new MainSettingsFragment()
+                            : instantiateFragment(initialFragmentClass);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.settings_fragment_holder, new MainSettingsFragment())
+                    .replace(R.id.settings_fragment_holder, initialFragment)
                     .commit();
         }
 

@@ -16,6 +16,7 @@ import org.schabi.newpipe.views.CollapsibleView
 class FeedImportExportItem(
     private val onImportPreviousSelected: () -> Unit,
     private val onImportFromServiceSelected: (Int) -> Unit,
+    private val onBackupSelected: () -> Unit,
     private val onExportSelected: () -> Unit,
     var isExpanded: Boolean = false
 ) : BindableItem<FeedImportExportGroupBinding>() {
@@ -117,5 +118,11 @@ class FeedImportExportItem(
             R.drawable.ic_save,
             listHolder
         ).setOnClickListener { onExportSelected() }
+
+        addItemView(
+            listHolder.context.getString(R.string.settings_category_backup_restore_title),
+            R.drawable.ic_settings_backup_restore,
+            listHolder
+        ).setOnClickListener { onBackupSelected() }
     }
 }

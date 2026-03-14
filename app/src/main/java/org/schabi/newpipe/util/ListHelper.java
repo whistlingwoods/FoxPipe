@@ -45,7 +45,7 @@ public final class ListHelper {
     private static final List<MediaFormat> AUDIO_FORMAT_EFFICIENCY_RANKING =
             List.of(MediaFormat.MP3, MediaFormat.M4A, MediaFormat.WEBMA);
     // Use a Set for better performance
-    private static final Set<String> HIGH_RESOLUTION_LIST = Set.of("1440p", "2160p");
+    private static final Set<String> HIGH_RESOLUTION_LIST = Set.of("1440p", "2160p", "4320p");
     // Audio track types in order of priority. 0=lowest, n=highest
     private static final List<AudioTrackType> AUDIO_TRACK_TYPE_RANKING =
             List.of(AudioTrackType.DESCRIPTIVE, AudioTrackType.SECONDARY, AudioTrackType.DUBBED,
