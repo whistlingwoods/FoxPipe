@@ -9,8 +9,8 @@ import com.xwray.groupie.viewbinding.GroupieViewHolder
 import org.schabi.newpipe.R
 import org.schabi.newpipe.databinding.FeedImportExportGroupBinding
 import org.schabi.newpipe.extractor.ServiceList
-import org.schabi.newpipe.util.ServiceHelper
 import org.schabi.newpipe.ktx.animateRotation
+import org.schabi.newpipe.util.ServiceHelper
 import org.schabi.newpipe.views.CollapsibleView
 
 class FeedImportExportItem(
