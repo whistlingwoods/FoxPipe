@@ -14,6 +14,8 @@ object KioskTranslator {
     fun getTranslatedKioskName(kioskId: String, context: Context): String {
         return when (kioskId) {
             "Trending" -> context.getString(R.string.trending)
+            "Recommended Videos" -> context.getString(R.string.videos_string)
+            "Recommended Lives" -> context.getString(R.string.lives)
             "Top 50" -> context.getString(R.string.top_50)
             "New & hot" -> context.getString(R.string.new_and_hot)
             "Local" -> context.getString(R.string.local)
@@ -36,6 +38,8 @@ object KioskTranslator {
     fun getKioskIcon(kioskId: String): Int {
         return when (kioskId) {
             "Trending", "Top 50", "New & hot", "conferences" -> R.drawable.ic_whatshot
+            "Recommended Videos", "Top 100" -> R.drawable.ic_smart_display
+            "Recommended Lives" -> R.drawable.ic_live_tv
             "Local" -> R.drawable.ic_home
             "Recently added", "recent" -> R.drawable.ic_add_circle_outline
             "Most liked" -> R.drawable.ic_thumb_up
@@ -46,7 +50,7 @@ object KioskTranslator {
             "trending_music" -> R.drawable.ic_music_note
             "trending_movies_and_shows" -> R.drawable.ic_movie
             "trending_podcasts_episodes" -> R.drawable.ic_podcasts
-            else -> 0
+            else -> R.drawable.ic_circle
         }
     }
 }
