@@ -96,12 +96,12 @@ public abstract class ListLinkHandlerFactory extends LinkHandlerFactory {
      * @return the url corresponding to id without any filters applied
      */
     public String getUrl(final String id) throws ParsingException {
-        return getUrl(id, new ArrayList<>(0), null);
+        return getUrl(id, new ArrayList<FilterItem>(0), null);
     }
 
     @Override
     public String getUrl(final String id, final String baseUrl) throws ParsingException {
-        return getUrl(id, new ArrayList<>(0), null, baseUrl);
+        return getUrl(id, new ArrayList<FilterItem>(0), null, baseUrl);
     }
 
     /**
