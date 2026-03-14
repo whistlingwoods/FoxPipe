@@ -3,7 +3,6 @@ package org.schabi.newpipe.util;
 import org.junit.Test;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.AudioTrackType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
 import java.util.ArrayList;
@@ -33,12 +32,12 @@ public class ListHelperTest {
             generateAudioStream("webma-320", MediaFormat.WEBMA, 320));
 
     private static final List<AudioStream> AUDIO_TRACKS_TEST_LIST = List.of(
-            generateAudioTrack("en.or", "en.or", Locale.ENGLISH, AudioTrackType.ORIGINAL),
-            generateAudioTrack("en.du", "en.du", Locale.ENGLISH, AudioTrackType.DUBBED),
-            generateAudioTrack("en.ds", "en.ds", Locale.ENGLISH, AudioTrackType.DESCRIPTIVE),
+            generateAudioTrack("en.or", "en.or", Locale.ENGLISH, "original"),
+            generateAudioTrack("en.du", "en.du", Locale.ENGLISH, "dubbed"),
+            generateAudioTrack("en.ds", "en.ds", Locale.ENGLISH, "descriptive"),
             generateAudioTrack("unknown", null, null, null),
-            generateAudioTrack("de.du", "de.du", Locale.GERMAN, AudioTrackType.DUBBED),
-            generateAudioTrack("de.ds", "de.ds", Locale.GERMAN, AudioTrackType.DESCRIPTIVE)
+            generateAudioTrack("de.du", "de.du", Locale.GERMAN, "dubbed"),
+            generateAudioTrack("de.ds", "de.ds", Locale.GERMAN, "descriptive")
     );
 
     private static final List<VideoStream> VIDEO_STREAMS_TEST_LIST = List.of(
@@ -454,15 +453,15 @@ public class ListHelperTest {
             @NonNull final String id,
             @Nullable final String trackId,
             @Nullable final Locale locale,
-            @Nullable final AudioTrackType trackType) {
+            @Nullable final String trackName) {
         return new AudioStream.Builder()
                 .setId(id)
                 .setContent("", true)
                 .setMediaFormat(MediaFormat.M4A)
                 .setAverageBitrate(128)
                 .setAudioTrackId(trackId)
-                .setAudioLocale(locale)
-                .setAudioTrackType(trackType)
+                .setAudioLocale(locale == null ? null : locale.toLanguageTag())
+                .setAudioTrackName(trackName)
                 .build();
     }
 

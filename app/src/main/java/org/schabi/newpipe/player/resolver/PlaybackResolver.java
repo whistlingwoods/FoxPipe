@@ -163,7 +163,7 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
 
         if (audioStream.getAudioLocale() != null) {
             cacheKey.append(" ");
-            cacheKey.append(audioStream.getAudioLocale().getISO3Language());
+            cacheKey.append(audioStream.getAudioLocale());
         }
 
         return cacheKey.toString();

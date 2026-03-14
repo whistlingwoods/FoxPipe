@@ -599,7 +599,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
 
         CoilHelper.INSTANCE.loadAvatar(binding.channelAvatarView, result.getAvatars());
         CoilHelper.INSTANCE.loadAvatar(binding.subChannelAvatarView,
-                result.getParentChannelAvatars());
+                result.getParentChannelAvatarUrl());
 
         binding.channelTitleView.setText(result.getName());
         binding.channelSubscriberView.setVisibility(View.VISIBLE);

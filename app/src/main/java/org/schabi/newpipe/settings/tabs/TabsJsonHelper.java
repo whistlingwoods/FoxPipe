@@ -9,9 +9,8 @@ import com.grack.nanojson.JsonParserException;
 import com.grack.nanojson.JsonStringWriter;
 import com.grack.nanojson.JsonWriter;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Class to get a JSON representation of a list of tabs, and the other way around.
@@ -54,11 +53,16 @@ public final class TabsJsonHelper {
             }
 
             final JsonArray tabsArray = outerJsonObject.getArray(JSON_TABS_ARRAY_KEY, null);
-
-            final var returnTabs = tabsArray.streamAsJsonObjects()
-                    .map(Tab::from)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toUnmodifiableList());
+            final List<Tab> returnTabs = new ArrayList<>(tabsArray.size());
+            for (final Object tabObject : tabsArray) {
+                if (!(tabObject instanceof JsonObject)) {
+                    continue;
+                }
+                final Tab tab = Tab.from((JsonObject) tabObject);
+                if (tab != null) {
+                    returnTabs.add(tab);
+                }
+            }
 
             return returnTabs.isEmpty() ? getDefaultTabs() : returnTabs;
         } catch (final JsonParserException e) {
