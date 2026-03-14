@@ -27,6 +27,14 @@ public abstract class ListLinkHandlerFactory extends LinkHandlerFactory {
         return getUrl(id, contentFilter, sortFilter);
     }
 
+    public String getUrl(final String id,
+                         final List<String> contentFilters,
+                         final String sortFilter) throws ParsingException {
+        final List<FilterItem> contentFilterItems = mapFilterNames(contentFilters);
+        final List<FilterItem> sortFilterItems = mapSortFilterName(contentFilterItems, sortFilter);
+        return getUrl(id, contentFilterItems, sortFilterItems);
+    }
+
     ///////////////////////////////////
     // Logic
     ///////////////////////////////////
