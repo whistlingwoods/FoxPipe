@@ -68,9 +68,6 @@ dependencies {
     // Android already provides org.json at runtime; bundling json-java causes VerifyError
     // because its JSONException hierarchy differs from the framework one.
     compileOnly 'org.json:json:20231013'
-    implementation 'org.cache2k:cache2k-api:2.6.1.Final'
-    implementation 'org.cache2k:cache2k-core:2.6.1.Final'
-    implementation 'org.slf4j:slf4j-nop:1.7.36'
     implementation 'org.mozilla:rhino:1.7.13'
 
     checkstyle 'com.puppycrawl.tools:checkstyle:9.3'
