@@ -224,6 +224,19 @@ public final class AudioStream extends Stream {
             return this;
         }
 
+        public Builder setAudioTrackType(@Nullable final AudioTrackType audioTrackType) {
+            if (audioTrackType == null) {
+                return this;
+            }
+            final String trackTypeName = audioTrackType.name().toLowerCase(Locale.ROOT);
+            if (audioTrackName == null || audioTrackName.isEmpty()) {
+                this.audioTrackName = trackTypeName;
+            } else if (!audioTrackName.toLowerCase(Locale.ROOT).contains(trackTypeName)) {
+                this.audioTrackName = audioTrackName + " (" + trackTypeName + ")";
+            }
+            return this;
+        }
+
         public Builder setAudioLocale(String audioLocale) {
             this.audioLocale = audioLocale;
             return this;
