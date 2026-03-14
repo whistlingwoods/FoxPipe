@@ -54,12 +54,13 @@
             tools:ignore="ContentDescription" />
     </LinearLayout>
 
-    <org.schabi.newpipe.views.CollapsibleView
+    <LinearLayout
         android:id="@+id/import_export_options"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="6dp">
+        android:paddingBottom="6dp"
+        android:visibility="gone">
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:layout_width="match_parent"
@@ -104,5 +105,5 @@
             android:layout_marginTop="6dp"
             android:layout_marginEnd="8dp"
             android:background="?attr/separator_color" />
-    </org.schabi.newpipe.views.CollapsibleView>
+    </LinearLayout>
 </LinearLayout>

@@ -5,13 +5,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.xwray.groupie.viewbinding.BindableItem
-import com.xwray.groupie.viewbinding.GroupieViewHolder
 import org.schabi.newpipe.R
 import org.schabi.newpipe.databinding.FeedImportExportGroupBinding
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.ktx.animateRotation
 import org.schabi.newpipe.util.ServiceHelper
-import org.schabi.newpipe.views.CollapsibleView
 
 class FeedImportExportItem(
     private val onImportPreviousSelected: () -> Unit,
@@ -20,8 +18,6 @@ class FeedImportExportItem(
     private val onExportSelected: () -> Unit,
     var isExpanded: Boolean = false
 ) : BindableItem<FeedImportExportGroupBinding>() {
-
-    private var expandIconListener: CollapsibleView.StateListener? = null
 
     override fun getLayout(): Int = R.layout.feed_import_export_group
 
@@ -35,34 +31,25 @@ class FeedImportExportItem(
             setupExportToItems(viewBinding.exportToOptions)
         }
 
-        expandIconListener?.let { viewBinding.importExportOptions.removeListener(it) }
-        expandIconListener = CollapsibleView.StateListener { newState ->
-            viewBinding.importExportExpandIcon.animateRotation(
-                250,
-                if (newState == CollapsibleView.COLLAPSED) 0 else 180
-            )
-        }
-
-        viewBinding.importExportOptions.currentState = if (isExpanded) {
-            CollapsibleView.EXPANDED
+        viewBinding.importExportOptions.visibility = if (isExpanded) {
+            View.VISIBLE
         } else {
-            CollapsibleView.COLLAPSED
+            View.GONE
         }
         viewBinding.importExportExpandIcon.rotation = if (isExpanded) 180F else 0F
-        viewBinding.importExportOptions.ready()
 
-        viewBinding.importExportOptions.addListener(expandIconListener)
         viewBinding.importExport.setOnClickListener {
-            viewBinding.importExportOptions.switchState()
-            isExpanded =
-                viewBinding.importExportOptions.currentState == CollapsibleView.EXPANDED
+            isExpanded = !isExpanded
+            viewBinding.importExportOptions.visibility = if (isExpanded) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+            viewBinding.importExportExpandIcon.animateRotation(
+                250,
+                if (isExpanded) 180 else 0
+            )
         }
-    }
-
-    override fun unbind(viewHolder: GroupieViewHolder<FeedImportExportGroupBinding>) {
-        super.unbind(viewHolder)
-        expandIconListener?.let { viewHolder.binding.importExportOptions.removeListener(it) }
-        expandIconListener = null
     }
 
     override fun initializeViewBinding(view: View): FeedImportExportGroupBinding {
