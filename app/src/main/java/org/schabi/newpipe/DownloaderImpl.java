@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -187,6 +188,8 @@ public final class DownloaderImpl extends Downloader {
         RequestBody requestBody = null;
         if (dataToSend != null) {
             requestBody = RequestBody.create(dataToSend);
+        } else if (requiresRequestBody(httpMethod)) {
+            requestBody = RequestBody.create(new byte[0]);
         }
 
         final okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
@@ -205,6 +208,19 @@ public final class DownloaderImpl extends Downloader {
                     requestBuilder.addHeader(headerName, headerValue));
         });
         return requestBuilder.build();
+    }
+
+    private static boolean requiresRequestBody(@NonNull final String httpMethod) {
+        switch (httpMethod.toUpperCase(Locale.ROOT)) {
+            case "POST":
+            case "PUT":
+            case "PATCH":
+            case "PROPPATCH":
+            case "REPORT":
+                return true;
+            default:
+                return false;
+        }
     }
 
     @NonNull
