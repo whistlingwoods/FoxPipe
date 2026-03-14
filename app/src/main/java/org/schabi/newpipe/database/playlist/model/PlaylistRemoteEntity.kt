@@ -19,7 +19,6 @@ import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.Companion
 import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.Companion.REMOTE_PLAYLIST_URL
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo
 import org.schabi.newpipe.util.NO_SERVICE_ID
-import org.schabi.newpipe.util.image.ImageStrategy
 
 @Entity(
     tableName = REMOTE_PLAYLIST_TABLE,
@@ -61,9 +60,8 @@ data class PlaylistRemoteEntity(
         serviceId = playlistInfo.serviceId,
         orderingName = playlistInfo.name,
         url = playlistInfo.url,
-        thumbnailUrl = ImageStrategy.imageListToDbUrl(
-            playlistInfo.thumbnails.ifEmpty { playlistInfo.uploaderAvatars }
-        ),
+        thumbnailUrl = playlistInfo.thumbnailUrl.takeUnless { it.isNullOrEmpty() }
+            ?: playlistInfo.uploaderAvatarUrl,
         uploader = playlistInfo.uploaderName,
         streamCount = playlistInfo.streamCount
     )
@@ -82,7 +80,7 @@ data class PlaylistRemoteEntity(
             TextUtils.equals(this.url, info.url) &&
             // we want to update the local playlist data even when either the remote thumbnail
             // URL changes, or the preferred image quality setting is changed by the user
-            TextUtils.equals(thumbnailUrl, ImageStrategy.imageListToDbUrl(info.thumbnails)) &&
+            TextUtils.equals(thumbnailUrl, info.thumbnailUrl) &&
             TextUtils.equals(this.uploader, info.uploaderName)
     }
 

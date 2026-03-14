@@ -87,7 +87,7 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         }
 
         // load the author avatar
-        CoilHelper.INSTANCE.loadAvatar(itemThumbnailView, item.getUploaderAvatars());
+        CoilHelper.INSTANCE.loadAvatar(itemThumbnailView, item.getUploaderAvatarUrl());
         if (ImageStrategy.shouldLoadImages()) {
             itemThumbnailView.setVisibility(View.VISIBLE);
             itemRoot.setPadding(commentVerticalPadding, commentVerticalPadding,

@@ -39,7 +39,7 @@ class ChannelItem(
             itemChannelDescriptionView.text = infoItem.description
         }
 
-        CoilHelper.loadAvatar(itemThumbnailView, infoItem.thumbnails)
+        CoilHelper.loadAvatar(itemThumbnailView, infoItem.thumbnailUrl)
 
         gesturesListener?.run {
             viewHolder.root.setOnClickListener { selected(infoItem) }

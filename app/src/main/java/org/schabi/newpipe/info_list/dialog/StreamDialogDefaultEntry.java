@@ -107,7 +107,7 @@ public enum StreamDialogDefaultEntry {
 
     SHARE(R.string.share, (fragment, item) ->
             ShareUtils.shareText(fragment.requireContext(), item.getName(), item.getUrl(),
-                    item.getThumbnails())),
+                    item.getThumbnailUrl())),
 
     /**
      * Opens a {@link DownloadDialog} after fetching some stream info.

@@ -22,9 +22,7 @@ import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException
 import org.schabi.newpipe.extractor.exceptions.PaidContentException
 import org.schabi.newpipe.extractor.exceptions.PrivateContentException
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
-import org.schabi.newpipe.extractor.exceptions.SignInConfirmNotBotException
 import org.schabi.newpipe.extractor.exceptions.SoundCloudGoPlusContentException
-import org.schabi.newpipe.extractor.exceptions.UnsupportedContentInCountryException
 import org.schabi.newpipe.extractor.exceptions.YoutubeMusicPremiumContentException
 import org.schabi.newpipe.ktx.isNetworkRelated
 import org.schabi.newpipe.player.mediasource.FailedMediaSource
@@ -162,8 +160,6 @@ class ErrorInfo private constructor(
 
         const val SERVICE_NONE = "<unknown_service>"
 
-        const val YOUTUBE_IP_BAN_FAQ_URL = "https://newpipe.net/FAQ/#ip-banned-youtube"
-
         private fun getServiceName(serviceId: Int?) = // not using getNameOfServiceById since we want to accept a nullable serviceId and we
             // want to default to SERVICE_NONE
             ServiceList.all().firstOrNull { it.serviceId == serviceId }?.serviceInfo?.name
@@ -244,18 +240,8 @@ class ErrorInfo private constructor(
                 throwable is SoundCloudGoPlusContentException ->
                     ErrorMessage(R.string.soundcloud_go_plus_content)
 
-                throwable is UnsupportedContentInCountryException ->
-                    ErrorMessage(R.string.unsupported_content_in_country)
-
                 throwable is YoutubeMusicPremiumContentException ->
                     ErrorMessage(R.string.youtube_music_premium_content)
-
-                throwable is SignInConfirmNotBotException ->
-                    ErrorMessage(
-                        R.string.sign_in_confirm_not_bot_error,
-                        getServiceName(serviceId),
-                        YOUTUBE_IP_BAN_FAQ_URL
-                    )
 
                 throwable is ContentNotAvailableException ->
                     ErrorMessage(R.string.content_not_available)
@@ -354,7 +340,6 @@ class ErrorInfo private constructor(
                 is PaidContentException,
                 is PrivateContentException,
                 is SoundCloudGoPlusContentException,
-                is UnsupportedContentInCountryException,
                 is YoutubeMusicPremiumContentException -> true
 
                 else -> false

@@ -238,7 +238,7 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             ShareUtils.openUrlInBrowser(requireContext(), url);
         } else if (itemId == R.id.menu_item_share) {
             ShareUtils.shareText(requireContext(), name, url,
-                    currentInfo == null ? List.of() : currentInfo.getThumbnails());
+                    currentInfo == null ? "" : currentInfo.getThumbnailUrl());
         } else if (itemId == R.id.menu_item_bookmark) {
             onBookmarkClicked();
         } else if (itemId == R.id.menu_item_append_playlist) {
@@ -322,7 +322,7 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
             );
         } else {
             CoilHelper.INSTANCE.loadAvatar(headerBinding.uploaderAvatarView,
-                    result.getUploaderAvatars());
+                    result.getUploaderAvatarUrl());
         }
 
         streamCount = result.getStreamCount();
