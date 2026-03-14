@@ -453,7 +453,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             updateService();
         }
 
-        final Filter availableContentFilter = service.getSearchQHFactory().getAvailableContentFilter();
+        final Filter availableContentFilter = service.getSearchQHFactory()
+                .getAvailableContentFilter();
         if (availableContentFilter != null) {
             for (final FilterGroup filterGroup : availableContentFilter.getFilterGroups()) {
                 for (final FilterItem filterItem : filterGroup.filterItems) {

@@ -2,7 +2,6 @@ package org.schabi.newpipe.settings;
 
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 
 import org.schabi.newpipe.R;
