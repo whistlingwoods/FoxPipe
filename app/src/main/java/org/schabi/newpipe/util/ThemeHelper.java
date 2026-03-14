@@ -38,9 +38,6 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.info_list.ItemViewMode;
 
 public final class ThemeHelper {
@@ -156,13 +153,6 @@ public final class ThemeHelper {
             return baseTheme;
         }
 
-        final StreamingService service;
-        try {
-            service = NewPipe.getService(serviceId);
-        } catch (final ExtractionException ignored) {
-            return baseTheme;
-        }
-
         String themeName = "DarkTheme"; // default
         if (baseTheme == R.style.LightTheme) {
             themeName = "LightTheme";
@@ -170,7 +160,12 @@ public final class ThemeHelper {
             themeName = "BlackTheme";
         }
 
-        themeName += "." + service.getServiceInfo().getName();
+        final String serviceName = ServiceHelper.getNameOfServiceById(serviceId);
+        if ("<unknown>".equals(serviceName)) {
+            return baseTheme;
+        }
+
+        themeName += "." + serviceName;
         final int resourceId = context.getResources()
                 .getIdentifier(themeName, "style", context.getPackageName());
 
