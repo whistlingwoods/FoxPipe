@@ -65,6 +65,10 @@
     <dimen name="popup_default_width">180dp</dimen>
     <dimen name="popup_minimum_width">150dp</dimen>
     <dimen name="comment_item_avatar_right_margin">9dp</dimen>
+    <dimen name="subscription_import_export_title_height">32dp</dimen>
+    <dimen name="subscription_import_export_item_height">42dp</dimen>
+    <dimen name="subscription_import_export_item_icon_size">24dp</dimen>
+    <dimen name="subscription_import_export_item_icon_margin">9dp</dimen>
 
     <!-- Video Item Detail View Dimensions-->
     <!-- Text Size -->

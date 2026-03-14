@@ -92,6 +92,11 @@
             android:label="@string/settings" />
 
         <activity
+            android:name=".views.BiliBiliLoginWebViewActivity"
+            android:exported="false"
+            android:label="@string/settings_category_bilibili_account_title" />
+
+        <activity
             android:name=".about.AboutActivity"
             android:exported="false"
             android:label="@string/title_activity_about" />

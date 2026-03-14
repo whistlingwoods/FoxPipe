@@ -32,6 +32,8 @@ public final class SettingsResourceRegistry {
         add(MainSettingsFragment.class, R.xml.main_settings).setSearchable(false);
 
         add(AppearanceSettingsFragment.class, R.xml.appearance_settings);
+        add(AccountSettingsFragment.class, R.xml.account_settings);
+        add(BiliBiliAccountSettingsFragment.class, R.xml.account_settings_bilibili);
         add(ContentSettingsFragment.class, R.xml.content_settings);
         add(DebugSettingsFragment.class, R.xml.debug_settings).setSearchable(false);
         add(DownloadSettingsFragment.class, R.xml.download_settings);

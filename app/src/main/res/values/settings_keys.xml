@@ -237,6 +237,21 @@
 
     <string name="reset_settings">reset_settings</string>
 
+    <string name="logout_key">logout_key</string>
+    <string name="login_key">login_key</string>
+    <string name="bilibili_cookies_key">bilibili_cookies_key</string>
+    <string name="override_cookies_bilibili_key">override_cookies_bilibili_key</string>
+    <string name="override_cookies_bilibili_value_key">override_cookies_bilibili_value_key</string>
+    <string name="cookie_functions_bilibili_key">cookie_functions_bilibili_key</string>
+    <string-array name="cookie_functions_bilibili_entries">
+        <item>@string/high_res</item>
+        <item>@string/ai_subtitle</item>
+    </string-array>
+    <string-array name="cookie_functions_bilibili_values">
+        <item>high_res</item>
+        <item>ai_subtitle</item>
+    </string-array>
+
     <!-- DEBUG ONLY -->
     <string name="debug_pref_screen_key">debug_pref_screen_key</string>
     <string name="allow_heap_dumping_key">allow_heap_dumping_key</string>

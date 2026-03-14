@@ -11,6 +11,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.grack.nanojson.JsonParser
+import java.util.HashSet
 import java.util.concurrent.TimeUnit
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.NewPipe
@@ -192,20 +193,47 @@ object ServiceHelper {
     }
 
     fun initService(context: Context, serviceId: Int) {
-        if (serviceId == ServiceList.PeerTube.serviceId) {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            val json = sharedPreferences.getString(
-                context.getString(R.string.peertube_selected_instance_key),
-                null
-            ) ?: return
+        when (serviceId) {
+            ServiceList.PeerTube.serviceId -> {
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+                val json = sharedPreferences.getString(
+                    context.getString(R.string.peertube_selected_instance_key),
+                    null
+                ) ?: return
 
-            val jsonObject = runCatching { JsonParser.`object`().from(json) }
-                .getOrElse { return@initService }
+                val jsonObject = runCatching { JsonParser.`object`().from(json) }
+                    .getOrNull() ?: return
 
-            ServiceList.PeerTube.instance = PeertubeInstance(
-                jsonObject.getString("url"),
-                jsonObject.getString("name")
-            )
+                ServiceList.PeerTube.instance = PeertubeInstance(
+                    jsonObject.getString("url"),
+                    jsonObject.getString("name")
+                )
+            }
+
+            ServiceList.BiliBili.serviceId -> {
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+                val useOverrideCookies = sharedPreferences.getBoolean(
+                    context.getString(R.string.override_cookies_bilibili_key),
+                    false
+                )
+                val cookiesKey = if (useOverrideCookies) {
+                    R.string.override_cookies_bilibili_value_key
+                } else {
+                    R.string.bilibili_cookies_key
+                }
+                val cookies = sharedPreferences.getString(context.getString(cookiesKey), "")
+                    ?: ""
+                val defaultCookieFunctions = setOf("high_res", "ai_subtitle")
+                val cookieFunctions = HashSet(
+                    sharedPreferences.getStringSet(
+                        context.getString(R.string.cookie_functions_bilibili_key),
+                        defaultCookieFunctions
+                    ) ?: defaultCookieFunctions
+                )
+
+                ServiceList.BiliBili.setTokens(cookies)
+                ServiceList.BiliBili.setCookieFunctions(cookieFunctions)
+            }
         }
     }
 

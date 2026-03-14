@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:key="account_preferences"
+    android:title="@string/account">
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.BiliBiliAccountSettingsFragment"
+        android:title="BiliBili"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceCategory
+        android:layout="@layout/settings_category_header_layout"
+        android:title="@string/settings_category_clear_data_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false">
+
+        <Preference
+            android:key="clear_webview_cookies"
+            android:summary="@string/clear_webview_cookies_summary"
+            android:title="@string/clear_webview_cookies"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+</PreferenceScreen>
