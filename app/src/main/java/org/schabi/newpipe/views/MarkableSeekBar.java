@@ -1,6 +1,5 @@
 package org.schabi.newpipe.views;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -9,8 +8,6 @@ import android.graphics.drawable.LayerDrawable;
 import android.util.AttributeSet;
 
 import androidx.core.content.ContextCompat;
-
-import org.schabi.newpipe.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,9 +54,8 @@ public class MarkableSeekBar extends FocusAwareSeekBar {
         markerDrawables.add(layerDrawable);
 
         for (final SeekBarMarker seekBarMarker : seekBarMarkers) {
-            @SuppressLint("PrivateResource")
             final Drawable markerDrawable = ContextCompat.getDrawable(
-                    getContext(), R.drawable.abc_scrubber_primary_mtrl_alpha);
+                    getContext(), androidx.appcompat.R.drawable.abc_scrubber_primary_mtrl_alpha);
             if (markerDrawable == null) {
                 continue;
             }
