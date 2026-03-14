@@ -4,6 +4,7 @@ import com.grack.nanojson.*;
 
 import org.brotli.dec.BrotliInputStream;
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 
 import java.io.*;
