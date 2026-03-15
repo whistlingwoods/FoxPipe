@@ -228,12 +228,14 @@ class FeedLoadManager(private val context: Context) {
                     .filterIsInstance<StreamInfoItem>()
             }
 
-            return Notification.createOnNext(buildFeedUpdateInfo(
-                subscriptionEntity,
-                originalInfo!!,
-                streams!!,
-                errors
-            ))
+            return Notification.createOnNext(
+                buildFeedUpdateInfo(
+                    subscriptionEntity,
+                    originalInfo!!,
+                    streams!!,
+                    errors
+                )
+            )
         } catch (e: Throwable) {
             maybeApplyRateLimitBackoff(subscriptionEntity.serviceId, error ?: e)
             val request = "${subscriptionEntity.serviceId}:${subscriptionEntity.url}"
