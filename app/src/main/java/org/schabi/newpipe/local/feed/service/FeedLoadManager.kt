@@ -261,8 +261,8 @@ class FeedLoadManager(private val context: Context) {
 
         val resolvedName = info.name
             .takeIf { it.isNotBlank() && it != info.id && it != info.url }
-            ?: subscriptionEntity.name
-        val resolvedUrl = info.url.takeIf { it.isNotBlank() } ?: subscriptionEntity.url
+            ?: subscriptionEntity.name.orEmpty()
+        val resolvedUrl = info.url.takeIf { it.isNotBlank() } ?: subscriptionEntity.url.orEmpty()
 
         return FeedUpdateInfo(
             uid = subscriptionEntity.uid,
