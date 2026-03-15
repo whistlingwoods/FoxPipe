@@ -63,10 +63,13 @@ public final class BulletCommentsOverlayView extends FrameLayout {
             return;
         }
 
-        final AppCompatTextView textView = buildTextView(item);
+            final AppCompatTextView textView = buildTextView(item);
         switch (item.getPosition()) {
             case TOP:
-                showFixedComment(textView, true, resolveDuration(item, DEFAULT_FIXED_DURATION_MILLIS));
+                showFixedComment(
+                        textView,
+                        true,
+                        resolveDuration(item, DEFAULT_FIXED_DURATION_MILLIS));
                 break;
             case BOTTOM:
                 showFixedComment(
@@ -91,7 +94,9 @@ public final class BulletCommentsOverlayView extends FrameLayout {
         textView.setTextColor(item.getArgbColor() == 0 ? Color.WHITE : item.getArgbColor());
         textView.setTextSize(
                 TypedValue.COMPLEX_UNIT_SP,
-                Math.max(MIN_TEXT_SIZE_SP, DEFAULT_TEXT_SIZE_SP * (float) item.getRelativeFontSize()));
+                Math.max(
+                        MIN_TEXT_SIZE_SP,
+                        DEFAULT_TEXT_SIZE_SP * (float) item.getRelativeFontSize()));
         textView.setShadowLayer(6f, 2f, 2f, Color.BLACK);
         textView.setSingleLine(true);
         textView.setClickable(false);
