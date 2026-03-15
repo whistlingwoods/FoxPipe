@@ -3,6 +3,7 @@ package org.schabi.newpipe.player.helper;
 import static org.schabi.newpipe.MainActivity.DEBUG;
 
 import android.content.Context;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -32,6 +33,9 @@ import org.schabi.newpipe.player.datasource.NonUriHlsDataSourceFactory;
 import org.schabi.newpipe.player.datasource.YoutubeHttpDataSource;
 
 import java.io.File;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 public class PlayerDataSource {
@@ -66,6 +70,8 @@ public class PlayerDataSource {
      */
     private static SimpleCache cache;
 
+    private final Context context;
+    private final TransferListener transferListener;
 
     private final int progressiveLoadIntervalBytes;
 
@@ -84,6 +90,8 @@ public class PlayerDataSource {
 
     public PlayerDataSource(final Context context,
                             final TransferListener transferListener) {
+        this.context = context;
+        this.transferListener = transferListener;
 
         progressiveLoadIntervalBytes = PlayerHelper.getProgressiveLoadIntervalBytes(context);
 
@@ -184,6 +192,16 @@ public class PlayerDataSource {
                 .setContinueLoadingCheckIntervalBytes(progressiveLoadIntervalBytes);
     }
 
+    public HlsMediaSource.Factory getNiconicoHlsMediaSourceFactory(final String url) {
+        return new HlsMediaSource.Factory(getNiconicoDataSourceFactory(url));
+    }
+
+    public ProgressiveMediaSource.Factory getNiconicoProgressiveMediaSourceFactory(
+            final String url) {
+        return new ProgressiveMediaSource.Factory(getNiconicoDataSourceFactory(url))
+                .setContinueLoadingCheckIntervalBytes(progressiveLoadIntervalBytes);
+    }
+
     public SsMediaSource.Factory getSSMediaSourceFactory() {
         return new SsMediaSource.Factory(
                 new DefaultSsChunkSource.Factory(cachelessDataSourceFactory),
@@ -226,6 +244,42 @@ public class PlayerDataSource {
         return new YoutubeHttpDataSource.Factory()
                 .setRangeParameterEnabled(rangeParameterEnabled)
                 .setRnParameterEnabled(rnParameterEnabled);
+    }
+
+    private DataSource.Factory getNiconicoDataSourceFactory(final String url) {
+        return new DefaultDataSource.Factory(context,
+                new DefaultHttpDataSource.Factory()
+                        .setUserAgent(DownloaderImpl.USER_AGENT)
+                        .setDefaultRequestProperties(getNiconicoRequestProperties(url)))
+                .setTransferListener(transferListener);
+    }
+
+    private static Map<String, String> getNiconicoRequestProperties(final String url) {
+        final Map<String, String> requestProperties = new HashMap<>();
+        requestProperties.put("Referer", "https://www.nicovideo.jp/");
+        requestProperties.put("Origin", "https://www.nicovideo.jp");
+
+        final String fragment = Uri.parse(url).getFragment();
+        if (fragment == null || fragment.isEmpty()) {
+            return requestProperties;
+        }
+
+        for (final String part : fragment.split("&")) {
+            final int separatorIndex = part.indexOf('=');
+            if (separatorIndex <= 0) {
+                continue;
+            }
+
+            final String key = part.substring(0, separatorIndex);
+            final String value = part.substring(separatorIndex + 1);
+            if ("cookie".equals(key)) {
+                requestProperties.put(
+                        "Cookie",
+                        URLDecoder.decode(value, StandardCharsets.UTF_8));
+            }
+        }
+
+        return requestProperties;
     }
 
     private static void instantiateCacheIfNeeded(final Context context) {

@@ -64,6 +64,7 @@ public class NiconicoStreamExtractor extends StreamExtractor {
     private Document liveResponse;
     private JsonObject liveDataRoot;
     private Map<String, List<String>> streamSources;
+    private String liveStreamUrl;
 
     public NiconicoStreamExtractor(final StreamingService service,
                                    final LinkHandler linkHandler,
@@ -217,7 +218,10 @@ public class NiconicoStreamExtractor extends StreamExtractor {
             String id = RegexUtils.extract(audio, "audio-(.*?)-\\d+kbps");
             audioStreams.add(new AudioStream.Builder().setId("Niconico-" + getId() + "-audio")
                     .setContent(audio, true)
-                    .setMediaFormat(MediaFormat.M4A).setQuality(id.split("-")[2].split("kbps")[0]).build());
+                    .setDeliveryMethod(DeliveryMethod.HLS)
+                    .setMediaFormat(MediaFormat.M4A)
+                    .setQuality(id.split("-")[2].split("kbps")[0])
+                    .build());
         }
         return audioStreams;
     }
@@ -241,6 +245,7 @@ public class NiconicoStreamExtractor extends StreamExtractor {
             String liveUrl = nicoWebSocketClient.getUrl();
             liveMessageServer = nicoWebSocketClient.getServerUrl();
             if (liveUrl != null && liveMessageServer != null) {
+                liveStreamUrl = liveUrl;
                 webSocketClient.close();
                 return;
             }
@@ -266,7 +271,7 @@ public class NiconicoStreamExtractor extends StreamExtractor {
     public List<VideoStream> getVideoStreams() throws IOException, ExtractionException {
         if (getStreamType() == StreamType.LIVE_STREAM) {
             final List<VideoStream> videoStreams = new ArrayList<>();
-            videoStreams.add(new VideoStream.Builder().setContent(getUrl(), true)
+            videoStreams.add(new VideoStream.Builder().setContent(liveStreamUrl, true)
                     .setId("Niconico-" + getId() + "-live").setIsVideoOnly(false)
                     .setResolution("720p").setDeliveryMethod(DeliveryMethod.HLS).build()); // not really 720p, we just fetch the best
             return videoStreams;
@@ -486,7 +491,7 @@ public class NiconicoStreamExtractor extends StreamExtractor {
     @Override
     public String getHlsUrl() throws ParsingException {
         if (getStreamType() == StreamType.LIVE_STREAM) {
-            return getUrl();
+            return liveStreamUrl;
         }
         return null;
     }

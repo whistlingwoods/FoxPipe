@@ -40,6 +40,8 @@ import org.schabi.newpipe.extractor.ListExtractor.InfoItemsPage;
 import org.schabi.newpipe.extractor.MetaInfo;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.Page;
+import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfo;
+import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfoItem;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
@@ -155,6 +157,15 @@ public final class ExtractorHelper {
                         CommentsInfo.getInfo(NewPipe.getService(serviceId), url)));
     }
 
+    public static Single<BulletCommentsInfo> getBulletCommentsInfo(final int serviceId,
+                                                                   final String url,
+                                                                   final boolean forceLoad) {
+        checkServiceId(serviceId);
+        return checkCache(forceLoad, serviceId, url, InfoCache.Type.BULLET_COMMENTS,
+                Single.fromCallable(() ->
+                        BulletCommentsInfo.getInfo(NewPipe.getService(serviceId), url)));
+    }
+
     public static Single<InfoItemsPage<CommentsInfoItem>> getMoreCommentItems(
             final int serviceId,
             final CommentsInfo info,
@@ -171,6 +182,15 @@ public final class ExtractorHelper {
         checkServiceId(serviceId);
         return Single.fromCallable(() ->
                 CommentsInfo.getMoreItems(NewPipe.getService(serviceId), url, nextPage));
+    }
+
+    public static Single<InfoItemsPage<BulletCommentsInfoItem>> getMoreBulletCommentItems(
+            final int serviceId,
+            final BulletCommentsInfo info,
+            final Page nextPage) {
+        checkServiceId(serviceId);
+        return Single.fromCallable(() ->
+                BulletCommentsInfo.getMoreItems(NewPipe.getService(serviceId), info, nextPage));
     }
 
     public static Single<PlaylistInfo> getPlaylistInfo(final int serviceId,
