@@ -21,6 +21,7 @@ import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
 import org.schabi.newpipe.info_list.ItemViewMode;
+import org.schabi.newpipe.util.CommentPictureHelper;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.Localization;
@@ -112,6 +113,10 @@ public final class CommentRepliesFragment
                     HtmlCompat.FROM_HTML_MODE_LEGACY, getServiceById(item.getServiceId()),
                     item.getUrl(), disposables, null);
             binding.commentContent.setMovementMethod(LongPressLinkMovementMethod.getInstance());
+            CommentPictureHelper.bindCommentPictures(
+                    binding.commentPicturesScrollView,
+                    binding.commentPicturesContainer,
+                    item.getPictures());
             return binding.getRoot();
         };
     }

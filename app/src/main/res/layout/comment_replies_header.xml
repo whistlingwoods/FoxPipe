@@ -124,6 +124,27 @@
         app:layout_constraintTop_toBottomOf="@+id/uploadDate"
         tools:text="@tools:sample/lorem/random[10]" />
 
+    <HorizontalScrollView
+        android:id="@+id/commentPicturesScrollView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/commentContent">
+
+        <LinearLayout
+            android:id="@+id/commentPicturesContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
@@ -133,6 +154,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/commentContent" />
+        app:layout_constraintTop_toBottomOf="@+id/commentPicturesScrollView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

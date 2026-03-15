@@ -12,6 +12,7 @@ import org.schabi.newpipe.extractor.comments.CommentsExtractor;
 import org.schabi.newpipe.extractor.downloader.Response;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
+import org.schabi.newpipe.extractor.feed.FeedExtractor;
 import org.schabi.newpipe.extractor.kiosk.KioskList;
 import org.schabi.newpipe.extractor.linkhandler.LinkHandler;
 import org.schabi.newpipe.extractor.linkhandler.LinkHandlerFactory;
@@ -29,6 +30,7 @@ import org.schabi.newpipe.extractor.services.bilibili.extractors.BilibiliFeedExt
 import org.schabi.newpipe.extractor.services.bilibili.extractors.BilibiliPlaylistExtractor;
 import org.schabi.newpipe.extractor.services.bilibili.extractors.BilibiliSearchExtractor;
 import org.schabi.newpipe.extractor.services.bilibili.extractors.BilibiliSuggestionExtractor;
+import org.schabi.newpipe.extractor.services.bilibili.extractors.BilibiliSubscriptionFeedExtractor;
 import org.schabi.newpipe.extractor.services.bilibili.extractors.BillibiliStreamExtractor;
 import org.schabi.newpipe.extractor.services.bilibili.linkHandler.BilibiliBulletCommentsLinkHandlerFactory;
 import org.schabi.newpipe.extractor.services.bilibili.linkHandler.BilibiliChannelLinkHandlerFactory;
@@ -432,6 +434,11 @@ public class BilibiliService extends StreamingService {
     @Override
     public SubscriptionExtractor getSubscriptionExtractor() {
         return null;
+    }
+
+    @Override
+    public FeedExtractor getFeedExtractor(final String url) throws ExtractionException {
+        return new BilibiliSubscriptionFeedExtractor(this, getChannelLHFactory().fromUrl(url));
     }
 
     @Override

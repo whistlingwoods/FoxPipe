@@ -130,8 +130,8 @@ public class BilibiliCommentsInfoItemExtractor implements CommentsInfoItemExtrac
     @Nonnull
     @Override
     public Collection<Image> getPictures() throws ParsingException {
-        JsonArray array = data.getObject("content").getArray("pictures");
-        if (array.size() != 0) {
+        final JsonArray array = data.getObject("content").getArray("pictures");
+        if (array != null && array.size() != 0) {
             return array.stream()
                     .map(x -> {
                         JsonObject jsonObject = (JsonObject) x;

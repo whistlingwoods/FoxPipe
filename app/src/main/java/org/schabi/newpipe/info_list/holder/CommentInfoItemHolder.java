@@ -11,7 +11,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,6 +25,7 @@ import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
+import org.schabi.newpipe.util.CommentPictureHelper;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
@@ -40,6 +43,8 @@ public class CommentInfoItemHolder extends InfoItemHolder {
     private final RelativeLayout itemRoot;
     private final ImageView itemThumbnailView;
     private final TextView itemContentView;
+    private final HorizontalScrollView commentPicturesScrollView;
+    private final LinearLayout commentPicturesContainer;
     private final ImageView itemThumbsUpView;
     private final TextView itemLikesCountView;
     private final TextView itemTitleView;
@@ -57,6 +62,8 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         itemRoot = itemView.findViewById(R.id.itemRoot);
         itemThumbnailView = itemView.findViewById(R.id.itemThumbnailView);
         itemContentView = itemView.findViewById(R.id.itemCommentContentView);
+        commentPicturesScrollView = itemView.findViewById(R.id.commentPicturesScrollView);
+        commentPicturesContainer = itemView.findViewById(R.id.commentPicturesContainer);
         itemThumbsUpView = itemView.findViewById(R.id.detail_thumbs_up_img_view);
         itemLikesCountView = itemView.findViewById(R.id.detail_thumbs_up_count_view);
         itemTitleView = itemView.findViewById(R.id.itemTitleView);
@@ -129,6 +136,10 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         textEllipsizer.setStreamUrl(item.getUrl());
         textEllipsizer.setContent(item.getCommentText());
         textEllipsizer.ellipsize();
+        CommentPictureHelper.bindCommentPictures(
+                commentPicturesScrollView,
+                commentPicturesContainer,
+                item.getPictures());
 
         //noinspection ClickableViewAccessibility
         itemContentView.setOnTouchListener((v, event) -> {
