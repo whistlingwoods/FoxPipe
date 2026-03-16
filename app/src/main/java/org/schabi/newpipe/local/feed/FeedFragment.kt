@@ -85,6 +85,7 @@ import java.time.OffsetDateTime
 import java.util.function.Consumer
 
 class FeedFragment : BaseStateFragment<FeedState>() {
+    private lateinit var feedLoadServiceIntent: Intent
     private var _feedBinding: FragmentFeedBinding? = null
     private val feedBinding get() = _feedBinding!!
 
@@ -195,6 +196,11 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         feedBinding.newItemsLoadedButton.setOnClickListener {
             hideNewItemsLoaded(true)
             feedBinding.itemsList.scrollToPosition(0)
+        }
+        feedBinding.cancelFeedReloadingButton.setOnClickListener {
+            hideNewItemsLoaded(false)
+            hideLoading()
+            cancelReloadingContent()
         }
     }
 
@@ -313,6 +319,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         feedBinding.itemsList.animateHideRecyclerViewAllowingScrolling()
         feedBinding.refreshRootView.animate(false, 0)
         feedBinding.loadingProgressText.animate(true, 200)
+        feedBinding.cancelFeedReloadingButton.animate(true, 200)
         feedBinding.swipeRefreshLayout.isRefreshing = true
         isRefreshing = true
     }
@@ -322,6 +329,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         feedBinding.itemsList.animate(true, 0)
         feedBinding.refreshRootView.animate(true, 200)
         feedBinding.loadingProgressText.animate(false, 0)
+        feedBinding.cancelFeedReloadingButton.animate(false, 0)
         feedBinding.swipeRefreshLayout.isRefreshing = false
         isRefreshing = false
     }
@@ -360,7 +368,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             progressState.maxProgress == -1
 
         feedBinding.loadingProgressText.text = if (!isIndeterminate) {
-            "${progressState.currentProgress}/${progressState.maxProgress}"
+            "${progressState.progressDescription} (${progressState.currentProgress}/${progressState.maxProgress})"
         } else if (progressState.progressMessage > 0) {
             getString(progressState.progressMessage)
         } else {
@@ -666,12 +674,16 @@ class FeedFragment : BaseStateFragment<FeedState>() {
     override fun reloadContent() {
         hideNewItemsLoaded(false)
 
-        getActivity()?.startService(
-            Intent(requireContext(), FeedLoadService::class.java).apply {
-                putExtra(FeedLoadService.EXTRA_GROUP_ID, groupId)
-            }
-        )
+        feedLoadServiceIntent = Intent(requireContext(), FeedLoadService::class.java).apply {
+            putExtra(FeedLoadService.EXTRA_GROUP_ID, groupId)
+        }
+
+        getActivity()?.startService(feedLoadServiceIntent)
         listState = null
+    }
+
+    fun cancelReloadingContent() {
+        getActivity()?.stopService(feedLoadServiceIntent)
     }
 
     companion object {
