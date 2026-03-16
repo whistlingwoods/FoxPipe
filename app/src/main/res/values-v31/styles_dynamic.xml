@@ -1,8 +1,9 @@
 <resources>
 
-    <style name="ThemeOverlay.NewPipe.DynamicColors" />
+    <style name="ThemeOverlay.NewPipe.DynamicColors" parent="" />
 
-    <style name="ThemeOverlay.NewPipe.DynamicColors.Light">
+    <style name="ThemeOverlay.NewPipe.DynamicColors.Light"
+        parent="@style/ThemeOverlay.NewPipe.DynamicColors">
         <item name="colorPrimary">@android:color/system_accent1_600</item>
         <item name="colorPrimaryDark">@android:color/system_accent1_700</item>
         <item name="colorAccent">@android:color/system_accent1_600</item>
@@ -31,7 +32,8 @@
         <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
     </style>
 
-    <style name="ThemeOverlay.NewPipe.DynamicColors.Dark">
+    <style name="ThemeOverlay.NewPipe.DynamicColors.Dark"
+        parent="@style/ThemeOverlay.NewPipe.DynamicColors">
         <item name="colorPrimary">@android:color/system_accent1_200</item>
         <item name="colorPrimaryDark">@android:color/system_accent1_200</item>
         <item name="colorAccent">@android:color/system_accent1_200</item>
