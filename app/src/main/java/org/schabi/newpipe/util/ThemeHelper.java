@@ -252,6 +252,26 @@ public final class ThemeHelper {
     }
 
     /**
+     * Return a small signature of the current dynamic palette so activities can detect wallpaper
+     * palette changes and recreate themselves.
+     *
+     * @param context context to read dynamic system colors from
+     * @return an int signature for the current dynamic palette, or 0 when dynamic colors are off
+     */
+    public static int getDynamicColorsSignature(final Context context) {
+        if (!shouldApplyDynamicColors(context)) {
+            return 0;
+        }
+
+        int signature = 17;
+        signature = 31 * signature + resolveAndroidColor(context, "system_accent1_600");
+        signature = 31 * signature + resolveAndroidColor(context, "system_accent2_600");
+        signature = 31 * signature + resolveAndroidColor(context, "system_neutral1_200");
+        signature = 31 * signature + resolveAndroidColor(context, "system_neutral1_800");
+        return signature;
+    }
+
+    /**
      * Get a color from an attr styled according to the context's theme.
      *
      * @param context   Android app context
@@ -395,6 +415,15 @@ public final class ThemeHelper {
                 | NoSuchMethodException ignored) {
             // Material dynamic colors are optional. Fall back to the static palette.
         }
+    }
+
+    private static int resolveAndroidColor(@NonNull final Context context,
+                                           @NonNull final String colorName) {
+        final int colorId = context.getResources().getIdentifier(colorName, "color", "android");
+        if (colorId == 0) {
+            return 0;
+        }
+        return ContextCompat.getColor(context, colorId);
     }
 
     /**

@@ -1358,6 +1358,8 @@ public final class VideoDetailFragment
                 new FrameLayout.LayoutParams(
                         RelativeLayout.LayoutParams.MATCH_PARENT, newHeight));
         binding.detailThumbnailImageView.setMinimumHeight(newHeight);
+        binding.detailThumbnailCollapsingLayout.setMinimumHeight(newHeight);
+        binding.detailThumbnailRootLayout.setMinimumHeight(newHeight);
         if (isPlayerAvailable()) {
             final int maxHeight = (int) (metrics.heightPixels * MAX_PLAYER_HEIGHT);
             player.UIs().get(VideoPlayerUi.class).ifPresent(ui ->

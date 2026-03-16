@@ -78,6 +78,7 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private View searchContainer;
     private EditText searchEditText;
+    private int dynamicColorsSignature;
 
     // State
     @State
@@ -89,6 +90,7 @@ public class SettingsActivity extends AppCompatActivity implements
     protected void onCreate(final Bundle savedInstanceBundle) {
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setSettingsTheme(this);
+        dynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
 
         super.onCreate(savedInstanceBundle);
         Bridge.restoreInstanceState(this, savedInstanceBundle);
@@ -123,6 +125,17 @@ public class SettingsActivity extends AppCompatActivity implements
 
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        final int currentDynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
+        if (dynamicColorsSignature != currentDynamicColorsSignature) {
+            dynamicColorsSignature = currentDynamicColorsSignature;
+            recreate();
         }
     }
 
