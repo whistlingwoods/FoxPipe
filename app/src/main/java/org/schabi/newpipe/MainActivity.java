@@ -116,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle toggle;
 
     private boolean servicesShown = false;
+    private int dynamicColorsSignature;
 
     private BroadcastReceiver broadcastReceiver;
 
@@ -147,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         Localization.migrateAppLanguageSettingIfNecessary(getApplicationContext());
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
+        dynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
 
         // Fixes text color turning black in dark/black mode:
         // https://github.com/TeamNewPipe/NewPipe/issues/12016
@@ -516,6 +518,13 @@ public class MainActivity extends AppCompatActivity {
         // Change the date format to match the selected language on resume
         Localization.initPrettyTime(Localization.resolvePrettyTime());
         super.onResume();
+
+        final int currentDynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
+        if (dynamicColorsSignature != currentDynamicColorsSignature) {
+            dynamicColorsSignature = currentDynamicColorsSignature;
+            ActivityCompat.recreate(this);
+            return;
+        }
 
         // Close drawer on return, and don't show animation,
         // so it looks like the drawer isn't open when the user returns to MainActivity
