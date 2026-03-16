@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.TypedValue;
 
 import androidx.annotation.AttrRes;
@@ -42,6 +43,9 @@ import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.info_list.ItemViewMode;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public final class ThemeHelper {
     private ThemeHelper() {
@@ -72,7 +76,27 @@ public final class ThemeHelper {
      *                  pass -1 to get the default style
      */
     public static void setTheme(final Context context, final int serviceId) {
-        context.setTheme(getThemeForService(context, serviceId));
+        setThemeResource(context, getThemeForService(context, serviceId));
+    }
+
+    /**
+     * Apply a theme resource and, when enabled, the dynamic color overlay.
+     *
+     * @param context the context that the theme will be applied to
+     * @param themeResId the theme resource id to apply
+     */
+    public static void setThemeResource(final Context context, @StyleRes final int themeResId) {
+        context.setTheme(themeResId);
+        maybeApplyDynamicColors(context);
+    }
+
+    /**
+     * Apply the settings theme and, when enabled, the dynamic color overlay.
+     *
+     * @param context the context that the theme will be applied to
+     */
+    public static void setSettingsTheme(final Context context) {
+        setThemeResource(context, getSettingsThemeStyle(context));
     }
 
     /**
@@ -214,6 +238,25 @@ public final class ThemeHelper {
     }
 
     /**
+     * Return whether dynamic colors should be applied on this device and theme.
+     *
+     * @param context context to read preferences and theme state from
+     * @return whether dynamic colors should be applied
+     */
+    public static boolean shouldApplyDynamicColors(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return false;
+        }
+
+        final String key = context.getString(R.string.dynamic_colors_key);
+        if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(key, false)) {
+            return false;
+        }
+
+        return getThemeForService(context, -1) != R.style.BlackTheme;
+    }
+
+    /**
      * Get a color from an attr styled according to the context's theme.
      *
      * @param context   Android app context
@@ -330,6 +373,32 @@ public final class ThemeHelper {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    private static void maybeApplyDynamicColors(final Context context) {
+        if (!(context instanceof Activity) || !shouldApplyDynamicColors(context)) {
+            return;
+        }
+
+        final Activity activity = (Activity) context;
+        try {
+            final Class<?> dynamicColorsClass =
+                    Class.forName("com.google.android.material.color.DynamicColors");
+            try {
+                final Method method = dynamicColorsClass.getMethod(
+                        "applyToActivityIfAvailable", Activity.class);
+                method.invoke(null, activity);
+            } catch (final NoSuchMethodException e) {
+                final Method legacyMethod = dynamicColorsClass.getMethod(
+                        "applyIfAvailable", Activity.class);
+                legacyMethod.invoke(null, activity);
+            }
+        } catch (final ClassNotFoundException
+                | IllegalAccessException
+                | InvocationTargetException
+                | NoSuchMethodException ignored) {
+            // Material dynamic colors are optional. Fall back to the static palette.
         }
     }
 

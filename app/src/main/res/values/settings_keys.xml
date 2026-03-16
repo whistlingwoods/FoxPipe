@@ -252,6 +252,7 @@
     <!-- THEMES -->
     <string name="theme_key">theme</string>
     <string name="night_theme_key">night_theme</string>
+    <string name="dynamic_colors_key">dynamic_colors</string>
     <string name="light_theme_key">light_theme</string>
     <string name="dark_theme_key">dark_theme</string>
     <string name="black_theme_key">black_theme</string>
