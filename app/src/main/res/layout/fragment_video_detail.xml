@@ -590,10 +590,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
+            android:background="?attr/pilot_surface_color"
             app:elevation="16dp"
-            app:tabBackground="?attr/windowBackground"
+            app:tabBackground="?attr/pilot_surface_variant_color"
             app:tabGravity="fill"
-            app:tabIconTint="?attr/colorAccent"
+            app:tabIconTint="?attr/pilot_on_primary_container_color"
+            app:tabIndicatorColor="?attr/pilot_primary_container_color"
             app:tabIndicatorGravity="top" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

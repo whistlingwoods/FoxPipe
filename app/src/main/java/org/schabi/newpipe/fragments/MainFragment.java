@@ -10,7 +10,6 @@ import static com.google.android.material.tabs.TabLayout.INDICATOR_GRAVITY_TOP;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -243,14 +242,14 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         tabLayout.setLayoutParams(tabParams);
         viewPager.setLayoutParams(pagerParams);
 
-        // change the background and icon color of the tab layout:
-        // service-colored at the top, app-background-colored at the bottom
+        // Use the pilot dynamic palette for the main tabs in both positions.
         tabLayout.setBackgroundColor(ThemeHelper.resolveColorFromAttr(requireContext(),
-                bottom ? android.R.attr.windowBackground : R.attr.colorPrimary));
+                bottom ? R.attr.pilot_surface_color : R.attr.pilot_primary_container_color));
 
-        @ColorInt final int iconColor = bottom
-                ? ThemeHelper.resolveColorFromAttr(requireContext(), android.R.attr.colorAccent)
-                : Color.WHITE;
+        @ColorInt final int iconColor = ThemeHelper.resolveColorFromAttr(
+                requireContext(),
+                R.attr.pilot_on_primary_container_color
+        );
         tabLayout.setTabRippleColor(ColorStateList.valueOf(iconColor).withAlpha(32));
         tabLayout.setTabIconTint(ColorStateList.valueOf(iconColor));
         tabLayout.setSelectedTabIndicatorColor(iconColor);
