@@ -393,7 +393,7 @@ public class BilibiliService extends StreamingService {
 
     @Override
     public long getFeedFetchInterval() {
-        return 3000;
+        return 1500;
     }
 
     @Override

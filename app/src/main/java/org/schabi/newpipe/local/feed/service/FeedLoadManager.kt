@@ -297,7 +297,7 @@ class FeedLoadManager(private val context: Context) {
             }
 
             val jitterMillis = ThreadLocalRandom.current().nextLong(
-                minimumIntervalMillis / 5 + 1
+                serviceRequestJitterMillis(serviceId, minimumIntervalMillis) + 1
             )
             nextAllowedStart.set(System.currentTimeMillis() + minimumIntervalMillis + jitterMillis)
         }
@@ -325,7 +325,8 @@ class FeedLoadManager(private val context: Context) {
             val nextAllowedStart = nextAllowedRequestStart.computeIfAbsent(serviceId) {
                 AtomicLong(0L)
             }
-            val backoffMillis = minimumIntervalMillis * RATE_LIMIT_BACKOFF_MULTIPLIER
+            val backoffMillis =
+                minimumIntervalMillis * rateLimitBackoffMultiplier(serviceId)
             val jitterMillis = ThreadLocalRandom.current().nextLong(minimumIntervalMillis + 1)
             val delayedUntil = System.currentTimeMillis() + backoffMillis + jitterMillis
             nextAllowedStart.set(maxOf(nextAllowedStart.get(), delayedUntil))
@@ -346,6 +347,20 @@ class FeedLoadManager(private val context: Context) {
         preferenceEnabled: Boolean,
         serviceId: Int
     ): Boolean = preferenceEnabled || serviceId == ServiceList.BiliBili.serviceId
+
+    private fun serviceRequestJitterMillis(serviceId: Int, minimumIntervalMillis: Long): Long {
+        if (serviceId == ServiceList.BiliBili.serviceId) {
+            return minOf(200L, minimumIntervalMillis / 10)
+        }
+        return minimumIntervalMillis / 5
+    }
+
+    private fun rateLimitBackoffMultiplier(serviceId: Int): Long {
+        if (serviceId == ServiceList.BiliBili.serviceId) {
+            return BILIBILI_RATE_LIMIT_BACKOFF_MULTIPLIER
+        }
+        return RATE_LIMIT_BACKOFF_MULTIPLIER
+    }
 
     private fun looksLikeRateLimit(throwable: Throwable): Boolean {
         var current: Throwable? = throwable
@@ -483,6 +498,11 @@ class FeedLoadManager(private val context: Context) {
          * Multiply the service feed interval by this factor after a likely rate-limit failure.
          */
         private const val RATE_LIMIT_BACKOFF_MULTIPLIER = 3L
+
+        /**
+         * Use a stronger cooldown for BiliBili after a likely risk-control hit.
+         */
+        private const val BILIBILI_RATE_LIMIT_BACKOFF_MULTIPLIER = 6L
 
         /**
          * Number of items to buffer to mass-insert in the database.
