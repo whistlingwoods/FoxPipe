@@ -18,16 +18,19 @@
             android:id="@+id/about_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:theme="@style/ToolbarTheme"
+            android:background="@drawable/bg_pilot_toolbar"
+            android:theme="@style/PilotToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/about_tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:tabTextColor="@color/white"
-            app:tabIndicatorColor="@color/white" />
+            android:background="?attr/pilot_primary_container_color"
+            app:tabIndicatorColor="?attr/pilot_on_primary_container_color"
+            app:tabRippleColor="?attr/pilot_on_primary_container_color"
+            app:tabSelectedTextColor="?attr/pilot_on_primary_container_color"
+            app:tabTextColor="?attr/pilot_on_primary_container_color" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

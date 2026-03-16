@@ -146,12 +146,13 @@
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/pilot_primary_container_color"
             app:tabGravity="fill"
-            app:tabIndicatorColor="@color/white"
+            app:tabIndicatorColor="?attr/pilot_on_primary_container_color"
             app:tabMode="scrollable"
-            app:tabRippleColor="@color/white"
-            app:tabTextColor="@color/white" />
+            app:tabRippleColor="?attr/pilot_on_primary_container_color"
+            app:tabSelectedTextColor="?attr/pilot_on_primary_container_color"
+            app:tabTextColor="?attr/pilot_on_primary_container_color" />
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"

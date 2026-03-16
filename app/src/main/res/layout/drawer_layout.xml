@@ -5,6 +5,6 @@
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
     android:layout_gravity="start"
-    android:background="?android:attr/windowBackground"
+    android:background="?attr/pilot_surface_color"
     android:orientation="vertical"
     app:headerLayout="@layout/drawer_header" />
