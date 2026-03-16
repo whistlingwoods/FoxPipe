@@ -397,7 +397,16 @@ public final class ThemeHelper {
     }
 
     private static void maybeApplyDynamicColors(final Context context) {
-        if (!(context instanceof Activity) || !shouldApplyDynamicColors(context)) {
+        if (!shouldApplyDynamicColors(context)) {
+            return;
+        }
+
+        final int dynamicColorsOverlay = isLightThemeSelected(context)
+                ? R.style.ThemeOverlay_NewPipe_DynamicColors_Light
+                : R.style.ThemeOverlay_NewPipe_DynamicColors_Dark;
+        context.getTheme().applyStyle(dynamicColorsOverlay, true);
+
+        if (!(context instanceof Activity)) {
             return;
         }
 
