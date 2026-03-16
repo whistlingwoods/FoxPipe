@@ -85,6 +85,13 @@
         <item name="tint">?attr/actionColor</item>
         <item name="iconTint">?attr/actionColor</item>
     </style>
+    <style name="PilotToolbarTheme" parent="ToolbarTheme">
+        <item name="android:textColorPrimary">?attr/pilot_on_primary_container_color</item>
+        <item name="android:textColorSecondary">?attr/pilot_on_primary_container_color</item>
+        <item name="tint">?attr/pilot_on_primary_container_color</item>
+        <item name="iconTint">?attr/pilot_on_primary_container_color</item>
+        <item name="toolbarSearchColor">?attr/pilot_on_primary_container_color</item>
+    </style>
     <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
         <item name="tint">@color/contrastColor</item>
     </style>

@@ -28,6 +28,7 @@
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorAccent">@color/light_youtube_accent_color</item>
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="windowBackground">@color/light_background_color</item>
         <item name="colorSurface">@color/light_pilot_surface_color</item>
@@ -63,6 +64,7 @@
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorAccent">@color/dark_youtube_accent_color</item>
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
         <item name="windowBackground">@color/dark_background_color</item>
         <item name="colorSurface">@color/dark_pilot_surface_color</item>
@@ -95,6 +97,7 @@
 
     <!-- Black Theme -->
     <style name="Base.V21.BlackTheme" parent="DarkTheme">
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/black_background_color</item>
         <item name="windowBackground">@color/black_background_color</item>
         <item name="colorSurface">@color/black_pilot_surface_color</item>
