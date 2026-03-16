@@ -23,6 +23,12 @@
     <color name="light_card_item_background_color">#F8F8F8</color>
     <color name="light_card_item_contrast_color">#E9E9E9</color>
     <color name="light_border_color">#33000000</color>
+    <color name="light_pilot_page_background_color">#EEF2F7</color>
+    <color name="light_pilot_surface_color">#FCFCFF</color>
+    <color name="light_pilot_surface_variant_color">#F4F6FA</color>
+    <color name="light_pilot_outline_color">#D6DCE5</color>
+    <color name="light_pilot_primary_container_color">#FFE3DE</color>
+    <color name="light_pilot_on_primary_container_color">#5D1710</color>
 
     <!-- Dark Theme -->
     <color name="dark_background_color">#222222</color>
@@ -39,6 +45,12 @@
     <color name="dark_card_item_background_color">#313131</color>
     <color name="dark_card_item_contrast_color">#474747</color>
     <color name="dark_border_color">#33FFFFFF</color>
+    <color name="dark_pilot_page_background_color">#0F1115</color>
+    <color name="dark_pilot_surface_color">#171A1F</color>
+    <color name="dark_pilot_surface_variant_color">#20242A</color>
+    <color name="dark_pilot_outline_color">#3E444C</color>
+    <color name="dark_pilot_primary_container_color">#8F4B44</color>
+    <color name="dark_pilot_on_primary_container_color">#FFEDEA</color>
 
     <!-- Black Theme -->
     <color name="black_background_color">#000000</color>
@@ -48,6 +60,12 @@
     <color name="black_card_item_background_color">#0F0F0F</color>
     <color name="black_card_item_contrast_color">#202020</color>
     <color name="black_border_color">#25FFFFFF</color>
+    <color name="black_pilot_page_background_color">#050607</color>
+    <color name="black_pilot_surface_color">#0D0F12</color>
+    <color name="black_pilot_surface_variant_color">#15181C</color>
+    <color name="black_pilot_outline_color">#30353C</color>
+    <color name="black_pilot_primary_container_color">#8F4B44</color>
+    <color name="black_pilot_on_primary_container_color">#FFEDEA</color>
 
     <!-- Miscellaneous -->
     <color name="queue_background_color">@color/dark_queue_background_color</color>

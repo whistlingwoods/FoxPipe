@@ -2,16 +2,21 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color">
 
     <RelativeLayout
         android:id="@+id/refresh_root_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_pilot_primary_container_ripple"
         android:clickable="true"
         android:focusable="true"
-        android:paddingTop="8dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -19,7 +24,7 @@
             android:id="@+id/refresh_info_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_toStartOf="@+id/refreshIcon"
             android:gravity="center_vertical"
             android:orientation="vertical">
@@ -31,6 +36,7 @@
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"
                 android:maxLines="2"
+                android:textColor="?attr/pilot_on_primary_container_color"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:textSize="14sp"
                 tools:text="@tools:sample/lorem/random" />
@@ -39,9 +45,11 @@
                 android:id="@+id/refresh_subtitle_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:alpha="0.74"
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"
                 android:maxLines="1"
+                android:textColor="?attr/pilot_on_primary_container_color"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"
                 android:textSize="12sp"
                 tools:text="@tools:sample/lorem/random" />
@@ -55,30 +63,30 @@
             android:layout_alignBottom="@+id/refresh_info_container"
             android:layout_alignParentEnd="true"
             android:layout_marginStart="6dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="16dp"
             android:src="@drawable/ic_refresh"
+            android:tint="?attr/pilot_on_primary_container_color"
             tools:ignore="ContentDescription" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@+id/refresh_info_container"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginRight="8dp"
-            android:background="?attr/separator_color" />
     </RelativeLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/refresh_root_view">
+        android:layout_below="@+id/refresh_root_view"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_pilot_surface">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/items_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:scrollbars="vertical"
             android:visibility="gone"
             tools:listitem="@layout/list_stream_item"
@@ -90,12 +98,12 @@
         android:id="@+id/new_items_loaded_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/swipeRefreshLayout"
+        style="@style/PilotFilledButton"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="5sp"
+        android:layout_marginBottom="28dp"
         android:text="@string/feed_new_items"
         android:textSize="12sp"
-        android:theme="@style/ServiceColoredButton"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -150,9 +158,4 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_alignParentTop="true"
-        android:background="?attr/toolbar_shadow" />
 </RelativeLayout>
