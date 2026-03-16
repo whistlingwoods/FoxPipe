@@ -55,6 +55,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
+import androidx.viewpager.widget.ViewPager;
 
 import com.evernote.android.state.State;
 import com.google.android.exoplayer2.PlaybackException;
@@ -623,6 +624,13 @@ public final class VideoDetailFragment
         pageAdapter = new TabAdapter(getChildFragmentManager());
         binding.viewPager.setAdapter(pageAdapter);
         binding.tabLayout.setupWithViewPager(binding.viewPager);
+        binding.viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(final int position) {
+                selectedTabTag = pageAdapter.getItemTitle(position);
+                collapseToVideoIfCommentsTabSelected(position);
+            }
+        });
 
         binding.detailThumbnailRootLayout.requestFocus();
 
@@ -923,11 +931,14 @@ public final class VideoDetailFragment
         }
         pageAdapter.notifyDataSetUpdate();
 
-        if (pageAdapter.getCount() >= 2) {
+        if (pageAdapter.getCount() >= 1) {
             final int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
             if (position != -1) {
                 binding.viewPager.setCurrentItem(position);
+                collapseToVideoIfCommentsTabSelected(position);
             }
+        }
+        if (pageAdapter.getCount() >= 2) {
             updateTabIconsAndContentDescriptions();
         }
         // the page adapter now contains tabs: show the tab layout
@@ -1027,6 +1038,14 @@ public final class VideoDetailFragment
         binding.appBarLayout.setExpanded(true, true);
         // notify tab layout of scrolling
         updateTabLayoutVisibility();
+    }
+
+    private void collapseToVideoIfCommentsTabSelected(final int position) {
+        if (!COMMENTS_TAB_TAG.equals(pageAdapter.getItemTitle(position))) {
+            return;
+        }
+
+        binding.appBarLayout.post(() -> binding.appBarLayout.setExpanded(false, false));
     }
 
     public void scrollToComment(final CommentsInfoItem comment) {
