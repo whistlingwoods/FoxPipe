@@ -1,7 +1,10 @@
 package org.schabi.newpipe.settings;
 
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -79,6 +82,10 @@ public class SettingsActivity extends AppCompatActivity implements
     private View searchContainer;
     private EditText searchEditText;
     private int dynamicColorsSignature;
+    @Nullable
+    private WallpaperManager wallpaperManager;
+    @Nullable
+    private WallpaperManager.OnColorsChangedListener wallpaperColorsChangedListener;
 
     // State
     @State
@@ -126,6 +133,22 @@ public class SettingsActivity extends AppCompatActivity implements
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            wallpaperManager = getSystemService(WallpaperManager.class);
+            wallpaperColorsChangedListener = (wallpaperColors, which) -> {
+                if ((which & WallpaperManager.FLAG_SYSTEM) == 0) {
+                    return;
+                }
+
+                final int currentDynamicColorsSignature =
+                        ThemeHelper.getDynamicColorsSignature(this);
+                if (dynamicColorsSignature != currentDynamicColorsSignature) {
+                    dynamicColorsSignature = currentDynamicColorsSignature;
+                    recreate();
+                }
+            };
+        }
     }
 
     @Override
@@ -137,6 +160,29 @@ public class SettingsActivity extends AppCompatActivity implements
             dynamicColorsSignature = currentDynamicColorsSignature;
             recreate();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.addOnColorsChangedListener(
+                    wallpaperColorsChangedListener, new Handler(getMainLooper()));
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.removeOnColorsChangedListener(wallpaperColorsChangedListener);
+        }
+
+        super.onStop();
     }
 
     @Override
