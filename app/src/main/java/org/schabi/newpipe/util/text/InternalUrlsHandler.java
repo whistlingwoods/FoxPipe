@@ -11,6 +11,7 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
 import org.schabi.newpipe.extractor.linkhandler.LinkHandlerFactory;
 import org.schabi.newpipe.player.TimestampChangeData;
+import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.util.NavigationHelper;
 
 import java.util.regex.Matcher;
@@ -88,6 +89,11 @@ public final class InternalUrlsHandler {
             cleanUrl = factory.getUrl(factory.getId(url));
         } catch (final ParsingException e) {
             return false;
+        }
+
+        if (PlayerHolder.getInstance().seekToTimestampIfCurrentStream(
+                service.getServiceId(), cleanUrl, seconds)) {
+            return true;
         }
 
         final Intent intent = NavigationHelper.getPlayerTimestampIntent(context,
