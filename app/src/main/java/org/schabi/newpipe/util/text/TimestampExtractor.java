@@ -54,6 +54,25 @@ public final class TimestampExtractor {
         return new TimestampMatchDTO(timestampStart, timestampEnd, seconds);
     }
 
+    @Nullable
+    public static TimestampMatchDTO getTimestampAt(@NonNull final CharSequence baseText,
+                                                   final int offset) {
+        final String text = baseText.toString();
+        final Matcher timestampMatches = TIMESTAMPS_PATTERN.matcher(text);
+
+        while (timestampMatches.find()) {
+            final TimestampMatchDTO timestampMatchDTO =
+                    getTimestampFromMatcher(timestampMatches, text);
+            if (timestampMatchDTO != null
+                    && offset >= timestampMatchDTO.timestampStart()
+                    && offset < timestampMatchDTO.timestampEnd()) {
+                return timestampMatchDTO;
+            }
+        }
+
+        return null;
+    }
+
     public record TimestampMatchDTO(int timestampStart, int timestampEnd, int seconds) {
     }
 }
