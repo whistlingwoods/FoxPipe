@@ -154,8 +154,6 @@
                         android:textAllCaps="false"
                         android:textSize="13sp"
                         app:cornerRadius="20dp"
-                        app:insetTop="0dp"
-                        app:insetBottom="0dp"
                         app:layout_constraintBottom_toBottomOf="@+id/channel_avatar_view"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@+id/channel_avatar_view" />
