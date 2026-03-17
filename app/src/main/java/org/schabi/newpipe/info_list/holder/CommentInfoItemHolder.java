@@ -29,7 +29,9 @@ import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.util.image.CoilHelper;
 import org.schabi.newpipe.util.image.ImageStrategy;
+import org.schabi.newpipe.util.text.InternalUrlsHandler;
 import org.schabi.newpipe.util.text.TextEllipsizer;
+import org.schabi.newpipe.util.text.TimestampExtractor;
 
 public class CommentInfoItemHolder extends InfoItemHolder {
 
@@ -125,7 +127,8 @@ public class CommentInfoItemHolder extends InfoItemHolder {
 
 
         // setup comment content and click listeners to expand/ellipsize it
-        textEllipsizer.setStreamingService(getServiceById(item.getServiceId()));
+        final var streamingService = getServiceById(item.getServiceId());
+        textEllipsizer.setStreamingService(streamingService);
         textEllipsizer.setStreamUrl(item.getUrl());
         textEllipsizer.setContent(item.getCommentText());
         textEllipsizer.ellipsize();
@@ -133,11 +136,11 @@ public class CommentInfoItemHolder extends InfoItemHolder {
         //noinspection ClickableViewAccessibility
         itemContentView.setOnTouchListener((v, event) -> {
             final CharSequence text = itemContentView.getText();
-            if (text instanceof Spanned buffer) {
-                final int action = event.getAction();
+            final int action = event.getAction();
 
-                if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN) {
-                    final int offset = getOffsetForHorizontalLine(itemContentView, event);
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN) {
+                final int offset = getOffsetForHorizontalLine(itemContentView, event);
+                if (text instanceof Spanned buffer) {
                     final var links = buffer.getSpans(offset, offset, ClickableSpan.class);
 
                     if (links.length != 0) {
@@ -147,6 +150,16 @@ public class CommentInfoItemHolder extends InfoItemHolder {
                         // we handle events that intersect links, so return true
                         return true;
                     }
+                }
+
+                final TimestampExtractor.TimestampMatchDTO timestampMatchDTO =
+                        TimestampExtractor.getTimestampAt(text, offset);
+                if (timestampMatchDTO != null) {
+                    if (action == MotionEvent.ACTION_UP) {
+                        InternalUrlsHandler.playOnPopup(itemContentView.getContext(),
+                                item.getUrl(), streamingService, timestampMatchDTO.seconds());
+                    }
+                    return true;
                 }
             }
             return false;
