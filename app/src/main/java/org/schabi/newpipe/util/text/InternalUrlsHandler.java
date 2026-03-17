@@ -129,7 +129,8 @@ public final class InternalUrlsHandler {
         final Uri.Builder builder = uri.buildUpon().fragment(null).clearQuery();
         for (final String queryParameterName : uri.getQueryParameterNames()) {
             if (!"p".equals(queryParameterName)) {
-                for (final String queryParameterValue : uri.getQueryParameters(queryParameterName)) {
+                for (final String queryParameterValue
+                        : uri.getQueryParameters(queryParameterName)) {
                     builder.appendQueryParameter(queryParameterName, queryParameterValue);
                 }
             }
