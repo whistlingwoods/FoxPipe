@@ -17,5 +17,4 @@ class InfoItemBuilder(val context: Context) {
     var onChannelSelectedListener: OnClickGesture<ChannelInfoItem>? = null
     var onPlaylistSelectedListener: OnClickGesture<PlaylistInfoItem>? = null
     var onCommentsSelectedListener: OnClickGesture<CommentsInfoItem>? = null
-    var relatedStreamUrl: String? = null
 }

@@ -73,29 +73,6 @@ public final class TimestampExtractor {
         return null;
     }
 
-    @Nullable
-    public static Integer getPartPrefix(@NonNull final CharSequence baseText,
-                                        @NonNull final TimestampMatchDTO timestampMatchDTO) {
-        final int hashIndex = timestampMatchDTO.timestampStart() - 1;
-        if (hashIndex < 1 || baseText.charAt(hashIndex) != '#') {
-            return null;
-        }
-
-        int partStart = hashIndex;
-        while (partStart > 0 && Character.isDigit(baseText.charAt(partStart - 1))) {
-            partStart -= 1;
-        }
-        if (partStart == hashIndex) {
-            return null;
-        }
-
-        try {
-            return Integer.parseInt(baseText.subSequence(partStart, hashIndex).toString());
-        } catch (final NumberFormatException e) {
-            return null;
-        }
-    }
-
     public record TimestampMatchDTO(int timestampStart, int timestampEnd, int seconds) {
     }
 }

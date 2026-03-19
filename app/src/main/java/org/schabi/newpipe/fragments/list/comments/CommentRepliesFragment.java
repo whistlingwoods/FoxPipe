@@ -21,7 +21,6 @@ import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
 import org.schabi.newpipe.info_list.ItemViewMode;
-import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.Localization;
@@ -45,8 +44,6 @@ public final class CommentRepliesFragment
     @State
     CommentsInfoItem commentsInfoItem; // the comment to show replies of
     private final CompositeDisposable disposables = new CompositeDisposable();
-    @Nullable
-    private String relatedStreamUrl;
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -71,14 +68,6 @@ public final class CommentRepliesFragment
                              @Nullable final ViewGroup container,
                              @Nullable final Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_comments, container, false);
-    }
-
-    @Override
-    protected void initViews(final View rootView, final Bundle savedInstanceState) {
-        relatedStreamUrl = PlayerHolder.getInstance()
-                .getCurrentUrl(commentsInfoItem.getServiceId());
-        infoListAdapter.setRelatedStreamUrl(relatedStreamUrl);
-        super.initViews(rootView, savedInstanceState);
     }
 
     @Override
@@ -119,10 +108,9 @@ public final class CommentRepliesFragment
             binding.pinnedImage.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
 
             // setup comment content
-            final String streamUrl = relatedStreamUrl != null ? relatedStreamUrl : item.getUrl();
             TextLinkifier.fromDescription(binding.commentContent, item.getCommentText(),
                     HtmlCompat.FROM_HTML_MODE_LEGACY, getServiceById(item.getServiceId()),
-                    streamUrl, disposables, null);
+                    item.getUrl(), disposables, null);
             binding.commentContent.setMovementMethod(LongPressLinkMovementMethod.getInstance());
             return binding.getRoot();
         };

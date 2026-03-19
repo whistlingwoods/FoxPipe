@@ -115,10 +115,6 @@ public class InfoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         infoItemBuilder.setOnCommentsSelectedListener(listener);
     }
 
-    public void setRelatedStreamUrl(@Nullable final String relatedStreamUrl) {
-        infoItemBuilder.setRelatedStreamUrl(relatedStreamUrl);
-    }
-
     public void setUseMiniVariant(final boolean useMiniVariant) {
         this.useMiniVariant = useMiniVariant;
     }

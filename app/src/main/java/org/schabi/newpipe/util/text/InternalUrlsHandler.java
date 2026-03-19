@@ -1,13 +1,11 @@
 package org.schabi.newpipe.util.text;
 
-import android.net.Uri;
 import android.content.Context;
 import android.content.Intent;
 import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.exceptions.ParsingException;
@@ -107,35 +105,5 @@ public final class InternalUrlsHandler {
         ContextCompat.startForegroundService(context, intent);
 
         return true;
-    }
-
-    @NonNull
-    public static String resolveTimestampRelatedStreamUrl(
-            @NonNull final String relatedStreamUrl,
-            @NonNull final StreamingService service,
-            @NonNull final CharSequence descriptionText,
-            @NonNull final TimestampExtractor.TimestampMatchDTO timestampMatchDTO) {
-        if (service != ServiceList.BiliBili) {
-            return relatedStreamUrl;
-        }
-
-        final Integer partPrefix =
-                TimestampExtractor.getPartPrefix(descriptionText, timestampMatchDTO);
-        if (partPrefix == null || partPrefix < 1) {
-            return relatedStreamUrl;
-        }
-
-        final Uri uri = Uri.parse(relatedStreamUrl);
-        final Uri.Builder builder = uri.buildUpon().fragment(null).clearQuery();
-        for (final String queryParameterName : uri.getQueryParameterNames()) {
-            if (!"p".equals(queryParameterName)) {
-                for (final String queryParameterValue
-                        : uri.getQueryParameters(queryParameterName)) {
-                    builder.appendQueryParameter(queryParameterName, queryParameterValue);
-                }
-            }
-        }
-        builder.appendQueryParameter("p", String.valueOf(partPrefix));
-        return builder.build().toString();
     }
 }

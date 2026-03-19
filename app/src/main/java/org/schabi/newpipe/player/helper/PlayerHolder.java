@@ -117,17 +117,6 @@ public final class PlayerHolder {
         }).orElse(false);
     }
 
-    @Nullable
-    public String getCurrentUrl(final int serviceId) {
-        return getPlayer().map(player -> {
-            final PlayQueueItem currentItem = player.getCurrentItem();
-            if (currentItem == null || currentItem.getServiceId() != serviceId) {
-                return null;
-            }
-            return currentItem.getUrl();
-        }).orElse(null);
-    }
-
     public void setListener(@Nullable final PlayerServiceExtendedEventListener newListener) {
         listener = newListener;
 

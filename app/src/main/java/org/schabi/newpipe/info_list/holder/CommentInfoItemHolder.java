@@ -128,10 +128,8 @@ public class CommentInfoItemHolder extends InfoItemHolder {
 
         // setup comment content and click listeners to expand/ellipsize it
         final var streamingService = getServiceById(item.getServiceId());
-        final String relatedStreamUrl = itemBuilder.getRelatedStreamUrl() != null
-                ? itemBuilder.getRelatedStreamUrl() : item.getUrl();
         textEllipsizer.setStreamingService(streamingService);
-        textEllipsizer.setStreamUrl(relatedStreamUrl);
+        textEllipsizer.setStreamUrl(item.getUrl());
         textEllipsizer.setContent(item.getCommentText());
         textEllipsizer.ellipsize();
 
@@ -158,12 +156,8 @@ public class CommentInfoItemHolder extends InfoItemHolder {
                         TimestampExtractor.getTimestampAt(text, offset);
                 if (timestampMatchDTO != null) {
                     if (action == MotionEvent.ACTION_UP) {
-                        final String targetUrl =
-                                InternalUrlsHandler.resolveTimestampRelatedStreamUrl(
-                                        relatedStreamUrl, streamingService, text,
-                                        timestampMatchDTO);
                         InternalUrlsHandler.playOnPopup(itemContentView.getContext(),
-                                targetUrl, streamingService, timestampMatchDTO.seconds());
+                                item.getUrl(), streamingService, timestampMatchDTO.seconds());
                     }
                     return true;
                 }
