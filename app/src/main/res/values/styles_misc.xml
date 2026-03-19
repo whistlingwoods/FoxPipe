@@ -123,7 +123,7 @@
         <item name="android:textColorHint">?attr/pilot_on_surface_variant_color</item>
     </style>
 
-    <style name="Widget.NewPipe.SeekBar" parent="">
+    <style name="Widget.NewPipe.SeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressTint">?attr/colorPrimary</item>
         <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
         <item name="android:progressBackgroundTint">?attr/pilot_surface_variant_color</item>
