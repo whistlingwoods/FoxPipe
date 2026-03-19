@@ -35,10 +35,11 @@
         android:text="@string/no_playlist_bookmarked_yet"
         android:textAppearance="?android:attr/textAppearanceListItem" />
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="match_parent"
+        style="@style/Widget.NewPipe.CircularProgressIndicator"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_margin="5dp" />
 </LinearLayout>

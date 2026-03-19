@@ -225,9 +225,9 @@
             app:tint="?attr/colorAccent"
             tools:ignore="ContentDescription" />
 
-        <ProgressBar
+        <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/control_progress_bar"
-            style="?android:attr/progressBarStyleLargeInverse"
+            style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Small"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_centerInParent="true"
@@ -239,8 +239,6 @@
             android:clickable="false"
             android:indeterminate="true"
             android:padding="2dp"
-            android:scaleType="fitCenter"
-            android:tint="?attr/colorAccent"
             android:visibility="invisible"
             tools:visibility="visible" />
 

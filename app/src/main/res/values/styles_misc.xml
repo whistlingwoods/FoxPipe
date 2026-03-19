@@ -86,6 +86,48 @@
         <item name="tint">?attr/actionColor</item>
     </style>
 
+    <style name="Widget.NewPipe.CircularProgressIndicator"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/pilot_surface_variant_color</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">@color/white</item>
+        <item name="trackColor">@color/white_secondary</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Small"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorSize">42dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorInset">8dp</item>
+        <item name="indicatorSize">112dp</item>
+        <item name="trackThickness">6dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator"
+        parent="Widget.Material3.LinearProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/pilot_surface_variant_color</item>
+        <item name="trackThickness">4dp</item>
+        <item name="trackCornerRadius">2dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator.Slim"
+        parent="Widget.NewPipe.LinearProgressIndicator">
+        <item name="trackThickness">2dp</item>
+        <item name="trackCornerRadius">1dp</item>
+    </style>
+
     <style name="Widget.NewPipe.Button" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/bg_pilot_button</item>
         <item name="android:minHeight">40dp</item>
