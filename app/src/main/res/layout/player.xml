@@ -707,9 +707,9 @@
             android:background="@android:color/black"
             tools:visibility="gone">
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progressBarLoadingPanel"
-                style="?android:attr/progressBarStyleLargeInverse"
+                style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -731,13 +731,13 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ProgressBar
+                <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/volumeProgressBar"
-                    style="?android:progressBarStyleHorizontal"
+                    style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
                     android:layout_width="128dp"
                     android:layout_height="128dp"
                     android:indeterminate="false"
-                    android:progressDrawable="@drawable/progress_circular_white" />
+                    tools:progress="50" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/volumeImageView"
@@ -758,13 +758,13 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ProgressBar
+                <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/brightnessProgressBar"
-                    style="?android:progressBarStyleHorizontal"
+                    style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
                     android:layout_width="128dp"
                     android:layout_height="128dp"
                     android:indeterminate="false"
-                    android:progressDrawable="@drawable/progress_circular_white" />
+                    tools:progress="50" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/brightnessImageView"

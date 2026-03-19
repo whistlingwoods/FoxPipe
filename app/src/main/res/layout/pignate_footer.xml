@@ -5,7 +5,8 @@
     android:gravity="center_horizontal"
     android:orientation="vertical">
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        style="@style/Widget.NewPipe.CircularProgressIndicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"

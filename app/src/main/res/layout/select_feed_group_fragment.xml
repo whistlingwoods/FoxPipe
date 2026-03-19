@@ -39,10 +39,11 @@
         android:textAppearance="?android:attr/textAppearanceListItem"
         android:textColor="?attr/pilot_on_surface_variant_color" />
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="match_parent"
+        style="@style/Widget.NewPipe.CircularProgressIndicator"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="12dp" />
 </LinearLayout>

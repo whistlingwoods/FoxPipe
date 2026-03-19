@@ -56,7 +56,6 @@
         <item name="toolbar_shadow">@drawable/toolbar_shadow_light</item>
         <item name="selector">@drawable/selector_light</item>
         <item name="colorControlHighlight">@color/light_ripple_color</item>
-        <item name="progress_horizontal_drawable">@drawable/progress_youtube_horizontal_light</item>
         <item name="card_item_background_color">@color/light_card_item_background_color</item>
         <item name="card_item_contrast_color">@color/light_card_item_contrast_color</item>
         <item name="border_color">@color/light_border_color</item>
@@ -104,7 +103,6 @@
         <item name="toolbar_shadow">@drawable/toolbar_shadow_dark</item>
         <item name="selector">@drawable/selector_dark</item>
         <item name="colorControlHighlight">@color/dark_ripple_color</item>
-        <item name="progress_horizontal_drawable">@drawable/progress_youtube_horizontal_dark</item>
         <item name="card_item_background_color">@color/dark_card_item_background_color</item>
         <item name="card_item_contrast_color">@color/dark_card_item_contrast_color</item>
         <item name="border_color">@color/dark_border_color</item>
