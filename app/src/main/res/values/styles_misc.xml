@@ -7,8 +7,8 @@
         <item name="android:textColor">@color/subscribe_text_color</item>
         <item name="rippleColor">@color/dark_ripple_color</item>
         <item name="cornerRadius">20dp</item>
-        <item name="insetTop">0dp</item>
-        <item name="insetBottom">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
     </style>
 
     <style name="PilotFilledButton" parent="Widget.Material3.Button">
@@ -20,8 +20,8 @@
         <item name="android:paddingEnd">20dp</item>
         <item name="backgroundTint">?attr/pilot_primary_container_color</item>
         <item name="cornerRadius">20dp</item>
-        <item name="insetTop">0dp</item>
-        <item name="insetBottom">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
         <item name="strokeWidth">0dp</item>
     </style>
 
@@ -33,8 +33,8 @@
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
         <item name="cornerRadius">20dp</item>
-        <item name="insetTop">0dp</item>
-        <item name="insetBottom">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
         <item name="strokeWidth">0dp</item>
     </style>
 
@@ -147,8 +147,8 @@
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
         <item name="backgroundTint">?attr/colorSecondaryContainer</item>
         <item name="cornerRadius">20dp</item>
-        <item name="insetTop">0dp</item>
-        <item name="insetBottom">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
         <item name="strokeWidth">0dp</item>
     </style>
 
@@ -198,8 +198,6 @@
         <item name="trackColorInactive">?attr/pilot_surface_variant_color</item>
         <item name="labelBehavior">gone</item>
         <item name="trackHeight">4dp</item>
-        <item name="thumbWidth">20dp</item>
-        <item name="thumbHeight">20dp</item>
     </style>
 
     <style name="Widget.NewPipe.MaterialSwitch" parent="">
