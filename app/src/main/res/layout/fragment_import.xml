@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/info_text_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/inputs_panel"
-        android:layout_alignParentTop="true"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToOutline="true"
         android:gravity="center_vertical"
-        android:padding="16dp"
+        android:padding="20dp"
         android:scrollbars="vertical"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         tools:text="@string/import_soundcloud_instructions" />
@@ -20,8 +27,9 @@
         android:id="@+id/inputs_panel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToOutline="true"
         android:gravity="center"
         android:orientation="vertical"
         android:padding="16dp">
@@ -30,7 +38,7 @@
             android:id="@+id/input_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="12dp"
             android:inputType="text"
             android:visibility="gone"
             tools:hint="@string/import_soundcloud_instructions_hint"
@@ -38,17 +46,10 @@
 
         <Button
             android:id="@+id/input_button"
+            style="@style/PilotFilledButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
             tools:text="@string/import_title" />
 
     </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_alignParentTop="true"
-        android:background="?attr/toolbar_shadow" />
-
-</RelativeLayout>
+</LinearLayout>
