@@ -8,6 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.XmlRes;
+import androidx.fragment.app.DialogFragment;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
@@ -17,6 +21,9 @@ import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.settings.dialog.MaterialEditTextPreferenceDialogFragment;
+import org.schabi.newpipe.settings.dialog.MaterialListPreferenceDialogFragment;
+import org.schabi.newpipe.settings.dialog.MaterialMultiSelectListPreferenceDialogFragment;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.util.Objects;
@@ -24,6 +31,8 @@ import java.util.Objects;
 public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     protected final String TAG = getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
     protected static final boolean DEBUG = MainActivity.DEBUG;
+    private static final String PREFERENCE_DIALOG_TAG =
+            "androidx.preference.PreferenceFragment.DIALOG";
 
     SharedPreferences defaultPreferences;
 
@@ -64,6 +73,23 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         return preference;
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onDisplayPreferenceDialog(@NonNull final Preference preference) {
+        if (getParentFragmentManager().findFragmentByTag(PREFERENCE_DIALOG_TAG) != null) {
+            return;
+        }
+
+        final DialogFragment dialogFragment = createMaterialDialogFragment(preference);
+        if (dialogFragment == null) {
+            super.onDisplayPreferenceDialog(preference);
+            return;
+        }
+
+        dialogFragment.setTargetFragment(this, 0);
+        dialogFragment.show(getParentFragmentManager(), PREFERENCE_DIALOG_TAG);
+    }
+
     private void applyMaterialSwitchWidgets(@Nullable final Preference preference) {
         if (preference == null) {
             return;
@@ -83,5 +109,20 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         for (int i = 0; i < preferenceGroup.getPreferenceCount(); i++) {
             applyMaterialSwitchWidgets(preferenceGroup.getPreference(i));
         }
+    }
+
+    @Nullable
+    private DialogFragment createMaterialDialogFragment(@NonNull final Preference preference) {
+        if (preference instanceof EditTextPreference) {
+            return MaterialEditTextPreferenceDialogFragment.newInstance(preference.getKey());
+        }
+        if (preference instanceof MultiSelectListPreference) {
+            return MaterialMultiSelectListPreferenceDialogFragment.newInstance(
+                    preference.getKey());
+        }
+        if (preference instanceof ListPreference) {
+            return MaterialListPreferenceDialogFragment.newInstance(preference.getKey());
+        }
+        return null;
     }
 }
