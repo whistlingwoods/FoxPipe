@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -95,14 +96,16 @@
                     tools:ignore="HardcodedText"
                     tools:text="300%" />
 
-                <androidx.appcompat.widget.AppCompatSeekBar
+                <org.schabi.newpipe.views.FocusAwareSeekBar
                     android:id="@+id/tempoSeekbar"
-                    style="@style/Widget.AppCompat.SeekBar"
+                    style="@style/Widget.NewPipe.SeekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/tempoCurrentText"
                     android:paddingBottom="2dp"
-                    tools:progress="50" />
+                    android:value="5000"
+                    android:valueFrom="0"
+                    android:valueTo="10000" />
             </RelativeLayout>
 
             <org.schabi.newpipe.views.NewPipeTextView
@@ -268,14 +271,16 @@
                         tools:ignore="HardcodedText"
                         tools:text="300%" />
 
-                    <androidx.appcompat.widget.AppCompatSeekBar
+                    <org.schabi.newpipe.views.FocusAwareSeekBar
                         android:id="@+id/pitchPercentSeekbar"
-                        style="@style/Widget.AppCompat.SeekBar"
+                        style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchPercentCurrentText"
                         android:paddingBottom="2dp"
-                        tools:progress="50" />
+                        android:value="5000"
+                        android:valueFrom="0"
+                        android:valueTo="10000" />
                 </RelativeLayout>
 
                 <org.schabi.newpipe.views.NewPipeTextView
@@ -362,15 +367,16 @@
                         android:textColor="?attr/colorAccent"
                         tools:ignore="HardcodedText" />
 
-                    <androidx.appcompat.widget.AppCompatSeekBar
+                    <org.schabi.newpipe.views.FocusAwareSeekBar
                         android:id="@+id/pitchSemitoneSeekbar"
-                        style="@style/Widget.AppCompat.SeekBar"
+                        style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchSemitoneCurrentText"
-                        android:max="24"
                         android:paddingBottom="2dp"
-                        android:progress="12" />
+                        android:value="12"
+                        android:valueFrom="0"
+                        android:valueTo="24" />
                 </RelativeLayout>
 
                 <org.schabi.newpipe.views.NewPipeTextView
@@ -500,22 +506,24 @@
             android:layout_below="@id/separatorCheckbox"
             android:orientation="vertical">
 
-            <CheckBox
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/unhookCheckbox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:checked="false"
                 android:clickable="true"
                 android:focusable="true"
+                app:useMaterialThemeColors="true"
                 android:text="@string/unhook_checkbox" />
 
-            <CheckBox
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/skipSilenceCheckbox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:checked="false"
                 android:clickable="true"
                 android:focusable="true"
+                app:useMaterialThemeColors="true"
                 android:text="@string/skip_silence_checkbox" />
 
         </LinearLayout>

@@ -476,15 +476,16 @@
 
                 <org.schabi.newpipe.views.MarkableSeekBar
                     android:id="@+id/playbackSeekBar"
-                    style="@style/Widget.AppCompat.SeekBar"
+                    style="@style/Widget.NewPipe.SeekBar"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginTop="2dp"
                     android:layout_weight="1"
                     android:nextFocusDown="@id/screenRotationButton"
-                    tools:progress="25"
-                    tools:secondaryProgress="50" />
+                    android:value="25"
+                    android:valueFrom="0"
+                    android:valueTo="100" />
 
                 <org.schabi.newpipe.views.NewPipeTextView
                     android:id="@+id/playbackEndTime"
@@ -714,9 +715,9 @@
             android:background="@android:color/black"
             tools:visibility="gone">
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progressBarLoadingPanel"
-                style="?android:attr/progressBarStyleLargeInverse"
+                style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
@@ -738,13 +739,13 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ProgressBar
+                <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/volumeProgressBar"
-                    style="?android:progressBarStyleHorizontal"
+                    style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
                     android:layout_width="128dp"
                     android:layout_height="128dp"
                     android:indeterminate="false"
-                    android:progressDrawable="@drawable/progress_circular_white" />
+                    tools:progress="50" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/volumeImageView"
@@ -765,13 +766,13 @@
                 android:visibility="gone"
                 tools:visibility="visible">
 
-                <ProgressBar
+                <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/brightnessProgressBar"
-                    style="?android:progressBarStyleHorizontal"
+                    style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
                     android:layout_width="128dp"
                     android:layout_height="128dp"
                     android:indeterminate="false"
-                    android:progressDrawable="@drawable/progress_circular_white" />
+                    tools:progress="50" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/brightnessImageView"
@@ -794,18 +795,16 @@
         android:background="#AAFF0000"
         android:visibility="gone" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/closeButton"
-        style="@style/Widget.AppCompat.Button.Borderless"
+        style="@style/PilotTextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:layout_marginTop="10dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:text="@string/close"
-        android:textAllCaps="true"
         android:textColor="@color/white"
         android:visibility="gone" />
 

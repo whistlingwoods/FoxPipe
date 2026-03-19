@@ -2,20 +2,40 @@
 <resources>
 
     <!-- Follows service's primary color -->
-    <style name="ServiceColoredButton" parent="Widget.AppCompat.Button.Colored">
-        <item name="colorButtonNormal">?attr/colorPrimary</item>
+    <style name="ServiceColoredButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
         <item name="android:textColor">@color/subscribe_text_color</item>
-        <item name="colorControlHighlight">@color/dark_ripple_color</item>
+        <item name="rippleColor">@color/dark_ripple_color</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
     </style>
 
-    <style name="PilotFilledButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/bg_pilot_primary_container_ripple</item>
+    <style name="PilotFilledButton" parent="Widget.Material3.Button">
         <item name="android:textAllCaps">false</item>
         <item name="android:textColor">?attr/pilot_on_primary_container_color</item>
         <item name="android:minHeight">40dp</item>
         <item name="android:minWidth">0dp</item>
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
+        <item name="backgroundTint">?attr/pilot_primary_container_color</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="PilotTextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
 
@@ -48,13 +68,13 @@
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
     </style>
 
-    <style name="FilePickerAlertDialogThemeLight" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+    <style name="FilePickerAlertDialogThemeLight" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
         <item name="colorAccent">@color/light_settings_accent_color</item>
     </style>
 
-    <style name="FilePickerAlertDialogThemeDark" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+    <style name="FilePickerAlertDialogThemeDark" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="colorAccent">@color/dark_settings_accent_color</item>
@@ -76,14 +96,132 @@
         <item name="tint">?attr/actionColor</item>
     </style>
 
-    <style name="DarkPopupMenu" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Widget.NewPipe.CircularProgressIndicator"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/pilot_surface_variant_color</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
 
-    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">@color/white</item>
+        <item name="trackColor">@color/white_secondary</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Small"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorSize">42dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorInset">8dp</item>
+        <item name="indicatorSize">112dp</item>
+        <item name="trackThickness">6dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator"
+        parent="Widget.Material3.LinearProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/pilot_surface_variant_color</item>
+        <item name="trackThickness">4dp</item>
+        <item name="trackCornerRadius">2dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator.Slim"
+        parent="Widget.NewPipe.LinearProgressIndicator">
+        <item name="trackThickness">2dp</item>
+        <item name="trackCornerRadius">1dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CardView" parent="">
+        <item name="cardBackgroundColor">?attr/card_item_background_color</item>
+        <item name="cardCornerRadius">22dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardUseCompatPadding">false</item>
+    </style>
+
+    <style name="Widget.NewPipe.MaterialCardView" parent="">
+        <item name="cardBackgroundColor">?attr/card_item_background_color</item>
+        <item name="cardCornerRadius">22dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardUseCompatPadding">false</item>
+        <item name="strokeColor">?attr/pilot_outline_color</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.TextInputLayout" parent="Widget.Material3.TextInputLayout.FilledBox">
+        <item name="boxBackgroundColor">?attr/pilot_surface_variant_color</item>
+        <item name="boxCornerRadiusTopStart">20dp</item>
+        <item name="boxCornerRadiusTopEnd">20dp</item>
+        <item name="boxCornerRadiusBottomStart">20dp</item>
+        <item name="boxCornerRadiusBottomEnd">20dp</item>
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">?attr/pilot_on_surface_variant_color</item>
+        <item name="placeholderTextColor">?attr/pilot_on_surface_variant_color</item>
+    </style>
+
+    <style name="Widget.NewPipe.TextInputEditText"
+        parent="Widget.Material3.TextInputEditText.FilledBox">
+        <item name="android:textColor">?attr/pilot_on_surface_color</item>
+        <item name="android:textColorHint">?attr/pilot_on_surface_variant_color</item>
+    </style>
+
+    <style name="Widget.NewPipe.SeekBar" parent="Widget.Material3.Slider">
+        <item name="android:progressTint">?attr/colorPrimary</item>
+        <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
+        <item name="android:progressBackgroundTint">?attr/pilot_surface_variant_color</item>
+        <item name="android:thumbTint">?attr/colorPrimary</item>
+        <item name="thumbColor">?attr/colorPrimary</item>
+        <item name="haloColor">?attr/colorPrimaryContainer</item>
+        <item name="trackColorActive">?attr/colorPrimary</item>
+        <item name="trackColorInactive">?attr/pilot_surface_variant_color</item>
+        <item name="labelBehavior">gone</item>
+        <item name="trackHeight">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.MaterialSwitch" parent="">
+        <item name="thumbTint">@color/switch_thumb_tint</item>
+        <item name="trackTint">@color/switch_track_tint</item>
+    </style>
+
+    <style name="DarkPopupMenu" parent="">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white_secondary</item>
+        <item name="colorSurface">@color/dark_pilot_surface_container_color</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="tint">@color/white</item>
+        <item name="iconTint">@color/white</item>
+    </style>
+
+    <style name="ToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">?attr/actionColor</item>
-        <item name="android:textColorSecondary">?attr/actionColor</item>
-        <item name="tint">?attr/actionColor</item>
-        <item name="iconTint">?attr/actionColor</item>
+        <item name="android:textColorPrimary">?attr/pilot_on_surface_color</item>
+        <item name="android:textColorSecondary">?attr/pilot_on_surface_variant_color</item>
+        <item name="colorOnSurface">?attr/pilot_on_surface_color</item>
+        <item name="tint">?attr/pilot_on_surface_color</item>
+        <item name="iconTint">?attr/pilot_on_surface_color</item>
+        <item name="toolbarSearchColor">?attr/pilot_on_surface_color</item>
     </style>
     <style name="PilotToolbarTheme" parent="ToolbarTheme">
         <item name="android:textColorPrimary">?attr/pilot_on_primary_container_color</item>
@@ -92,13 +230,18 @@
         <item name="iconTint">?attr/pilot_on_primary_container_color</item>
         <item name="toolbarSearchColor">?attr/pilot_on_primary_container_color</item>
     </style>
-    <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
+    <style name="ToolbarPopupTheme" parent="">
+        <item name="android:textColorPrimary">@color/contrastColor</item>
+        <item name="android:textColorSecondary">@color/contrastColor</item>
+        <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
+        <item name="iconTint">@color/contrastColor</item>
     </style>
-    <style name="ContrastToolbarTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
+    <style name="ContrastToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
         <item name="android:textColorPrimary">@color/contrastColor</item>
         <item name="android:textColorSecondary">@color/contrastColor</item>
+        <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
         <item name="iconTint">@color/contrastColor</item>
         <item name="toolbarSearchColor">@color/contrastColor</item>
@@ -127,6 +270,11 @@
     <style name="RoundedPanelImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="RoundedThumbnailImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
     </style>
 
 </resources>

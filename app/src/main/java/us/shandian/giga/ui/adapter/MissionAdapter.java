@@ -30,6 +30,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -534,7 +535,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 break;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext);
 
         if (msgEx != null)
             builder.setMessage(msgEx);
@@ -968,7 +969,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
 
         private PopupMenu buildPopup(final View button) {
-            PopupMenu popup = new PopupMenu(mContext, button);
+            final ContextThemeWrapper themeWrapper =
+                    new ContextThemeWrapper(mContext, R.style.DarkPopupMenu);
+            PopupMenu popup = new PopupMenu(themeWrapper, button);
             popup.inflate(R.menu.mission);
             popup.setOnMenuItemClickListener(option -> handlePopupItem(this, option));
 

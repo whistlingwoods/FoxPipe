@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/bg_pilot_list_item_ripple"
     android:clickable="true"
     android:focusable="true"
     android:padding="@dimen/video_item_search_padding">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/itemThumbnailView"
         android:layout_width="98dp"
         android:layout_height="55dp"
@@ -17,8 +22,9 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:layout_marginRight="@dimen/video_item_search_image_right_margin"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         android:src="@drawable/placeholder_thumbnail_video"
+        app:shapeAppearance="@style/RoundedThumbnailImageView"
         tools:ignore="RtlHardcoded" />
 
     <org.schabi.newpipe.views.NewPipeTextView
@@ -69,13 +75,12 @@
 
     <org.schabi.newpipe.views.AnimatedProgressBar
         android:id="@+id/itemProgressView"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        style="@style/Widget.NewPipe.LinearProgressIndicator"
         android:layout_width="wrap_content"
         android:layout_height="4dp"
         android:layout_below="@id/itemThumbnailView"
         android:layout_alignStart="@id/itemThumbnailView"
         android:layout_alignEnd="@id/itemThumbnailView"
-        android:layout_marginTop="-2dp"
-        android:progressDrawable="?progress_horizontal_drawable" />
+        android:layout_marginTop="-2dp" />
 
 </RelativeLayout>

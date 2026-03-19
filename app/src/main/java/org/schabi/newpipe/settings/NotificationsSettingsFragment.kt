@@ -28,7 +28,7 @@ class NotificationsSettingsFragment : BasePreferenceFragment(), OnSharedPreferen
     private var loader: Disposable? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        addPreferencesFromResource(R.xml.notifications_settings)
+        inflatePreferences(R.xml.notifications_settings)
         streamsNotificationsPreference = requirePreference(R.string.enable_streams_notifications)
 
         // main check is done in onResume, but also do it here to prevent flickering

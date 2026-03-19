@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <attr name="progress_horizontal_drawable" format="reference" />
     <!-- Can't refer to colors directly in drawable's xml-->
     <attr name="toolbar_shadow" format="reference" />
     <attr name="selector" format="reference" />
@@ -22,7 +21,13 @@
     <attr name="pilot_page_background_color" format="color" />
     <attr name="pilot_surface_color" format="color" />
     <attr name="pilot_surface_variant_color" format="color" />
+    <attr name="pilot_surface_container_color" format="color" />
+    <attr name="pilot_surface_container_high_color" format="color" />
     <attr name="pilot_outline_color" format="color" />
     <attr name="pilot_primary_container_color" format="color" />
     <attr name="pilot_on_primary_container_color" format="color" />
+    <attr name="pilot_app_bar_color" format="color" />
+    <attr name="pilot_on_surface_color" format="color" />
+    <attr name="pilot_on_surface_variant_color" format="color" />
+    <attr name="pilot_navigation_active_indicator_color" format="color" />
 </resources>

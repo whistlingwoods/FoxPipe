@@ -4,14 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?attr/pilot_page_background_color"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/instanceHelpTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:background="@drawable/bg_pilot_surface_variant"
+        android:clipToOutline="true"
+        android:padding="16dp"
         android:autoLink="web"
+        android:textColor="?attr/pilot_on_surface_variant_color"
         android:text="@string/peertube_instance_url_help" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -19,13 +27,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/instanceHelpTV"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToOutline="true"
+        android:clipToPadding="false"
+        android:padding="8dp"
         tools:listitem="@layout/item_instance" />
 
     <!-- LOADING INDICATOR-->
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/loading_progress_bar"
-        style="@style/Widget.AppCompat.ProgressBar"
-        android:layout_width="match_parent"
+        style="@style/Widget.NewPipe.CircularProgressIndicator"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:indeterminate="true"
@@ -45,7 +58,8 @@
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_add"
-        app:backgroundTint="?attr/colorPrimary"
+        app:backgroundTint="?attr/colorPrimaryContainer"
+        app:tint="?attr/colorOnPrimaryContainer"
         app:fabSize="auto" />
 
 </RelativeLayout>

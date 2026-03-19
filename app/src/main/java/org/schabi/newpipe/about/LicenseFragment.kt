@@ -103,7 +103,7 @@ class LicenseFragment : Fragment() {
                     val webView = WebView(context)
                     webView.loadData(webViewData, "text/html; charset=UTF-8", "base64")
 
-                    val builder = AlertDialog.Builder(requireContext())
+                    val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                         .setTitle(softwareComponent.name)
                         .setView(webView)
                         .setOnCancelListener { activeSoftwareComponent = null }

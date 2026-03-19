@@ -149,7 +149,9 @@ public class PlaybackParameterDialog extends DialogFragment {
         binding = DialogPlaybackParameterBinding.inflate(getLayoutInflater());
         initUI();
 
-        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireActivity())
+        final AlertDialog.Builder dialogBuilder =
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                        requireActivity())
                 .setView(binding.getRoot())
                 .setCancelable(true)
                 .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {

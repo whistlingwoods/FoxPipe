@@ -18,24 +18,18 @@
         <item name="colorPrimary">@color/light_soundcloud_primary_color</item>
         <item name="colorPrimaryDark">@color/light_soundcloud_primary_color</item>
         <item name="colorAccent">@color/light_soundcloud_accent_color</item>
-        <item name="progress_horizontal_drawable">@drawable/progress_soundcloud_horizontal_light
-        </item>
     </style>
 
     <style name="DarkTheme.SoundCloud" parent="DarkTheme" tools:keep="@style/DarkTheme_SoundCloud">
         <item name="colorPrimary">@color/dark_soundcloud_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_soundcloud_primary_color</item>
         <item name="colorAccent">@color/dark_soundcloud_accent_color</item>
-        <item name="progress_horizontal_drawable">@drawable/progress_soundcloud_horizontal_dark
-        </item>
     </style>
 
     <style name="BlackTheme.SoundCloud" parent="BlackTheme" tools:keep="@style/BlackTheme_SoundCloud">
         <item name="colorPrimary">@color/dark_soundcloud_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_soundcloud_primary_color</item>
         <item name="colorAccent">@color/dark_soundcloud_accent_color</item>
-        <item name="progress_horizontal_drawable">@drawable/progress_soundcloud_horizontal_dark
-        </item>
     </style>
 
     <!-- PeerTube -->

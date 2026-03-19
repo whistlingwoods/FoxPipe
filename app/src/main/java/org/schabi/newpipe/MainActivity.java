@@ -20,7 +20,6 @@
 
 package org.schabi.newpipe;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -47,6 +46,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -1018,7 +1018,8 @@ public class MainActivity extends AppCompatActivity {
                 "https://github.com/woheller69/FreeDroidWarn?tab=readme-ov-file#solutions";
 
         if (kaoLastCheck.plus(30, ChronoUnit.DAYS).isBefore(now)) {
-            final var dialog = new AlertDialog.Builder(this)
+            final var dialog =
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Keep Android Open")
                     .setCancelable(false)
                     .setMessage(this.getString(R.string.kao_dialog_warning))

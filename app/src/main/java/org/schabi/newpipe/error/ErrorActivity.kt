@@ -134,7 +134,7 @@ class ErrorActivity : AppCompatActivity() {
     }
 
     private fun openPrivacyPolicyDialog(context: Context, action: String) {
-        AlertDialog.Builder(context)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
             .setIcon(android.R.drawable.ic_dialog_alert)
             .setTitle(R.string.privacy_policy_title)
             .setMessage(R.string.start_accept_privacy_policy)

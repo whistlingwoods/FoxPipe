@@ -4,8 +4,6 @@ import static androidx.recyclerview.widget.ItemTouchHelper.Callback.makeMovement
 import static org.schabi.newpipe.extractor.utils.Utils.isBlank;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.util.ExtractorHelper.showMetaInfoInTextView;
-import static java.util.Arrays.asList;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -32,7 +30,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.collection.SparseArrayCompat;
 import androidx.core.text.HtmlCompat;
@@ -699,7 +696,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             return;
         }
         final String query = item.query;
-        new AlertDialog.Builder(activity)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(query)
                 .setMessage(R.string.delete_item_search_history)
                 .setCancelable(true)
@@ -886,9 +883,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (searchDisposable != null) {
             searchDisposable.dispose();
         }
+        final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.searchFor(serviceId,
                 searchString,
-                Arrays.asList(contentFilter),
+                effectiveContentFilter,
                 sortFilter)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -907,10 +905,11 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (searchDisposable != null) {
             searchDisposable.dispose();
         }
+        final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.getMoreSearchItems(
                 serviceId,
                 searchString,
-                asList(contentFilter),
+                effectiveContentFilter,
                 sortFilter,
                 nextPage)
                 .subscribeOn(Schedulers.io())
@@ -947,7 +946,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         try {
             return service.getSearchQHFactory().getUrl(searchString,
-                    Arrays.asList(contentFilter), sortFilter);
+                    getEffectiveContentFilter(), sortFilter);
         } catch (final NullPointerException | ParsingException ignored) {
             return null;
         }
@@ -998,6 +997,27 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private boolean isSearchEditBlank() {
         return isBlank(getSearchEditString());
+    }
+
+    private List<String> getEffectiveContentFilter() {
+        if (contentFilter.length > 0) {
+            return Arrays.asList(contentFilter);
+        }
+        if (service == null || service.getSearchQHFactory() == null) {
+            return Collections.emptyList();
+        }
+
+        final var availableContentFilter = service.getSearchQHFactory().getAvailableContentFilter();
+        if (availableContentFilter == null) {
+            return Collections.emptyList();
+        }
+
+        final var iterator = availableContentFilter.iterator();
+        if (!iterator.hasNext()) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singletonList(iterator.next());
     }
 
     /*//////////////////////////////////////////////////////////////////////////

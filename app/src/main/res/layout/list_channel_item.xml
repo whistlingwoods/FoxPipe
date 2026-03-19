@@ -68,6 +68,7 @@
         android:layout_height="@dimen/video_item_search_avatar_image_height"
         android:layout_marginLeft="@dimen/video_item_search_avatar_left_margin"
         android:layout_marginRight="@dimen/video_item_search_avatar_right_margin"
+        android:padding="1dp"
         android:src="@drawable/placeholder_person"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/itemTitleView"
@@ -75,6 +76,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearance="@style/CircularImageView"
+        app:strokeColor="?attr/pilot_outline_color"
+        app:strokeWidth="1dp"
         tools:ignore="RtlHardcoded" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

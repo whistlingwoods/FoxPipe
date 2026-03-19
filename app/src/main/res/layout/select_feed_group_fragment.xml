@@ -3,25 +3,27 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color"
     android:orientation="vertical"
-    android:padding="13dp">
+    android:padding="16dp">
 
     <org.schabi.newpipe.views.NewPipeTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="12dp"
         android:text="@string/select_a_feed_group"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/items_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToOutline="true"
+        android:clipToPadding="false"
+        android:padding="8dp"
         tools:listitem="@layout/select_feed_group_item" />
 
 
@@ -29,14 +31,19 @@
         android:id="@+id/empty_state_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_pilot_surface_variant"
+        android:clipToOutline="true"
+        android:padding="16dp"
         android:text="@string/no_feed_group_created_yet"
-        android:textAppearance="?android:attr/textAppearanceListItem" />
+        android:textAppearance="?android:attr/textAppearanceListItem"
+        android:textColor="?attr/pilot_on_surface_variant_color" />
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="match_parent"
+        style="@style/Widget.NewPipe.CircularProgressIndicator"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="5dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp" />
 </LinearLayout>

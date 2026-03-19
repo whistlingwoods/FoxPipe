@@ -18,7 +18,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -127,7 +126,7 @@ public class ChooseTabsFragment extends Fragment {
     }
 
     private void restoreDefaults() {
-        new AlertDialog.Builder(requireContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.restore_defaults)
                 .setMessage(R.string.restore_defaults_confirmation)
                 .setNegativeButton(R.string.cancel, null)

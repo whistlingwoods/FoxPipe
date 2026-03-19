@@ -5,7 +5,7 @@
     android:id="@+id/video_item_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/windowBackground"
+    android:background="?attr/pilot_page_background_color"
     android:focusableInTouchMode="true">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -131,11 +131,10 @@
 
                     <org.schabi.newpipe.views.AnimatedProgressBar
                         android:id="@+id/position_view"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        style="@style/Widget.NewPipe.LinearProgressIndicator.Slim"
                         android:layout_width="match_parent"
                         android:layout_height="2dp"
                         android:layout_gravity="bottom"
-                        android:progressDrawable="?attr/progress_horizontal_drawable"
                         android:visibility="invisible"
                         tools:max="100"
                         tools:progress="40"
@@ -151,22 +150,27 @@
             </org.schabi.newpipe.views.CustomCollapsingToolbarLayout>
 
             <!-- CONTENT -->
-            <RelativeLayout
-                android:id="@+id/detail_content_root_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_scrollFlags="scroll">
-
-                <!-- TITLE -->
-                <FrameLayout
-                    android:id="@+id/detail_title_root_layout"
+                <RelativeLayout
+                    android:id="@+id/detail_content_root_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:paddingStart="12dp"
-                    tools:ignore="RtlSymmetry">
+                    android:background="?attr/pilot_page_background_color"
+                    app:layout_scrollFlags="scroll">
+
+                <!-- TITLE -->
+                    <FrameLayout
+                        android:id="@+id/detail_title_root_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:background="@drawable/bg_pilot_surface"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        tools:ignore="RtlSymmetry">
 
                     <org.schabi.newpipe.views.NewPipeTextView
                         android:id="@+id/detail_video_title_view"
@@ -181,25 +185,27 @@
                         android:textSize="@dimen/video_item_detail_title_text_size"
                         tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit sed a ultricies ex. Integer sit amet sodales risus. Duis non mi et urna pretium bibendum. Nunc eleifend est quis ipsum porttitor egestas. Sed facilisis, nisl quis eleifend pellentesque, orci metus egestas dolor, at accumsan eros metus quis libero." />
 
-                    <ImageView
-                        android:id="@+id/detail_toggle_secondary_controls_view"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="11dp"
-                        android:layout_marginEnd="10dp"
-                        android:src="@drawable/ic_expand_more"
-                        tools:ignore="ContentDescription" />
+                        <ImageView
+                            android:id="@+id/detail_toggle_secondary_controls_view"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="11dp"
+                            android:layout_marginEnd="10dp"
+                            android:src="@drawable/ic_expand_more"
+                            app:tint="?attr/pilot_on_surface_variant_color"
+                            tools:ignore="ContentDescription" />
 
                 </FrameLayout>
 
                 <!-- LOADING INDICATOR-->
-                <ProgressBar
+                <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/loading_progress_bar"
-                    style="@style/Widget.AppCompat.ProgressBar"
-                    android:layout_width="match_parent"
+                    style="@style/Widget.NewPipe.CircularProgressIndicator"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/detail_title_root_layout"
+                    android:layout_centerHorizontal="true"
                     android:layout_marginTop="@dimen/video_item_detail_error_panel_margin"
                     android:indeterminate="true"
                     android:visibility="gone"

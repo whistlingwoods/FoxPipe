@@ -5,6 +5,7 @@
     android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color"
     android:fitsSystemWindows="true"
     tools:context="org.schabi.newpipe.player.PlayQueueActivity">
 
@@ -12,15 +13,16 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar">
+        android:background="?attr/pilot_app_bar_color"
+        android:theme="@style/ToolbarTheme"
+        app:popupTheme="@style/ToolbarPopupTheme">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_weight="1"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/pilot_app_bar_color"
             android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
             app:title="@string/app_name" />
@@ -142,9 +144,9 @@
                 android:contentDescription="@string/pause"
                 app:tint="?attr/colorAccent" />
 
-            <ProgressBar
+            <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/control_progress_bar"
-                style="?android:attr/progressBarStyleLargeInverse"
+                style="@style/Widget.NewPipe.CircularProgressIndicator.OnDark.Small"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_centerInParent="true"
@@ -156,8 +158,6 @@
                 android:clickable="false"
                 android:indeterminate="true"
                 android:padding="2dp"
-                android:scaleType="fitCenter"
-                android:tint="?attr/colorAccent"
                 android:visibility="invisible" />
 
             <ImageButton
@@ -280,16 +280,17 @@
             tools:ignore="HardcodedText"
             tools:text="1:06:29" />
 
-        <androidx.appcompat.widget.AppCompatSeekBar
+        <org.schabi.newpipe.views.FocusAwareSeekBar
             android:id="@+id/seek_bar"
-            style="@style/Widget.AppCompat.SeekBar"
+            style="@style/Widget.NewPipe.SeekBar"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:paddingTop="8dp"
             android:paddingBottom="4dp"
-            tools:progress="25"
-            tools:secondaryProgress="50" />
+            android:value="25"
+            android:valueFrom="0"
+            android:valueTo="100" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/end_time"

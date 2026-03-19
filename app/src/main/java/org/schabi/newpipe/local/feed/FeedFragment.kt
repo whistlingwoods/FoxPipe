@@ -225,7 +225,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                 else -> R.string.feed_use_dedicated_fetch_method_enable_button
             }
 
-            AlertDialog.Builder(requireContext())
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setMessage(R.string.feed_use_dedicated_fetch_method_help_text)
                 .setNeutralButton(enableDisableButtonText) { _, _ ->
                     sharedPreferences.edit {
@@ -255,7 +255,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             viewModel.getShowFutureItemsFromPreferences()
         )
 
-        AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.feed_hide_streams_title)
             .setMultiChoiceItems(dialogItems, checkedDialogItems) { _, which, isChecked ->
                 checkedDialogItems[which] = isChecked
@@ -511,7 +511,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             false
         )
 
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.feed_load_error)
             .setPositiveButton(R.string.unsubscribe) { _, _ ->
                 SubscriptionManager(requireContext())

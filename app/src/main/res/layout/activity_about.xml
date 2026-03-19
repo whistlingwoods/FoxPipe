@@ -4,33 +4,38 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color"
     android:fitsSystemWindows="true"
     tools:context="org.schabi.newpipe.about.AboutActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/pilot_app_bar_color"
         android:paddingTop="@dimen/appbar_padding_top"
-        android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar">
+        android:theme="@style/ToolbarTheme"
+        app:popupTheme="@style/ToolbarPopupTheme">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/about_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@drawable/bg_pilot_toolbar"
-            android:theme="@style/PilotToolbarTheme"
+            android:background="?attr/pilot_app_bar_color"
+            android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways" />
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/about_tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/pilot_primary_container_color"
-            app:tabIndicatorColor="?attr/pilot_on_primary_container_color"
-            app:tabRippleColor="?attr/pilot_on_primary_container_color"
-            app:tabSelectedTextColor="?attr/pilot_on_primary_container_color"
-            app:tabTextColor="?attr/pilot_on_primary_container_color" />
+            android:background="?attr/pilot_app_bar_color"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabIndicatorFullWidth="false"
+            app:tabRippleColor="?attr/colorControlHighlight"
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabTextColor="?attr/pilot_on_surface_variant_color" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -38,5 +43,6 @@
         android:id="@+id/about_viewPager2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/pilot_page_background_color"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
