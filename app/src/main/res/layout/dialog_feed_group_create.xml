@@ -75,7 +75,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/group_name_input_container"
                 tools:text="15 selected" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/select_channel_button"
                 style="@style/PilotFilledButton"
                 android:layout_width="match_parent"
@@ -214,7 +214,7 @@
             tools:ignore="ContentDescription"
             tools:visibility="visible" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel_button"
             style="@style/PilotTextButton"
             android:layout_width="wrap_content"
@@ -222,7 +222,7 @@
             android:layout_toStartOf="@+id/confirm_button"
             android:text="@string/cancel" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/confirm_button"
             style="@style/PilotFilledButton"
             android:layout_width="wrap_content"

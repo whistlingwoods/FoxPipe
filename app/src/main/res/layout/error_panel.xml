@@ -46,7 +46,7 @@
         tools:text="This account has been terminated because we received multiple third-party claims of copyright infringement regarding material that the user posted."
         tools:visibility="visible" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/error_action_button"
         style="@style/PilotFilledButton"
         android:layout_width="wrap_content"
@@ -57,7 +57,7 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/error_retry_button"
         style="@style/PilotFilledButton"
         android:layout_width="wrap_content"
@@ -68,7 +68,7 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/error_open_in_browser"
         style="@style/PilotFilledButton"
         android:layout_width="wrap_content"

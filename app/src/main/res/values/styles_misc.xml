@@ -2,30 +2,40 @@
 <resources>
 
     <!-- Follows service's primary color -->
-    <style name="ServiceColoredButton" parent="Widget.AppCompat.Button.Colored">
-        <item name="colorButtonNormal">?attr/colorPrimary</item>
+    <style name="ServiceColoredButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
         <item name="android:textColor">@color/subscribe_text_color</item>
-        <item name="colorControlHighlight">@color/dark_ripple_color</item>
+        <item name="rippleColor">@color/dark_ripple_color</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="insetTop">0dp</item>
+        <item name="insetBottom">0dp</item>
     </style>
 
-    <style name="PilotFilledButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/bg_pilot_primary_container_ripple</item>
+    <style name="PilotFilledButton" parent="Widget.Material3.Button">
         <item name="android:textAllCaps">false</item>
         <item name="android:textColor">?attr/pilot_on_primary_container_color</item>
         <item name="android:minHeight">40dp</item>
         <item name="android:minWidth">0dp</item>
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
+        <item name="backgroundTint">?attr/pilot_primary_container_color</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="insetTop">0dp</item>
+        <item name="insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
-    <style name="PilotTextButton" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/bg_pilot_text_button</item>
+    <style name="PilotTextButton" parent="Widget.Material3.Button.TextButton">
         <item name="android:textAllCaps">false</item>
         <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:minHeight">40dp</item>
         <item name="android:minWidth">0dp</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="insetTop">0dp</item>
+        <item name="insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
 
@@ -128,14 +138,18 @@
         <item name="trackCornerRadius">1dp</item>
     </style>
 
-    <style name="Widget.NewPipe.Button" parent="Widget.AppCompat.Button">
-        <item name="android:background">@drawable/bg_pilot_button</item>
+    <style name="Widget.NewPipe.Button" parent="Widget.Material3.Button">
         <item name="android:minHeight">40dp</item>
         <item name="android:minWidth">0dp</item>
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="insetTop">0dp</item>
+        <item name="insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
     <style name="Widget.NewPipe.CardView" parent="">

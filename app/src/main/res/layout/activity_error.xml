@@ -133,7 +133,7 @@
                 android:layout_marginTop="8dp"
                 android:inputType="" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/errorReportEmailButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -148,14 +148,14 @@
                 android:text="@string/error_report_open_github_notice"
                 android:textStyle="bold" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/errorReportCopyButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/copy_for_github" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/errorReportGitHubButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
