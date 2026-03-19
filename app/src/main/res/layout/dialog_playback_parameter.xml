@@ -97,7 +97,7 @@
 
                 <androidx.appcompat.widget.AppCompatSeekBar
                     android:id="@+id/tempoSeekbar"
-                    style="@style/Widget.AppCompat.SeekBar"
+                    style="@style/Widget.NewPipe.SeekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/tempoCurrentText"
@@ -270,7 +270,7 @@
 
                     <androidx.appcompat.widget.AppCompatSeekBar
                         android:id="@+id/pitchPercentSeekbar"
-                        style="@style/Widget.AppCompat.SeekBar"
+                        style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchPercentCurrentText"
@@ -364,7 +364,7 @@
 
                     <androidx.appcompat.widget.AppCompatSeekBar
                         android:id="@+id/pitchSemitoneSeekbar"
-                        style="@style/Widget.AppCompat.SeekBar"
+                        style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchSemitoneCurrentText"

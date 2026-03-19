@@ -469,7 +469,7 @@
 
                 <org.schabi.newpipe.views.FocusAwareSeekBar
                     android:id="@+id/playbackSeekBar"
-                    style="@style/Widget.AppCompat.SeekBar"
+                    style="@style/Widget.NewPipe.SeekBar"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -789,16 +789,14 @@
 
     <Button
         android:id="@+id/closeButton"
-        style="@style/Widget.AppCompat.Button.Borderless"
+        style="@style/PilotTextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:layout_marginTop="10dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:text="@string/close"
-        android:textAllCaps="true"
         android:textColor="@color/white"
         android:visibility="gone" />
 

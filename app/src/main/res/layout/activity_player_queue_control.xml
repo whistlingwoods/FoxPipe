@@ -120,7 +120,7 @@
 
         <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/seek_bar"
-            style="@style/Widget.AppCompat.SeekBar"
+            style="@style/Widget.NewPipe.SeekBar"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
