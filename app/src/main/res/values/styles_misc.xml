@@ -202,22 +202,25 @@
         <item name="thumbHeight">20dp</item>
     </style>
 
-    <style name="Widget.NewPipe.SwitchCompat" parent="Widget.AppCompat.CompoundButton.Switch">
-        <item name="thumbTint">@color/switch_thumb_tint</item>
-        <item name="trackTint">@color/switch_track_tint</item>
-    </style>
-
     <style name="Widget.NewPipe.MaterialSwitch" parent="">
         <item name="thumbTint">@color/switch_thumb_tint</item>
         <item name="trackTint">@color/switch_track_tint</item>
     </style>
 
-    <style name="DarkPopupMenu" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="DarkPopupMenu" parent="">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white_secondary</item>
+        <item name="colorSurface">@color/dark_pilot_surface_container_color</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="tint">@color/white</item>
+        <item name="iconTint">@color/white</item>
+    </style>
 
-    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="ToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
         <item name="android:textColorPrimary">?attr/pilot_on_surface_color</item>
         <item name="android:textColorSecondary">?attr/pilot_on_surface_variant_color</item>
+        <item name="colorOnSurface">?attr/pilot_on_surface_color</item>
         <item name="tint">?attr/pilot_on_surface_color</item>
         <item name="iconTint">?attr/pilot_on_surface_color</item>
         <item name="toolbarSearchColor">?attr/pilot_on_surface_color</item>
@@ -229,13 +232,18 @@
         <item name="iconTint">?attr/pilot_on_primary_container_color</item>
         <item name="toolbarSearchColor">?attr/pilot_on_primary_container_color</item>
     </style>
-    <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
+    <style name="ToolbarPopupTheme" parent="">
+        <item name="android:textColorPrimary">@color/contrastColor</item>
+        <item name="android:textColorSecondary">@color/contrastColor</item>
+        <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
+        <item name="iconTint">@color/contrastColor</item>
     </style>
-    <style name="ContrastToolbarTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
+    <style name="ContrastToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
         <item name="android:textColorPrimary">@color/contrastColor</item>
         <item name="android:textColorSecondary">@color/contrastColor</item>
+        <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
         <item name="iconTint">@color/contrastColor</item>
         <item name="toolbarSearchColor">@color/contrastColor</item>
