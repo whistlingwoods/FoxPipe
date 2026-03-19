@@ -305,7 +305,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         dialogTitleBinding.itemTitleView.text = selectedItem.name
         dialogTitleBinding.itemAdditionalDetails.visibility = View.GONE
 
-        AlertDialog.Builder(requireContext())
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setCustomTitle(dialogTitleBinding.root)
             .setItems(commands, actions)
             .show()

@@ -21,7 +21,7 @@ public final class AddTabDialog {
     AddTabDialog(@NonNull final Context context, @NonNull final ChooseTabListItem[] items,
                  @NonNull final DialogInterface.OnClickListener actions) {
 
-        dialog = new AlertDialog.Builder(context)
+        dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.tab_choose))
                 .setAdapter(new DialogListAdapter(context, items), actions)
                 .create();

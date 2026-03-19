@@ -2170,7 +2170,7 @@ public final class VideoDetailFragment
     }
 
     private void showClearingQueueConfirmation(final Runnable onAllow) {
-        new AlertDialog.Builder(activity)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(R.string.clear_queue_confirmation_description)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.ok, (dialog, which) -> {
@@ -2185,7 +2185,7 @@ public final class VideoDetailFragment
             return;
         }
 
-        final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        final AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity);
         builder.setTitle(R.string.select_quality_external_players);
         builder.setNeutralButton(R.string.open_in_browser, (dialog, i) ->
                 ShareUtils.openUrlInBrowser(requireActivity(), url));
@@ -2249,7 +2249,7 @@ public final class VideoDetailFragment
                     .map(audioStream -> Localization.audioTrackName(activity, audioStream))
                     .toArray(CharSequence[]::new);
 
-            new AlertDialog.Builder(activity)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                     .setTitle(R.string.select_audio_track_external_players)
                     .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
                             ShareUtils.openUrlInBrowser(requireActivity(), url))

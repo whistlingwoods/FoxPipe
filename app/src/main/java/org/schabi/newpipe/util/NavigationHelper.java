@@ -322,7 +322,7 @@ public final class NavigationHelper {
                                                      @NonNull final Intent intent) {
         if (!ShareUtils.tryOpenIntentInApp(context, intent)) {
             if (context instanceof Activity) {
-                new AlertDialog.Builder(context)
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                         .setMessage(R.string.no_player_found)
                         .setPositiveButton(R.string.install, (dialog, which) ->
                                 ShareUtils.installApp(context,

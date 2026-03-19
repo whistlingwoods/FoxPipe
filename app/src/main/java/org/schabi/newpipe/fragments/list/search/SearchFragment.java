@@ -699,7 +699,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             return;
         }
         final String query = item.query;
-        new AlertDialog.Builder(activity)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(query)
                 .setMessage(R.string.delete_item_search_history)
                 .setCancelable(true)

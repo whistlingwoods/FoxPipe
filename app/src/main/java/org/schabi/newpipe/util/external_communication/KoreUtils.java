@@ -61,7 +61,7 @@ public final class KoreUtils {
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         if (!tryOpenIntentInApp(context, intent)) {
-            new AlertDialog.Builder(context)
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                     .setMessage(R.string.kore_not_found)
                     .setPositiveButton(R.string.install, (dialog, which) ->
                             installKore(context))

@@ -90,7 +90,7 @@ public final class MigrationManager {
     static AlertDialog createMigrationInfoDialog(@NonNull final Context uiContext,
                                                  @NonNull final String title,
                                                  @NonNull final String message) {
-        return new AlertDialog.Builder(uiContext)
+        return new com.google.android.material.dialog.MaterialAlertDialogBuilder(uiContext)
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
