@@ -110,13 +110,12 @@
 
     <Button
         android:id="@+id/replies_button"
-        style="?android:attr/borderlessButtonStyle"
+        style="@style/PilotTextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/commentPicturesScrollView"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="@dimen/video_item_detail_heart_margin"
-        android:minHeight="0dp"
         tools:text="543 replies" />
 
 </RelativeLayout>
