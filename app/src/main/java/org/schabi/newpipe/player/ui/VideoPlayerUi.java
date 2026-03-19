@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -173,10 +174,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.resizeTextView
                 .setText(PlayerHelper.resizeTypeOf(context, binding.surfaceView.getResizeMode()));
 
-        binding.playbackSeekBar.getThumb()
-                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
-        binding.playbackSeekBar.getProgressDrawable()
-                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY));
+        tintPlaybackSeekBar();
 
         final ContextThemeWrapper themeWrapper = new ContextThemeWrapper(context,
                 R.style.DarkPopupMenu);
@@ -186,8 +184,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         playbackSpeedPopupMenu = new PopupMenu(context, binding.playbackSpeed);
         captionPopupMenu = new PopupMenu(themeWrapper, binding.captionTextView);
 
-        binding.progressBarLoadingPanel.getIndeterminateDrawable()
-                .setColorFilter(new PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.MULTIPLY));
+        tintDrawable(binding.progressBarLoadingPanel.getIndeterminateDrawable(),
+                Color.WHITE, PorterDuff.Mode.MULTIPLY);
 
         binding.titleTextView.setSelected(true);
         binding.channelTextView.setSelected(true);
@@ -805,8 +803,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         hideControls(DEFAULT_CONTROLS_DURATION, 0);
 
         binding.playbackSeekBar.setEnabled(false);
-        binding.playbackSeekBar.getThumb()
-                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
+        tintPlaybackSeekBar();
 
         binding.loadingPanel.setBackgroundColor(Color.BLACK);
         animate(binding.loadingPanel, true, 0);
@@ -824,8 +821,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         updateStreamRelatedViews();
 
         binding.playbackSeekBar.setEnabled(true);
-        binding.playbackSeekBar.getThumb()
-                .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
+        tintPlaybackSeekBar();
 
         binding.loadingPanel.setVisibility(View.GONE);
 
@@ -841,6 +837,22 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                 });
 
         binding.getRoot().setKeepScreenOn(true);
+    }
+
+    private void tintPlaybackSeekBar() {
+        tintDrawable(binding.playbackSeekBar.getThumb(), Color.RED, PorterDuff.Mode.SRC_IN);
+        tintDrawable(binding.playbackSeekBar.getProgressDrawable(),
+                Color.RED, PorterDuff.Mode.MULTIPLY);
+    }
+
+    private void tintDrawable(@Nullable final Drawable drawable,
+                              final int color,
+                              @NonNull final PorterDuff.Mode mode) {
+        if (drawable == null) {
+            return;
+        }
+
+        drawable.setColorFilter(new PorterDuffColorFilter(color, mode));
     }
 
     @Override
