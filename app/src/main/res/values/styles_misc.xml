@@ -76,7 +76,7 @@
         <item name="tint">?attr/actionColor</item>
     </style>
 
-    <style name="Widget.NewPipe.Button">
+    <style name="Widget.NewPipe.Button" parent="">
         <item name="android:background">@drawable/bg_pilot_button</item>
         <item name="android:minHeight">40dp</item>
         <item name="android:minWidth">0dp</item>
@@ -86,14 +86,14 @@
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
     </style>
 
-    <style name="Widget.NewPipe.CardView">
+    <style name="Widget.NewPipe.CardView" parent="">
         <item name="cardBackgroundColor">?attr/card_item_background_color</item>
         <item name="cardCornerRadius">22dp</item>
         <item name="cardElevation">0dp</item>
         <item name="cardUseCompatPadding">false</item>
     </style>
 
-    <style name="Widget.NewPipe.MaterialCardView">
+    <style name="Widget.NewPipe.MaterialCardView" parent="">
         <item name="cardBackgroundColor">?attr/card_item_background_color</item>
         <item name="cardCornerRadius">22dp</item>
         <item name="cardElevation">0dp</item>
@@ -102,7 +102,7 @@
         <item name="strokeWidth">1dp</item>
     </style>
 
-    <style name="Widget.NewPipe.EditText">
+    <style name="Widget.NewPipe.EditText" parent="">
         <item name="android:background">@drawable/bg_pilot_text_field</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:paddingStart">16dp</item>
@@ -113,32 +113,28 @@
         <item name="android:textColorHint">?attr/pilot_on_surface_variant_color</item>
     </style>
 
-    <style name="Widget.NewPipe.SeekBar">
+    <style name="Widget.NewPipe.SeekBar" parent="">
         <item name="android:progressTint">?attr/colorPrimary</item>
         <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
         <item name="android:progressBackgroundTint">?attr/pilot_surface_variant_color</item>
         <item name="android:thumbTint">?attr/colorPrimary</item>
-        <item name="progressTint">?attr/colorPrimary</item>
-        <item name="secondaryProgressTint">?attr/colorPrimaryContainer</item>
-        <item name="progressBackgroundTint">?attr/pilot_surface_variant_color</item>
-        <item name="thumbTint">?attr/colorPrimary</item>
     </style>
 
-    <style name="Widget.NewPipe.SwitchCompat">
+    <style name="Widget.NewPipe.SwitchCompat" parent="">
         <item name="thumbTint">@color/switch_thumb_tint</item>
         <item name="trackTint">@color/switch_track_tint</item>
     </style>
 
-    <style name="Widget.NewPipe.MaterialSwitch">
+    <style name="Widget.NewPipe.MaterialSwitch" parent="">
         <item name="thumbTint">@color/switch_thumb_tint</item>
         <item name="trackTint">@color/switch_track_tint</item>
     </style>
 
-    <style name="Widget.NewPipe.CheckBox">
+    <style name="Widget.NewPipe.CheckBox" parent="">
         <item name="buttonTint">@color/control_button_tint</item>
     </style>
 
-    <style name="Widget.NewPipe.RadioButton">
+    <style name="Widget.NewPipe.RadioButton" parent="">
         <item name="buttonTint">@color/control_button_tint</item>
     </style>
 
