@@ -6,7 +6,6 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AlertDialog;
 
 import org.schabi.newpipe.R;
 

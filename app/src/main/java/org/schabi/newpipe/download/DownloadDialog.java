@@ -947,7 +947,8 @@ public class DownloadDialog extends DialogFragment
                 return; // unreachable
         }
 
-        final AlertDialog.Builder askDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+        final AlertDialog.Builder askDialog =
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.download_dialog_title)
                 .setMessage(msgBody)
                 .setNegativeButton(R.string.cancel, null);

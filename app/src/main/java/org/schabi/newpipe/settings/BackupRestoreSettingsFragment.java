@@ -105,7 +105,9 @@ public class BackupRestoreSettingsFragment extends BasePreferenceFragment {
         // A dialogue will pop up to confirm if user intends to reset all settings
         resetSettings.setOnPreferenceClickListener(preference -> {
             // Show Alert Dialogue
-            final AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(getContext());
+            final AlertDialog.Builder builder =
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                            getContext());
             builder.setMessage(R.string.reset_all_settings);
             builder.setCancelable(true);
             builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> {

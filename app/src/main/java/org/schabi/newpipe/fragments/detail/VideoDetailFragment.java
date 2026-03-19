@@ -2185,7 +2185,8 @@ public final class VideoDetailFragment
             return;
         }
 
-        final AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity);
+        final AlertDialog.Builder builder =
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity);
         builder.setTitle(R.string.select_quality_external_players);
         builder.setNeutralButton(R.string.open_in_browser, (dialog, i) ->
                 ShareUtils.openUrlInBrowser(requireActivity(), url));
