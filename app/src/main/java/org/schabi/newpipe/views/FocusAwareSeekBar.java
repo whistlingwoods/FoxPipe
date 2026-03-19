@@ -61,6 +61,7 @@ public class FocusAwareSeekBar extends Slider {
     private int keyProgressIncrement = 1;
     private boolean keyboardSeeking;
     private boolean keyboardChangeInProgress;
+    private final int fallbackThumbSizePx;
     @Nullable
     private ColorStateList secondaryProgressTintList;
 
@@ -76,6 +77,8 @@ public class FocusAwareSeekBar extends Slider {
                              final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         seekBarProxy = new SeekBarProxy(context);
+        fallbackThumbSizePx =
+                Math.max(1, Math.round(getResources().getDisplayMetrics().density * 20f));
         init(attrs, defStyleAttr);
     }
 
@@ -354,13 +357,32 @@ public class FocusAwareSeekBar extends Slider {
     }
 
     private void updateThumbBounds() {
-        final int thumbWidth = getThumbWidth();
-        final int thumbHeight = getThumbHeight();
+        final int thumbWidth = getCompatThumbSize();
+        final int thumbHeight = thumbWidth;
         final int left = getCompatTrackPositionForFraction(max <= 0
                 ? 0f
                 : getProgress() / (float) max) - (thumbWidth / 2) - getPaddingLeft();
         final int top = (getHeight() - thumbHeight) / 2 - getPaddingTop();
         compatThumbDrawable.setBounds(left, top, left + thumbWidth, top + thumbHeight);
+    }
+
+    private int getCompatThumbSize() {
+        return Math.max(getTrackHeight() * 2, fallbackThumbSizePx);
+    }
+
+    @Nullable
+    private Integer resolveColorFromFilter(@Nullable final ColorFilter colorFilter) {
+        if (!(colorFilter instanceof PorterDuffColorFilter)) {
+            return null;
+        }
+
+        try {
+            return (Integer) PorterDuffColorFilter.class
+                    .getMethod("getColor")
+                    .invoke(colorFilter);
+        } catch (final ReflectiveOperationException ignored) {
+            return null;
+        }
     }
 
     private int clampToProgressRange(final int progress) {
@@ -420,10 +442,11 @@ public class FocusAwareSeekBar extends Slider {
 
         @Override
         public void setColorFilter(@Nullable final ColorFilter colorFilter) {
-            if (colorFilter instanceof PorterDuffColorFilter) {
-                final int color = ((PorterDuffColorFilter) colorFilter).getColor();
+            final Integer color = resolveColorFromFilter(colorFilter);
+            if (color != null) {
                 setThumbTintList(ColorStateList.valueOf(color));
-                setHaloTintList(ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 72)));
+                setHaloTintList(ColorStateList.valueOf(
+                        ColorUtils.setAlphaComponent(color, 72)));
             }
         }
 
@@ -479,11 +502,11 @@ public class FocusAwareSeekBar extends Slider {
 
         @Override
         public void setColorFilter(@Nullable final ColorFilter colorFilter) {
-            if (!(colorFilter instanceof PorterDuffColorFilter)) {
+            final Integer color = resolveColorFromFilter(colorFilter);
+            if (color == null) {
                 return;
             }
 
-            final int color = ((PorterDuffColorFilter) colorFilter).getColor();
             setTrackActiveTintList(ColorStateList.valueOf(color));
             setTrackInactiveTintList(ColorStateList.valueOf(
                     ColorUtils.setAlphaComponent(color, 72)));

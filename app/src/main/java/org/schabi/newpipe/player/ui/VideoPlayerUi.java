@@ -17,6 +17,7 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSav
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -45,6 +46,7 @@ import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.graphics.BitmapCompat;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
 import androidx.core.math.MathUtils;
 import androidx.core.view.ViewCompat;
@@ -860,9 +862,15 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     private void tintPlaybackSeekBar() {
-        tintDrawable(binding.playbackSeekBar.getThumb(), Color.RED, PorterDuff.Mode.SRC_IN);
-        tintDrawable(binding.playbackSeekBar.getProgressDrawable(),
-                Color.RED, PorterDuff.Mode.MULTIPLY);
+        final ColorStateList thumbTint = ColorStateList.valueOf(Color.RED);
+        binding.playbackSeekBar.setThumbTintList(thumbTint);
+        binding.playbackSeekBar.setHaloTintList(ColorStateList.valueOf(
+                ColorUtils.setAlphaComponent(Color.RED, 72)));
+        binding.playbackSeekBar.setTrackActiveTintList(thumbTint);
+        binding.playbackSeekBar.setTrackInactiveTintList(ColorStateList.valueOf(
+                ColorUtils.setAlphaComponent(Color.RED, 72)));
+        binding.playbackSeekBar.setSecondaryProgressTintList(ColorStateList.valueOf(
+                ColorUtils.setAlphaComponent(Color.RED, 144)));
     }
 
     private void tintDrawable(@Nullable final Drawable drawable,
