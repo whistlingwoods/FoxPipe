@@ -282,7 +282,7 @@ public class RouterActivity extends AppCompatActivity {
 
     protected void showUnsupportedUrlDialog(final String url) {
         final Context context = getThemeWrapperContext();
-        new AlertDialog.Builder(context)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.unsupported_url)
                 .setMessage(R.string.unsupported_url_dialog_message)
                 .setIcon(R.drawable.ic_share)
@@ -434,7 +434,7 @@ public class RouterActivity extends AppCompatActivity {
             }
         };
 
-        alertDialogChoice = new AlertDialog.Builder(themeWrapperContext)
+        alertDialogChoice = new com.google.android.material.dialog.MaterialAlertDialogBuilder(themeWrapperContext)
                 .setTitle(R.string.preferred_open_action_share_menu_title)
                 .setView(binding.getRoot())
                 .setCancelable(true)

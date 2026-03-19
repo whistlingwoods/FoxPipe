@@ -39,7 +39,7 @@ public final class NoFileManagerSafeGuard {
         }
 
 
-        new AlertDialog.Builder(context)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.no_app_to_open_intent)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)

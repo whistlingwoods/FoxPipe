@@ -152,7 +152,7 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
     }
 
     private void showMessageDialog(@StringRes final int title, @StringRes final int message) {
-        new AlertDialog.Builder(ctx)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(ctx)
                 .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(getString(R.string.ok), null)

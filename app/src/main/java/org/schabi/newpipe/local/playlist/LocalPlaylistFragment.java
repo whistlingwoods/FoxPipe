@@ -550,7 +550,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         dialogBinding.dialogEditText.setSelection(dialogBinding.dialogEditText.getText().length());
         dialogBinding.dialogEditText.setText(name);
 
-        new AlertDialog.Builder(getContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(getContext())
                 .setTitle(R.string.rename_playlist)
                 .setView(dialogBinding.getRoot())
                 .setCancelable(true)
@@ -623,7 +623,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     }
 
     private void openRemoveDuplicatesDialog() {
-        new AlertDialog.Builder(this.getActivity())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this.getActivity())
                 .setTitle(R.string.remove_duplicates_title)
                 .setMessage(R.string.remove_duplicates_message)
                 .setPositiveButton(R.string.ok, (dialog, i) ->
@@ -873,7 +873,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
      * After the user has made a choice, the playlist is shared.
      */
     private void createShareConfirmationDialog() {
-        new AlertDialog.Builder(requireContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.share_playlist)
                 .setCancelable(true)
                 .setPositiveButton(R.string.share_playlist_with_titles, (dialog, which) ->
@@ -908,7 +908,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         checkboxContainer.addView(removePartiallyWatchedCheckbox,
                 new LayoutParams(MATCH_PARENT, WRAP_CONTENT));
 
-        new AlertDialog.Builder(requireContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setMessage(R.string.remove_watched_popup_warning)
                 .setTitle(R.string.remove_watched_popup_title)
                 .setView(checkboxContainer)

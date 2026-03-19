@@ -534,7 +534,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 break;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder builder = new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext);
 
         if (msgEx != null)
             builder.setMessage(msgEx);

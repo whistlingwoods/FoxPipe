@@ -123,7 +123,7 @@ class NotificationSlot {
         final SingleChoiceDialogViewBinding binding =
                 SingleChoiceDialogViewBinding.inflate(inflater);
 
-        final AlertDialog alertDialog = new AlertDialog.Builder(context)
+        final AlertDialog alertDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(SLOT_TITLES[i])
                 .setView(binding.getRoot())
                 .setCancelable(true)

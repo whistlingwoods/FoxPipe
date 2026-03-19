@@ -143,7 +143,7 @@ public final class PermissionHelper {
                                 appNameItalic,
                                 permissionNameItalic
                         );
-                new AlertDialog.Builder(context)
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                         .setTitle(title)
                         .setMessage(Html.fromHtml(message, Html.FROM_HTML_MODE_COMPACT))
                         .setPositiveButton("OK", (dialog, which) -> {

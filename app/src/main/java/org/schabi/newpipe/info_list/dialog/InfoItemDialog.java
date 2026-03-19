@@ -75,7 +75,7 @@ public final class InfoItemDialog {
         final DialogInterface.OnClickListener action = (d, index) ->
             entries.get(index).action.onClick(fragment, info);
 
-        dialog = new AlertDialog.Builder(activity)
+        dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setCustomTitle(bannerView)
                 .setItems(items, action)
                 .create();
