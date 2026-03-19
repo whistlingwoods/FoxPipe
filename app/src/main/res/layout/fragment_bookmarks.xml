@@ -3,12 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/items_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
         tools:listitem="@layout/list_playlist_mini_item" />

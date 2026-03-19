@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/pilot_page_background_color">
 
 
     <org.schabi.newpipe.views.ScrollableTabLayout
@@ -11,11 +12,18 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:background="?attr/pilot_primary_container_color"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="4dp"
         app:tabRippleColor="?attr/pilot_on_primary_container_color"
         app:tabIconTint="?attr/pilot_on_primary_container_color"
         app:tabIndicatorColor="?attr/pilot_on_primary_container_color"
+        app:tabIndicatorFullWidth="false"
         app:tabGravity="fill"
-        app:tabMinWidth="60dp" />
+        app:tabMinWidth="60dp"
+        app:tabSelectedTextColor="?attr/pilot_on_primary_container_color"
+        app:tabTextColor="?attr/pilot_on_primary_container_color" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/pager"

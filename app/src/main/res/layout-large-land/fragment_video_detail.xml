@@ -5,7 +5,7 @@
     android:id="@+id/video_item_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/windowBackground">
+    android:background="?attr/pilot_page_background_color">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -167,6 +167,7 @@
                     android:id="@+id/detail_content_root_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="?attr/pilot_page_background_color"
                     app:layout_scrollFlags="scroll">
 
                     <!-- TITLE -->
@@ -174,10 +175,14 @@
                         android:id="@+id/detail_title_root_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?attr/selectableItemBackground"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:background="@drawable/bg_pilot_surface"
                         android:clickable="true"
                         android:focusable="true"
                         android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
                         tools:ignore="RtlSymmetry">
 
                         <org.schabi.newpipe.views.NewPipeTextView
@@ -201,6 +206,7 @@
                             android:layout_marginTop="11dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_expand_more"
+                            app:tint="?attr/pilot_on_surface_variant_color"
                             tools:ignore="ContentDescription" />
 
                     </FrameLayout>

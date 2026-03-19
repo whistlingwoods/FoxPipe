@@ -152,10 +152,13 @@
                         android:paddingEnd="18dp"
                         android:text="@string/subscribe_button_title"
                         android:textAllCaps="false"
+                        android:textColor="?attr/colorOnSecondaryContainer"
                         android:textSize="13sp"
+                        app:backgroundTint="?attr/colorSecondaryContainer"
                         app:cornerRadius="20dp"
                         app:layout_constraintBottom_toBottomOf="@+id/channel_avatar_view"
                         app:layout_constraintEnd_toEndOf="parent"
+                        app:strokeWidth="0dp"
                         app:layout_constraintTop_toTopOf="@+id/channel_avatar_view" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -173,15 +176,18 @@
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/pilot_surface_color"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
+            android:background="?attr/pilot_page_background_color"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp"
             app:tabGravity="fill"
             app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabIndicatorFullWidth="false"
             app:tabMode="scrollable"
             app:tabRippleColor="?attr/pilot_primary_container_color"
             app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?android:attr/textColorSecondary" />
+            app:tabTextColor="?attr/pilot_on_surface_variant_color" />
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"

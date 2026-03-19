@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Opening Theme -->
-    <style name="Base.V21.OpeningTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Base.V21.OpeningTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
         <item name="colorAccent">@android:color/transparent</item>
@@ -9,12 +9,12 @@
         <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
     <style name="Base.OpeningTheme" parent="Base.V21.OpeningTheme">
-        <item name="android:navigationBarColor">@color/light_youtube_primary_color</item>
+        <item name="android:navigationBarColor">@color/light_pilot_page_background_color</item>
     </style>
     <style name="OpeningTheme" parent="Base.OpeningTheme" />
 
     <!-- Base Theme -->
-    <style name="Base.V21" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
+    <style name="Base.V21" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="actionColor">@color/white</item>
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
@@ -33,9 +33,15 @@
         <item name="windowBackground">@color/light_background_color</item>
         <item name="colorSurface">@color/light_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/light_pilot_surface_variant_color</item>
+        <item name="colorSurfaceContainer">@color/light_pilot_surface_container_color</item>
+        <item name="colorSurfaceContainerHigh">@color/light_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/light_pilot_outline_color</item>
         <item name="colorPrimaryContainer">@color/light_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/light_pilot_on_primary_container_color</item>
+        <item name="colorSecondaryContainer">@color/light_pilot_secondary_container_color</item>
+        <item name="colorOnSecondaryContainer">@color/light_pilot_on_secondary_container_color</item>
+        <item name="colorOnSurface">@color/light_pilot_on_surface_color</item>
+        <item name="colorOnSurfaceVariant">@color/light_pilot_on_surface_variant_color</item>
 
         <item name="separator_color">@color/light_separator_color</item>
         <item name="contrast_background_color">@color/light_contrast_background_color</item>
@@ -52,9 +58,15 @@
         <item name="pilot_page_background_color">@color/light_pilot_page_background_color</item>
         <item name="pilot_surface_color">?attr/colorSurface</item>
         <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
         <item name="pilot_outline_color">?attr/colorOutline</item>
         <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
         <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
+        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
+        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.LightTheme" parent="Base.V21.LightTheme" />
     <style name="LightTheme" parent="Base.LightTheme"/>
@@ -69,9 +81,15 @@
         <item name="windowBackground">@color/dark_background_color</item>
         <item name="colorSurface">@color/dark_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/dark_pilot_surface_variant_color</item>
+        <item name="colorSurfaceContainer">@color/dark_pilot_surface_container_color</item>
+        <item name="colorSurfaceContainerHigh">@color/dark_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/dark_pilot_outline_color</item>
         <item name="colorPrimaryContainer">@color/dark_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/dark_pilot_on_primary_container_color</item>
+        <item name="colorSecondaryContainer">@color/dark_pilot_secondary_container_color</item>
+        <item name="colorOnSecondaryContainer">@color/dark_pilot_on_secondary_container_color</item>
+        <item name="colorOnSurface">@color/dark_pilot_on_surface_color</item>
+        <item name="colorOnSurfaceVariant">@color/dark_pilot_on_surface_variant_color</item>
 
         <item name="separator_color">@color/dark_separator_color</item>
         <item name="contrast_background_color">@color/dark_contrast_background_color</item>
@@ -88,9 +106,15 @@
         <item name="pilot_page_background_color">@color/dark_pilot_page_background_color</item>
         <item name="pilot_surface_color">?attr/colorSurface</item>
         <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
         <item name="pilot_outline_color">?attr/colorOutline</item>
         <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
         <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
+        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
+        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.DarkTheme" parent="Base.V21.DarkTheme" />
     <style name="DarkTheme" parent="Base.DarkTheme"/>
@@ -102,9 +126,15 @@
         <item name="windowBackground">@color/black_background_color</item>
         <item name="colorSurface">@color/black_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/black_pilot_surface_variant_color</item>
+        <item name="colorSurfaceContainer">@color/black_pilot_surface_container_color</item>
+        <item name="colorSurfaceContainerHigh">@color/black_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/black_pilot_outline_color</item>
         <item name="colorPrimaryContainer">@color/black_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/black_pilot_on_primary_container_color</item>
+        <item name="colorSecondaryContainer">@color/black_pilot_secondary_container_color</item>
+        <item name="colorOnSecondaryContainer">@color/black_pilot_on_secondary_container_color</item>
+        <item name="colorOnSurface">@color/black_pilot_on_surface_color</item>
+        <item name="colorOnSurfaceVariant">@color/black_pilot_on_surface_variant_color</item>
 
         <item name="separator_color">@color/black_separator_color</item>
         <item name="contrast_background_color">@color/black_contrast_background_color</item>
@@ -116,9 +146,15 @@
         <item name="pilot_page_background_color">@color/black_pilot_page_background_color</item>
         <item name="pilot_surface_color">?attr/colorSurface</item>
         <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
         <item name="pilot_outline_color">?attr/colorOutline</item>
         <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
         <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
+        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
+        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.BlackTheme" parent="Base.V21.BlackTheme" />
     <style name="BlackTheme" parent="Base.BlackTheme"/>
