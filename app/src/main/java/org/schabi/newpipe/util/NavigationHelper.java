@@ -687,6 +687,13 @@ public final class NavigationHelper {
         context.startActivity(intent);
     }
 
+    public static void openSettings(final Context context,
+                                    final Class<? extends Fragment> fragmentClass) {
+        final Intent intent = new Intent(context, SettingsActivity.class);
+        intent.putExtra(SettingsActivity.EXTRA_INITIAL_FRAGMENT, fragmentClass.getName());
+        context.startActivity(intent);
+    }
+
     public static void openDownloads(final Activity activity) {
         if (PermissionHelper.checkStoragePermissions(
                 activity, PermissionHelper.DOWNLOADS_REQUEST_CODE)) {

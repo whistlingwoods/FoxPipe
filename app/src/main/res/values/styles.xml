@@ -14,8 +14,9 @@
     <style name="OpeningTheme" parent="Base.OpeningTheme" />
 
     <!-- Base Theme -->
-    <style name="Base.V21" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Base.V21" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <item name="actionColor">@color/white</item>
+        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
         <item name="toolbarSearchColor">@color/white</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
@@ -25,10 +26,16 @@
     <!-- Light Theme -->
     <style name="Base.V21.LightTheme" parent="Base">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
-        <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
+        <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorAccent">@color/light_youtube_accent_color</item>
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="windowBackground">@color/light_background_color</item>
+        <item name="colorSurface">@color/light_pilot_surface_color</item>
+        <item name="colorSurfaceVariant">@color/light_pilot_surface_variant_color</item>
+        <item name="colorOutline">@color/light_pilot_outline_color</item>
+        <item name="colorPrimaryContainer">@color/light_pilot_primary_container_color</item>
+        <item name="colorOnPrimaryContainer">@color/light_pilot_on_primary_container_color</item>
 
         <item name="separator_color">@color/light_separator_color</item>
         <item name="contrast_background_color">@color/light_contrast_background_color</item>
@@ -42,6 +49,12 @@
         <item name="card_item_contrast_color">@color/light_card_item_contrast_color</item>
         <item name="border_color">@color/light_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_light</item>
+        <item name="pilot_page_background_color">@color/light_pilot_page_background_color</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
     </style>
     <style name="Base.LightTheme" parent="Base.V21.LightTheme" />
     <style name="LightTheme" parent="Base.LightTheme"/>
@@ -49,10 +62,16 @@
     <!-- Dark Theme -->
     <style name="Base.V21.DarkTheme" parent="Base">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
-        <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
+        <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="colorAccent">@color/dark_youtube_accent_color</item>
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
         <item name="windowBackground">@color/dark_background_color</item>
+        <item name="colorSurface">@color/dark_pilot_surface_color</item>
+        <item name="colorSurfaceVariant">@color/dark_pilot_surface_variant_color</item>
+        <item name="colorOutline">@color/dark_pilot_outline_color</item>
+        <item name="colorPrimaryContainer">@color/dark_pilot_primary_container_color</item>
+        <item name="colorOnPrimaryContainer">@color/dark_pilot_on_primary_container_color</item>
 
         <item name="separator_color">@color/dark_separator_color</item>
         <item name="contrast_background_color">@color/dark_contrast_background_color</item>
@@ -66,14 +85,26 @@
         <item name="card_item_contrast_color">@color/dark_card_item_contrast_color</item>
         <item name="border_color">@color/dark_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_dark</item>
+        <item name="pilot_page_background_color">@color/dark_pilot_page_background_color</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
     </style>
     <style name="Base.DarkTheme" parent="Base.V21.DarkTheme" />
     <style name="DarkTheme" parent="Base.DarkTheme"/>
 
     <!-- Black Theme -->
     <style name="Base.V21.BlackTheme" parent="DarkTheme">
+        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
         <item name="android:windowBackground">@color/black_background_color</item>
         <item name="windowBackground">@color/black_background_color</item>
+        <item name="colorSurface">@color/black_pilot_surface_color</item>
+        <item name="colorSurfaceVariant">@color/black_pilot_surface_variant_color</item>
+        <item name="colorOutline">@color/black_pilot_outline_color</item>
+        <item name="colorPrimaryContainer">@color/black_pilot_primary_container_color</item>
+        <item name="colorOnPrimaryContainer">@color/black_pilot_on_primary_container_color</item>
 
         <item name="separator_color">@color/black_separator_color</item>
         <item name="contrast_background_color">@color/black_contrast_background_color</item>
@@ -82,6 +113,12 @@
         <item name="card_item_contrast_color">@color/black_card_item_contrast_color</item>
         <item name="border_color">@color/black_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_black</item>
+        <item name="pilot_page_background_color">@color/black_pilot_page_background_color</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
     </style>
     <style name="Base.BlackTheme" parent="Base.V21.BlackTheme" />
     <style name="BlackTheme" parent="Base.BlackTheme"/>
@@ -121,15 +158,15 @@
 
     <!-- Settings -->
     <style name="LightSettingsTheme" parent="LightTheme">
-        <item name="colorAccent">@color/light_settings_accent_color</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
     </style>
 
     <style name="DarkSettingsTheme" parent="DarkTheme">
-        <item name="colorAccent">@color/dark_settings_accent_color</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
     </style>
 
     <style name="BlackSettingsTheme" parent="BlackTheme">
-        <item name="colorAccent">@color/black_settings_accent_color</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
     </style>
 
     <!-- Router Activity -->

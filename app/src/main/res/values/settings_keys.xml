@@ -237,6 +237,21 @@
 
     <string name="reset_settings">reset_settings</string>
 
+    <string name="logout_key">logout_key</string>
+    <string name="login_key">login_key</string>
+    <string name="bilibili_cookies_key">bilibili_cookies_key</string>
+    <string name="override_cookies_bilibili_key">override_cookies_bilibili_key</string>
+    <string name="override_cookies_bilibili_value_key">override_cookies_bilibili_value_key</string>
+    <string name="cookie_functions_bilibili_key">cookie_functions_bilibili_key</string>
+    <string-array name="cookie_functions_bilibili_entries">
+        <item>@string/high_res</item>
+        <item>@string/ai_subtitle</item>
+    </string-array>
+    <string-array name="cookie_functions_bilibili_values">
+        <item>high_res</item>
+        <item>ai_subtitle</item>
+    </string-array>
+
     <!-- DEBUG ONLY -->
     <string name="debug_pref_screen_key">debug_pref_screen_key</string>
     <string name="allow_heap_dumping_key">allow_heap_dumping_key</string>
@@ -252,6 +267,7 @@
     <!-- THEMES -->
     <string name="theme_key">theme</string>
     <string name="night_theme_key">night_theme</string>
+    <string name="dynamic_colors_key">dynamic_colors</string>
     <string name="light_theme_key">light_theme</string>
     <string name="dark_theme_key">dark_theme</string>
     <string name="black_theme_key">black_theme</string>
@@ -413,6 +429,8 @@
     <string name="import_export_data_path">import_export_data_path</string>
     <string name="import_data">import_data</string>
     <string name="export_data">export_data</string>
+    <string name="import_subscriptions_key">import_subscriptions_key</string>
+    <string name="export_subscriptions_key">export_subscriptions_key</string>
 
     <string name="clear_cookie_key">clear_cookie</string>
 
@@ -1512,4 +1530,9 @@
         <item>@string/image_quality_medium_key</item>
         <item>@string/image_quality_high_key</item>
     </string-array>
+
+    <!-- SponsorBlock -->
+    <string name="sponsor_block_enable_key">sponsor_block_enable_key</string>
+    <string name="sponsor_block_notifications_key">sponsor_block_notifications_key</string>
+    <string name="sponsor_block_user_id_key">sponsor_block_user_id_key</string>
 </resources>

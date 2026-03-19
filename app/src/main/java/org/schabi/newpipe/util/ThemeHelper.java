@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.TypedValue;
 
 import androidx.annotation.AttrRes;
@@ -38,10 +39,10 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.info_list.ItemViewMode;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public final class ThemeHelper {
     private ThemeHelper() {
@@ -72,7 +73,27 @@ public final class ThemeHelper {
      *                  pass -1 to get the default style
      */
     public static void setTheme(final Context context, final int serviceId) {
-        context.setTheme(getThemeForService(context, serviceId));
+        setThemeResource(context, getThemeForService(context, serviceId));
+    }
+
+    /**
+     * Apply a theme resource and, when enabled, the dynamic color overlay.
+     *
+     * @param context the context that the theme will be applied to
+     * @param themeResId the theme resource id to apply
+     */
+    public static void setThemeResource(final Context context, @StyleRes final int themeResId) {
+        context.setTheme(themeResId);
+        maybeApplyDynamicColors(context);
+    }
+
+    /**
+     * Apply the settings theme and, when enabled, the dynamic color overlay.
+     *
+     * @param context the context that the theme will be applied to
+     */
+    public static void setSettingsTheme(final Context context) {
+        setThemeResource(context, getSettingsThemeStyle(context));
     }
 
     /**
@@ -156,13 +177,6 @@ public final class ThemeHelper {
             return baseTheme;
         }
 
-        final StreamingService service;
-        try {
-            service = NewPipe.getService(serviceId);
-        } catch (final ExtractionException ignored) {
-            return baseTheme;
-        }
-
         String themeName = "DarkTheme"; // default
         if (baseTheme == R.style.LightTheme) {
             themeName = "LightTheme";
@@ -170,7 +184,12 @@ public final class ThemeHelper {
             themeName = "BlackTheme";
         }
 
-        themeName += "." + service.getServiceInfo().getName();
+        final String serviceName = ServiceHelper.getNameOfServiceById(serviceId);
+        if ("<unknown>".equals(serviceName)) {
+            return baseTheme;
+        }
+
+        themeName += "." + serviceName;
         final int resourceId = context.getResources()
                 .getIdentifier(themeName, "style", context.getPackageName());
 
@@ -211,6 +230,45 @@ public final class ThemeHelper {
             // default to dark theme
             return R.style.DarkSettingsTheme;
         }
+    }
+
+    /**
+     * Return whether dynamic colors should be applied on this device and theme.
+     *
+     * @param context context to read preferences and theme state from
+     * @return whether dynamic colors should be applied
+     */
+    public static boolean shouldApplyDynamicColors(final Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return false;
+        }
+
+        final String key = context.getString(R.string.dynamic_colors_key);
+        if (!PreferenceManager.getDefaultSharedPreferences(context).getBoolean(key, false)) {
+            return false;
+        }
+
+        return getThemeForService(context, -1) != R.style.BlackTheme;
+    }
+
+    /**
+     * Return a small signature of the current dynamic palette so activities can detect wallpaper
+     * palette changes and recreate themselves.
+     *
+     * @param context context to read dynamic system colors from
+     * @return an int signature for the current dynamic palette, or 0 when dynamic colors are off
+     */
+    public static int getDynamicColorsSignature(final Context context) {
+        if (!shouldApplyDynamicColors(context)) {
+            return 0;
+        }
+
+        int signature = 17;
+        signature = 31 * signature + resolveAndroidColor(context, "system_accent1_600");
+        signature = 31 * signature + resolveAndroidColor(context, "system_accent2_600");
+        signature = 31 * signature + resolveAndroidColor(context, "system_neutral1_200");
+        signature = 31 * signature + resolveAndroidColor(context, "system_neutral1_800");
+        return signature;
     }
 
     /**
@@ -331,6 +389,50 @@ public final class ThemeHelper {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
+    }
+
+    private static void maybeApplyDynamicColors(final Context context) {
+        if (!shouldApplyDynamicColors(context)) {
+            return;
+        }
+
+        final int dynamicColorsOverlay = isLightThemeSelected(context)
+                ? R.style.ThemeOverlay_NewPipe_DynamicColors_Light
+                : R.style.ThemeOverlay_NewPipe_DynamicColors_Dark;
+        context.getTheme().applyStyle(dynamicColorsOverlay, true);
+
+        if (!(context instanceof Activity)) {
+            return;
+        }
+
+        final Activity activity = (Activity) context;
+        try {
+            final Class<?> dynamicColorsClass =
+                    Class.forName("com.google.android.material.color.DynamicColors");
+            try {
+                final Method method = dynamicColorsClass.getMethod(
+                        "applyToActivityIfAvailable", Activity.class);
+                method.invoke(null, activity);
+            } catch (final NoSuchMethodException e) {
+                final Method legacyMethod = dynamicColorsClass.getMethod(
+                        "applyIfAvailable", Activity.class);
+                legacyMethod.invoke(null, activity);
+            }
+        } catch (final ClassNotFoundException
+                | IllegalAccessException
+                | InvocationTargetException
+                | NoSuchMethodException ignored) {
+            // Material dynamic colors are optional. Fall back to the static palette.
+        }
+    }
+
+    private static int resolveAndroidColor(@NonNull final Context context,
+                                           @NonNull final String colorName) {
+        final int colorId = context.getResources().getIdentifier(colorName, "color", "android");
+        if (colorId == 0) {
+            return 0;
+        }
+        return ContextCompat.getColor(context, colorId);
     }
 
     /**

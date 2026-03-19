@@ -44,6 +44,7 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, Com
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
 
+        infoListAdapter.setRelatedStreamUrl(url);
         emptyStateDesc = rootView.findViewById(R.id.empty_state_desc);
     }
 

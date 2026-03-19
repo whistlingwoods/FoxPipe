@@ -119,7 +119,7 @@ public class RouterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         ThemeHelper.setDayNightMode(this);
-        setTheme(ThemeHelper.isLightThemeSelected(this)
+        ThemeHelper.setThemeResource(this, ThemeHelper.isLightThemeSelected(this)
                 ? R.style.RouterActivityThemeLight : R.style.RouterActivityThemeDark);
 
         // Pass-through touch events to background activities

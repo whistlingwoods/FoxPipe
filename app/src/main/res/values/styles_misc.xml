@@ -8,6 +8,16 @@
         <item name="colorControlHighlight">@color/dark_ripple_color</item>
     </style>
 
+    <style name="PilotFilledButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/bg_pilot_primary_container_ripple</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/pilot_on_primary_container_color</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+    </style>
+
 
     <!--File picker styles-->
     <style name="FilePickerThemeLight" parent="NNF_BaseTheme.Light">
@@ -75,6 +85,13 @@
         <item name="tint">?attr/actionColor</item>
         <item name="iconTint">?attr/actionColor</item>
     </style>
+    <style name="PilotToolbarTheme" parent="ToolbarTheme">
+        <item name="android:textColorPrimary">?attr/pilot_on_primary_container_color</item>
+        <item name="android:textColorSecondary">?attr/pilot_on_primary_container_color</item>
+        <item name="tint">?attr/pilot_on_primary_container_color</item>
+        <item name="iconTint">?attr/pilot_on_primary_container_color</item>
+        <item name="toolbarSearchColor">?attr/pilot_on_primary_container_color</item>
+    </style>
     <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
         <item name="tint">@color/contrastColor</item>
     </style>
@@ -105,6 +122,11 @@
     <style name="CircularImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="RoundedPanelImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
     </style>
 
 </resources>

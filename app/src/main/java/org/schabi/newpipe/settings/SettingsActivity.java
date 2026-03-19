@@ -1,7 +1,10 @@
 package org.schabi.newpipe.settings;
 
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -66,6 +69,7 @@ public class SettingsActivity extends AppCompatActivity implements
         PreferenceSearchResultListener {
     private static final String TAG = "SettingsActivity";
     private static final boolean DEBUG = MainActivity.DEBUG;
+    public static final String EXTRA_INITIAL_FRAGMENT = "initial_fragment";
 
     @IdRes
     private static final int FRAGMENT_HOLDER_ID = R.id.settings_fragment_holder;
@@ -77,6 +81,11 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private View searchContainer;
     private EditText searchEditText;
+    private int dynamicColorsSignature;
+    @Nullable
+    private WallpaperManager wallpaperManager;
+    @Nullable
+    private WallpaperManager.OnColorsChangedListener wallpaperColorsChangedListener;
 
     // State
     @State
@@ -86,7 +95,9 @@ public class SettingsActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(final Bundle savedInstanceBundle) {
-        setTheme(ThemeHelper.getSettingsThemeStyle(this));
+        ThemeHelper.setDayNightMode(this);
+        ThemeHelper.setSettingsTheme(this);
+        dynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
 
         super.onCreate(savedInstanceBundle);
         Bridge.restoreInstanceState(this, savedInstanceBundle);
@@ -108,14 +119,70 @@ public class SettingsActivity extends AppCompatActivity implements
                 }
             }
         } else {
+            final String initialFragmentClass =
+                    getIntent().getStringExtra(EXTRA_INITIAL_FRAGMENT);
+            final Fragment initialFragment =
+                    TextUtils.isEmpty(initialFragmentClass)
+                            ? new MainSettingsFragment()
+                            : instantiateFragment(initialFragmentClass);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.settings_fragment_holder, new MainSettingsFragment())
+                    .replace(R.id.settings_fragment_holder, initialFragment)
                     .commit();
         }
 
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            wallpaperManager = getSystemService(WallpaperManager.class);
+            wallpaperColorsChangedListener = (wallpaperColors, which) -> {
+                if ((which & WallpaperManager.FLAG_SYSTEM) == 0) {
+                    return;
+                }
+
+                final int currentDynamicColorsSignature =
+                        ThemeHelper.getDynamicColorsSignature(this);
+                if (dynamicColorsSignature != currentDynamicColorsSignature) {
+                    dynamicColorsSignature = currentDynamicColorsSignature;
+                    recreate();
+                }
+            };
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        final int currentDynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
+        if (dynamicColorsSignature != currentDynamicColorsSignature) {
+            dynamicColorsSignature = currentDynamicColorsSignature;
+            recreate();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.addOnColorsChangedListener(
+                    wallpaperColorsChangedListener, new Handler(getMainLooper()));
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.removeOnColorsChangedListener(wallpaperColorsChangedListener);
+        }
+
+        super.onStop();
     }
 
     @Override

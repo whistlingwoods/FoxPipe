@@ -22,6 +22,7 @@ import org.schabi.newpipe.player.PlayerType;
 import org.schabi.newpipe.player.event.PlayerServiceEventListener;
 import org.schabi.newpipe.player.event.PlayerServiceExtendedEventListener;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
+import org.schabi.newpipe.player.playqueue.PlayQueueItem;
 import org.schabi.newpipe.util.NavigationHelper;
 
 import java.util.Optional;
@@ -97,6 +98,34 @@ public final class PlayerHolder {
 
     public int getQueuePosition() {
         return getPlayQueue().map(PlayQueue::getIndex).orElse(0);
+    }
+
+    public boolean seekToTimestampIfCurrentStream(final int serviceId,
+                                                  final String url,
+                                                  final int seconds) {
+        return getPlayer().map(player -> {
+            final PlayQueueItem currentItem = player.getCurrentItem();
+            if (currentItem == null
+                    || currentItem.getServiceId() != serviceId
+                    || !url.equals(currentItem.getUrl())) {
+                return false;
+            }
+
+            player.seekTo(seconds * 1000L);
+            player.triggerProgressUpdate();
+            return true;
+        }).orElse(false);
+    }
+
+    @Nullable
+    public String getCurrentUrl(final int serviceId) {
+        return getPlayer().map(player -> {
+            final PlayQueueItem currentItem = player.getCurrentItem();
+            if (currentItem == null || currentItem.getServiceId() != serviceId) {
+                return null;
+            }
+            return currentItem.getUrl();
+        }).orElse(null);
     }
 
     public void setListener(@Nullable final PlayerServiceExtendedEventListener newListener) {

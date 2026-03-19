@@ -28,6 +28,13 @@
         android:layout_centerInParent="true"
         android:layout_gravity="center" />
 
+    <org.schabi.newpipe.views.player.BulletCommentsOverlayView
+        android:id="@+id/bulletCommentsOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:visibility="gone" />
+
     <View
         android:id="@+id/playerTopShadow"
         android:layout_width="match_parent"
@@ -467,7 +474,7 @@
                     tools:text="1:06:29" />
 
 
-                <org.schabi.newpipe.views.FocusAwareSeekBar
+                <org.schabi.newpipe.views.MarkableSeekBar
                     android:id="@+id/playbackSeekBar"
                     style="@style/Widget.AppCompat.SeekBar"
                     android:layout_width="0dp"

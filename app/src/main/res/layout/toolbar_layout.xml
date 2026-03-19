@@ -10,10 +10,10 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@drawable/bg_pilot_toolbar"
         android:gravity="center_vertical"
         android:minHeight="?attr/actionBarSize"
-        android:theme="@style/ToolbarTheme">
+        android:theme="@style/PilotToolbarTheme">
 
         <include
             android:id="@+id/toolbar_search_container"

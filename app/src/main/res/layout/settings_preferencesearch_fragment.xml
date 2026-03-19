@@ -3,21 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/pilot_surface_color"
     android:clipToPadding="false"
     android:orientation="vertical"
-    android:background="?android:attr/windowBackground">
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:background="?attr/toolbar_shadow" />
+    android:paddingStart="12dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:id="@+id/empty_state_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/bg_pilot_surface_variant"
         android:gravity="center"
         android:orientation="vertical"
+        android:padding="24dp"
         android:visibility="gone"
         tools:visibility="gone">
 
@@ -44,6 +45,9 @@
         android:id="@+id/searchResults"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/bg_pilot_surface_variant"
         android:clipToPadding="false"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         android:scrollbars="vertical" />
 </LinearLayout>

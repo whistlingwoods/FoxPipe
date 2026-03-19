@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.schabi.newpipe.DownloaderImpl;
+import org.schabi.newpipe.extractor.services.bilibili.BilibiliService;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -224,6 +225,15 @@ public class DownloadMission extends Mission {
         conn.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT);
         conn.setRequestProperty("Accept", "*/*");
         conn.setRequestProperty("Accept-Encoding", "*");
+
+        if (BilibiliService.isBiliBiliDownloadUrl(url)) {
+            final java.util.Map<String, java.util.List<String>> headerMap =
+                    BilibiliService.getUserAgentHeaders(BilibiliService.WWW_REFERER);
+            for (final java.util.Map.Entry<String, java.util.List<String>> entry
+                    : headerMap.entrySet()) {
+                conn.setRequestProperty(entry.getKey(), String.join(";", entry.getValue()));
+            }
+        }
 
         if (headRequest) conn.setRequestMethod("HEAD");
 

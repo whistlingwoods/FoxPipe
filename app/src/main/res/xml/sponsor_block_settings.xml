@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:title="@string/sponsor_block">
+
+    <PreferenceCategory
+        android:layout="@layout/settings_category_header_layout"
+        android:title="@string/settings">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/sponsor_block_enable_key"
+            android:summary="@string/sponsor_block_enable_summary"
+            android:title="@string/sponsor_block_enable_title"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:dependency="@string/sponsor_block_enable_key"
+            android:key="@string/sponsor_block_notifications_key"
+            android:summary="@string/sponsor_block_notifications_summary"
+            android:title="@string/sponsor_block_notifications_title"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

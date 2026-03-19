@@ -95,4 +95,23 @@
         <item name="colorAccent">@color/dark_bandcamp_accent_color</item>
     </style>
 
+    <!-- BiliBili -->
+    <style name="LightTheme.BiliBili" parent="LightTheme" tools:keep="@style/LightTheme_BiliBili">
+        <item name="colorPrimary">@color/light_bilibili_primary_color</item>
+        <item name="colorPrimaryDark">@color/light_bilibili_primary_color</item>
+        <item name="colorAccent">@color/light_bilibili_accent_color</item>
+    </style>
+
+    <style name="DarkTheme.BiliBili" parent="DarkTheme" tools:keep="@style/DarkTheme_BiliBili">
+        <item name="colorPrimary">@color/dark_bilibili_primary_color</item>
+        <item name="colorPrimaryDark">@color/dark_bilibili_primary_color</item>
+        <item name="colorAccent">@color/dark_bilibili_accent_color</item>
+    </style>
+
+    <style name="BlackTheme.BiliBili" parent="BlackTheme" tools:keep="@style/BlackTheme_BiliBili">
+        <item name="colorPrimary">@color/dark_bilibili_primary_color</item>
+        <item name="colorPrimaryDark">@color/dark_bilibili_primary_color</item>
+        <item name="colorAccent">@color/dark_bilibili_accent_color</item>
+    </style>
+
 </resources>

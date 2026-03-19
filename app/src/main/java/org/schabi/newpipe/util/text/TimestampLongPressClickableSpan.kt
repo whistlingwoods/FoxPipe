@@ -22,9 +22,15 @@ class TimestampLongPressClickableSpan(
     private val timestampMatchDTO: TimestampMatchDTO
 ) : LongPressClickableSpan() {
     override fun onClick(view: View) {
+        val targetUrl = InternalUrlsHandler.resolveTimestampRelatedStreamUrl(
+            relatedStreamUrl,
+            relatedInfoService,
+            descriptionText,
+            timestampMatchDTO
+        )
         InternalUrlsHandler.playOnPopup(
             context,
-            relatedStreamUrl,
+            targetUrl,
             relatedInfoService,
             timestampMatchDTO.seconds()
         )
@@ -49,16 +55,22 @@ class TimestampLongPressClickableSpan(
             descriptionText: String,
             timestampMatchDTO: TimestampMatchDTO
         ): String {
+            val targetUrl = InternalUrlsHandler.resolveTimestampRelatedStreamUrl(
+                relatedStreamUrl,
+                relatedInfoService,
+                descriptionText,
+                timestampMatchDTO
+            )
             // TODO: use extractor methods to get timestamps when this feature will be implemented in it
             when (relatedInfoService) {
                 ServiceList.YouTube ->
-                    return relatedStreamUrl + "&t=" + timestampMatchDTO.seconds()
+                    return targetUrl + "&t=" + timestampMatchDTO.seconds()
 
                 ServiceList.SoundCloud, ServiceList.MediaCCC ->
-                    return relatedStreamUrl + "#t=" + timestampMatchDTO.seconds()
+                    return targetUrl + "#t=" + timestampMatchDTO.seconds()
 
                 ServiceList.PeerTube ->
-                    return relatedStreamUrl + "?start=" + timestampMatchDTO.seconds()
+                    return targetUrl + "?start=" + timestampMatchDTO.seconds()
             }
 
             // Return timestamp text for other services

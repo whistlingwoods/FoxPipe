@@ -20,8 +20,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.ColorUtils;
 import androidx.core.view.MenuProvider;
 import androidx.preference.PreferenceManager;
 
@@ -47,6 +45,7 @@ import org.schabi.newpipe.local.feed.notifications.NotificationHelper;
 import org.schabi.newpipe.local.subscription.SubscriptionManager;
 import org.schabi.newpipe.util.ChannelTabHelper;
 import org.schabi.newpipe.util.Constants;
+import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
@@ -201,8 +200,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         setTitle(name);
         binding.channelTitleView.setText(name);
         if (!ImageStrategy.shouldLoadImages()) {
-            // do not waste space for the banner if it is not going to be loaded
-            binding.channelBannerImage.setImageDrawable(null);
+            setBannerVisible(false);
         }
     }
 
@@ -386,12 +384,14 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         final int backgroundDuration = isButtonVisible ? 300 : 0;
         final int textDuration = isButtonVisible ? 200 : 0;
 
-        final int subscribedBackground = ContextCompat
-                .getColor(activity, R.color.subscribed_background_color);
-        final int subscribedText = ContextCompat.getColor(activity, R.color.subscribed_text_color);
-        final int subscribeBackground = ColorUtils.blendARGB(ThemeHelper
-                .resolveColorFromAttr(activity, R.attr.colorPrimary), subscribedBackground, 0.35f);
-        final int subscribeText = ContextCompat.getColor(activity, R.color.subscribe_text_color);
+        final int subscribedBackground = ThemeHelper.resolveColorFromAttr(
+                activity, com.google.android.material.R.attr.colorSurfaceVariant);
+        final int subscribedText = ThemeHelper.resolveColorFromAttr(
+                activity, com.google.android.material.R.attr.colorOnSurfaceVariant);
+        final int subscribeBackground = ThemeHelper.resolveColorFromAttr(
+                activity, com.google.android.material.R.attr.colorPrimaryContainer);
+        final int subscribeText = ThemeHelper.resolveColorFromAttr(
+                activity, com.google.android.material.R.attr.colorOnPrimaryContainer);
 
         if (isSubscribed) {
             binding.channelSubscribeButton.setText(R.string.subscribed_button_title);
@@ -470,7 +470,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                     .getDefaultSharedPreferences(context);
 
             for (final ListLinkHandler linkHandler : currentInfo.getTabs()) {
-                final String tab = linkHandler.getContentFilters().get(0);
+                final String tab = linkHandler.getContentFilters().get(0).getName();
                 if (ChannelTabHelper.showChannelTab(context, preferences, tab)) {
                     final ChannelTabFragment channelTabFragment =
                             ChannelTabFragment.getInstance(serviceId, linkHandler, name);
@@ -591,9 +591,11 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         setInitialData(result.getServiceId(), result.getOriginalUrl(), result.getName());
 
         if (ImageStrategy.shouldLoadImages() && !result.getBanners().isEmpty()) {
+            setBannerVisible(true);
             CoilHelper.INSTANCE.loadBanner(binding.channelBannerImage, result.getBanners());
         } else {
             // do not waste space for the banner, if the user disabled images or there is not one
+            setBannerVisible(false);
             binding.channelBannerImage.setImageDrawable(null);
         }
 
@@ -650,5 +652,13 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
         binding.errorContentNotSupported.setVisibility(View.VISIBLE);
         binding.channelKaomoji.setText("(︶︹︺)");
         binding.channelKaomoji.setTextSize(TypedValue.COMPLEX_UNIT_SP, 45f);
+    }
+
+    private void setBannerVisible(final boolean visible) {
+        binding.channelBannerImage.setVisibility(visible ? View.VISIBLE : View.GONE);
+        final ViewGroup.MarginLayoutParams layoutParams =
+                (ViewGroup.MarginLayoutParams) binding.channelInfoCard.getLayoutParams();
+        layoutParams.topMargin = DeviceUtils.dpToPx(visible ? -24 : 12, requireContext());
+        binding.channelInfoCard.setLayoutParams(layoutParams);
     }
 }

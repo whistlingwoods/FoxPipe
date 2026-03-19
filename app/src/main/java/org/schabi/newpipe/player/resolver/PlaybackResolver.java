@@ -208,6 +208,19 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                         dataSource, info.getDashMpdUrl(), C.CONTENT_TYPE_DASH, tag);
             }
             if (!info.getHlsUrl().isEmpty()) {
+                if (info.getService() == ServiceList.NicoNico) {
+                    return dataSource.getNiconicoHlsMediaSourceFactory(info.getHlsUrl())
+                            .createMediaSource(
+                                    new MediaItem.Builder()
+                                            .setTag(tag)
+                                            .setUri(Uri.parse(stripUriFragment(info.getHlsUrl())))
+                                            .setLiveConfiguration(
+                                                    new MediaItem.LiveConfiguration.Builder()
+                                                            .setTargetOffsetMs(
+                                                                    LIVE_STREAM_EDGE_GAP_MILLIS)
+                                                            .build())
+                                            .build());
+                }
                 return buildLiveMediaSource(dataSource, info.getHlsUrl(), C.CONTENT_TYPE_HLS, tag);
             }
         } catch (final Exception e) {
@@ -222,6 +235,18 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                             final String sourceUrl,
                                             @C.ContentType final int type,
                                             final MediaItemTag metadata) throws ResolverException {
+        if (metadata.getServiceId() == ServiceList.BiliBili.getServiceId()) {
+            return dataSource.getBiliMediaSourceFactory(sourceUrl).createMediaSource(
+                    new MediaItem.Builder()
+                            .setTag(metadata)
+                            .setUri(Uri.parse(sourceUrl))
+                            .setLiveConfiguration(
+                                    new MediaItem.LiveConfiguration.Builder()
+                                            .setTargetOffsetMs(LIVE_STREAM_EDGE_GAP_MILLIS)
+                                            .build())
+                            .build());
+        }
+
         final MediaSource.Factory factory;
         switch (type) {
             case C.CONTENT_TYPE_SS:
@@ -264,6 +289,12 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                         final MediaItemTag metadata) throws ResolverException {
         if (streamInfo.getService() == ServiceList.YouTube) {
             return createYoutubeMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
+        }
+        if (streamInfo.getService() == ServiceList.BiliBili) {
+            return createBiliBiliMediaSource(stream, streamInfo, dataSource, cacheKey, metadata);
+        }
+        if (streamInfo.getService() == ServiceList.NicoNico) {
+            return createNiconicoMediaSource(stream, dataSource, cacheKey, metadata);
         }
 
         final DeliveryMethod deliveryMethod = stream.getDeliveryMethod();
@@ -533,12 +564,67 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                         .setCustomCacheKey(cacheKey)
                         .build());
     }
+
+    private static MediaSource createBiliBiliMediaSource(final Stream stream,
+                                                         final StreamInfo streamInfo,
+                                                         final PlayerDataSource dataSource,
+                                                         final String cacheKey,
+                                                         final MediaItemTag metadata)
+            throws ResolverException {
+        throwResolverExceptionIfUrlNullOrEmpty(stream.getContent());
+        return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
+                new MediaItem.Builder()
+                        .setTag(metadata)
+                        .setUri(Uri.parse(stream.getContent()))
+                        .setCustomCacheKey(cacheKey)
+                        .build());
+    }
+
+    private static MediaSource createNiconicoMediaSource(final Stream stream,
+                                                         final PlayerDataSource dataSource,
+                                                         final String cacheKey,
+                                                         final MediaItemTag metadata)
+            throws ResolverException {
+        throwResolverExceptionIfUrlNullOrEmpty(stream.getContent());
+        final String sanitizedUrl = stripUriFragment(stream.getContent());
+        switch (stream.getDeliveryMethod()) {
+            case PROGRESSIVE_HTTP:
+                return dataSource.getNiconicoProgressiveMediaSourceFactory(stream.getContent())
+                        .createMediaSource(new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(sanitizedUrl))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+            case HLS:
+                return dataSource.getNiconicoHlsMediaSourceFactory(stream.getContent())
+                        .createMediaSource(new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(sanitizedUrl))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+            case DASH:
+                return buildDashMediaSource(dataSource, stream, cacheKey, metadata);
+            case SS:
+                return buildSSMediaSource(dataSource, stream, cacheKey, metadata);
+            default:
+                throw new ResolverException("Unsupported delivery method for NicoNico contents: "
+                        + stream.getDeliveryMethod());
+        }
+    }
     //endregion
 
 
     //region Utils
     private static Uri manifestUrlToUri(final String manifestUrl) {
         return Uri.parse(Objects.requireNonNullElse(manifestUrl, ""));
+    }
+
+    private static String stripUriFragment(final String url) {
+        final int fragmentIndex = url.indexOf('#');
+        if (fragmentIndex < 0) {
+            return url;
+        }
+        return url.substring(0, fragmentIndex);
     }
 
     private static void throwResolverExceptionIfUrlNullOrEmpty(@Nullable final String url)

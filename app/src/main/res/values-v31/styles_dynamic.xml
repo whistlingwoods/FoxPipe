@@ -1,0 +1,65 @@
+<resources>
+
+    <style name="ThemeOverlay.NewPipe.DynamicColors" parent="" />
+
+    <style name="ThemeOverlay.NewPipe.DynamicColors.Light"
+        parent="@style/ThemeOverlay.NewPipe.DynamicColors">
+        <item name="colorPrimary">@android:color/system_accent1_600</item>
+        <item name="colorPrimaryDark">@android:color/system_accent1_700</item>
+        <item name="colorAccent">@android:color/system_accent1_600</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:windowBackground">@android:color/system_neutral1_10</item>
+        <item name="windowBackground">@android:color/system_neutral1_10</item>
+        <item name="colorSurface">@android:color/system_neutral1_10</item>
+        <item name="colorSurfaceVariant">@android:color/system_neutral2_100</item>
+        <item name="colorOutline">@android:color/system_neutral2_500</item>
+        <item name="colorPrimaryContainer">@android:color/system_accent1_100</item>
+        <item name="colorOnPrimaryContainer">@android:color/system_accent1_900</item>
+
+        <item name="actionColor">?attr/colorOnPrimaryContainer</item>
+        <item name="toolbarSearchColor">?attr/colorOnPrimaryContainer</item>
+        <item name="separator_color">@android:color/system_neutral2_300</item>
+        <item name="contrast_background_color">@android:color/system_neutral1_0</item>
+        <item name="card_item_background_color">@android:color/system_neutral1_0</item>
+        <item name="card_item_contrast_color">@android:color/system_neutral2_100</item>
+        <item name="border_color">@android:color/system_neutral2_300</item>
+
+        <item name="pilot_page_background_color">@android:color/system_neutral1_10</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NewPipe.DynamicColors.Dark"
+        parent="@style/ThemeOverlay.NewPipe.DynamicColors">
+        <item name="colorPrimary">@android:color/system_accent1_200</item>
+        <item name="colorPrimaryDark">@android:color/system_accent1_200</item>
+        <item name="colorAccent">@android:color/system_accent1_200</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:windowBackground">@android:color/system_neutral1_900</item>
+        <item name="windowBackground">@android:color/system_neutral1_900</item>
+        <item name="colorSurface">@android:color/system_neutral1_900</item>
+        <item name="colorSurfaceVariant">@android:color/system_neutral2_700</item>
+        <item name="colorOutline">@android:color/system_neutral2_400</item>
+        <item name="colorPrimaryContainer">@android:color/system_accent1_700</item>
+        <item name="colorOnPrimaryContainer">@android:color/system_accent1_100</item>
+
+        <item name="actionColor">?attr/colorOnPrimaryContainer</item>
+        <item name="toolbarSearchColor">?attr/colorOnPrimaryContainer</item>
+        <item name="separator_color">@android:color/system_neutral2_600</item>
+        <item name="contrast_background_color">@android:color/system_neutral1_800</item>
+        <item name="card_item_background_color">@android:color/system_neutral1_800</item>
+        <item name="card_item_contrast_color">@android:color/system_neutral2_700</item>
+        <item name="border_color">@android:color/system_neutral2_600</item>
+
+        <item name="pilot_page_background_color">@android:color/system_neutral1_900</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+    </style>
+
+</resources>
