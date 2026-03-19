@@ -24,7 +24,7 @@
         tools:itemCount="100"
         tools:listitem="@layout/feed_group_reorder_item" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/confirm_button"
         style="@style/PilotFilledButton"
         android:layout_width="wrap_content"

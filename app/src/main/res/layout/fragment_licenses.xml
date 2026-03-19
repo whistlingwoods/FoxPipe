@@ -31,7 +31,7 @@
             android:text="@string/app_license"
             android:textColor="?attr/pilot_on_surface_variant_color" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/licenses_app_read_license"
             style="@style/PilotFilledButton"
             android:layout_width="wrap_content"
