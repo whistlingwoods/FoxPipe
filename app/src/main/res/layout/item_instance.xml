@@ -58,11 +58,12 @@
             tools:ignore="RtlHardcoded"
             tools:text="https://framatube.org" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/selectInstanceRB"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
+            app:useMaterialThemeColors="true"
             android:layout_toLeftOf="@id/handle" />
 
         <androidx.appcompat.widget.AppCompatImageView

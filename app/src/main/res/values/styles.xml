@@ -24,8 +24,6 @@
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
         <item name="seekBarStyle">@style/Widget.NewPipe.SeekBar</item>
         <item name="switchStyle">@style/Widget.NewPipe.SwitchCompat</item>
-        <item name="checkboxStyle">@style/Widget.NewPipe.CheckBox</item>
-        <item name="radioButtonStyle">@style/Widget.NewPipe.RadioButton</item>
         <item name="toolbarSearchColor">@color/white</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
     </style>

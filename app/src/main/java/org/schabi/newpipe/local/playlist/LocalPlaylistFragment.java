@@ -893,8 +893,9 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
      * The user can also choose to remove partially watched streams.
      */
     private void openRemoveWatchedConfirmationDialog() {
-        final android.widget.CheckBox removePartiallyWatchedCheckbox =
-                new android.widget.CheckBox(requireContext());
+        final com.google.android.material.checkbox.MaterialCheckBox removePartiallyWatchedCheckbox =
+                new com.google.android.material.checkbox.MaterialCheckBox(requireContext());
+        removePartiallyWatchedCheckbox.setUseMaterialThemeColors(true);
         removePartiallyWatchedCheckbox.setText(
                 R.string.remove_watched_popup_partially_watched_streams);
 
@@ -922,4 +923,3 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         this.tabsPagerAdapter = tabsPagerAdapter;
     }
 }
-
