@@ -22,7 +22,6 @@
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
         <item name="seekBarStyle">@style/Widget.NewPipe.SeekBar</item>
-        <item name="switchStyle">@style/Widget.NewPipe.SwitchCompat</item>
         <item name="toolbarSearchColor">@color/white</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
     </style>

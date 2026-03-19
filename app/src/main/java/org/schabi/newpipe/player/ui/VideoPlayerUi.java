@@ -181,7 +181,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         qualityPopupMenu = new PopupMenu(themeWrapper, binding.qualityTextView);
         audioTrackPopupMenu = new PopupMenu(themeWrapper, binding.audioTrackTextView);
-        playbackSpeedPopupMenu = new PopupMenu(context, binding.playbackSpeed);
+        playbackSpeedPopupMenu = new PopupMenu(themeWrapper, binding.playbackSpeed);
         captionPopupMenu = new PopupMenu(themeWrapper, binding.captionTextView);
 
         tintDrawable(binding.progressBarLoadingPanel.getIndeterminateDrawable(),
