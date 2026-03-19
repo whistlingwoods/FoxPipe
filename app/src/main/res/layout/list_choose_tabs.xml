@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="5dp"
-    android:layout_marginTop="3dp"
-    android:layout_marginRight="5dp"
-    android:layout_marginBottom="3dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="4dp"
     android:focusable="true"
     android:minHeight="?listPreferredItemHeightSmall"
     android:orientation="horizontal"
-    app:cardCornerRadius="5dp"
-    app:cardElevation="4dp">
+    app:cardBackgroundColor="?attr/pilot_surface_variant_color"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    app:strokeColor="?attr/pilot_outline_color"
+    app:strokeWidth="1dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -58,4 +61,4 @@
             android:src="@drawable/ic_drag_handle"
             tools:ignore="ContentDescription,RtlHardcoded" />
     </RelativeLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

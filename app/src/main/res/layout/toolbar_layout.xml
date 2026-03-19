@@ -6,13 +6,15 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <androidx.appcompat.widget.Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/bg_pilot_toolbar"
         android:gravity="center_vertical"
         android:minHeight="?attr/actionBarSize"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
         android:theme="@style/PilotToolbarTheme">
 
         <include
@@ -21,6 +23,6 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-    </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.MaterialToolbar>
 
 </LinearLayout>

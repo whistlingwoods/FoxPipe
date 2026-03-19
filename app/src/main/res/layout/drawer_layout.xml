@@ -7,4 +7,11 @@
     android:layout_gravity="start"
     android:background="?attr/pilot_surface_color"
     android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    app:itemBackground="@drawable/drawer_item_background"
+    app:itemHorizontalPadding="20dp"
+    app:itemIconTint="@color/drawer_item_tint"
+    app:itemTextColor="@color/drawer_item_tint"
+    app:itemVerticalPadding="6dp"
     app:headerLayout="@layout/drawer_header" />

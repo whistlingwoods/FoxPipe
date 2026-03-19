@@ -103,12 +103,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/subscriptions_header_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:background="?attr/pilot_surface_container_high_color"
                 android:gravity="center_vertical"
-                android:theme="@style/ContrastToolbarTheme">
+                android:theme="@style/ToolbarTheme">
 
                 <LinearLayout
                     android:id="@+id/subscriptions_header_info_container"
@@ -141,7 +142,7 @@
                     layout="@layout/toolbar_search_layout"
                     android:visibility="gone" />
 
-            </androidx.appcompat.widget.Toolbar>
+            </com.google.android.material.appbar.MaterialToolbar>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/subscriptions_selector_list"

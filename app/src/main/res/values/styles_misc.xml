@@ -80,10 +80,11 @@
 
     <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">?attr/actionColor</item>
-        <item name="android:textColorSecondary">?attr/actionColor</item>
-        <item name="tint">?attr/actionColor</item>
-        <item name="iconTint">?attr/actionColor</item>
+        <item name="android:textColorPrimary">?attr/pilot_on_surface_color</item>
+        <item name="android:textColorSecondary">?attr/pilot_on_surface_variant_color</item>
+        <item name="tint">?attr/pilot_on_surface_color</item>
+        <item name="iconTint">?attr/pilot_on_surface_color</item>
+        <item name="toolbarSearchColor">?attr/pilot_on_surface_color</item>
     </style>
     <style name="PilotToolbarTheme" parent="ToolbarTheme">
         <item name="android:textColorPrimary">?attr/pilot_on_primary_container_color</item>
@@ -127,6 +128,11 @@
     <style name="RoundedPanelImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="RoundedThumbnailImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
     </style>
 
 </resources>
