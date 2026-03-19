@@ -36,13 +36,21 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textStyle="bold" />
 
-            <org.schabi.newpipe.views.NewPipeEditText
-                android:id="@+id/file_name"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:inputType="text"
-                android:maxLines="1" />
+                app:hintEnabled="false"
+                style="@style/Widget.NewPipe.TextInputLayout">
+
+                <org.schabi.newpipe.views.NewPipeEditText
+                    android:id="@+id/file_name"
+                    style="@style/Widget.NewPipe.TextInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"

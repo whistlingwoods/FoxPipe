@@ -40,6 +40,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/group_name_input_container"
+                style="@style/Widget.NewPipe.TextInputLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -54,8 +55,9 @@
 
                 <org.schabi.newpipe.views.NewPipeEditText
                     android:id="@+id/group_name_input"
+                    style="@style/Widget.NewPipe.TextInputEditText"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:importantForAutofill="no"
                     android:inputType="textCapSentences"
                     android:maxLines="1"

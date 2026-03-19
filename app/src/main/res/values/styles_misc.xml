@@ -168,13 +168,21 @@
         <item name="strokeWidth">1dp</item>
     </style>
 
-    <style name="Widget.NewPipe.EditText" parent="Widget.AppCompat.EditText">
-        <item name="android:background">@drawable/bg_pilot_text_field</item>
-        <item name="android:minHeight">52dp</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingTop">12dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingBottom">12dp</item>
+    <style name="Widget.NewPipe.TextInputLayout" parent="Widget.Material3.TextInputLayout.FilledBox">
+        <item name="boxBackgroundColor">?attr/pilot_surface_variant_color</item>
+        <item name="boxCornerRadiusTopStart">20dp</item>
+        <item name="boxCornerRadiusTopEnd">20dp</item>
+        <item name="boxCornerRadiusBottomStart">20dp</item>
+        <item name="boxCornerRadiusBottomEnd">20dp</item>
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">?attr/pilot_on_surface_variant_color</item>
+        <item name="placeholderTextColor">?attr/pilot_on_surface_variant_color</item>
+    </style>
+
+    <style name="Widget.NewPipe.TextInputEditText"
+        parent="Widget.Material3.TextInputEditText.FilledBox">
         <item name="android:textColor">?attr/pilot_on_surface_color</item>
         <item name="android:textColorHint">?attr/pilot_on_surface_variant_color</item>
     </style>

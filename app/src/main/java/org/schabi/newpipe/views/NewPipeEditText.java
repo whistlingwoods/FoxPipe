@@ -5,21 +5,21 @@ import android.util.AttributeSet;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatEditText;
+import com.google.android.material.textfield.TextInputEditText;
 
 import org.schabi.newpipe.util.NewPipeTextViewHelper;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 
 /**
- * An {@link AppCompatEditText} which uses {@link ShareUtils#shareText(Context, String, String)}
+ * A {@link TextInputEditText} which uses {@link ShareUtils#shareText(Context, String, String)}
  * when sharing selected text by using the {@code Share} command of the floating actions.
  *
  * <p>
  * This class allows NewPipe to show Android share sheet instead of EMUI share sheet when sharing
- * text from {@link AppCompatEditText} on EMUI devices.
+ * text from {@link TextInputEditText} on EMUI devices.
  * </p>
  */
-public class NewPipeEditText extends AppCompatEditText {
+public class NewPipeEditText extends TextInputEditText {
 
     public NewPipeEditText(@NonNull final Context context) {
         super(context);
