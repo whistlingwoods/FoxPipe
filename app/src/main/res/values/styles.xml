@@ -20,7 +20,6 @@
         <item name="materialCardViewStyle">@style/Widget.NewPipe.MaterialCardView</item>
         <item name="materialButtonStyle">@style/Widget.NewPipe.Button</item>
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
-        <item name="editTextStyle">@style/Widget.NewPipe.EditText</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
         <item name="seekBarStyle">@style/Widget.NewPipe.SeekBar</item>
         <item name="switchStyle">@style/Widget.NewPipe.SwitchCompat</item>

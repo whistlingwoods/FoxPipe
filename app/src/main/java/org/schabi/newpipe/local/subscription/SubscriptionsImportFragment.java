@@ -24,6 +24,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.core.text.util.LinkifyCompat;
 
 import com.evernote.android.state.State;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.schabi.newpipe.BaseFragment;
 import org.schabi.newpipe.R;
@@ -58,6 +59,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
 
     private TextView infoTextView;
     private EditText inputText;
+    private TextInputLayout inputTextContainer;
     private Button inputButton;
 
     private final ActivityResultLauncher<Intent> requestImportFileLauncher =
@@ -116,6 +118,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
 
         inputButton = rootView.findViewById(R.id.input_button);
         inputText = rootView.findViewById(R.id.input_text);
+        inputTextContainer = rootView.findViewById(R.id.input_text_container);
 
         infoTextView = rootView.findViewById(R.id.info_text_view);
 
@@ -123,7 +126,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
         //  (show the option to the user)
         if (supportedSources.contains(CHANNEL_URL)) {
             inputButton.setText(R.string.import_title);
-            inputText.setVisibility(View.VISIBLE);
+            inputTextContainer.setVisibility(View.VISIBLE);
             inputText.setHint(ServiceHelper.getImportInstructionsHint(currentServiceId));
         } else {
             inputButton.setText(R.string.import_file_title);
@@ -153,7 +156,7 @@ public class SubscriptionsImportFragment extends BaseFragment {
     }
 
     private void onImportClicked() {
-        if (inputText.getVisibility() == View.VISIBLE) {
+        if (inputTextContainer.getVisibility() == View.VISIBLE) {
             final String value = inputText.getText().toString();
             if (!value.isEmpty()) {
                 onImportUrl(value);
