@@ -118,7 +118,7 @@
             tools:text="1:06:29" />
 
 
-        <androidx.appcompat.widget.AppCompatSeekBar
+        <org.schabi.newpipe.views.FocusAwareSeekBar
             android:id="@+id/seek_bar"
             style="@style/Widget.NewPipe.SeekBar"
             android:layout_width="0dp"
@@ -128,8 +128,9 @@
             android:paddingTop="6dp"
             android:paddingEnd="12dp"
             android:paddingBottom="4dp"
-            tools:progress="25"
-            tools:secondaryProgress="50" />
+            android:value="25"
+            android:valueFrom="0"
+            android:valueTo="100" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/end_time"

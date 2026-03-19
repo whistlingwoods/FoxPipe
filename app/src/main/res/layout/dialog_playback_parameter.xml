@@ -96,14 +96,16 @@
                     tools:ignore="HardcodedText"
                     tools:text="300%" />
 
-                <androidx.appcompat.widget.AppCompatSeekBar
+                <org.schabi.newpipe.views.FocusAwareSeekBar
                     android:id="@+id/tempoSeekbar"
                     style="@style/Widget.NewPipe.SeekBar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/tempoCurrentText"
                     android:paddingBottom="2dp"
-                    tools:progress="50" />
+                    android:value="5000"
+                    android:valueFrom="0"
+                    android:valueTo="10000" />
             </RelativeLayout>
 
             <org.schabi.newpipe.views.NewPipeTextView
@@ -269,14 +271,16 @@
                         tools:ignore="HardcodedText"
                         tools:text="300%" />
 
-                    <androidx.appcompat.widget.AppCompatSeekBar
+                    <org.schabi.newpipe.views.FocusAwareSeekBar
                         android:id="@+id/pitchPercentSeekbar"
                         style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchPercentCurrentText"
                         android:paddingBottom="2dp"
-                        tools:progress="50" />
+                        android:value="5000"
+                        android:valueFrom="0"
+                        android:valueTo="10000" />
                 </RelativeLayout>
 
                 <org.schabi.newpipe.views.NewPipeTextView
@@ -363,15 +367,16 @@
                         android:textColor="?attr/colorAccent"
                         tools:ignore="HardcodedText" />
 
-                    <androidx.appcompat.widget.AppCompatSeekBar
+                    <org.schabi.newpipe.views.FocusAwareSeekBar
                         android:id="@+id/pitchSemitoneSeekbar"
                         style="@style/Widget.NewPipe.SeekBar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/pitchSemitoneCurrentText"
-                        android:max="24"
                         android:paddingBottom="2dp"
-                        android:progress="12" />
+                        android:value="12"
+                        android:valueFrom="0"
+                        android:valueTo="24" />
                 </RelativeLayout>
 
                 <org.schabi.newpipe.views.NewPipeTextView

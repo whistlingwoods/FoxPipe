@@ -187,11 +187,19 @@
         <item name="android:textColorHint">?attr/pilot_on_surface_variant_color</item>
     </style>
 
-    <style name="Widget.NewPipe.SeekBar" parent="Widget.AppCompat.SeekBar">
+    <style name="Widget.NewPipe.SeekBar" parent="Widget.Material3.Slider">
         <item name="android:progressTint">?attr/colorPrimary</item>
         <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
         <item name="android:progressBackgroundTint">?attr/pilot_surface_variant_color</item>
         <item name="android:thumbTint">?attr/colorPrimary</item>
+        <item name="thumbColor">?attr/colorPrimary</item>
+        <item name="haloColor">?attr/colorPrimaryContainer</item>
+        <item name="trackColorActive">?attr/colorPrimary</item>
+        <item name="trackColorInactive">?attr/pilot_surface_variant_color</item>
+        <item name="labelBehavior">gone</item>
+        <item name="trackHeight">4dp</item>
+        <item name="thumbWidth">20dp</item>
+        <item name="thumbHeight">20dp</item>
     </style>
 
     <style name="Widget.NewPipe.SwitchCompat" parent="Widget.AppCompat.CompoundButton.Switch">
