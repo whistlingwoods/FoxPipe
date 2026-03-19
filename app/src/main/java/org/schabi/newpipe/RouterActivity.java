@@ -434,7 +434,9 @@ public class RouterActivity extends AppCompatActivity {
             }
         };
 
-        alertDialogChoice = new com.google.android.material.dialog.MaterialAlertDialogBuilder(themeWrapperContext)
+        alertDialogChoice =
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                        themeWrapperContext)
                 .setTitle(R.string.preferred_open_action_share_menu_title)
                 .setView(binding.getRoot())
                 .setCancelable(true)

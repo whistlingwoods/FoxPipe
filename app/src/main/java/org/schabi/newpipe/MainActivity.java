@@ -1018,7 +1018,8 @@ public class MainActivity extends AppCompatActivity {
                 "https://github.com/woheller69/FreeDroidWarn?tab=readme-ov-file#solutions";
 
         if (kaoLastCheck.plus(30, ChronoUnit.DAYS).isBefore(now)) {
-            final var dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            final var dialog =
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Keep Android Open")
                     .setCancelable(false)
                     .setMessage(this.getString(R.string.kao_dialog_warning))
