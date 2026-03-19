@@ -76,6 +76,24 @@
         <item name="tint">?attr/actionColor</item>
     </style>
 
+    <style name="Widget.NewPipe.SwitchCompat">
+        <item name="thumbTint">@color/switch_thumb_tint</item>
+        <item name="trackTint">@color/switch_track_tint</item>
+    </style>
+
+    <style name="Widget.NewPipe.MaterialSwitch">
+        <item name="thumbTint">@color/switch_thumb_tint</item>
+        <item name="trackTint">@color/switch_track_tint</item>
+    </style>
+
+    <style name="Widget.NewPipe.CheckBox">
+        <item name="buttonTint">@color/control_button_tint</item>
+    </style>
+
+    <style name="Widget.NewPipe.RadioButton">
+        <item name="buttonTint">@color/control_button_tint</item>
+    </style>
+
     <style name="DarkPopupMenu" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">

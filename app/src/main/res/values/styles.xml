@@ -18,6 +18,10 @@
         <item name="actionColor">@color/white</item>
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
+        <item name="switchStyle">@style/Widget.NewPipe.SwitchCompat</item>
+        <item name="materialSwitchStyle">@style/Widget.NewPipe.MaterialSwitch</item>
+        <item name="checkboxStyle">@style/Widget.NewPipe.CheckBox</item>
+        <item name="radioButtonStyle">@style/Widget.NewPipe.RadioButton</item>
         <item name="toolbarSearchColor">@color/white</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
     </style>
