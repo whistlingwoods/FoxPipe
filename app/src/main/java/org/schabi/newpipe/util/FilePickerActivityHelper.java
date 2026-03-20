@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.loader.content.Loader;
@@ -26,6 +27,8 @@ import java.io.File;
 
 public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.FilePickerActivity {
     private CustomFilePickerFragment currentFragment;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     public static boolean isOwnFileUri(@NonNull final Context context, @NonNull final Uri uri) {
         if (uri.getAuthority() == null) {
@@ -39,6 +42,13 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setThemeResource(this, resolveFilePickerTheme());
         super.onCreate(savedInstanceState);
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
     }
 
     private int resolveFilePickerTheme() {
@@ -52,14 +62,28 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
         return R.style.FilePickerThemeDark;
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         // If at top most level, normal behaviour
-        if (currentFragment.isBackTop()) {
-            super.onBackPressed();
+        if (currentFragment == null || currentFragment.isBackTop()) {
+            performDefaultBackNavigation();
         } else {
             // Else go up
             currentFragment.goUp();
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            FilePickerActivityHelper.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        try {
+            FilePickerActivityHelper.super.onBackPressed();
+        } finally {
+            backPressedCallback.setEnabled(true);
         }
     }
 

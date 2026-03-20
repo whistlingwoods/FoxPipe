@@ -709,6 +709,16 @@ public final class VideoDetailFragment
     }
 
     @Override
+    public boolean canHandleBackPress() {
+        return isFullscreen()
+                || (isPlayerAvailable()
+                    && player.getPlayQueue() != null
+                    && player.videoPlayerSelected()
+                    && player.getPlayQueue().hasPrevious())
+                || stack.size() > 1;
+    }
+
+    @Override
     public boolean onBackPressed() {
         if (DEBUG) {
             Log.d(TAG, "onBackPressed() called");

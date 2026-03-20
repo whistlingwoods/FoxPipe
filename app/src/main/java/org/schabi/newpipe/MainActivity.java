@@ -39,6 +39,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -112,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
     private ToolbarLayoutBinding toolbarLayoutBinding;
 
     private ActionBarDrawerToggle toggle;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     private boolean servicesShown = false;
     private int dynamicColorsSignature;
@@ -164,6 +167,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        getSupportFragmentManager().addOnBackStackChangedListener(this::updateBackPressedCallbackState);
 
         mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         drawerLayoutBinding = mainBinding.drawerLayout;
@@ -171,6 +182,20 @@ public class MainActivity extends AppCompatActivity {
                 .getHeaderView(0));
         toolbarLayoutBinding = mainBinding.toolbarLayout;
         setContentView(mainBinding.getRoot());
+        BottomSheetBehavior.from(mainBinding.fragmentPlayerHolder)
+                .addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull final View bottomSheet,
+                                               final int newState) {
+                        updateBackPressedCallbackState();
+                    }
+
+                    @Override
+                    public void onSlide(@NonNull final View bottomSheet,
+                                        final float slideOffset) {
+                        // no-op
+                    }
+                });
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             initFragments();
@@ -206,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         MigrationManager.showUserInfoIfPresent(this);
+        mainBinding.getRoot().post(this::updateBackPressedCallbackState);
     }
 
     @Override
@@ -249,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDrawerOpened(final View drawerView) {
                 lastService = ServiceHelper.getSelectedServiceId(MainActivity.this);
+                updateBackPressedCallbackState();
             }
 
             @Override
@@ -259,6 +286,7 @@ public class MainActivity extends AppCompatActivity {
                 if (lastService != ServiceHelper.getSelectedServiceId(MainActivity.this)) {
                     ActivityCompat.recreate(MainActivity.this);
                 }
+                updateBackPressedCallbackState();
             }
         });
 
@@ -593,8 +621,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         if (DEBUG) {
             Log.d(TAG, "onBackPressed() called");
         }
@@ -644,8 +671,45 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
             finish();
         } else {
-            super.onBackPressed();
+            performDefaultBackNavigation();
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            MainActivity.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        try {
+            MainActivity.super.onBackPressed();
+        } finally {
+            backPressedCallback.setEnabled(true);
+        }
+    }
+
+    public void updateBackPressedCallbackState() {
+        if (backPressedCallback == null || mainBinding == null) {
+            return;
+        }
+        backPressedCallback.setEnabled(shouldInterceptBackPress());
+    }
+
+    private boolean shouldInterceptBackPress() {
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            return true;
+        }
+
+        if (!bottomSheetHiddenOrCollapsed()) {
+            return true;
+        }
+
+        final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_holder);
+        return fragment instanceof BackPressable
+                && ((BackPressable) fragment).canHandleBackPress()
+                || fragment instanceof CommentRepliesFragment;
     }
 
     @Override
