@@ -136,10 +136,10 @@
     </style>
 
     <style name="PlayQueueItemTitle" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
     <style name="PlayQueueItemSubtitle" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:textColor">@color/white_secondary</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="FloatingActionButtonTheme"
