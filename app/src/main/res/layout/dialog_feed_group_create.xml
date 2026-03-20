@@ -119,7 +119,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/pilot_surface_container_high_color"
                 android:gravity="center_vertical"
-                android:theme="@style/ToolbarTheme">
+                app:popupTheme="@style/ToolbarPopupTheme">
 
                 <LinearLayout
                     android:id="@+id/subscriptions_header_info_container"
