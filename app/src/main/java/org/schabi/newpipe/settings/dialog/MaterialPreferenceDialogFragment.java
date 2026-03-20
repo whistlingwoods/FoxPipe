@@ -9,11 +9,11 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.preference.DialogPreference;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.settings.PreferenceUiHost;
 
 import java.util.Objects;
 
@@ -24,17 +24,16 @@ abstract class MaterialPreferenceDialogFragment<T extends DialogPreference> exte
     @NonNull
     protected final T requirePreference() {
         Fragment targetFragment = getTargetFragment();
-        if (!(targetFragment instanceof PreferenceFragmentCompat)) {
+        if (!(targetFragment instanceof PreferenceUiHost)) {
             targetFragment = getParentFragmentManager()
                     .findFragmentById(R.id.settings_fragment_holder);
         }
 
-        final PreferenceFragmentCompat preferenceFragment =
-                (PreferenceFragmentCompat) targetFragment;
-        Objects.requireNonNull(preferenceFragment);
+        final PreferenceUiHost preferenceHost = (PreferenceUiHost) targetFragment;
+        Objects.requireNonNull(preferenceHost);
 
         final String key = Objects.requireNonNull(requireArguments().getString(ARG_KEY));
-        final Preference preference = preferenceFragment.findPreference(key);
+        final Preference preference = preferenceHost.findPreferenceByKey(key);
         Objects.requireNonNull(preference);
 
         return (T) preference;

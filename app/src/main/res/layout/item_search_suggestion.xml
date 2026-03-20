@@ -31,14 +31,14 @@
             tools:ignore="ContentDescription,RtlHardcoded"
             tools:src="@drawable/ic_history" />
 
-        <TextView
+        <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/item_suggestion_query"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+            android:textAppearance="@style/TextAppearance.NewPipe.BodyMedium"
             android:textSize="14sp"
             tools:ignore="RtlHardcoded"
             tools:text="Search query" />

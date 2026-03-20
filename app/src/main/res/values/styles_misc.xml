@@ -39,32 +39,40 @@
     </style>
 
 
-    <!--File picker styles-->
-    <style name="FilePickerThemeLight" parent="NNF_BaseTheme.Light">
+    <!-- File picker styles -->
+    <style name="FilePickerThemeLight" parent="LightTheme">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
         <item name="colorAccent">@color/light_settings_accent_color</item>
-
         <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
-
         <item name="android:windowBackground">@color/light_background_color</item>
+        <item name="windowBackground">@color/light_background_color</item>
         <item name="nnf_separator_color">@color/light_separator_color</item>
-
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeLight</item>
     </style>
 
-    <style name="FilePickerThemeDark" parent="NNF_BaseTheme">
+    <style name="FilePickerThemeDark" parent="DarkTheme">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="colorAccent">@color/dark_settings_accent_color</item>
-
         <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
-
         <item name="android:windowBackground">@color/dark_background_color</item>
-        <item name="nnf_separator_color">@color/black_separator_color</item>
+        <item name="windowBackground">@color/dark_background_color</item>
+        <item name="nnf_separator_color">@color/dark_separator_color</item>
+        <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
+    </style>
 
+    <style name="FilePickerThemeBlack" parent="BlackTheme">
+        <item name="colorPrimary">@color/dark_youtube_primary_color</item>
+        <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
+        <item name="colorAccent">@color/dark_settings_accent_color</item>
+        <item name="actionColor">@color/white</item>
+        <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
+        <item name="android:windowBackground">@color/black_background_color</item>
+        <item name="windowBackground">@color/black_background_color</item>
+        <item name="nnf_separator_color">@color/black_separator_color</item>
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
     </style>
 
@@ -79,6 +87,18 @@
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="colorAccent">@color/dark_settings_accent_color</item>
     </style>
+
+    <style name="TextAppearance.NewPipe.BodyLarge" parent="TextAppearance.Material3.BodyLarge" />
+
+    <style name="TextAppearance.NewPipe.BodyMedium" parent="TextAppearance.Material3.BodyMedium" />
+
+    <style name="TextAppearance.NewPipe.BodySmall" parent="TextAppearance.Material3.BodySmall" />
+
+    <style name="TextAppearance.NewPipe.LabelMedium"
+        parent="TextAppearance.Material3.LabelMedium" />
+
+    <style name="TextAppearance.NewPipe.TitleMedium"
+        parent="TextAppearance.Material3.TitleMedium" />
 
     <style name="PlayQueueItemTextTheme">
         <item name="android:textAppearanceLarge">@style/PlayQueueItemTitle</item>

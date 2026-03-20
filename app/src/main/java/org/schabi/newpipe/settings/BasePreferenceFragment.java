@@ -30,7 +30,8 @@ import org.schabi.newpipe.util.ThemeHelper;
 
 import java.util.Objects;
 
-public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
+public abstract class BasePreferenceFragment extends PreferenceFragmentCompat
+        implements PreferenceUiHost {
     protected final String TAG = getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
     protected static final boolean DEBUG = MainActivity.DEBUG;
     private static final String PREFERENCE_DIALOG_TAG =
@@ -78,6 +79,27 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         final T preference = findPreference(getString(resId));
         Objects.requireNonNull(preference);
         return preference;
+    }
+
+    @Override
+    public final Preference findPreferenceByKey(@NonNull final String key) {
+        return findPreference(key);
+    }
+
+    @NonNull
+    @Override
+    public final RecyclerView getPreferenceListView() {
+        return getListView();
+    }
+
+    @Override
+    public final void scrollToPreferenceItem(@NonNull final Preference preference) {
+        scrollToPreference(preference);
+    }
+
+    @Override
+    public final androidx.fragment.app.FragmentActivity getPreferenceHostActivity() {
+        return getActivity();
     }
 
     @SuppressWarnings("deprecation")

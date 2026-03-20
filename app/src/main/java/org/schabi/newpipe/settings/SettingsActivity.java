@@ -445,9 +445,9 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         // Run the highlighting
-        if (currentFragment instanceof PreferenceFragmentCompat) {
+        if (currentFragment instanceof PreferenceUiHost) {
             PreferenceSearchResultHighlighter
-                    .highlight(result, (PreferenceFragmentCompat) currentFragment);
+                    .highlight(result, (PreferenceUiHost) currentFragment);
         }
     }
 

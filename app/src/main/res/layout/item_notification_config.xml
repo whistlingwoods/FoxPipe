@@ -11,6 +11,6 @@
     android:orientation="horizontal"
     android:paddingStart="?listPreferredItemPaddingStart"
     android:paddingEnd="?listPreferredItemPaddingEnd"
-    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+    android:textAppearance="@style/TextAppearance.NewPipe.BodyLarge"
     android:drawableEnd="?android:listChoiceIndicatorMultiple"
     tools:text="@tools:sample/lorem[4]" />

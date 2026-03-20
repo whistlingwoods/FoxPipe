@@ -36,12 +36,20 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
-        if (ThemeHelper.isLightThemeSelected(this)) {
-            this.setTheme(R.style.FilePickerThemeLight);
-        } else {
-            this.setTheme(R.style.FilePickerThemeDark);
-        }
+        ThemeHelper.setDayNightMode(this);
+        ThemeHelper.setThemeResource(this, resolveFilePickerTheme());
         super.onCreate(savedInstanceState);
+    }
+
+    private int resolveFilePickerTheme() {
+        final int selectedTheme = ThemeHelper.getThemeForService(this, -1);
+        if (selectedTheme == R.style.LightTheme) {
+            return R.style.FilePickerThemeLight;
+        }
+        if (selectedTheme == R.style.BlackTheme) {
+            return R.style.FilePickerThemeBlack;
+        }
+        return R.style.FilePickerThemeDark;
     }
 
     @Override

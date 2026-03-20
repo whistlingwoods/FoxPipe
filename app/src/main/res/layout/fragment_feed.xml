@@ -37,7 +37,7 @@
                 android:gravity="start|center_vertical"
                 android:maxLines="2"
                 android:textColor="?attr/pilot_on_primary_container_color"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textAppearance="@style/TextAppearance.NewPipe.BodyMedium"
                 android:textSize="14sp"
                 tools:text="@tools:sample/lorem/random" />
 
@@ -50,7 +50,7 @@
                 android:gravity="start|center_vertical"
                 android:maxLines="1"
                 android:textColor="?attr/pilot_on_primary_container_color"
-                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
                 android:textSize="12sp"
                 tools:text="@tools:sample/lorem/random" />
         </LinearLayout>
@@ -69,7 +69,7 @@
             tools:ignore="ContentDescription" />
     </RelativeLayout>
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    <org.schabi.newpipe.views.MaterialSwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -93,7 +93,7 @@
             tools:listitem="@layout/list_stream_item"
             tools:visibility="visible" />
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </org.schabi.newpipe.views.MaterialSwipeRefreshLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/new_items_loaded_button"
@@ -132,7 +132,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="∞/∞"
-            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:textAppearance="@style/TextAppearance.NewPipe.TitleMedium"
             android:textSize="16sp"
             android:visibility="gone"
             tools:text="1/120"

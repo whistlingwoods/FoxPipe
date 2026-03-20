@@ -12,12 +12,13 @@ import android.util.Log;
 import android.util.TypedValue;
 
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.fragment.app.FragmentActivity;
 import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.settings.PreferenceUiHost;
 
 
 public final class PreferenceSearchResultHighlighter {
@@ -36,23 +37,24 @@ public final class PreferenceSearchResultHighlighter {
      */
     public static void highlight(
             final PreferenceSearchItem item,
-            final PreferenceFragmentCompat prefsFragment
+            final PreferenceUiHost preferenceUiHost
     ) {
-        new Handler(Looper.getMainLooper()).post(() -> doHighlight(item, prefsFragment));
+        new Handler(Looper.getMainLooper()).post(() -> doHighlight(item, preferenceUiHost));
     }
 
     private static void doHighlight(
             final PreferenceSearchItem item,
-            final PreferenceFragmentCompat prefsFragment
+            final PreferenceUiHost preferenceUiHost
     ) {
-        final Preference prefResult = prefsFragment.findPreference(item.getKey());
+        final Preference prefResult = preferenceUiHost.findPreferenceByKey(item.getKey());
 
         if (prefResult == null) {
-            Log.w(TAG, "Preference '" + item.getKey() + "' not found on '" + prefsFragment + "'");
+            Log.w(TAG, "Preference '" + item.getKey() + "' not found on '"
+                    + preferenceUiHost + "'");
             return;
         }
 
-        final RecyclerView recyclerView = prefsFragment.getListView();
+        final RecyclerView recyclerView = preferenceUiHost.getPreferenceListView();
         final RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
         if (adapter instanceof PreferenceGroup.PreferencePositionCallback) {
             final int position = ((PreferenceGroup.PreferencePositionCallback) adapter)
@@ -69,12 +71,12 @@ public final class PreferenceSearchResultHighlighter {
                             return;
                         }
                     }
-                    highlightFallback(prefsFragment, prefResult);
+                    highlightFallback(preferenceUiHost, prefResult);
                 }, 200);
                 return;
             }
         }
-        highlightFallback(prefsFragment, prefResult);
+        highlightFallback(preferenceUiHost, prefResult);
     }
 
     /**
@@ -84,14 +86,19 @@ public final class PreferenceSearchResultHighlighter {
      * @param prefResult
      */
     private static void highlightFallback(
-            final PreferenceFragmentCompat prefsFragment,
+            final PreferenceUiHost preferenceUiHost,
             final Preference prefResult
     ) {
+        final FragmentActivity activity = preferenceUiHost.getPreferenceHostActivity();
+        if (activity == null) {
+            return;
+        }
+
         // Get primary color from text for highlight icon
         final TypedValue typedValue = new TypedValue();
-        final Resources.Theme theme = prefsFragment.getActivity().getTheme();
+        final Resources.Theme theme = activity.getTheme();
         theme.resolveAttribute(android.R.attr.textColorPrimary, typedValue, true);
-        final TypedArray arr = prefsFragment.getActivity()
+        final TypedArray arr = activity
                 .obtainStyledAttributes(
                         typedValue.data,
                         new int[]{android.R.attr.textColorPrimary});
@@ -103,12 +110,12 @@ public final class PreferenceSearchResultHighlighter {
         final boolean oldSpaceReserved = prefResult.isIconSpaceReserved();
         final Drawable highlightIcon =
                 AppCompatResources.getDrawable(
-                        prefsFragment.requireContext(),
+                        activity,
                         R.drawable.ic_play_arrow);
         highlightIcon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
         prefResult.setIcon(highlightIcon);
 
-        prefsFragment.scrollToPreference(prefResult);
+        preferenceUiHost.scrollToPreferenceItem(prefResult);
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             prefResult.setIcon(oldIcon);
