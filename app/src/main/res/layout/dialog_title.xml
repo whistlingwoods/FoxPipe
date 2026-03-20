@@ -4,11 +4,12 @@
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_pilot_surface_variant"
     android:clickable="false"
-    android:clipToOutline="true"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingStart="24dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="8dp">
 
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/itemTitleView"
@@ -19,9 +20,8 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="@dimen/channel_item_detail_title_text_size"
-        android:textStyle="bold"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/pilot_on_surface_color"
         tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. " />
 
     <org.schabi.newpipe.views.NewPipeTextView
@@ -34,9 +34,8 @@
         android:marqueeRepeatLimit="marquee_forever"
         android:scrollHorizontally="true"
         android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/pilot_on_surface_variant_color"
-        android:textSize="@dimen/video_item_search_uploader_text_size"
         android:visibility="gone"
         tools:text="UPLOADER"
         tools:visibility="visible" />
