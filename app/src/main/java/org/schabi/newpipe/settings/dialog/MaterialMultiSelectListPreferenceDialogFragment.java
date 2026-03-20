@@ -54,8 +54,8 @@ public final class MaterialMultiSelectListPreferenceDialogFragment
             entries = preference.getEntries();
             entryValues = preference.getEntryValues();
         } else {
-            newValues.addAll(
-                    Objects.requireNonNull(savedInstanceState.getStringArrayList(SAVE_STATE_VALUES)));
+            newValues.addAll(Objects.requireNonNull(
+                    savedInstanceState.getStringArrayList(SAVE_STATE_VALUES)));
             preferenceChanged = savedInstanceState.getBoolean(SAVE_STATE_CHANGED, false);
             entries = savedInstanceState.getCharSequenceArray(SAVE_STATE_ENTRIES);
             entryValues = savedInstanceState.getCharSequenceArray(SAVE_STATE_ENTRY_VALUES);
