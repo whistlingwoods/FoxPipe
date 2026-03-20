@@ -97,8 +97,38 @@
     <style name="TextAppearance.NewPipe.LabelMedium"
         parent="TextAppearance.Material3.LabelMedium" />
 
+    <style name="TextAppearance.NewPipe.LabelLarge"
+        parent="TextAppearance.Material3.LabelLarge" />
+
     <style name="TextAppearance.NewPipe.TitleMedium"
         parent="TextAppearance.Material3.TitleMedium" />
+
+    <style name="ThemeOverlay.NewPipe.Player" parent="WhiteTintTheme">
+        <item name="colorAccent">@color/white</item>
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">#42FFFFFF</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSecondaryContainer">#33FFFFFF</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorSurface">#FF111417</item>
+        <item name="colorSurfaceVariant">#FF1A1F24</item>
+        <item name="colorSurfaceContainer">#D9151A1F</item>
+        <item name="colorSurfaceContainerHigh">#F022282E</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/white_secondary</item>
+        <item name="colorOutline">#52FFFFFF</item>
+        <item name="colorControlHighlight">#29FFFFFF</item>
+        <item name="pilot_surface_color">?attr/colorSurface</item>
+        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
+        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
+        <item name="pilot_outline_color">?attr/colorOutline</item>
+        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
+        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
+        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
+        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
+        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
+    </style>
 
     <style name="PlayQueueItemTextTheme">
         <item name="android:textAppearanceLarge">@style/PlayQueueItemTitle</item>
@@ -187,6 +217,54 @@
         <item name="android:insetBottom">0dp</item>
         <item name="strokeWidth">0dp</item>
         <item name="iconPadding">0dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.IconButton" parent="Widget.NewPipe.IconButton">
+        <item name="android:minHeight">@dimen/player_control_button_size</item>
+        <item name="android:minWidth">@dimen/player_control_button_size</item>
+        <item name="backgroundTint">?attr/colorSurfaceContainerHigh</item>
+        <item name="cornerRadius">@dimen/player_md3_button_radius</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.IconButton.Filled"
+        parent="Widget.NewPipe.Player.IconButton">
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="iconTint">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TransportButton"
+        parent="Widget.NewPipe.Player.IconButton">
+        <item name="android:minHeight">@dimen/player_md3_transport_button_size</item>
+        <item name="android:minWidth">@dimen/player_md3_transport_button_size</item>
+        <item name="cornerRadius">@dimen/player_md3_transport_button_radius</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.PlayPauseButton"
+        parent="Widget.NewPipe.Player.IconButton.Filled">
+        <item name="android:minHeight">@dimen/player_md3_play_pause_button_size</item>
+        <item name="android:minWidth">@dimen/player_md3_play_pause_button_size</item>
+        <item name="cornerRadius">@dimen/player_md3_play_pause_button_radius</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TextChip" parent="">
+        <item name="android:background">@drawable/bg_player_md3_chip</item>
+        <item name="android:gravity">center</item>
+        <item name="android:minHeight">@dimen/player_md3_chip_height</item>
+        <item name="android:minWidth">@dimen/player_md3_chip_min_width</item>
+        <item name="android:paddingStart">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="android:paddingEnd">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TextChip.Emphasized"
+        parent="Widget.NewPipe.Player.TextChip">
+        <item name="android:background">@drawable/bg_player_md3_chip_emphasized</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
     </style>
 
     <style name="Widget.NewPipe.CardView" parent="">

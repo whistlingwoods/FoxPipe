@@ -62,6 +62,17 @@
     <dimen name="player_control_button_size">40dp</dimen>
     <dimen name="player_control_large_button_size">50dp</dimen>
     <dimen name="player_main_play_pause_button_size">60dp</dimen>
+    <dimen name="player_md3_button_radius">20dp</dimen>
+    <dimen name="player_md3_panel_radius">28dp</dimen>
+    <dimen name="player_md3_chip_radius">18dp</dimen>
+    <dimen name="player_md3_chip_height">36dp</dimen>
+    <dimen name="player_md3_chip_min_width">56dp</dimen>
+    <dimen name="player_md3_chip_horizontal_padding">14dp</dimen>
+    <dimen name="player_md3_transport_button_size">48dp</dimen>
+    <dimen name="player_md3_transport_button_radius">24dp</dimen>
+    <dimen name="player_md3_play_pause_button_size">64dp</dimen>
+    <dimen name="player_md3_play_pause_button_radius">32dp</dimen>
+    <dimen name="player_md3_section_spacing">12dp</dimen>
     <dimen name="player_notification_thumbnail_width">200dp</dimen>
 
     <!-- Miscellaneous -->
