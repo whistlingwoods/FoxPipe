@@ -6,11 +6,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Build;
+import android.view.LayoutInflater;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
@@ -68,17 +74,26 @@ public final class InfoItemDialog {
         }
 
         // Get the entry's descriptions which are displayed in the dialog
-        final String[] items = entries.stream()
-                .map(entry -> entry.getString(activity)).toArray(String[]::new);
-
-        // Call an entry's action / onClick method when the entry is selected.
         final DialogInterface.OnClickListener action = (d, index) ->
             entries.get(index).action.onClick(fragment, info);
+        final StreamDialogAdapter adapter = new StreamDialogAdapter(activity, entries);
 
         dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setCustomTitle(bannerView)
-                .setItems(items, action)
+                .setAdapter(adapter, action)
                 .create();
+        dialog.setOnShowListener(unused -> {
+            final ListView listView = dialog.getListView();
+            if (listView == null) {
+                return;
+            }
+            final int verticalPadding =
+                    Math.round(activity.getResources().getDisplayMetrics().density * 8f);
+            listView.setDivider(null);
+            listView.setDividerHeight(0);
+            listView.setPadding(0, verticalPadding, 0, verticalPadding);
+            listView.setClipToPadding(false);
+        });
 
     }
 
@@ -238,7 +253,10 @@ public final class InfoItemDialog {
                               @NonNull final StreamDialogEntry.StreamDialogEntryAction action) {
             for (int i = 0; i < entries.size(); i++) {
                 if (entries.get(i).resource == entry.resource) {
-                    entries.set(i, new StreamDialogEntry(entry.resource, action));
+                    entries.set(i, new StreamDialogEntry(
+                            entry.resource,
+                            entry.iconResource,
+                            action));
                     return this;
                 }
             }
@@ -351,6 +369,43 @@ public final class InfoItemDialog {
                     UserAction.OPEN_INFO_ITEM_DIALOG,
                     "none",
                     item.getServiceId()));
+        }
+    }
+
+    private static final class StreamDialogAdapter extends ArrayAdapter<StreamDialogEntry> {
+        private final LayoutInflater inflater;
+
+        private StreamDialogAdapter(@NonNull final Activity activity,
+                                    @NonNull final List<StreamDialogEntry> entries) {
+            super(activity, 0, entries);
+            inflater = LayoutInflater.from(activity);
+        }
+
+        @NonNull
+        @Override
+        public View getView(final int position,
+                            @Nullable final View convertView,
+                            @NonNull final ViewGroup parent) {
+            final View itemView = convertView == null
+                    ? inflater.inflate(R.layout.dialog_stream_action_item, parent, false)
+                    : convertView;
+            final StreamDialogEntry entry = getItem(position);
+            if (entry == null) {
+                return itemView;
+            }
+
+            final ImageView iconView = itemView.findViewById(R.id.actionIcon);
+            final TextView titleView = itemView.findViewById(R.id.actionTitle);
+            titleView.setText(entry.getString(getContext()));
+
+            if (entry.iconResource == 0) {
+                iconView.setVisibility(View.GONE);
+            } else {
+                iconView.setVisibility(View.VISIBLE);
+                iconView.setImageResource(entry.iconResource);
+            }
+
+            return itemView;
         }
     }
 }
