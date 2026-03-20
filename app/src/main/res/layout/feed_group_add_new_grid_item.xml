@@ -38,7 +38,7 @@
             android:maxLines="1"
             android:text="@string/feed_create_new_group_button_title"
             android:textAllCaps="true"
-            android:textColor="?attr/colorAccent"
+            android:textColor="?attr/colorPrimary"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>

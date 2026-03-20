@@ -617,7 +617,7 @@
                 app:elevation="16dp"
                 app:tabBackground="?attr/windowBackground"
                 app:tabGravity="fill"
-                app:tabIconTint="?attr/colorAccent"
+                app:tabIconTint="?attr/colorPrimary"
                 app:tabIndicatorGravity="top" />
 
         </org.schabi.newpipe.views.FocusAwareCoordinator>

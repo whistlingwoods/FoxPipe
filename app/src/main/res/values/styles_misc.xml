@@ -143,8 +143,10 @@
     </style>
 
     <style name="FloatingActionButtonTheme"
-        parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="tint">?attr/actionColor</item>
+        parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
+        <item name="tint">?attr/colorOnPrimaryContainer</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
     </style>
 
     <style name="Widget.NewPipe.CircularProgressIndicator"
@@ -267,14 +269,24 @@
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
     </style>
 
-    <style name="Widget.NewPipe.CardView" parent="">
+    <style name="Widget.NewPipe.TagChip" parent="Widget.Material3.Chip.Suggestion">
+        <item name="chipBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipStrokeColor">?attr/colorOutline</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelMedium</item>
+    </style>
+
+    <style name="Widget.NewPipe.CardView" parent="Widget.Material3.CardView.Filled">
         <item name="cardBackgroundColor">?attr/card_item_background_color</item>
         <item name="cardCornerRadius">22dp</item>
         <item name="cardElevation">0dp</item>
         <item name="cardUseCompatPadding">false</item>
     </style>
 
-    <style name="Widget.NewPipe.MaterialCardView" parent="">
+    <style name="Widget.NewPipe.MaterialCardView" parent="Widget.Material3.CardView.Outlined">
         <item name="cardBackgroundColor">?attr/card_item_background_color</item>
         <item name="cardCornerRadius">22dp</item>
         <item name="cardElevation">0dp</item>
@@ -315,7 +327,8 @@
         <item name="trackHeight">4dp</item>
     </style>
 
-    <style name="Widget.NewPipe.MaterialSwitch" parent="">
+    <style name="Widget.NewPipe.MaterialSwitch"
+        parent="Widget.Material3.CompoundButton.MaterialSwitch">
         <item name="thumbTint">@color/switch_thumb_tint</item>
         <item name="trackTint">@color/switch_track_tint</item>
     </style>

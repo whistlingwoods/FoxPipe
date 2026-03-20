@@ -37,7 +37,7 @@
             android:maxLines="1"
             android:padding="10dp"
             android:textAllCaps="false"
-            android:textColor="?attr/colorAccent"
+            android:textColor="?attr/colorPrimary"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="All" />
