@@ -174,7 +174,8 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
-        getSupportFragmentManager().addOnBackStackChangedListener(this::updateBackPressedCallbackState);
+        getSupportFragmentManager().addOnBackStackChangedListener(
+                this::updateBackPressedCallbackState);
 
         mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         drawerLayoutBinding = mainBinding.drawerLayout;
@@ -706,9 +707,10 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        final Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_holder);
-        return fragment instanceof BackPressable
-                && ((BackPressable) fragment).canHandleBackPress()
+        final Fragment fragment = getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_holder);
+        return (fragment instanceof BackPressable
+                && ((BackPressable) fragment).canHandleBackPress())
                 || fragment instanceof CommentRepliesFragment;
     }
 
