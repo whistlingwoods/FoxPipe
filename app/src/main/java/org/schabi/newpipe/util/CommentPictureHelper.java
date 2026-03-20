@@ -7,7 +7,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatImageView;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.Image;
@@ -52,12 +51,12 @@ public final class CommentPictureHelper {
     }
 
     @NonNull
-    private static AppCompatImageView createImageView(@NonNull final Context context,
-                                                      @NonNull final Image picture,
-                                                      final int size,
-                                                      final int spacing,
-                                                      final boolean addStartMargin) {
-        final AppCompatImageView imageView = new AppCompatImageView(context);
+    private static ImageView createImageView(@NonNull final Context context,
+                                             @NonNull final Image picture,
+                                             final int size,
+                                             final int spacing,
+                                             final boolean addStartMargin) {
+        final ImageView imageView = new ImageView(context);
         final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(size, size);
         if (addStartMargin) {
             layoutParams.setMarginStart(spacing);

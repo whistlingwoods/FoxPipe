@@ -85,14 +85,14 @@
         <item name="android:textAppearanceSmall">@style/PlayQueueItemSubtitle</item>
     </style>
 
-    <style name="PlayQueueItemTitle" parent="TextAppearance.AppCompat.Large">
+    <style name="PlayQueueItemTitle" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textColor">@color/white</item>
     </style>
-    <style name="PlayQueueItemSubtitle" parent="TextAppearance.AppCompat.Small">
+    <style name="PlayQueueItemSubtitle" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textColor">@color/white_secondary</item>
     </style>
 
-    <style name="FloatingActionButtonTheme" parent="Widget.Design.FloatingActionButton">
+    <style name="FloatingActionButtonTheme" parent="Widget.Material3.FloatingActionButton">
         <item name="tint">?attr/actionColor</item>
     </style>
 
@@ -152,6 +152,22 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
+    <style name="Widget.NewPipe.IconButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">40dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="iconPadding">0dp</item>
+    </style>
+
     <style name="Widget.NewPipe.CardView" parent="">
         <item name="cardBackgroundColor">?attr/card_item_background_color</item>
         <item name="cardCornerRadius">22dp</item>
@@ -203,15 +219,6 @@
     <style name="Widget.NewPipe.MaterialSwitch" parent="">
         <item name="thumbTint">@color/switch_thumb_tint</item>
         <item name="trackTint">@color/switch_track_tint</item>
-    </style>
-
-    <style name="DarkPopupMenu" parent="">
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:textColorSecondary">@color/white_secondary</item>
-        <item name="colorSurface">@color/dark_pilot_surface_container_color</item>
-        <item name="colorOnSurface">@color/white</item>
-        <item name="tint">@color/white</item>
-        <item name="iconTint">@color/white</item>
     </style>
 
     <style name="ToolbarTheme" parent="">

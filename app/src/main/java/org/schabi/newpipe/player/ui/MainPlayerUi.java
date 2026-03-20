@@ -2,7 +2,7 @@ package org.schabi.newpipe.player.ui;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static org.schabi.newpipe.MainActivity.DEBUG;
-import static org.schabi.newpipe.QueueItemMenuUtil.openPopupMenu;
+import static org.schabi.newpipe.QueueItemMenuUtil.openActionSheet;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.player.Player.STATE_COMPLETED;
@@ -796,7 +796,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 @Nullable final PlayQueue playQueue = player.getPlayQueue();
                 @Nullable final AppCompatActivity parentActivity = getParentActivity().orElse(null);
                 if (playQueue != null && parentActivity != null && playQueue.indexOf(item) != -1) {
-                    openPopupMenu(player.getPlayQueue(), item, view, true,
+                    openActionSheet(player.getPlayQueue(), item, view, true,
                             parentActivity.getSupportFragmentManager(), context);
                 }
             }
