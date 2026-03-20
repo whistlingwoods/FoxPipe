@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -22,11 +24,19 @@ import java.util.stream.Collectors;
 /**
  * A list adapter for groups of {@link AudioStream}s (audio tracks).
  */
-public class AudioTrackAdapter extends BaseAdapter {
+public class AudioTrackAdapter extends BaseAdapter implements Filterable {
     private final AudioTracksWrapper tracksWrapper;
+    @Nullable
+    private final Context context;
 
     public AudioTrackAdapter(final AudioTracksWrapper tracksWrapper) {
+        this(tracksWrapper, null);
+    }
+
+    public AudioTrackAdapter(final AudioTracksWrapper tracksWrapper,
+                             @Nullable final Context context) {
         this.tracksWrapper = tracksWrapper;
+        this.context = context;
     }
 
     @Override
@@ -72,6 +82,48 @@ public class AudioTrackAdapter extends BaseAdapter {
         qualityView.setText(Localization.audioTrackName(context, stream));
 
         return view;
+    }
+
+    @NonNull
+    public CharSequence getDisplayLabel(final int position) {
+        if (context == null) {
+            return "";
+        }
+
+        final List<AudioStream> streams = getItem(position);
+        final AudioStream stream = streams.get(0);
+        final java.util.ArrayList<String> parts = new java.util.ArrayList<>(2);
+        if (stream.getAudioTrackId() != null) {
+            parts.add(stream.getAudioTrackId());
+        }
+        parts.add(Localization.audioTrackName(context, stream));
+        return String.join(" • ", parts);
+    }
+
+    @NonNull
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(final CharSequence constraint) {
+                final FilterResults filterResults = new FilterResults();
+                filterResults.values = tracksWrapper.getTracksList();
+                filterResults.count = getCount();
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(final CharSequence constraint,
+                                          final FilterResults results) {
+                notifyDataSetChanged();
+            }
+
+            @Override
+            public CharSequence convertResultToString(final Object resultValue) {
+                final int index = tracksWrapper.getTracksList().indexOf(resultValue);
+                return index >= 0 ? getDisplayLabel(index) : "";
+            }
+        };
     }
 
     public static class AudioTracksWrapper implements Serializable {

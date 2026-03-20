@@ -37,10 +37,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -82,6 +79,7 @@ import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.settings.UpdateSettingsFragment;
 import org.schabi.newpipe.settings.migration.MigrationManager;
+import org.schabi.newpipe.ui.MaterialActionSheetDialog;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.KioskTranslator;
@@ -460,46 +458,40 @@ public class MainActivity extends AppCompatActivity {
     private void enhancePeertubeMenu(final MenuItem menuItem) {
         final PeertubeInstance currentInstance = PeertubeHelper.getCurrentInstance();
         menuItem.setTitle(currentInstance.getName());
-        final Spinner spinner = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
+        final var instanceSelector = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
                 .getRoot();
         final List<PeertubeInstance> instances = PeertubeHelper.getInstanceList(this);
-        final List<String> items = new ArrayList<>();
-        int defaultSelect = 0;
-        for (final PeertubeInstance instance : instances) {
-            items.add(instance.getName());
-            if (instance.getUrl().equals(currentInstance.getUrl())) {
-                defaultSelect = items.size() - 1;
+        instanceSelector.setText(currentInstance.getName());
+        instanceSelector.setOnClickListener(v -> {
+            final List<MaterialActionSheetDialog.ActionItem> items = new ArrayList<>();
+            for (final PeertubeInstance instance : instances) {
+                final boolean isSelected =
+                        instance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl());
+                items.add(MaterialActionSheetDialog.ActionItem.checked(
+                        instance.getUrl().hashCode(),
+                        instance.getName(),
+                        0,
+                        isSelected,
+                        () -> {
+                            if (isSelected) {
+                                return;
+                            }
+                            PeertubeHelper.selectInstance(
+                                    instance,
+                                    getApplicationContext());
+                            changeService(menuItem);
+                            mainBinding.getRoot().closeDrawers();
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                getSupportFragmentManager().popBackStack(
+                                        null,
+                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                ActivityCompat.recreate(MainActivity.this);
+                            }, 300);
+                        }));
             }
-        }
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                R.layout.instance_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setSelection(defaultSelect, false);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(final AdapterView<?> parent, final View view,
-                                       final int position, final long id) {
-                final PeertubeInstance newInstance = instances.get(position);
-                if (newInstance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl())) {
-                    return;
-                }
-                PeertubeHelper.selectInstance(newInstance, getApplicationContext());
-                changeService(menuItem);
-                mainBinding.getRoot().closeDrawers();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    getSupportFragmentManager().popBackStack(null,
-                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    ActivityCompat.recreate(MainActivity.this);
-                }, 300);
-            }
-
-            @Override
-            public void onNothingSelected(final AdapterView<?> parent) {
-
-            }
+            MaterialActionSheetDialog.show(this, getString(R.string.choose_instance_prompt), items);
         });
-        menuItem.setActionView(spinner);
+        menuItem.setActionView(instanceSelector);
     }
 
     @Override

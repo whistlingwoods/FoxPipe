@@ -48,7 +48,6 @@ import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -117,6 +116,7 @@ import org.schabi.newpipe.util.PermissionHelper;
 import org.schabi.newpipe.util.PlayButtonHelper;
 import org.schabi.newpipe.util.StreamTypeUtil;
 import org.schabi.newpipe.util.ThemeHelper;
+import org.schabi.newpipe.ui.MaterialActionSheetDialog;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.util.image.CoilHelper;
@@ -2185,12 +2185,6 @@ public final class VideoDetailFragment
             return;
         }
 
-        final AlertDialog.Builder builder =
-                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity);
-        builder.setTitle(R.string.select_quality_external_players);
-        builder.setNeutralButton(R.string.open_in_browser, (dialog, i) ->
-                ShareUtils.openUrlInBrowser(requireActivity(), url));
-
         final List<VideoStream> videoStreamsForExternalPlayers =
                 ListHelper.getSortedStreamVideosList(
                         activity,
@@ -2201,31 +2195,39 @@ public final class VideoDetailFragment
                 );
 
         if (videoStreamsForExternalPlayers.isEmpty()) {
-            builder.setMessage(R.string.no_video_streams_available_for_external_players);
-            builder.setPositiveButton(R.string.ok, null);
-
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.select_quality_external_players)
+                    .setMessage(R.string.no_video_streams_available_for_external_players)
+                    .setPositiveButton(R.string.open_in_browser, (dialog, i) ->
+                            ShareUtils.openUrlInBrowser(requireActivity(), url))
+                    .setNegativeButton(R.string.cancel, null)
+                    .show();
         } else {
             final int selectedVideoStreamIndexForExternalPlayers =
                     ListHelper.getDefaultResolutionIndex(activity, videoStreamsForExternalPlayers);
-            final CharSequence[] resolutions = videoStreamsForExternalPlayers.stream()
-                    .map(VideoStream::getResolution).toArray(CharSequence[]::new);
-
-            builder.setSingleChoiceItems(resolutions, selectedVideoStreamIndexForExternalPlayers,
-                    null);
-            builder.setNegativeButton(R.string.cancel, null);
-            builder.setPositiveButton(R.string.ok, (dialog, i) -> {
-                final int index = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
-                // We don't have to manage the index validity because if there is no stream
-                // available for external players, this code will be not executed and if there is
-                // no stream which matches the default resolution, 0 is returned by
-                // ListHelper.getDefaultResolutionIndex.
-                // The index cannot be outside the bounds of the list as its always between 0 and
-                // the list size - 1, .
-                startOnExternalPlayer(activity, currentInfo,
-                        videoStreamsForExternalPlayers.get(index));
-            });
+            final List<MaterialActionSheetDialog.ActionItem> items = new ArrayList<>();
+            items.add(MaterialActionSheetDialog.ActionItem.create(
+                    R.string.open_in_browser,
+                    getString(R.string.open_in_browser),
+                    R.drawable.ic_language,
+                    () -> ShareUtils.openUrlInBrowser(requireActivity(), url)));
+            for (int i = 0; i < videoStreamsForExternalPlayers.size(); i++) {
+                final int index = i;
+                items.add(MaterialActionSheetDialog.ActionItem.checked(
+                        index,
+                        videoStreamsForExternalPlayers.get(i).getResolution(),
+                        0,
+                        index == selectedVideoStreamIndexForExternalPlayers,
+                        () -> startOnExternalPlayer(
+                                activity,
+                                currentInfo,
+                                videoStreamsForExternalPlayers.get(index))));
+            }
+            MaterialActionSheetDialog.show(
+                    activity,
+                    getString(R.string.select_quality_external_players),
+                    items);
         }
-        builder.show();
     }
 
     private void showExternalAudioPlaybackDialog() {
@@ -2246,22 +2248,28 @@ public final class VideoDetailFragment
         } else {
             final int selectedAudioStream =
                     ListHelper.getDefaultAudioFormat(activity, audioTracks);
-            final CharSequence[] trackNames = audioTracks.stream()
-                    .map(audioStream -> Localization.audioTrackName(activity, audioStream))
-                    .toArray(CharSequence[]::new);
-
-            new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
-                    .setTitle(R.string.select_audio_track_external_players)
-                    .setNeutralButton(R.string.open_in_browser, (dialog, i) ->
-                            ShareUtils.openUrlInBrowser(requireActivity(), url))
-                    .setSingleChoiceItems(trackNames, selectedAudioStream, null)
-                    .setNegativeButton(R.string.cancel, null)
-                    .setPositiveButton(R.string.ok, (dialog, i) -> {
-                        final int index = ((AlertDialog) dialog).getListView()
-                                .getCheckedItemPosition();
-                        startOnExternalPlayer(activity, currentInfo, audioTracks.get(index));
-                    })
-                    .show();
+            final List<MaterialActionSheetDialog.ActionItem> items = new ArrayList<>();
+            items.add(MaterialActionSheetDialog.ActionItem.create(
+                    R.string.open_in_browser,
+                    getString(R.string.open_in_browser),
+                    R.drawable.ic_language,
+                    () -> ShareUtils.openUrlInBrowser(requireActivity(), url)));
+            for (int i = 0; i < audioTracks.size(); i++) {
+                final int index = i;
+                items.add(MaterialActionSheetDialog.ActionItem.checked(
+                        index,
+                        Localization.audioTrackName(activity, audioTracks.get(i)),
+                        0,
+                        index == selectedAudioStream,
+                        () -> startOnExternalPlayer(
+                                activity,
+                                currentInfo,
+                                audioTracks.get(index))));
+            }
+            MaterialActionSheetDialog.show(
+                    activity,
+                    getString(R.string.select_audio_track_external_players),
+                    items);
         }
     }
 

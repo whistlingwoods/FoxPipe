@@ -2,10 +2,18 @@ package org.schabi.newpipe.settings.dialog;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.MultiSelectListPreference;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.checkbox.MaterialCheckBox;
+
+import org.schabi.newpipe.R;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -71,19 +79,15 @@ public final class MaterialMultiSelectListPreferenceDialogFragment
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final MultiSelectListPreference preference = requirePreference();
-        final boolean[] checkedItems = buildCheckedItems();
+        final RecyclerView recyclerView = (RecyclerView) LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_preference_choice_list, null, false);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerView.setAdapter(new MultiChoiceAdapter());
         return createBuilder(preference)
                 .setNegativeButton(getNegativeButtonText(preference), null)
                 .setPositiveButton(getPositiveButtonText(preference), (dialog, which) ->
                         persistValues())
-                .setMultiChoiceItems(entries, checkedItems, (dialog, which, isChecked) -> {
-                    final String value = Objects.requireNonNull(entryValues[which]).toString();
-                    if (isChecked) {
-                        preferenceChanged |= newValues.add(value);
-                    } else {
-                        preferenceChanged |= newValues.remove(value);
-                    }
-                })
+                .setView(recyclerView)
                 .create();
     }
 
@@ -94,16 +98,6 @@ public final class MaterialMultiSelectListPreferenceDialogFragment
         outState.putBoolean(SAVE_STATE_CHANGED, preferenceChanged);
         outState.putCharSequenceArray(SAVE_STATE_ENTRIES, entries);
         outState.putCharSequenceArray(SAVE_STATE_ENTRY_VALUES, entryValues);
-    }
-
-    @NonNull
-    private boolean[] buildCheckedItems() {
-        final CharSequence[] values = Objects.requireNonNull(entryValues);
-        final boolean[] checkedItems = new boolean[values.length];
-        for (int i = 0; i < values.length; i++) {
-            checkedItems[i] = newValues.contains(values[i].toString());
-        }
-        return checkedItems;
     }
 
     private void persistValues() {
@@ -117,5 +111,52 @@ public final class MaterialMultiSelectListPreferenceDialogFragment
             preference.setValues(persistedValues);
         }
         preferenceChanged = false;
+    }
+
+    private final class MultiChoiceAdapter
+            extends RecyclerView.Adapter<MultiChoiceAdapter.ViewHolder> {
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent,
+                                             final int viewType) {
+            final MaterialCheckBox view = (MaterialCheckBox) LayoutInflater
+                    .from(parent.getContext())
+                    .inflate(R.layout.item_preference_multi_choice, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+            holder.bind(position);
+        }
+
+        @Override
+        public int getItemCount() {
+            return Objects.requireNonNull(entries).length;
+        }
+
+        final class ViewHolder extends RecyclerView.ViewHolder {
+            private final MaterialCheckBox checkBox;
+
+            ViewHolder(@NonNull final MaterialCheckBox itemView) {
+                super(itemView);
+                checkBox = itemView;
+            }
+
+            void bind(final int position) {
+                final String value = Objects.requireNonNull(entryValues[position]).toString();
+                checkBox.setText(entries[position]);
+                checkBox.setChecked(newValues.contains(value));
+                itemView.setOnClickListener(v -> syncValue(value, checkBox.isChecked()));
+            }
+
+            private void syncValue(@NonNull final String value, final boolean checked) {
+                if (checked) {
+                    preferenceChanged |= newValues.add(value);
+                } else {
+                    preferenceChanged |= newValues.remove(value);
+                }
+            }
+        }
     }
 }

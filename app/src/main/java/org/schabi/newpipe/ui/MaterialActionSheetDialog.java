@@ -4,14 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
@@ -37,7 +37,7 @@ public final class MaterialActionSheetDialog {
         final View root = LayoutInflater.from(context)
                 .inflate(R.layout.dialog_action_sheet, null, false);
         final TextView titleView = root.findViewById(R.id.actionSheetTitle);
-        final ListView listView = root.findViewById(R.id.actionSheetList);
+        final RecyclerView listView = root.findViewById(R.id.actionSheetList);
 
         if (title == null || title.length() == 0) {
             titleView.setVisibility(View.GONE);
@@ -46,10 +46,9 @@ public final class MaterialActionSheetDialog {
             titleView.setVisibility(View.VISIBLE);
         }
 
-        listView.setAdapter(new ActionItemAdapter(context, items));
         final boolean[] openingSubSheet = {false};
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            final ActionItem item = items.get(position);
+        listView.setLayoutManager(new LinearLayoutManager(context));
+        listView.setAdapter(new ActionItemAdapter(items, item -> {
             if (!item.enabled) {
                 return;
             }
@@ -67,7 +66,7 @@ public final class MaterialActionSheetDialog {
             if (item.action != null) {
                 item.action.run();
             }
-        });
+        }));
         dialog.setOnDismissListener(unused -> {
             if (openingSubSheet[0]) {
                 openingSubSheet[0] = false;
@@ -144,46 +143,72 @@ public final class MaterialActionSheetDialog {
         }
     }
 
-    private static final class ActionItemAdapter extends ArrayAdapter<ActionItem> {
-        private final LayoutInflater inflater;
+    private interface OnActionItemClickListener {
+        void onActionItemClicked(@NonNull ActionItem item);
+    }
 
-        private ActionItemAdapter(@NonNull final Context context,
-                                  @NonNull final List<ActionItem> items) {
-            super(context, 0, items);
-            inflater = LayoutInflater.from(context);
+    private static final class ActionItemAdapter
+            extends RecyclerView.Adapter<ActionItemAdapter.ActionItemViewHolder> {
+        @NonNull
+        private final List<ActionItem> items;
+        @NonNull
+        private final OnActionItemClickListener onActionItemClickListener;
+
+        private ActionItemAdapter(@NonNull final List<ActionItem> items,
+                                  @NonNull final OnActionItemClickListener listener) {
+            this.items = items;
+            this.onActionItemClickListener = listener;
         }
 
         @NonNull
         @Override
-        public View getView(final int position,
-                            @Nullable final View convertView,
-                            @NonNull final ViewGroup parent) {
-            final View itemView = convertView == null
-                    ? inflater.inflate(R.layout.item_action_sheet, parent, false)
-                    : convertView;
-            final ActionItem item = getItem(position);
-            if (item == null) {
-                return itemView;
+        public ActionItemViewHolder onCreateViewHolder(@NonNull final ViewGroup parent,
+                                                       final int viewType) {
+            final View itemView = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_action_sheet, parent, false);
+            return new ActionItemViewHolder(itemView);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull final ActionItemViewHolder holder,
+                                     final int position) {
+            holder.bind(items.get(position), onActionItemClickListener);
+        }
+
+        @Override
+        public int getItemCount() {
+            return items.size();
+        }
+
+        private static final class ActionItemViewHolder extends RecyclerView.ViewHolder {
+            private final ImageView iconView;
+            private final TextView titleView;
+            private final ImageView checkView;
+
+            private ActionItemViewHolder(@NonNull final View itemView) {
+                super(itemView);
+                iconView = itemView.findViewById(R.id.actionIcon);
+                titleView = itemView.findViewById(R.id.actionTitle);
+                checkView = itemView.findViewById(R.id.actionCheck);
             }
 
-            final ImageView iconView = itemView.findViewById(R.id.actionIcon);
-            final TextView titleView = itemView.findViewById(R.id.actionTitle);
-            final ImageView checkView = itemView.findViewById(R.id.actionCheck);
+            private void bind(@NonNull final ActionItem item,
+                              @NonNull final OnActionItemClickListener listener) {
+                titleView.setText(item.title);
+                titleView.setEnabled(item.enabled);
+                itemView.setEnabled(item.enabled);
+                itemView.setAlpha(item.enabled ? 1f : 0.38f);
 
-            titleView.setText(item.title);
-            titleView.setEnabled(item.enabled);
-            itemView.setEnabled(item.enabled);
-            itemView.setAlpha(item.enabled ? 1f : 0.38f);
+                if (item.iconResId == 0) {
+                    iconView.setVisibility(View.GONE);
+                } else {
+                    iconView.setVisibility(View.VISIBLE);
+                    iconView.setImageResource(item.iconResId);
+                }
 
-            if (item.iconResId == 0) {
-                iconView.setVisibility(View.GONE);
-            } else {
-                iconView.setVisibility(View.VISIBLE);
-                iconView.setImageResource(item.iconResId);
+                checkView.setVisibility(item.checked ? View.VISIBLE : View.GONE);
+                itemView.setOnClickListener(v -> listener.onActionItemClicked(item));
             }
-
-            checkView.setVisibility(item.checked ? View.VISIBLE : View.GONE);
-            return itemView;
         }
     }
 }

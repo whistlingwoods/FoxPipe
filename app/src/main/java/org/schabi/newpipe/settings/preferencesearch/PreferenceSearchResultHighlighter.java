@@ -33,7 +33,7 @@ public final class PreferenceSearchResultHighlighter {
      * Note: This function is Thread independent (can be called from outside of the main thread).
      *
      * @param item The item to highlight
-     * @param prefsFragment The fragment where the items is located on
+     * @param preferenceUiHost The host where the item is located
      */
     public static void highlight(
             final PreferenceSearchItem item,
@@ -56,6 +56,10 @@ public final class PreferenceSearchResultHighlighter {
 
         final RecyclerView recyclerView = preferenceUiHost.getPreferenceListView();
         final RecyclerView.Adapter<?> adapter = recyclerView.getAdapter();
+        if (adapter == null) {
+            highlightFallback(preferenceUiHost, prefResult);
+            return;
+        }
         if (adapter instanceof PreferenceGroup.PreferencePositionCallback) {
             final int position = ((PreferenceGroup.PreferencePositionCallback) adapter)
                     .getPreferenceAdapterPosition(prefResult);
@@ -82,7 +86,7 @@ public final class PreferenceSearchResultHighlighter {
     /**
      * Alternative highlighting (shows an → arrow in front of the setting)if ripple does not work.
      *
-     * @param prefsFragment
+     * @param preferenceUiHost
      * @param prefResult
      */
     private static void highlightFallback(
@@ -108,10 +112,13 @@ public final class PreferenceSearchResultHighlighter {
         // Show highlight icon
         final Drawable oldIcon = prefResult.getIcon();
         final boolean oldSpaceReserved = prefResult.isIconSpaceReserved();
-        final Drawable highlightIcon =
-                AppCompatResources.getDrawable(
-                        activity,
-                        R.drawable.ic_play_arrow);
+        final Drawable highlightIcon = AppCompatResources.getDrawable(
+                activity,
+                R.drawable.ic_play_arrow);
+        if (highlightIcon == null) {
+            preferenceUiHost.scrollToPreferenceItem(prefResult);
+            return;
+        }
         highlightIcon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
         prefResult.setIcon(highlightIcon);
 

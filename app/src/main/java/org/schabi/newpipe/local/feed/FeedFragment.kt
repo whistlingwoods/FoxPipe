@@ -36,13 +36,13 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.evernote.android.state.State
 import com.xwray.groupie.GroupieAdapter
@@ -255,11 +255,38 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             viewModel.getShowFutureItemsFromPreferences()
         )
 
+        val recyclerView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_preference_choice_list, null, false) as RecyclerView
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun onCreateViewHolder(
+                parent: ViewGroup,
+                viewType: Int
+            ): RecyclerView.ViewHolder {
+                val itemView = LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_preference_multi_choice,
+                    parent,
+                    false
+                ) as com.google.android.material.checkbox.MaterialCheckBox
+                return object : RecyclerView.ViewHolder(itemView) {}
+            }
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val checkBox =
+                    holder.itemView as com.google.android.material.checkbox.MaterialCheckBox
+                checkBox.text = dialogItems[position]
+                checkBox.isChecked = checkedDialogItems[position]
+                checkBox.setOnClickListener {
+                    checkedDialogItems[position] = checkBox.isChecked
+                }
+            }
+
+            override fun getItemCount(): Int = dialogItems.size
+        }
+
         com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.feed_hide_streams_title)
-            .setMultiChoiceItems(dialogItems, checkedDialogItems) { _, which, isChecked ->
-                checkedDialogItems[which] = isChecked
-            }
+            .setView(recyclerView)
             .setPositiveButton(R.string.ok) { _, _ ->
                 viewModel.setSaveShowPlayedItems(checkedDialogItems[0])
                 viewModel.setSaveShowPartiallyPlayedItems(checkedDialogItems[1])
