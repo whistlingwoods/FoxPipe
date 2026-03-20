@@ -112,7 +112,8 @@
         <item name="android:textColor">@color/white_secondary</item>
     </style>
 
-    <style name="FloatingActionButtonTheme" parent="Widget.Material3.FloatingActionButton">
+    <style name="FloatingActionButtonTheme"
+        parent="Widget.MaterialComponents.FloatingActionButton">
         <item name="tint">?attr/actionColor</item>
     </style>
 
