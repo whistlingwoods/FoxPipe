@@ -207,10 +207,16 @@ class FeedFragment : BaseStateFragment<FeedState>() {
 
     private fun configureSwipeRefresh() {
         feedBinding.swipeRefreshLayout.setColorSchemeColors(
-            resolveColorFromAttr(requireContext(), R.attr.colorPrimary)
+            resolveColorFromAttr(
+                requireContext(),
+                com.google.android.material.R.attr.colorPrimary
+            )
         )
         feedBinding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
-            resolveColorFromAttr(requireContext(), R.attr.colorSurfaceContainerHigh)
+            resolveColorFromAttr(
+                requireContext(),
+                com.google.android.material.R.attr.colorSurfaceContainerHigh
+            )
         )
         feedBinding.swipeRefreshLayout.setDistanceToTriggerSync(dpToPx(96))
         feedBinding.swipeRefreshLayout.setProgressViewOffset(
