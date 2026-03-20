@@ -242,13 +242,13 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         tabLayout.setLayoutParams(tabParams);
         viewPager.setLayoutParams(pagerParams);
 
-        // Use the pilot dynamic palette for the main tabs in both positions.
+        // Keep the tabs aligned with the active Material 3 surface palette.
         tabLayout.setBackgroundColor(ThemeHelper.resolveColorFromAttr(requireContext(),
-                bottom ? R.attr.pilot_surface_color : R.attr.pilot_primary_container_color));
+                bottom ? R.attr.colorSurface : R.attr.colorPrimaryContainer));
 
         @ColorInt final int iconColor = ThemeHelper.resolveColorFromAttr(
                 requireContext(),
-                R.attr.pilot_on_primary_container_color
+                R.attr.colorOnPrimaryContainer
         );
         tabLayout.setTabRippleColor(ColorStateList.valueOf(iconColor).withAlpha(32));
         tabLayout.setTabIconTint(ColorStateList.valueOf(iconColor));

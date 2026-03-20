@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:fitsSystemWindows="true"
     tools:context="org.schabi.newpipe.about.AboutActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/pilot_app_bar_color"
+        android:background="?attr/colorSurfaceContainer"
         android:paddingTop="@dimen/appbar_padding_top"
         android:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme">
@@ -20,7 +20,7 @@
             android:id="@+id/about_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/pilot_app_bar_color"
+            android:background="?attr/colorSurfaceContainer"
             android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways" />
 
@@ -28,14 +28,14 @@
             android:id="@+id/about_tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/pilot_app_bar_color"
+            android:background="?attr/colorSurfaceContainer"
             android:paddingStart="8dp"
             android:paddingEnd="8dp"
             app:tabIndicatorColor="?attr/colorPrimary"
             app:tabIndicatorFullWidth="false"
             app:tabRippleColor="?attr/colorControlHighlight"
             app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/pilot_on_surface_variant_color" />
+            app:tabTextColor="?attr/colorOnSurfaceVariant" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,6 +43,6 @@
         android:id="@+id/about_viewPager2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/pilot_page_background_color"
+        android:background="?attr/colorSurface"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

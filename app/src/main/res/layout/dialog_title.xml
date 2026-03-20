@@ -21,7 +21,7 @@
         android:scrollHorizontally="true"
         android:singleLine="true"
         android:textAppearance="?attr/textAppearanceTitleLarge"
-        android:textColor="?attr/pilot_on_surface_color"
+        android:textColor="?attr/colorOnSurface"
         tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. " />
 
     <org.schabi.newpipe.views.NewPipeTextView
@@ -35,7 +35,7 @@
         android:scrollHorizontally="true"
         android:singleLine="true"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="?attr/pilot_on_surface_variant_color"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:visibility="gone"
         tools:text="UPLOADER"
         tools:visibility="visible" />

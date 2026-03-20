@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:fillViewport="true"
     android:paddingStart="16dp"
     android:paddingTop="16dp"
@@ -43,7 +43,7 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="20dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="?attr/pilot_on_surface_variant_color"
+            android:textColor="?attr/colorOnSurfaceVariant"
             tools:text="0.9.9" />
 
         <org.schabi.newpipe.views.NewPipeTextView
@@ -53,7 +53,7 @@
             android:clipToOutline="true"
             android:padding="16dp"
             android:text="@string/app_description"
-            android:textColor="?attr/pilot_on_surface_variant_color" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/faq_description"
-                android:textColor="?attr/pilot_on_surface_variant_color" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/faq_link"
@@ -109,7 +109,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/contribution_encouragement"
-                android:textColor="?attr/pilot_on_surface_variant_color" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/about_github_link"
@@ -142,7 +142,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/donation_encouragement"
-                android:textColor="?attr/pilot_on_surface_variant_color" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/about_donation_link"
@@ -175,7 +175,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/website_encouragement"
-                android:textColor="?attr/pilot_on_surface_variant_color" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/about_website_link"
@@ -208,7 +208,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/privacy_policy_encouragement"
-                android:textColor="?attr/pilot_on_surface_variant_color" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/about_privacy_policy_link"

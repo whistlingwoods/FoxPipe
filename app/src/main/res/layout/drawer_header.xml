@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/pilot_primary_container_color"
+    android:background="?attr/colorPrimaryContainer"
     android:nextFocusDown="@+id/drawer_header_action_button">
 
     <LinearLayout
@@ -43,7 +43,7 @@
                 android:hyphenationFrequency="full"
                 android:maxLines="1"
                 android:text="@string/app_name"
-                android:textColor="?attr/pilot_on_primary_container_color"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:textStyle="bold"
                 app:autoSizeMaxTextSize="@dimen/drawer_header_newpipe_title_max_text_size"
                 app:autoSizeMinTextSize="@dimen/drawer_header_newpipe_title_min_text_size"
@@ -75,7 +75,7 @@
                     android:layout_marginLeft="6dp"
                     android:layout_marginRight="6dp"
                     android:scaleType="fitCenter"
-                    app:tint="?attr/pilot_on_primary_container_color"
+                    app:tint="?attr/colorOnPrimaryContainer"
                     tools:ignore="ContentDescription"
                     tools:src="@drawable/ic_smart_display" />
 
@@ -85,7 +85,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="?attr/pilot_on_primary_container_color"
+                    android:textColor="?attr/colorOnPrimaryContainer"
                     android:textSize="@dimen/drawer_header_service_title_text_size"
                     tools:text="YouTube" />
             </LinearLayout>
@@ -96,7 +96,7 @@
                 android:layout_height="24dp"
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_arrow_drop_down"
-                app:tint="?attr/pilot_on_primary_container_color"
+                app:tint="?attr/colorOnPrimaryContainer"
                 tools:ignore="ContentDescription" />
         </LinearLayout>
     </LinearLayout>

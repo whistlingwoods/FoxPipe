@@ -4,8 +4,6 @@
     <style name="Base.V21.OpeningTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@android:color/transparent</item>
         <item name="colorPrimaryDark">@android:color/transparent</item>
-        <item name="colorAccent">@android:color/transparent</item>
-
         <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
     <style name="Base.OpeningTheme" parent="Base.V21.OpeningTheme">
@@ -31,8 +29,7 @@
     <style name="Base.V21.LightTheme" parent="Base">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
-        <item name="colorAccent">@color/light_youtube_accent_color</item>
-        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="windowBackground">@color/light_background_color</item>
         <item name="colorSurface">@color/light_pilot_surface_color</item>
@@ -58,18 +55,6 @@
         <item name="card_item_contrast_color">@color/light_card_item_contrast_color</item>
         <item name="border_color">@color/light_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_light</item>
-        <item name="pilot_page_background_color">@color/light_pilot_page_background_color</item>
-        <item name="pilot_surface_color">?attr/colorSurface</item>
-        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
-        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
-        <item name="pilot_outline_color">?attr/colorOutline</item>
-        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
-        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
-        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
-        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
-        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.LightTheme" parent="Base.V21.LightTheme" />
     <style name="LightTheme" parent="Base.LightTheme"/>
@@ -78,8 +63,7 @@
     <style name="Base.V21.DarkTheme" parent="Base">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
-        <item name="colorAccent">@color/dark_youtube_accent_color</item>
-        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
         <item name="windowBackground">@color/dark_background_color</item>
         <item name="colorSurface">@color/dark_pilot_surface_color</item>
@@ -105,25 +89,13 @@
         <item name="card_item_contrast_color">@color/dark_card_item_contrast_color</item>
         <item name="border_color">@color/dark_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_dark</item>
-        <item name="pilot_page_background_color">@color/dark_pilot_page_background_color</item>
-        <item name="pilot_surface_color">?attr/colorSurface</item>
-        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
-        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
-        <item name="pilot_outline_color">?attr/colorOutline</item>
-        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
-        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
-        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
-        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
-        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.DarkTheme" parent="Base.V21.DarkTheme" />
     <style name="DarkTheme" parent="Base.DarkTheme"/>
 
     <!-- Black Theme -->
     <style name="Base.V21.BlackTheme" parent="DarkTheme">
-        <item name="android:statusBarColor">?attr/pilot_primary_container_color</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/black_background_color</item>
         <item name="windowBackground">@color/black_background_color</item>
         <item name="colorSurface">@color/black_pilot_surface_color</item>
@@ -145,18 +117,6 @@
         <item name="card_item_contrast_color">@color/black_card_item_contrast_color</item>
         <item name="border_color">@color/black_border_color</item>
         <item name="dashed_border">@drawable/dashed_border_black</item>
-        <item name="pilot_page_background_color">@color/black_pilot_page_background_color</item>
-        <item name="pilot_surface_color">?attr/colorSurface</item>
-        <item name="pilot_surface_variant_color">?attr/colorSurfaceVariant</item>
-        <item name="pilot_surface_container_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_surface_container_high_color">?attr/colorSurfaceContainerHigh</item>
-        <item name="pilot_outline_color">?attr/colorOutline</item>
-        <item name="pilot_primary_container_color">?attr/colorPrimaryContainer</item>
-        <item name="pilot_on_primary_container_color">?attr/colorOnPrimaryContainer</item>
-        <item name="pilot_app_bar_color">?attr/colorSurfaceContainer</item>
-        <item name="pilot_on_surface_color">?attr/colorOnSurface</item>
-        <item name="pilot_on_surface_variant_color">?attr/colorOnSurfaceVariant</item>
-        <item name="pilot_navigation_active_indicator_color">?attr/colorSecondaryContainer</item>
     </style>
     <style name="Base.BlackTheme" parent="Base.V21.BlackTheme" />
     <style name="BlackTheme" parent="Base.BlackTheme"/>
@@ -165,7 +125,6 @@
     <style name="LightDialogTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
-        <item name="colorAccent">@color/light_youtube_accent_color</item>
         <item name="android:windowBackground">@color/light_dialog_background_color</item>
         <item name="windowBackground">@color/light_dialog_background_color</item>
     </style>
@@ -173,7 +132,6 @@
     <style name="DarkDialogTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="colorAccent">@color/dark_youtube_accent_color</item>
         <item name="android:windowBackground">@color/dark_dialog_background_color</item>
         <item name="windowBackground">@color/dark_dialog_background_color</item>
     </style>
@@ -181,7 +139,6 @@
     <style name="LightDialogMinWidthTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
-        <item name="colorAccent">@color/light_youtube_accent_color</item>
         <item name="android:windowBackground">@color/light_dialog_background_color</item>
         <item name="windowBackground">@color/light_dialog_background_color</item>
         <item name="android:windowMinWidthMajor">65%</item>
@@ -191,7 +148,6 @@
     <style name="DarkDialogMinWidthTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="colorAccent">@color/dark_youtube_accent_color</item>
         <item name="android:windowBackground">@color/dark_dialog_background_color</item>
         <item name="windowBackground">@color/dark_dialog_background_color</item>
         <item name="android:windowMinWidthMajor">65%</item>
@@ -199,17 +155,11 @@
     </style>
 
     <!-- Settings -->
-    <style name="LightSettingsTheme" parent="LightTheme">
-        <item name="colorAccent">?attr/colorPrimary</item>
-    </style>
+    <style name="LightSettingsTheme" parent="LightTheme" />
 
-    <style name="DarkSettingsTheme" parent="DarkTheme">
-        <item name="colorAccent">?attr/colorPrimary</item>
-    </style>
+    <style name="DarkSettingsTheme" parent="DarkTheme" />
 
-    <style name="BlackSettingsTheme" parent="BlackTheme">
-        <item name="colorAccent">?attr/colorPrimary</item>
-    </style>
+    <style name="BlackSettingsTheme" parent="BlackTheme" />
 
     <!-- Router Activity -->
     <style name="Base.RouterActivityThemeLight" parent="LightTheme">

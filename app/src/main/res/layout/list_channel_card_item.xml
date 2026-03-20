@@ -25,7 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearance="@style/CircularImageView"
-        app:strokeColor="?attr/pilot_outline_color"
+        app:strokeColor="?attr/colorOutline"
         app:strokeWidth="1dp"
         tools:ignore="RtlHardcoded"
         tools:src="@tools:sample/avatars" />

@@ -7,8 +7,8 @@
         android:state_enabled="true" />
 
     <item
-        android:color="?attr/pilot_on_surface_variant_color"
+        android:color="?attr/colorOnSurfaceVariant"
         android:state_enabled="true" />
 
-    <item android:color="?attr/pilot_outline_color" />
+    <item android:color="?attr/colorOutline" />
 </selector>

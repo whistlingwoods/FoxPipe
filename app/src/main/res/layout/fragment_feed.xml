@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color">
+    android:background="?attr/colorSurface">
 
     <RelativeLayout
         android:id="@+id/refresh_root_view"
@@ -36,7 +36,7 @@
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"
                 android:maxLines="2"
-                android:textColor="?attr/pilot_on_primary_container_color"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:textAppearance="@style/TextAppearance.NewPipe.BodyMedium"
                 android:textSize="14sp"
                 tools:text="@tools:sample/lorem/random" />
@@ -49,7 +49,7 @@
                 android:ellipsize="end"
                 android:gravity="start|center_vertical"
                 android:maxLines="1"
-                android:textColor="?attr/pilot_on_primary_container_color"
+                android:textColor="?attr/colorOnPrimaryContainer"
                 android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
                 android:textSize="12sp"
                 tools:text="@tools:sample/lorem/random" />
@@ -65,11 +65,11 @@
             android:layout_marginStart="6dp"
             android:layout_marginEnd="16dp"
             android:src="@drawable/ic_refresh"
-            android:tint="?attr/pilot_on_primary_container_color"
+            android:tint="?attr/colorOnPrimaryContainer"
             tools:ignore="ContentDescription" />
     </RelativeLayout>
 
-    <org.schabi.newpipe.views.MaterialSwipeRefreshLayout
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -93,7 +93,7 @@
             tools:listitem="@layout/list_stream_item"
             tools:visibility="visible" />
 
-    </org.schabi.newpipe.views.MaterialSwipeRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/new_items_loaded_button"

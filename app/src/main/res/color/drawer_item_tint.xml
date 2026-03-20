@@ -5,5 +5,5 @@
         android:color="?attr/colorOnSecondaryContainer"
         android:state_checked="true" />
 
-    <item android:color="?attr/pilot_on_surface_variant_color" />
+    <item android:color="?attr/colorOnSurfaceVariant" />
 </selector>

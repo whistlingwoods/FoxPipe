@@ -3,7 +3,7 @@
 
     <!-- Base Theme -->
     <style name="Base.V27" parent="Base.V21">
-        <item name="android:navigationBarColor">?attr/pilot_page_background_color</item>
+        <item name="android:navigationBarColor">?attr/colorSurface</item>
     </style>
     <style name="Base" parent="Base.V27"/>
 

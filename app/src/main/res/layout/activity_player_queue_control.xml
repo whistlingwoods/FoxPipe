@@ -14,7 +14,7 @@
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/pilot_app_bar_color"
+        android:background="?attr/colorSurfaceContainer"
         android:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme">
 
@@ -23,7 +23,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_weight="1"
-            android:background="?attr/pilot_app_bar_color"
+            android:background="?attr/colorSurfaceContainer"
             android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
             app:title="@string/app_name" />

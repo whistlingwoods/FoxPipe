@@ -55,6 +55,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.time.OffsetDateTime
 import java.util.function.Consumer
+import kotlin.math.roundToInt
 import org.schabi.newpipe.NewPipeDatabase
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity
@@ -81,6 +82,7 @@ import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.NavigationHelper
 import org.schabi.newpipe.util.ThemeHelper.getGridSpanCountStreams
 import org.schabi.newpipe.util.ThemeHelper.getItemViewMode
+import org.schabi.newpipe.util.ThemeHelper.resolveColorFromAttr
 import org.schabi.newpipe.util.ThemeHelper.resolveDrawable
 import org.schabi.newpipe.util.ThemeHelper.shouldUseGridLayout
 
@@ -128,7 +130,11 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             .registerOnSharedPreferenceChangeListener(onSettingsChangeListener)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_feed, container, false)
     }
 
@@ -160,6 +166,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         })
 
         feedBinding.itemsList.adapter = groupAdapter
+        configureSwipeRefresh()
         setupListViewMode()
     }
 
@@ -184,11 +191,35 @@ class FeedFragment : BaseStateFragment<FeedState>() {
 
     private fun setupListViewMode() {
         // does everything needed to setup the layouts for grid or list modes
-        groupAdapter.spanCount = if (shouldUseGridLayout(context)) getGridSpanCountStreams(context) else 1
-        feedBinding.itemsList.layoutManager = GridLayoutManager(requireContext(), groupAdapter.spanCount).apply {
+        groupAdapter.spanCount = if (shouldUseGridLayout(context)) {
+            getGridSpanCountStreams(context)
+        } else {
+            1
+        }
+        feedBinding.itemsList.layoutManager = GridLayoutManager(
+            requireContext(),
+            groupAdapter.spanCount
+        ).apply {
             spanSizeLookup = groupAdapter.spanSizeLookup
         }
     }
+
+    private fun configureSwipeRefresh() {
+        feedBinding.swipeRefreshLayout.setColorSchemeColors(
+            resolveColorFromAttr(requireContext(), R.attr.colorPrimary)
+        )
+        feedBinding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+            resolveColorFromAttr(requireContext(), R.attr.colorSurfaceContainerHigh)
+        )
+        feedBinding.swipeRefreshLayout.setDistanceToTriggerSync(dpToPx(96))
+        feedBinding.swipeRefreshLayout.setProgressViewOffset(
+            false,
+            dpToPx(24),
+            dpToPx(88)
+        )
+    }
+
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).roundToInt()
 
     override fun initListeners() {
         super.initListeners()
@@ -229,7 +260,10 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                 .setMessage(R.string.feed_use_dedicated_fetch_method_help_text)
                 .setNeutralButton(enableDisableButtonText) { _, _ ->
                     sharedPreferences.edit {
-                        putBoolean(getString(R.string.feed_use_dedicated_fetch_method_key), !usingDedicatedMethod)
+                        putBoolean(
+                            getString(R.string.feed_use_dedicated_fetch_method_key),
+                            !usingDedicatedMethod
+                        )
                     }
                 }
                 .setPositiveButton(resources.getString(R.string.ok), null)
@@ -538,7 +572,9 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             false
         )
 
-        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(
+            requireContext()
+        )
             .setTitle(R.string.feed_load_error)
             .setPositiveButton(R.string.unsubscribe) { _, _ ->
                 SubscriptionManager(requireContext())
@@ -554,7 +590,9 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         } else if (cause is ContentNotAvailableException) {
             if (isFastFeedModeEnabled) {
                 message += "\n" + getString(R.string.feed_load_error_fast_unknown)
-                builder.setNeutralButton(R.string.feed_use_dedicated_fetch_method_disable_button) { _, _ ->
+                builder.setNeutralButton(
+                    R.string.feed_use_dedicated_fetch_method_disable_button
+                ) { _, _ ->
                     sharedPreferences.edit {
                         putBoolean(getString(R.string.feed_use_dedicated_fetch_method_key), false)
                     }
@@ -715,9 +753,15 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         const val KEY_GROUP_NAME = "ARG_GROUP_NAME"
 
         @JvmStatic
-        fun newInstance(groupId: Long = FeedGroupEntity.GROUP_ALL_ID, groupName: String? = null): FeedFragment {
+        fun newInstance(
+            groupId: Long = FeedGroupEntity.GROUP_ALL_ID,
+            groupName: String? = null
+        ): FeedFragment {
             val feedFragment = FeedFragment()
-            feedFragment.arguments = bundleOf(KEY_GROUP_ID to groupId, KEY_GROUP_NAME to groupName)
+            feedFragment.arguments = bundleOf(
+                KEY_GROUP_ID to groupId,
+                KEY_GROUP_NAME to groupName
+            )
             return feedFragment
         }
     }

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:orientation="vertical">
 
     <include
@@ -108,8 +108,8 @@
                     android:ellipsize="end"
                     android:inputType="none"
                     android:maxLines="1"
-                    android:textColor="?attr/pilot_on_surface_color"
-                    android:textColorHint="?attr/pilot_on_surface_variant_color"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
                     tools:text="1080p60 • MPEG-4 • 123 MB" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -131,8 +131,8 @@
                     android:ellipsize="end"
                     android:inputType="none"
                     android:maxLines="1"
-                    android:textColor="?attr/pilot_on_surface_color"
-                    android:textColorHint="?attr/pilot_on_surface_variant_color"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
                     tools:text="English • English (Original)" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -154,8 +154,8 @@
                     android:ellipsize="end"
                     android:inputType="none"
                     android:maxLines="1"
-                    android:textColor="?attr/pilot_on_surface_color"
-                    android:textColorHint="?attr/pilot_on_surface_variant_color"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
                     tools:text="160kbps • opus • 12.3 MB" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -166,7 +166,7 @@
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="@string/audio_track_present_in_video"
-                android:textColor="?attr/pilot_on_surface_variant_color"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
             <org.schabi.newpipe.views.NewPipeTextView
@@ -215,7 +215,7 @@
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="@string/streams_not_yet_supported_removed"
-                android:textColor="?attr/pilot_on_surface_variant_color"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

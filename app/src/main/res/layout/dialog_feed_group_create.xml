@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
     android:paddingStart="16dp"
     android:paddingTop="16dp"
@@ -117,7 +117,7 @@
                 android:id="@+id/subscriptions_header_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="?attr/pilot_surface_container_high_color"
+                android:background="?attr/colorSurfaceContainerHigh"
                 android:gravity="center_vertical"
                 app:popupTheme="@style/ToolbarPopupTheme">
 
@@ -133,7 +133,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
                         android:text="@string/tab_subscriptions"
-                        android:textColor="?attr/pilot_on_surface_color"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -142,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
-                        android:textColor="?attr/pilot_on_surface_variant_color"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         tools:text="1 selected" />
                 </LinearLayout>
@@ -179,7 +179,7 @@
             android:paddingRight="?dialogPreferredPadding"
             android:paddingBottom="16dp"
             android:text="@string/feed_group_dialog_delete_message"
-            android:textColor="?attr/pilot_on_surface_variant_color"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="visible" />
     </FrameLayout>
 

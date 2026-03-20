@@ -5,7 +5,7 @@
     android:id="@+id/video_item_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:focusableInTouchMode="true">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -154,7 +154,7 @@
                     android:id="@+id/detail_content_root_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="?attr/pilot_page_background_color"
+                    android:background="?attr/colorSurface"
                     app:layout_scrollFlags="scroll">
 
                 <!-- TITLE -->
@@ -193,7 +193,7 @@
                             android:layout_marginTop="11dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_expand_more"
-                            app:tint="?attr/pilot_on_surface_variant_color"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                 </FrameLayout>
@@ -597,12 +597,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
-            android:background="?attr/pilot_surface_color"
+            android:background="?attr/colorSurface"
             app:elevation="16dp"
-            app:tabBackground="?attr/pilot_surface_variant_color"
+            app:tabBackground="?attr/colorSurfaceVariant"
             app:tabGravity="fill"
-            app:tabIconTint="?attr/pilot_on_primary_container_color"
-            app:tabIndicatorColor="?attr/pilot_primary_container_color"
+            app:tabIconTint="?attr/colorOnPrimaryContainer"
+            app:tabIndicatorColor="?attr/colorPrimaryContainer"
             app:tabIndicatorGravity="top" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

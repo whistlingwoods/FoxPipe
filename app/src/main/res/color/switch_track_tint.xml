@@ -7,8 +7,8 @@
         android:state_enabled="true" />
 
     <item
-        android:color="?attr/pilot_surface_container_high_color"
+        android:color="?attr/colorSurfaceContainerHigh"
         android:state_enabled="true" />
 
-    <item android:color="?attr/pilot_surface_variant_color" />
+    <item android:color="?attr/colorSurfaceVariant" />
 </selector>

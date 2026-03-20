@@ -37,7 +37,7 @@
                 android:maxLines="1"
                 android:nextFocusDown="@+id/suggestions_list"
                 android:textColor="?attr/toolbarSearchColor"
-                android:textColorHint="?attr/pilot_on_surface_variant_color"
+                android:textColorHint="?attr/colorOnSurfaceVariant"
                 android:theme="@style/ToolbarSearchInputTheme"
                 tools:ignore="RtlHardcoded" />
         </com.google.android.material.textfield.TextInputLayout>

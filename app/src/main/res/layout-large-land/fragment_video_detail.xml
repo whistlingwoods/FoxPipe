@@ -5,7 +5,7 @@
     android:id="@+id/video_item_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color">
+    android:background="?attr/colorSurface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -166,7 +166,7 @@
                     android:id="@+id/detail_content_root_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="?attr/pilot_page_background_color"
+                    android:background="?attr/colorSurface"
                     app:layout_scrollFlags="scroll">
 
                     <!-- TITLE -->
@@ -205,7 +205,7 @@
                             android:layout_marginTop="11dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_expand_more"
-                            app:tint="?attr/pilot_on_surface_variant_color"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                     </FrameLayout>

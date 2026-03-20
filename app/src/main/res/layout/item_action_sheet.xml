@@ -16,7 +16,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"
-        android:tint="?attr/pilot_on_surface_variant_color"
+        android:tint="?attr/colorOnSurfaceVariant"
         android:visibility="gone" />
 
     <com.google.android.material.textview.MaterialTextView
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="?attr/pilot_on_surface_color" />
+        android:textColor="?attr/colorOnSurface" />
 
     <ImageView
         android:id="@+id/actionCheck"
