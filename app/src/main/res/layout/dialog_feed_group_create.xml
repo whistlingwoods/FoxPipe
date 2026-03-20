@@ -133,7 +133,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
                         android:text="@string/tab_subscriptions"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="?attr/pilot_on_surface_color"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -142,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="?attr/pilot_on_surface_variant_color"
                         android:textSize="12sp"
                         tools:text="1 selected" />
                 </LinearLayout>
