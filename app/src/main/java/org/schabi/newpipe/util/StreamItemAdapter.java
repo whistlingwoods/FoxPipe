@@ -84,7 +84,7 @@ public class StreamItemAdapter<T extends Stream, U extends Stream> extends BaseA
     }
 
     public StreamItemAdapter(final StreamInfoWrapper<T> streamsWrapper) {
-        this(streamsWrapper, null);
+        this(streamsWrapper, new SparseArrayCompat<>(0), null);
     }
 
     public StreamItemAdapter(@NonNull final StreamInfoWrapper<T> streamsWrapper,
