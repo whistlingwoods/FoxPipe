@@ -212,7 +212,6 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             if (mission.running && !mission.isPsRunning()) length += " --.- kB/s";
 
             h.size.setText(length);
-            h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
             mPendingDownloadsItems.add(h);
 
@@ -645,7 +644,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 showError(mission);
                 return true;
             } else if (id == R.id.queue) {
-                boolean flag = !mission.isEnqueued();
+                boolean flag = !mission.enqueued;
                 mission.setEnqueued(flag);
                 updateProgress(h);
                 return true;
@@ -920,7 +919,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 } else {
                     if (mission.running) {
                         actionItems.add(createAction(
-                                R.id.pause, R.string.pause, R.drawable.ic_pause));
+                                R.id.pause,
+                                mission.unknownLength ? R.string.stop : R.string.pause,
+                                R.drawable.ic_pause));
                     } else {
                         if (mission.errCode != ERROR_NOTHING) {
                             actionItems.add(createAction(
@@ -953,7 +954,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                         R.id.checksum,
                         mContext.getString(R.string.checksum),
                         R.drawable.ic_description,
-                        List.of(
+                        Arrays.asList(
                                 createAction(R.id.md5, R.string.md5, 0),
                                 createAction(R.id.sha1, R.string.sha1, 0)
                         )));
