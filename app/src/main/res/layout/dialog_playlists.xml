@@ -10,7 +10,7 @@
         android:id="@+id/newPlaylist"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_pilot_list_item_ripple"
+        android:background="@drawable/bg_md3_list_item_ripple"
         android:clickable="true"
         android:clipToOutline="true"
         android:focusable="true"
@@ -59,7 +59,7 @@
         android:id="@+id/separator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?attr/separator_color" />
+        android:background="?attr/colorOutlineVariant" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlist_list"

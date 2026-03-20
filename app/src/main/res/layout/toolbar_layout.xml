@@ -15,7 +15,9 @@
         android:minHeight="?attr/actionBarSize"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:theme="@style/PilotToolbarTheme">
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+        app:titleTextColor="?attr/colorOnSurface">
 
         <include
             android:id="@+id/toolbar_search_container"

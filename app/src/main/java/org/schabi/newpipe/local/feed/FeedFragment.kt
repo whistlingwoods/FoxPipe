@@ -36,6 +36,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -646,7 +647,12 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                         // Merge the drawables together. Otherwise we would lose the "select" effect
                         LayerDrawable(
                             arrayOf(
-                                resolveDrawable(ctx, R.attr.dashed_border),
+                                requireNotNull(
+                                    AppCompatResources.getDrawable(
+                                        ctx,
+                                        R.drawable.bg_md3_dashed_border
+                                    )
+                                ),
                                 resolveDrawable(ctx, android.R.attr.selectableItemBackground)
                             )
                         )

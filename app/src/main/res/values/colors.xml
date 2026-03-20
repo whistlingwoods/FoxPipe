@@ -15,14 +15,8 @@
     <color name="light_settings_accent_color">#e53935</color>
     <color name="light_separator_color">#32000000</color>
     <color name="light_ripple_color">#1F7D2A1C</color>
-    <color name="light_selected_color">#2a868686</color>
-    <color name="light_contrast_background_color">#1fa6a6a6</color>
-    <color name="light_shadow_start_color">#5a000000</color>
     <color name="light_license_background_color">#ffffff</color>
     <color name="light_license_text_color">#212121</color>
-    <color name="light_card_item_background_color">#FFFBFF</color>
-    <color name="light_card_item_contrast_color">#F3E0DC</color>
-    <color name="light_border_color">#1F524343</color>
     <color name="light_pilot_page_background_color">#F8F4F3</color>
     <color name="light_pilot_surface_color">#FFFBFF</color>
     <color name="light_pilot_surface_variant_color">#F1DFDB</color>
@@ -42,15 +36,9 @@
     <color name="dark_settings_accent_color">#ff5252</color>
     <color name="dark_separator_color">#14FFFFFF</color>
     <color name="dark_ripple_color">#33FFDAD4</color>
-    <color name="dark_selected_color">#2affffff</color>
-    <color name="dark_contrast_background_color">#1f717171</color>
-    <color name="dark_shadow_start_color">#82000000</color>
     <color name="dark_license_background_color">#1F1B1A</color>
     <color name="dark_license_text_color">#ffffff</color>
     <color name="dark_queue_background_color">#af000000</color>
-    <color name="dark_card_item_background_color">#1F1B1A</color>
-    <color name="dark_card_item_contrast_color">#2A2524</color>
-    <color name="dark_border_color">#29D8C2BE</color>
     <color name="dark_pilot_page_background_color">#151312</color>
     <color name="dark_pilot_surface_color">#1F1B1A</color>
     <color name="dark_pilot_surface_variant_color">#2A2524</color>
@@ -68,10 +56,6 @@
     <color name="black_background_color">#000000</color>
     <color name="black_settings_accent_color">@color/dark_settings_accent_color</color>
     <color name="black_separator_color">#1effffff</color>
-    <color name="black_contrast_background_color">#23454545</color>
-    <color name="black_card_item_background_color">#0D0B0B</color>
-    <color name="black_card_item_contrast_color">#181413</color>
-    <color name="black_border_color">#25CCB8B4</color>
     <color name="black_pilot_page_background_color">#050404</color>
     <color name="black_pilot_surface_color">#100D0D</color>
     <color name="black_pilot_surface_variant_color">#1A1514</color>
@@ -99,10 +83,6 @@
     <color name="subscribed_text_color">#717171</color>
 
     <color name="transparent_background_color">#00000000</color>
-    <color name="selected_background_color">#96717171</color>
-
-    <!-- GigaGet theme -->
-    <color name="bluegray">#607D8B</color>
 
     <!-- GigaGet download Theme colors -->
     <color name="audio_left_to_load_color">#555555</color>

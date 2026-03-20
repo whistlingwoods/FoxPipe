@@ -13,14 +13,12 @@
 
     <!-- Base Theme -->
     <style name="Base.V21" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="actionColor">@color/white</item>
         <item name="cardViewStyle">@style/Widget.NewPipe.CardView</item>
         <item name="materialCardViewStyle">@style/Widget.NewPipe.MaterialCardView</item>
         <item name="materialButtonStyle">@style/Widget.NewPipe.Button</item>
         <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="floatingActionButtonStyle">@style/FloatingActionButtonTheme</item>
         <item name="sliderStyle">@style/Widget.NewPipe.SeekBar</item>
-        <item name="toolbarSearchColor">@color/white</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
     </style>
     <style name="Base" parent="Base.V21"/>
@@ -31,12 +29,12 @@
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/light_background_color</item>
-        <item name="windowBackground">@color/light_background_color</item>
         <item name="colorSurface">@color/light_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/light_pilot_surface_variant_color</item>
         <item name="colorSurfaceContainer">@color/light_pilot_surface_container_color</item>
         <item name="colorSurfaceContainerHigh">@color/light_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/light_pilot_outline_color</item>
+        <item name="colorOutlineVariant">@color/light_separator_color</item>
         <item name="colorPrimaryContainer">@color/light_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/light_pilot_on_primary_container_color</item>
         <item name="colorSecondaryContainer">@color/light_pilot_secondary_container_color</item>
@@ -44,17 +42,7 @@
         <item name="colorOnSurface">@color/light_pilot_on_surface_color</item>
         <item name="colorOnSurfaceVariant">@color/light_pilot_on_surface_variant_color</item>
 
-        <item name="separator_color">@color/light_separator_color</item>
-        <item name="contrast_background_color">@color/light_contrast_background_color</item>
-        <item name="checked_selector">@drawable/selector_checked_light</item>
-        <item name="focused_selector">@drawable/selector_focused_light</item>
-        <item name="toolbar_shadow">@drawable/toolbar_shadow_light</item>
-        <item name="selector">@drawable/selector_light</item>
         <item name="colorControlHighlight">@color/light_ripple_color</item>
-        <item name="card_item_background_color">@color/light_card_item_background_color</item>
-        <item name="card_item_contrast_color">@color/light_card_item_contrast_color</item>
-        <item name="border_color">@color/light_border_color</item>
-        <item name="dashed_border">@drawable/dashed_border_light</item>
     </style>
     <style name="Base.LightTheme" parent="Base.V21.LightTheme" />
     <style name="LightTheme" parent="Base.LightTheme"/>
@@ -65,12 +53,12 @@
         <item name="colorPrimaryDark">?attr/colorPrimary</item>
         <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
-        <item name="windowBackground">@color/dark_background_color</item>
         <item name="colorSurface">@color/dark_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/dark_pilot_surface_variant_color</item>
         <item name="colorSurfaceContainer">@color/dark_pilot_surface_container_color</item>
         <item name="colorSurfaceContainerHigh">@color/dark_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/dark_pilot_outline_color</item>
+        <item name="colorOutlineVariant">@color/dark_separator_color</item>
         <item name="colorPrimaryContainer">@color/dark_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/dark_pilot_on_primary_container_color</item>
         <item name="colorSecondaryContainer">@color/dark_pilot_secondary_container_color</item>
@@ -78,17 +66,7 @@
         <item name="colorOnSurface">@color/dark_pilot_on_surface_color</item>
         <item name="colorOnSurfaceVariant">@color/dark_pilot_on_surface_variant_color</item>
 
-        <item name="separator_color">@color/dark_separator_color</item>
-        <item name="contrast_background_color">@color/dark_contrast_background_color</item>
-        <item name="checked_selector">@drawable/selector_checked_dark</item>
-        <item name="focused_selector">@drawable/selector_focused_dark</item>
-        <item name="toolbar_shadow">@drawable/toolbar_shadow_dark</item>
-        <item name="selector">@drawable/selector_dark</item>
         <item name="colorControlHighlight">@color/dark_ripple_color</item>
-        <item name="card_item_background_color">@color/dark_card_item_background_color</item>
-        <item name="card_item_contrast_color">@color/dark_card_item_contrast_color</item>
-        <item name="border_color">@color/dark_border_color</item>
-        <item name="dashed_border">@drawable/dashed_border_dark</item>
     </style>
     <style name="Base.DarkTheme" parent="Base.V21.DarkTheme" />
     <style name="DarkTheme" parent="Base.DarkTheme"/>
@@ -97,26 +75,18 @@
     <style name="Base.V21.BlackTheme" parent="DarkTheme">
         <item name="android:statusBarColor">?attr/colorPrimaryContainer</item>
         <item name="android:windowBackground">@color/black_background_color</item>
-        <item name="windowBackground">@color/black_background_color</item>
         <item name="colorSurface">@color/black_pilot_surface_color</item>
         <item name="colorSurfaceVariant">@color/black_pilot_surface_variant_color</item>
         <item name="colorSurfaceContainer">@color/black_pilot_surface_container_color</item>
         <item name="colorSurfaceContainerHigh">@color/black_pilot_surface_container_high_color</item>
         <item name="colorOutline">@color/black_pilot_outline_color</item>
+        <item name="colorOutlineVariant">@color/black_separator_color</item>
         <item name="colorPrimaryContainer">@color/black_pilot_primary_container_color</item>
         <item name="colorOnPrimaryContainer">@color/black_pilot_on_primary_container_color</item>
         <item name="colorSecondaryContainer">@color/black_pilot_secondary_container_color</item>
         <item name="colorOnSecondaryContainer">@color/black_pilot_on_secondary_container_color</item>
         <item name="colorOnSurface">@color/black_pilot_on_surface_color</item>
         <item name="colorOnSurfaceVariant">@color/black_pilot_on_surface_variant_color</item>
-
-        <item name="separator_color">@color/black_separator_color</item>
-        <item name="contrast_background_color">@color/black_contrast_background_color</item>
-
-        <item name="card_item_background_color">@color/black_card_item_background_color</item>
-        <item name="card_item_contrast_color">@color/black_card_item_contrast_color</item>
-        <item name="border_color">@color/black_border_color</item>
-        <item name="dashed_border">@drawable/dashed_border_black</item>
     </style>
     <style name="Base.BlackTheme" parent="Base.V21.BlackTheme" />
     <style name="BlackTheme" parent="Base.BlackTheme"/>
@@ -126,21 +96,18 @@
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
         <item name="android:windowBackground">@color/light_dialog_background_color</item>
-        <item name="windowBackground">@color/light_dialog_background_color</item>
     </style>
 
     <style name="DarkDialogTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="android:windowBackground">@color/dark_dialog_background_color</item>
-        <item name="windowBackground">@color/dark_dialog_background_color</item>
     </style>
 
     <style name="LightDialogMinWidthTheme" parent="Theme.Material3.DayNight.Dialog">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
         <item name="android:windowBackground">@color/light_dialog_background_color</item>
-        <item name="windowBackground">@color/light_dialog_background_color</item>
         <item name="android:windowMinWidthMajor">65%</item>
         <item name="android:windowMinWidthMinor">95%</item>
     </style>
@@ -149,7 +116,6 @@
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="android:windowBackground">@color/dark_dialog_background_color</item>
-        <item name="windowBackground">@color/dark_dialog_background_color</item>
         <item name="android:windowMinWidthMajor">65%</item>
         <item name="android:windowMinWidthMinor">95%</item>
     </style>

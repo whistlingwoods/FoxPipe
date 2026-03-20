@@ -66,7 +66,7 @@
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:layout_alignParentTop="true"
-        android:background="?attr/toolbar_shadow"
+        android:background="@drawable/bg_md3_toolbar_shadow"
         android:visibility="gone" />
 
 </RelativeLayout>

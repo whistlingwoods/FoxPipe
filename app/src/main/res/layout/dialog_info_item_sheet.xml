@@ -7,6 +7,14 @@
     android:orientation="vertical"
     android:paddingBottom="12dp">
 
+    <View
+        android:layout_width="32dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_md3_drag_handle" />
+
     <FrameLayout
         android:id="@+id/actionSheetHeaderContainer"
         android:layout_width="match_parent"

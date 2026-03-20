@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,12 +10,14 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimaryContainer"
+        android:background="?attr/colorSurfaceContainer"
         android:gravity="center_vertical"
         android:minHeight="?attr/actionBarSize"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:theme="@style/PilotToolbarTheme">
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+        app:titleTextColor="?attr/colorOnSurface">
 
         <include
             android:id="@+id/toolbar_search_container"

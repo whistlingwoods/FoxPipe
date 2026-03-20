@@ -15,7 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorSurfaceContainer"
-        android:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -24,8 +23,9 @@
             android:layout_height="?attr/actionBarSize"
             android:layout_weight="1"
             android:background="?attr/colorSurfaceContainer"
-            android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:subtitleTextColor="?attr/colorOnSurfaceVariant"
             app:title="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -306,7 +306,7 @@
             tools:ignore="HardcodedText"
             tools:text="1:23:49" />
 
-        <org.schabi.newpipe.views.NewPipeTextView
+        <com.google.android.material.chip.Chip
             android:id="@+id/live_sync"
             style="@style/Widget.NewPipe.Player.TextChip.Emphasized"
             android:layout_width="wrap_content"

@@ -10,18 +10,18 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="14dp"
-        android:background="?attr/contrast_background_color">
+        android:background="?attr/colorSurfaceContainerHigh">
 
         <View
             android:layout_width="match_parent"
             android:layout_height="5dp"
-            android:background="?attr/toolbar_shadow" />
+            android:background="@drawable/bg_md3_toolbar_shadow" />
     </FrameLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?attr/separator_color" />
+        android:background="?attr/colorOutlineVariant" />
 
     <LinearLayout
         android:id="@+id/import_export"
@@ -104,6 +104,6 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="6dp"
             android:layout_marginEnd="8dp"
-            android:background="?attr/separator_color" />
+            android:background="?attr/colorOutlineVariant" />
     </LinearLayout>
 </LinearLayout>

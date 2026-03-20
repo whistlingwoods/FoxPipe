@@ -9,12 +9,12 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="?attr/card_item_background_color">
+    app:cardBackgroundColor="?attr/colorSurfaceContainer">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?attr/dashed_border"
+        android:background="@drawable/bg_md3_dashed_border"
         android:orientation="horizontal">
 
         <ImageView

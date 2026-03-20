@@ -5,7 +5,7 @@
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selector"
+    android:background="@drawable/bg_md3_selected_item"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground">

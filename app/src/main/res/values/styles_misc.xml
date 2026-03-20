@@ -43,10 +43,8 @@
     <style name="FilePickerThemeLight" parent="LightTheme">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
-        <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
         <item name="android:windowBackground">@color/light_background_color</item>
-        <item name="windowBackground">@color/light_background_color</item>
         <item name="nnf_separator_color">@color/light_separator_color</item>
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeLight</item>
     </style>
@@ -54,10 +52,8 @@
     <style name="FilePickerThemeDark" parent="DarkTheme">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
-        <item name="windowBackground">@color/dark_background_color</item>
         <item name="nnf_separator_color">@color/dark_separator_color</item>
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
     </style>
@@ -65,10 +61,8 @@
     <style name="FilePickerThemeBlack" parent="BlackTheme">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
         <item name="android:windowBackground">@color/black_background_color</item>
-        <item name="windowBackground">@color/black_background_color</item>
         <item name="nnf_separator_color">@color/black_separator_color</item>
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
     </style>
@@ -238,20 +232,27 @@
         <item name="cornerRadius">@dimen/player_md3_play_pause_button_radius</item>
     </style>
 
-    <style name="Widget.NewPipe.Player.TextChip" parent="">
-        <item name="android:background">@drawable/bg_player_md3_chip</item>
-        <item name="android:gravity">center</item>
+    <style name="Widget.NewPipe.Player.TextChip" parent="Widget.Material3.Chip.Suggestion">
         <item name="android:minHeight">@dimen/player_md3_chip_height</item>
         <item name="android:minWidth">@dimen/player_md3_chip_min_width</item>
-        <item name="android:paddingStart">@dimen/player_md3_chip_horizontal_padding</item>
-        <item name="android:paddingEnd">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="chipMinHeight">@dimen/player_md3_chip_height</item>
+        <item name="chipBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="chipCornerRadius">@dimen/player_md3_chip_radius</item>
+        <item name="chipStrokeColor">?attr/colorOutline</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStartPadding">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="chipEndPadding">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
         <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="Widget.NewPipe.Player.TextChip.Emphasized"
         parent="Widget.NewPipe.Player.TextChip">
-        <item name="android:background">@drawable/bg_player_md3_chip_emphasized</item>
+        <item name="chipBackgroundColor">?attr/colorSecondaryContainer</item>
+        <item name="chipStrokeWidth">0dp</item>
         <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
     </style>
 
@@ -327,14 +328,6 @@
         <item name="colorOnSurface">?attr/colorOnSurface</item>
         <item name="tint">?attr/colorOnSurface</item>
         <item name="iconTint">?attr/colorOnSurface</item>
-        <item name="toolbarSearchColor">?attr/colorOnSurface</item>
-    </style>
-    <style name="PilotToolbarTheme" parent="ToolbarTheme">
-        <item name="android:textColorPrimary">?attr/colorOnPrimaryContainer</item>
-        <item name="android:textColorSecondary">?attr/colorOnPrimaryContainer</item>
-        <item name="tint">?attr/colorOnPrimaryContainer</item>
-        <item name="iconTint">?attr/colorOnPrimaryContainer</item>
-        <item name="toolbarSearchColor">?attr/colorOnPrimaryContainer</item>
     </style>
     <style name="ToolbarPopupTheme" parent="">
         <item name="android:textColorPrimary">@color/contrastColor</item>
@@ -342,30 +335,6 @@
         <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
         <item name="iconTint">@color/contrastColor</item>
-    </style>
-    <style name="ContrastToolbarTheme" parent="">
-        <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">@color/contrastColor</item>
-        <item name="android:textColorSecondary">@color/contrastColor</item>
-        <item name="colorOnSurface">@color/contrastColor</item>
-        <item name="tint">@color/contrastColor</item>
-        <item name="iconTint">@color/contrastColor</item>
-        <item name="toolbarSearchColor">@color/contrastColor</item>
-    </style>
-
-    <style name="WhiteTintTheme">
-        <item name="tint">@color/white</item>
-        <item name="iconTint">@color/white</item>
-    </style>
-    <style name="ContrastTintTheme">
-        <item name="tint">@color/contrastColor</item>
-        <item name="iconTint">@color/contrastColor</item>
-    </style>
-
-    <style name="ToolbarSearchInputTheme">
-        <item name="colorPrimary">?attr/toolbarSearchColor</item>
-        <item name="colorPrimaryDark">?attr/toolbarSearchColor</item>
-        <item name="colorControlActivated">?attr/toolbarSearchColor</item>
     </style>
 
     <style name="CircularImageView">

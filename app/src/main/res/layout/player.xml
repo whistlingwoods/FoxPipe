@@ -179,7 +179,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1">
 
-                            <org.schabi.newpipe.views.NewPipeTextView
+                            <com.google.android.material.chip.Chip
                                 android:id="@+id/audioTrackTextView"
                                 style="@style/Widget.NewPipe.Player.TextChip"
                                 android:layout_width="wrap_content"
@@ -197,7 +197,7 @@
 
                     </LinearLayout>
 
-                    <org.schabi.newpipe.views.NewPipeTextView
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/qualityTextView"
                         style="@style/Widget.NewPipe.Player.TextChip"
                         android:layout_width="wrap_content"
@@ -207,7 +207,7 @@
                         tools:ignore="HardcodedText,RtlHardcoded"
                         tools:text="720p" />
 
-                    <org.schabi.newpipe.views.NewPipeTextView
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/playbackSpeed"
                         style="@style/Widget.NewPipe.Player.TextChip"
                         android:layout_width="wrap_content"
@@ -274,7 +274,7 @@
                     tools:ignore="RtlHardcoded"
                     tools:visibility="visible">
 
-                    <org.schabi.newpipe.views.NewPipeTextView
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/resizeTextView"
                         style="@style/Widget.NewPipe.Player.TextChip"
                         android:layout_width="wrap_content"
@@ -289,7 +289,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="3">
 
-                        <org.schabi.newpipe.views.NewPipeTextView
+                        <com.google.android.material.chip.Chip
                             android:id="@+id/captionTextView"
                             style="@style/Widget.NewPipe.Player.TextChip"
                             android:layout_width="wrap_content"
@@ -469,7 +469,7 @@
                     tools:ignore="HardcodedText"
                     tools:text="1:23:49" />
 
-                <org.schabi.newpipe.views.NewPipeTextView
+                <com.google.android.material.chip.Chip
                     android:id="@+id/playbackLiveSync"
                     style="@style/Widget.NewPipe.Player.TextChip.Emphasized"
                     android:layout_width="wrap_content"

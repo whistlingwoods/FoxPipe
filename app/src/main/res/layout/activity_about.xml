@@ -13,7 +13,6 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorSurfaceContainer"
         android:paddingTop="@dimen/appbar_padding_top"
-        android:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -21,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorSurfaceContainer"
-            android:theme="@style/ToolbarTheme"
+            app:navigationIconTint="?attr/colorOnSurface"
             app:layout_scrollFlags="scroll|enterAlways" />
 
         <com.google.android.material.tabs.TabLayout
