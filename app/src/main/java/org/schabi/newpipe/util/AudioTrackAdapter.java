@@ -56,10 +56,10 @@ public class AudioTrackAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(final int position, final View convertView, final ViewGroup parent) {
-        final var context = parent.getContext();
+        final Context parentContext = parent.getContext();
         final View view;
         if (convertView == null) {
-            view = LayoutInflater.from(context).inflate(
+            view = LayoutInflater.from(parentContext).inflate(
                     R.layout.stream_quality_item, parent, false);
         } else {
             view = convertView;
@@ -79,7 +79,7 @@ public class AudioTrackAdapter extends BaseAdapter implements Filterable {
         if (stream.getAudioTrackId() != null) {
             formatNameView.setText(stream.getAudioTrackId());
         }
-        qualityView.setText(Localization.audioTrackName(context, stream));
+        qualityView.setText(Localization.audioTrackName(parentContext, stream));
 
         return view;
     }
