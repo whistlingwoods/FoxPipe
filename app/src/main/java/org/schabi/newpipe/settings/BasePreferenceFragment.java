@@ -13,11 +13,13 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceGroup;
 import androidx.preference.SwitchPreference;
 import androidx.preference.SwitchPreferenceCompat;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
@@ -49,7 +51,7 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
 
     protected final void inflatePreferences(@XmlRes final int preferencesResId) {
         addPreferencesFromResource(preferencesResId);
-        applyMaterialSwitchWidgets(getPreferenceScreen());
+        applyMaterialPreferenceStyling(getPreferenceScreen());
     }
 
     @Override
@@ -57,6 +59,11 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
                               @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(rootView, savedInstanceState);
         setDivider(null);
+        final RecyclerView listView = getListView();
+        final int verticalPadding =
+                Math.round(getResources().getDisplayMetrics().density * 8f);
+        listView.setClipToPadding(false);
+        listView.setPadding(0, verticalPadding, 0, verticalPadding);
         ThemeHelper.setTitleToAppCompatActivity(getActivity(), getPreferenceScreen().getTitle());
     }
 
@@ -90,9 +97,15 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         dialogFragment.show(getParentFragmentManager(), PREFERENCE_DIALOG_TAG);
     }
 
-    private void applyMaterialSwitchWidgets(@Nullable final Preference preference) {
+    private void applyMaterialPreferenceStyling(@Nullable final Preference preference) {
         if (preference == null) {
             return;
+        }
+
+        if (preference instanceof PreferenceCategory) {
+            preference.setLayoutResource(R.layout.preference_category_material);
+        } else if (preference.getLayoutResource() == androidx.preference.R.layout.preference) {
+            preference.setLayoutResource(R.layout.preference_material);
         }
 
         if (preference instanceof SwitchPreferenceCompat) {
@@ -107,7 +120,7 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
 
         final PreferenceGroup preferenceGroup = (PreferenceGroup) preference;
         for (int i = 0; i < preferenceGroup.getPreferenceCount(); i++) {
-            applyMaterialSwitchWidgets(preferenceGroup.getPreference(i));
+            applyMaterialPreferenceStyling(preferenceGroup.getPreference(i));
         }
     }
 

@@ -6,22 +6,23 @@ import android.util.AttributeSet;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatTextView;
+
+import com.google.android.material.textview.MaterialTextView;
 
 import org.schabi.newpipe.util.NewPipeTextViewHelper;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 
 /**
- * An {@link AppCompatTextView} which uses {@link ShareUtils#shareText(Context, String, String)}
+ * A {@link MaterialTextView} which uses {@link ShareUtils#shareText(Context, String, String)}
  * when sharing selected text by using the {@code Share} command of the floating actions.
  *
  * <p>
  * This class allows NewPipe to show Android share sheet instead of EMUI share sheet when sharing
- * text from {@link AppCompatTextView} on EMUI devices and also to keep movement method set when a
+ * text from {@link MaterialTextView} on EMUI devices and also to keep movement method set when a
  * text change occurs, if the text cannot be selected and text links are clickable.
  * </p>
  */
-public class NewPipeTextView extends AppCompatTextView {
+public class NewPipeTextView extends MaterialTextView {
 
     public NewPipeTextView(@NonNull final Context context) {
         super(context);

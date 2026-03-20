@@ -1,6 +1,6 @@
 package org.schabi.newpipe.player;
 
-import static org.schabi.newpipe.QueueItemMenuUtil.openPopupMenu;
+import static org.schabi.newpipe.QueueItemMenuUtil.openActionSheet;
 import static org.schabi.newpipe.player.helper.PlayerHelper.formatSpeed;
 
 import android.content.ComponentName;
@@ -15,7 +15,6 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.SeekBar;
 
 import androidx.annotation.Nullable;
@@ -46,6 +45,7 @@ import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.PermissionHelper;
 import org.schabi.newpipe.util.ServiceHelper;
 import org.schabi.newpipe.util.ThemeHelper;
+import org.schabi.newpipe.views.PilotIconButton;
 
 import java.util.List;
 import java.util.Optional;
@@ -329,7 +329,7 @@ public final class PlayQueueActivity extends AppCompatActivity
             @Override
             public void held(final PlayQueueItem item, final View view) {
                 if (player != null && player.getPlayQueue().indexOf(item) != -1) {
-                    openPopupMenu(player.getPlayQueue(), item, view, false,
+                    openActionSheet(player.getPlayQueue(), item, view, false,
                             getSupportFragmentManager(), PlayQueueActivity.this);
                 }
             }
@@ -533,7 +533,7 @@ public final class PlayQueueActivity extends AppCompatActivity
     ////////////////////////////////////////////////////////////////////////////
 
     private void onStateChanged(final int state) {
-        final ImageButton playPauseButton = queueControlBinding.controlPlayPause;
+        final PilotIconButton playPauseButton = queueControlBinding.controlPlayPause;
         switch (state) {
             case Player.STATE_PAUSED:
                 playPauseButton.setImageResource(R.drawable.ic_play_arrow);

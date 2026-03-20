@@ -9,7 +9,8 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatTextView;
+
+import com.google.android.material.textview.MaterialTextView;
 
 import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfoItem;
 
@@ -63,7 +64,7 @@ public final class BulletCommentsOverlayView extends FrameLayout {
             return;
         }
 
-            final AppCompatTextView textView = buildTextView(item);
+        final MaterialTextView textView = buildTextView(item);
         switch (item.getPosition()) {
             case TOP:
                 showFixedComment(
@@ -88,8 +89,8 @@ public final class BulletCommentsOverlayView extends FrameLayout {
     }
 
     @NonNull
-    private AppCompatTextView buildTextView(@NonNull final BulletCommentsInfoItem item) {
-        final AppCompatTextView textView = new AppCompatTextView(getContext());
+    private MaterialTextView buildTextView(@NonNull final BulletCommentsInfoItem item) {
+        final MaterialTextView textView = new MaterialTextView(getContext());
         textView.setText(item.getCommentText());
         textView.setTextColor(item.getArgbColor() == 0 ? Color.WHITE : item.getArgbColor());
         textView.setTextSize(
@@ -104,7 +105,7 @@ public final class BulletCommentsOverlayView extends FrameLayout {
         return textView;
     }
 
-    private void showScrollingComment(@NonNull final AppCompatTextView textView,
+    private void showScrollingComment(@NonNull final MaterialTextView textView,
                                       final long durationMillis) {
         final int laneHeight = getLaneHeight();
         final int laneCount = Math.max(1, getHeight() / laneHeight);
@@ -128,7 +129,7 @@ public final class BulletCommentsOverlayView extends FrameLayout {
                 .start();
     }
 
-    private void showFixedComment(@NonNull final AppCompatTextView textView,
+    private void showFixedComment(@NonNull final MaterialTextView textView,
                                   final boolean top,
                                   final long durationMillis) {
         final int laneHeight = getLaneHeight();

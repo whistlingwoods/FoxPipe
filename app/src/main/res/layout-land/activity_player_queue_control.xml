@@ -112,23 +112,23 @@
             android:paddingTop="10dp"
             tools:ignore="RtlHardcoded">
 
-            <ImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_fast_rewind"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_toLeftOf="@+id/control_play_pause"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/exo_controls_rewind"
                 android:contentDescription="@string/rewind"
-                app:tint="?attr/colorAccent" />
+                app:icon="@drawable/exo_controls_rewind"
+                app:iconTint="?attr/colorAccent" />
 
-            <ImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_play_pause"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_centerInParent="true"
@@ -136,13 +136,11 @@
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_pause"
                 android:contentDescription="@string/pause"
-                app:tint="?attr/colorAccent" />
+                app:icon="@drawable/ic_pause"
+                app:iconTint="?attr/colorAccent" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/control_progress_bar"
@@ -160,20 +158,19 @@
                 android:padding="2dp"
                 android:visibility="invisible" />
 
-            <ImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_fast_forward"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@+id/control_play_pause"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="fitCenter"
-                android:src="@drawable/exo_controls_fastforward"
                 android:contentDescription="@string/forward"
-                app:tint="?attr/colorAccent" />
+                app:icon="@drawable/exo_controls_fastforward"
+                app:iconTint="?attr/colorAccent" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -185,38 +182,36 @@
             android:paddingTop="10dp"
             tools:ignore="RtlHardcoded">
 
-            <androidx.appcompat.widget.AppCompatImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_backward"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:layout_toLeftOf="@+id/control_repeat"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:minWidth="50dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_previous"
-                android:tint="?attr/colorAccent"
+                app:icon="@drawable/ic_previous"
+                app:iconTint="?attr/colorAccent"
                 android:contentDescription="@string/previous_stream" />
 
-            <ImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_repeat"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_toLeftOf="@+id/anchor"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_repeat"
                 android:contentDescription="@string/notification_action_repeat"
-                app:tint="?attr/colorAccent" />
+                app:icon="@drawable/ic_repeat"
+                app:iconTint="?attr/colorAccent" />
 
             <View
                 android:id="@+id/anchor"
@@ -224,37 +219,35 @@
                 android:layout_height="1dp"
                 android:layout_centerInParent="true" />
 
-            <ImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_shuffle"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@+id/anchor"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:scaleType="fitXY"
-                android:src="@drawable/ic_shuffle"
                 android:contentDescription="@string/notification_action_shuffle"
-                app:tint="?attr/colorAccent" />
+                app:icon="@drawable/ic_shuffle"
+                app:iconTint="?attr/colorAccent" />
 
-            <androidx.appcompat.widget.AppCompatImageButton
+            <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_forward"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@+id/control_shuffle"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:minWidth="50dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_next"
-                android:tint="?attr/colorAccent"
+                app:icon="@drawable/ic_next"
+                app:iconTint="?attr/colorAccent"
                 android:contentDescription="@string/next_stream" />
         </RelativeLayout>
     </RelativeLayout>

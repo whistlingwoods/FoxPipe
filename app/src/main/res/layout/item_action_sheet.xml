@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
@@ -18,8 +17,7 @@
         android:layout_height="24dp"
         android:layout_marginEnd="16dp"
         android:tint="?attr/pilot_on_surface_variant_color"
-        tools:ignore="ContentDescription"
-        tools:src="@drawable/ic_share" />
+        android:visibility="gone" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/actionTitle"
@@ -27,7 +25,15 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textAppearance="?attr/textAppearanceBodyLarge"
-        android:textColor="?attr/pilot_on_surface_color"
-        tools:text="Share" />
+        android:textColor="?attr/pilot_on_surface_color" />
+
+    <ImageView
+        android:id="@+id/actionCheck"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="16dp"
+        android:src="@drawable/ic_done"
+        android:tint="?attr/colorPrimary"
+        android:visibility="gone" />
 
 </LinearLayout>
