@@ -17,6 +17,7 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSav
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
 
 import android.content.Intent;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
