@@ -16,8 +16,9 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.getTimeString;
 import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSaveToPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
 
-import android.content.Intent;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -34,6 +35,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -1495,13 +1497,51 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (actionSheetDialog != null) {
             actionSheetDialog.dismiss();
         }
-        final Context actionSheetContext = binding.getRoot().getContext();
+        @Nullable final Context actionSheetContext = resolveActionSheetContext();
+        if (actionSheetContext == null) {
+            isSomeActionSheetVisible = false;
+            return;
+        }
         actionSheetDialog = MaterialActionSheetDialog.show(
                 actionSheetContext,
                 title,
                 items,
                 this::onActionSheetDismissed);
         isSomeActionSheetVisible = actionSheetDialog != null;
+    }
+
+    @Nullable
+    private Context resolveActionSheetContext() {
+        final Context rootContext = binding.getRoot().getContext();
+        if (findActivity(rootContext) != null) {
+            return rootContext;
+        }
+
+        ViewParent parent = binding.getRoot().getParent();
+        while (parent instanceof View) {
+            final Context parentContext = ((View) parent).getContext();
+            if (findActivity(parentContext) != null) {
+                return parentContext;
+            }
+            parent = parent.getParent();
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Context findActivity(@Nullable final Context context) {
+        Context currentContext = context;
+        while (currentContext instanceof ContextWrapper) {
+            if (currentContext instanceof android.app.Activity) {
+                return currentContext;
+            }
+            final Context baseContext = ((ContextWrapper) currentContext).getBaseContext();
+            if (baseContext == currentContext) {
+                return null;
+            }
+            currentContext = baseContext;
+        }
+        return null;
     }
     //endregion
 

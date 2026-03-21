@@ -65,8 +65,8 @@
     <dimen name="player_main_top_padding">4dp</dimen>
     <dimen name="player_main_buttons_padding">6dp</dimen>
     <dimen name="player_popup_buttons_padding">1dp</dimen>
-    <dimen name="player_main_buttons_min_width">40dp</dimen>
-    <dimen name="player_control_button_size">40dp</dimen>
+    <dimen name="player_main_buttons_min_width">44dp</dimen>
+    <dimen name="player_control_button_size">44dp</dimen>
     <dimen name="player_control_large_button_size">50dp</dimen>
     <dimen name="player_main_play_pause_button_size">60dp</dimen>
     <dimen name="player_md3_button_radius">20dp</dimen>
