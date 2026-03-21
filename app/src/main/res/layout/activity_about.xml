@@ -25,16 +25,12 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/about_tabLayout"
+            style="@style/Widget.NewPipe.TabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?attr/colorSurfaceContainer"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabIndicatorFullWidth="false"
-            app:tabRippleColor="?attr/colorControlHighlight"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorOnSurfaceVariant" />
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

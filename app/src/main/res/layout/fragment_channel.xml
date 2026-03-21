@@ -171,20 +171,16 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
+            style="@style/Widget.NewPipe.TabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            android:paddingStart="8dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="4dp"
-            app:tabGravity="fill"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabIndicatorFullWidth="false"
+            android:background="?attr/colorSurfaceContainer"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
             app:tabMode="scrollable"
-            app:tabRippleColor="?attr/colorPrimaryContainer"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/colorOnSurfaceVariant" />
+            app:tabIconTint="@color/drawer_item_tint" />
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"

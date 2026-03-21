@@ -729,9 +729,19 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     public void showHideShadow(final boolean show, final long duration) {
-        animate(binding.playbackControlsShadow, show, duration, AnimationType.ALPHA, 0, null);
-        animate(binding.playerTopShadow, show, duration, AnimationType.ALPHA, 0, null);
-        animate(binding.playerBottomShadow, show, duration, AnimationType.ALPHA, 0, null);
+        hideShadowView(binding.playbackControlsShadow);
+        hideShadowView(binding.playerTopShadow);
+        hideShadowView(binding.playerBottomShadow);
+    }
+
+    private void hideShadowView(@Nullable final View shadowView) {
+        if (shadowView == null) {
+            return;
+        }
+
+        shadowView.animate().cancel();
+        shadowView.setAlpha(0f);
+        shadowView.setVisibility(View.GONE);
     }
 
     protected void showOrHideButtons() {
@@ -1472,12 +1482,12 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (actionSheetDialog != null) {
             actionSheetDialog.dismiss();
         }
-        isSomeActionSheetVisible = true;
         actionSheetDialog = MaterialActionSheetDialog.show(
                 context,
                 title,
                 items,
                 this::onActionSheetDismissed);
+        isSomeActionSheetVisible = actionSheetDialog != null;
     }
     //endregion
 

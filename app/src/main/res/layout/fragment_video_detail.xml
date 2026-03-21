@@ -594,16 +594,17 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
+            style="@style/Widget.NewPipe.TabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
-            android:background="?attr/colorSurface"
-            app:elevation="16dp"
-            app:tabBackground="?attr/colorSurfaceVariant"
-            app:tabGravity="fill"
-            app:tabIconTint="?attr/colorOnPrimaryContainer"
-            app:tabIndicatorColor="?attr/colorPrimaryContainer"
-            app:tabIndicatorGravity="top" />
+            android:background="?attr/colorSurfaceContainer"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            app:elevation="8dp"
+            app:tabIconTint="@color/drawer_item_tint" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

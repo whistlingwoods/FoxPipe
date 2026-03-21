@@ -201,6 +201,15 @@
         <item name="iconPadding">0dp</item>
     </style>
 
+    <style name="Widget.NewPipe.IconButton.Surface"
+        parent="Widget.NewPipe.IconButton">
+        <item name="backgroundTint">?attr/colorSurfaceContainerHigh</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
     <style name="Widget.NewPipe.Player.IconButton" parent="Widget.NewPipe.IconButton">
         <item name="android:minHeight">@dimen/player_control_button_size</item>
         <item name="android:minWidth">@dimen/player_control_button_size</item>
@@ -264,6 +273,24 @@
         <item name="rippleColor">?attr/colorControlHighlight</item>
         <item name="android:textColor">?attr/colorOnSurface</item>
         <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelMedium</item>
+    </style>
+
+    <style name="Widget.NewPipe.TabLayout" parent="">
+        <item name="tabBackground">@drawable/bg_tab_background_surface</item>
+        <item name="tabIndicatorHeight">0dp</item>
+        <item name="tabIndicatorFullWidth">false</item>
+        <item name="tabGravity">fill</item>
+        <item name="tabInlineLabel">true</item>
+        <item name="tabMinWidth">72dp</item>
+        <item name="tabMode">fixed</item>
+        <item name="tabPaddingStart">16dp</item>
+        <item name="tabPaddingTop">10dp</item>
+        <item name="tabPaddingEnd">16dp</item>
+        <item name="tabPaddingBottom">10dp</item>
+        <item name="tabRippleColor">?attr/colorControlHighlight</item>
+        <item name="tabSelectedTextColor">?attr/colorOnSecondaryContainer</item>
+        <item name="tabTextAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="Widget.NewPipe.CardView" parent="Widget.Material3.CardView.Filled">

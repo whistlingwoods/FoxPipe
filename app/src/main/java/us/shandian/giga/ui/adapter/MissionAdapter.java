@@ -869,7 +869,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
             name.setSelected(true);
 
-            ImageView button = itemView.findViewById(R.id.item_more);
+            View button = itemView.findViewById(R.id.item_more);
             button.setOnClickListener(v -> showActionSheet());
 
             itemView.setHapticFeedbackEnabled(true);

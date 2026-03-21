@@ -1,9 +1,12 @@
 package org.schabi.newpipe.ui;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,16 +26,23 @@ public final class MaterialActionSheetDialog {
     private MaterialActionSheetDialog() {
     }
 
+    @Nullable
     public static BottomSheetDialog show(@NonNull final Context context,
                                          @Nullable final CharSequence title,
                                          @NonNull final List<ActionItem> items) {
         return show(context, title, items, null);
     }
 
+    @Nullable
     public static BottomSheetDialog show(@NonNull final Context context,
                                          @Nullable final CharSequence title,
                                          @NonNull final List<ActionItem> items,
                                          @Nullable final Runnable onDismiss) {
+        final Activity activity = findActivity(context);
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+            return null;
+        }
+
         final BottomSheetDialog dialog = new BottomSheetDialog(context);
         final View root = LayoutInflater.from(context)
                 .inflate(R.layout.dialog_action_sheet, null, false);
@@ -46,7 +56,10 @@ public final class MaterialActionSheetDialog {
             titleView.setVisibility(View.VISIBLE);
         }
 
-        final boolean[] openingSubSheet = {false};
+        final Runnable[] pendingAction = {null};
+        final CharSequence[] pendingSubSheetTitle = {null};
+        @SuppressWarnings("unchecked")
+        final List<ActionItem>[] pendingSubItems = new List[]{null};
         listView.setLayoutManager(new LinearLayoutManager(context));
         listView.setAdapter(new ActionItemAdapter(items, item -> {
             if (!item.enabled) {
@@ -54,31 +67,63 @@ public final class MaterialActionSheetDialog {
             }
 
             if (!item.subItems.isEmpty()) {
-                openingSubSheet[0] = true;
+                pendingSubSheetTitle[0] = item.title;
+                pendingSubItems[0] = item.subItems;
+            } else {
+                pendingAction[0] = item.action;
             }
+
             dialog.dismiss();
-
-            if (!item.subItems.isEmpty()) {
-                show(context, item.title, item.subItems, onDismiss);
-                return;
-            }
-
-            if (item.action != null) {
-                item.action.run();
-            }
         }));
         dialog.setOnDismissListener(unused -> {
-            if (openingSubSheet[0]) {
-                openingSubSheet[0] = false;
-                return;
+            final List<ActionItem> subItems = pendingSubItems[0];
+            pendingSubItems[0] = null;
+            if (subItems != null) {
+                final BottomSheetDialog subSheetDialog = show(
+                        context,
+                        pendingSubSheetTitle[0],
+                        subItems,
+                        onDismiss);
+                pendingSubSheetTitle[0] = null;
+                if (subSheetDialog != null) {
+                    return;
+                }
             }
+
+            pendingSubSheetTitle[0] = null;
+            final Runnable action = pendingAction[0];
+            pendingAction[0] = null;
+            if (action != null) {
+                action.run();
+            }
+
             if (onDismiss != null) {
                 onDismiss.run();
             }
         });
         dialog.setContentView(root);
-        dialog.show();
+        try {
+            dialog.show();
+        } catch (final WindowManager.BadTokenException exception) {
+            return null;
+        }
         return dialog;
+    }
+
+    @Nullable
+    private static Activity findActivity(@Nullable final Context context) {
+        Context currentContext = context;
+        while (currentContext instanceof ContextWrapper) {
+            if (currentContext instanceof Activity) {
+                return (Activity) currentContext;
+            }
+            final Context baseContext = ((ContextWrapper) currentContext).getBaseContext();
+            if (baseContext == currentContext) {
+                return null;
+            }
+            currentContext = baseContext;
+        }
+        return null;
     }
 
     public static final class ActionItem {

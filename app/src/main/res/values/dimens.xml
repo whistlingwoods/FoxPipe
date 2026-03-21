@@ -18,6 +18,13 @@
     <dimen name="drawer_header_newpipe_title_max_text_size">32sp</dimen>
     <dimen name="drawer_header_service_icon_size">16dp</dimen>
     <dimen name="drawer_header_service_title_text_size">14sp</dimen>
+    <dimen name="drawer_sheet_width">320dp</dimen>
+    <dimen name="drawer_sheet_radius">28dp</dimen>
+    <dimen name="drawer_sheet_padding">12dp</dimen>
+    <dimen name="drawer_item_horizontal_inset">12dp</dimen>
+    <dimen name="drawer_item_vertical_inset">4dp</dimen>
+    <dimen name="tab_chip_radius">18dp</dimen>
+    <dimen name="download_mission_card_radius">24dp</dimen>
 
     <!-- Video Item Search View Dimensions-->
     <!-- Text Size -->
