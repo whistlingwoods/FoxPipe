@@ -18,6 +18,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.ColorInt;
@@ -203,12 +204,43 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
     }
 
     private void updateTabsIconAndDescription() {
+        final LayoutInflater inflater = LayoutInflater.from(requireContext());
         for (int i = 0; i < tabsList.size(); i++) {
             final TabLayout.Tab tabToSet = binding.mainTabLayout.getTabAt(i);
             if (tabToSet != null) {
                 final Tab tab = tabsList.get(i);
-                tabToSet.setIcon(tab.getTabIconRes(requireContext()));
+                final View customView = inflater.inflate(
+                        R.layout.view_main_tab, binding.mainTabLayout, false);
+                ((ImageView) customView.findViewById(R.id.tab_icon))
+                        .setImageResource(tab.getTabIconRes(requireContext()));
+                customView.setSelected(i == binding.mainTabLayout.getSelectedTabPosition());
+                tabToSet.setCustomView(customView);
                 tabToSet.setContentDescription(tab.getTabName(requireContext()));
+            }
+        }
+        normalizeTabItemBounds(binding.mainTabLayout);
+        syncMainTabSelectionState();
+    }
+
+    private void normalizeTabItemBounds(@NonNull final TabLayout tabLayout) {
+        final View strip = tabLayout.getChildAt(0);
+        if (!(strip instanceof ViewGroup)) {
+            return;
+        }
+        final ViewGroup stripGroup = (ViewGroup) strip;
+        for (int i = 0; i < stripGroup.getChildCount(); i++) {
+            final View tabView = stripGroup.getChildAt(i);
+            tabView.setPadding(0, 0, 0, 0);
+            tabView.setMinimumHeight(0);
+        }
+    }
+
+    private void syncMainTabSelectionState() {
+        final int selectedPosition = binding.mainTabLayout.getSelectedTabPosition();
+        for (int i = 0; i < tabsList.size(); i++) {
+            final TabLayout.Tab tab = binding.mainTabLayout.getTabAt(i);
+            if (tab != null && tab.getCustomView() != null) {
+                tab.getCustomView().setSelected(i == selectedPosition);
             }
         }
     }
@@ -262,10 +294,13 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
             Log.d(TAG, "onTabSelected() called with: selectedTab = [" + selectedTab + "]");
         }
         updateTitleForTab(selectedTab.getPosition());
+        syncMainTabSelectionState();
     }
 
     @Override
-    public void onTabUnselected(final TabLayout.Tab tab) { }
+    public void onTabUnselected(final TabLayout.Tab tab) {
+        syncMainTabSelectionState();
+    }
 
     @Override
     public void onTabReselected(final TabLayout.Tab tab) {
@@ -273,6 +308,7 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
             Log.d(TAG, "onTabReselected() called with: tab = [" + tab + "]");
         }
         updateTitleForTab(tab.getPosition());
+        syncMainTabSelectionState();
     }
 
     public static final class SelectedTabsPagerAdapter

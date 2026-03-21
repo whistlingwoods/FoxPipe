@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="44dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp">
+
+    <ImageView
+        android:id="@+id/tab_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:duplicateParentState="true"
+        app:tint="@color/tab_content_tint"
+        tools:src="@drawable/ic_comment"
+        tools:ignore="ContentDescription" />
+
+    <org.schabi.newpipe.views.NewPipeTextView
+        android:id="@+id/tab_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:duplicateParentState="true"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="@color/tab_content_tint"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        tools:text="Comments" />
+
+</LinearLayout>

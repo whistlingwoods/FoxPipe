@@ -41,7 +41,9 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.AttrRes;
@@ -624,6 +626,22 @@ public final class VideoDetailFragment
         pageAdapter = new TabAdapter(getChildFragmentManager());
         binding.viewPager.setAdapter(pageAdapter);
         binding.tabLayout.setupWithViewPager(binding.viewPager);
+        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(@NonNull final TabLayout.Tab tab) {
+                syncDetailTabSelectionState();
+            }
+
+            @Override
+            public void onTabUnselected(@NonNull final TabLayout.Tab tab) {
+                syncDetailTabSelectionState();
+            }
+
+            @Override
+            public void onTabReselected(@NonNull final TabLayout.Tab tab) {
+                syncDetailTabSelectionState();
+            }
+        });
         binding.viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(final int position) {
@@ -962,11 +980,42 @@ public final class VideoDetailFragment
      * {@link #tabContentDescriptions}, which are all set in {@link #initTabs()}.
      */
     private void updateTabIconsAndContentDescriptions() {
+        final LayoutInflater inflater = LayoutInflater.from(requireContext());
         for (int i = 0; i < tabIcons.size(); ++i) {
             final TabLayout.Tab tab = binding.tabLayout.getTabAt(i);
             if (tab != null) {
-                tab.setIcon(tabIcons.get(i));
+                final View customView = inflater.inflate(
+                        R.layout.view_detail_tab, binding.tabLayout, false);
+                ((ImageView) customView.findViewById(R.id.tab_icon)).setImageResource(tabIcons.get(i));
+                ((TextView) customView.findViewById(R.id.tab_text)).setText(pageAdapter.getItemTitle(i));
+                customView.setSelected(i == binding.tabLayout.getSelectedTabPosition());
+                tab.setCustomView(customView);
                 tab.setContentDescription(tabContentDescriptions.get(i));
+            }
+        }
+        normalizeTabItemBounds(binding.tabLayout);
+        syncDetailTabSelectionState();
+    }
+
+    private void normalizeTabItemBounds(@NonNull final TabLayout tabLayout) {
+        final View strip = tabLayout.getChildAt(0);
+        if (!(strip instanceof ViewGroup)) {
+            return;
+        }
+        final ViewGroup stripGroup = (ViewGroup) strip;
+        for (int i = 0; i < stripGroup.getChildCount(); i++) {
+            final View tabView = stripGroup.getChildAt(i);
+            tabView.setPadding(0, 0, 0, 0);
+            tabView.setMinimumHeight(0);
+        }
+    }
+
+    private void syncDetailTabSelectionState() {
+        final int selectedPosition = binding.tabLayout.getSelectedTabPosition();
+        for (int i = 0; i < tabIcons.size(); ++i) {
+            final TabLayout.Tab tab = binding.tabLayout.getTabAt(i);
+            if (tab != null && tab.getCustomView() != null) {
+                tab.getCustomView().setSelected(i == selectedPosition);
             }
         }
     }
