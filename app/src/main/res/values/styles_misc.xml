@@ -100,8 +100,8 @@
         <item name="colorOnSecondaryContainer">@color/white</item>
         <item name="colorSurface">#FF111417</item>
         <item name="colorSurfaceVariant">#FF1A1F24</item>
-        <item name="colorSurfaceContainer">#D9151A1F</item>
-        <item name="colorSurfaceContainerHigh">#F022282E</item>
+        <item name="colorSurfaceContainer">#99151A1F</item>
+        <item name="colorSurfaceContainerHigh">#B322282E</item>
         <item name="colorOnSurface">@color/white</item>
         <item name="colorOnSurfaceVariant">@color/white_secondary</item>
         <item name="colorOutline">#52FFFFFF</item>

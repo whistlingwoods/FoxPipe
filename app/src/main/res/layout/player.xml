@@ -40,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="22dp"
         android:layout_alignParentTop="true"
-        android:background="@android:color/transparent"
+        android:background="@drawable/player_controls_top_background"
         android:visibility="gone" />
 
     <View
@@ -48,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="22dp"
         android:layout_alignParentBottom="true"
-        android:background="@android:color/transparent"
+        android:background="@drawable/player_controls_background"
         android:visibility="gone" />
 
     <ImageView
@@ -66,7 +66,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignBottom="@+id/playbackControlRoot"
-        android:background="@android:color/transparent"
+        android:background="@color/video_overlay_color"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -126,23 +126,19 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
+                        android:gravity="center_vertical"
                         android:layout_weight="1"
                         android:orientation="horizontal">
 
                         <LinearLayout
                             android:id="@+id/metadataView"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_player_md3_panel"
-                            android:layout_marginTop="6dp"
+                            android:layout_marginTop="4dp"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
                             android:gravity="top"
                             android:orientation="vertical"
-                            android:paddingStart="12dp"
-                            android:paddingTop="10dp"
-                            android:paddingEnd="12dp"
-                            android:paddingBottom="10dp"
                             tools:ignore="NestedWeights,RtlHardcoded">
 
                             <org.schabi.newpipe.views.NewPipeTextView
@@ -177,7 +173,7 @@
                         <FrameLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1">
+                            android:layout_gravity="center_vertical">
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/audioTrackTextView"

@@ -174,8 +174,10 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
-        getSupportFragmentManager().addOnBackStackChangedListener(
-                this::updateBackPressedCallbackState);
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
 
         mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         drawerLayoutBinding = mainBinding.drawerLayout;
@@ -232,7 +234,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         MigrationManager.showUserInfoIfPresent(this);
-        mainBinding.getRoot().post(this::updateBackPressedCallbackState);
+        mainBinding.getRoot().post(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
     }
 
     @Override
@@ -586,6 +591,7 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.enable_watch_history_key), true);
         drawerLayoutBinding.navigation.getMenu().findItem(ITEM_ID_HISTORY)
                 .setVisible(isHistoryEnabled);
+        updateDrawerNavigation();
     }
 
     @Override
@@ -858,12 +864,13 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             if (toggle != null) {
                 toggle.syncState();
-                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> mainBinding.getRoot()
-                        .open());
-                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
+                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v ->
+                        mainBinding.getRoot().openDrawer(drawerLayoutBinding.navigation));
+                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             }
         } else {
             mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            mainBinding.getRoot().closeDrawer(drawerLayoutBinding.navigation, false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> onHomeButtonPressed());
         }
