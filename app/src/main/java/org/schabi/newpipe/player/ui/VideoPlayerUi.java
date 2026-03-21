@@ -1299,10 +1299,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                     () -> onQualityItemClick(streamIndex)));
         }
         showActionSheet(binding.qualityTextView.getText(), actionItems);
-
-        player.getSelectedVideoStream()
-                .map(VideoStream::getResolution)
-                .ifPresent(binding.qualityTextView::setText);
     }
 
     private void onAudioTracksClicked() {
@@ -1383,8 +1379,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
         isSomeActionSheetVisible = false;
         actionSheetDialog = null;
-        player.getSelectedVideoStream()
-                .ifPresent(s -> binding.qualityTextView.setText(s.getResolution()));
 
         if (player.isPlaying()) {
             hideControls(DEFAULT_CONTROLS_DURATION, 0);

@@ -5,9 +5,8 @@
     android:id="@+id/main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
+    android:background="?attr/colorBackground"
     android:fitsSystemWindows="true"
-    android:theme="@style/ThemeOverlay.NewPipe.Player"
     tools:context="org.schabi.newpipe.player.PlayQueueActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -15,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorSurfaceContainer"
+        android:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme">
 
         <com.google.android.material.appbar.MaterialToolbar
@@ -23,9 +23,8 @@
             android:layout_height="?attr/actionBarSize"
             android:layout_weight="1"
             android:background="?attr/colorSurfaceContainer"
+            android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:navigationIconTint="?attr/colorOnSurface"
-            app:subtitleTextColor="?attr/colorOnSurfaceVariant"
             app:title="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -39,7 +38,6 @@
         android:layout_toStartOf="@+id/control_pane"
         android:layout_toLeftOf="@+id/control_pane"
         android:scrollbars="vertical"
-        android:theme="@style/PlayQueueItemTextTheme"
         app:layoutManager="LinearLayoutManager"
         tools:listitem="@layout/play_queue_item" />
 
@@ -57,35 +55,32 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/playback_controls_top"
-            android:layout_marginStart="@dimen/player_md3_section_spacing"
-            android:layout_marginTop="@dimen/player_md3_section_spacing"
-            android:layout_marginEnd="@dimen/player_md3_section_spacing"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_player_md3_panel_ripple"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
             android:orientation="vertical"
-            android:padding="12dp"
+            android:padding="8dp"
             tools:ignore="RtlHardcoded,RtlSymmetry">
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/song_name"
+                style="@android:style/TextAppearance.StatusBar.EventContent.Title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="4"
-                android:textAppearance="@style/TextAppearance.NewPipe.TitleMedium"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/colorAccent"
+                android:textSize="14sp"
                 tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nec aliquam augue, eget cursus est. Ut id tristique enim, ut scelerisque tellus. Sed ultricies ipsum non mauris ultricies, commodo malesuada velit porta." />
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/artist_name"
+                style="@android:style/TextAppearance.StatusBar.EventContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
                 tools:text="Duis posuere arcu condimentum lobortis mattis." />
         </LinearLayout>
 
@@ -95,12 +90,12 @@
             android:layout_height="wrap_content"
             android:layout_above="@+id/playback_controls_top"
             android:layout_centerInParent="true"
-            android:background="@drawable/bg_player_md3_seek_label"
-            android:paddingStart="18dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="18dp"
-            android:paddingBottom="6dp"
-            android:textColor="?attr/colorOnSurface"
+            android:background="#c0000000"
+            android:paddingLeft="30dp"
+            android:paddingTop="5dp"
+            android:paddingRight="30dp"
+            android:paddingBottom="5dp"
+            android:textColor="@android:color/white"
             android:textSize="22sp"
             android:textStyle="bold"
             android:visibility="gone"
@@ -113,17 +108,13 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_above="@+id/playback_controls_bottom"
-            android:layout_marginStart="@dimen/player_md3_section_spacing"
-            android:layout_marginEnd="@dimen/player_md3_section_spacing"
-            android:background="@drawable/bg_player_md3_panel"
             android:orientation="horizontal"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:paddingTop="10dp"
             tools:ignore="RtlHardcoded">
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_fast_rewind"
-                style="@style/Widget.NewPipe.Player.IconButton"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="@dimen/player_control_button_size"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
@@ -132,11 +123,12 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/rewind"
-                app:icon="@drawable/exo_controls_rewind" />
+                app:icon="@drawable/exo_controls_rewind"
+                app:iconTint="?attr/colorAccent" />
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_play_pause"
-                style="@style/Widget.NewPipe.Player.IconButton.Filled"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="@dimen/player_control_large_button_size"
                 android:layout_height="@dimen/player_control_large_button_size"
                 android:layout_centerInParent="true"
@@ -147,7 +139,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/pause"
-                app:icon="@drawable/ic_pause" />
+                app:icon="@drawable/ic_pause"
+                app:iconTint="?attr/colorAccent" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/control_progress_bar"
@@ -167,7 +160,7 @@
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_fast_forward"
-                style="@style/Widget.NewPipe.Player.IconButton"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="@dimen/player_control_button_size"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
@@ -176,7 +169,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/forward"
-                app:icon="@drawable/exo_controls_fastforward" />
+                app:icon="@drawable/exo_controls_fastforward"
+                app:iconTint="?attr/colorAccent" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -184,19 +178,14 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="@dimen/player_md3_section_spacing"
-            android:layout_marginEnd="@dimen/player_md3_section_spacing"
-            android:layout_marginBottom="@dimen/player_md3_section_spacing"
-            android:background="@drawable/bg_player_md3_panel"
             android:orientation="horizontal"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
+            android:paddingTop="10dp"
             tools:ignore="RtlHardcoded">
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_backward"
-                style="@style/Widget.NewPipe.Player.IconButton"
-                android:layout_width="@dimen/player_control_button_size"
+                style="@style/Widget.NewPipe.IconButton"
+                android:layout_width="wrap_content"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
@@ -205,12 +194,14 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
+                android:minWidth="50dp"
                 app:icon="@drawable/ic_previous"
+                app:iconTint="?attr/colorAccent"
                 android:contentDescription="@string/previous_stream" />
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_repeat"
-                style="@style/Widget.NewPipe.Player.IconButton"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="@dimen/player_control_button_size"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
@@ -219,7 +210,8 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/notification_action_repeat"
-                app:icon="@drawable/ic_repeat" />
+                app:icon="@drawable/ic_repeat"
+                app:iconTint="?attr/colorAccent" />
 
             <View
                 android:id="@+id/anchor"
@@ -229,7 +221,7 @@
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_shuffle"
-                style="@style/Widget.NewPipe.Player.IconButton"
+                style="@style/Widget.NewPipe.IconButton"
                 android:layout_width="@dimen/player_control_button_size"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
@@ -238,12 +230,13 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:contentDescription="@string/notification_action_shuffle"
-                app:icon="@drawable/ic_shuffle" />
+                app:icon="@drawable/ic_shuffle"
+                app:iconTint="?attr/colorAccent" />
 
             <org.schabi.newpipe.views.PilotIconButton
                 android:id="@+id/control_forward"
-                style="@style/Widget.NewPipe.Player.IconButton"
-                android:layout_width="@dimen/player_control_button_size"
+                style="@style/Widget.NewPipe.IconButton"
+                android:layout_width="wrap_content"
                 android:layout_height="@dimen/player_control_button_size"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
@@ -252,7 +245,9 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
+                android:minWidth="50dp"
                 app:icon="@drawable/ic_next"
+                app:iconTint="?attr/colorAccent"
                 android:contentDescription="@string/next_stream" />
         </RelativeLayout>
     </RelativeLayout>
@@ -262,16 +257,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="@dimen/player_md3_section_spacing"
-        android:layout_marginEnd="@dimen/player_md3_section_spacing"
-        android:layout_marginBottom="@dimen/player_md3_section_spacing"
-        android:background="@drawable/bg_player_md3_panel"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="6dp">
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/current_time"
@@ -280,7 +269,7 @@
             android:gravity="center"
             android:minHeight="40dp"
             android:text="-:--:--"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/colorAccent"
             tools:ignore="HardcodedText"
             tools:text="1:06:29" />
 
@@ -302,18 +291,21 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="-:--:--"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/colorAccent"
             tools:ignore="HardcodedText"
             tools:text="1:23:49" />
 
-        <com.google.android.material.chip.Chip
+        <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/live_sync"
-            style="@style/Widget.NewPipe.Player.TextChip.Emphasized"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackground"
             android:gravity="center"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
             android:text="@string/duration_live"
             android:textAllCaps="true"
+            android:textColor="?attr/colorAccent"
             android:visibility="gone" />
     </LinearLayout>
 </RelativeLayout>

@@ -76,7 +76,7 @@
     <color name="live_duration_background_color">#c8E53935</color>
     <color name="playlist_stream_count_background_color">#e6000000</color>
     <color name="duration_text_color">#EEFFFFFF</color>
-    <color name="video_overlay_color">#33000000</color>
+    <color name="video_overlay_color">#64000000</color>
     <color name="video_controls_scrim_color">#26000000</color>
     <color name="video_controls_edge_scrim_color">#3D000000</color>
 
