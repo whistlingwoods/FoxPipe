@@ -242,14 +242,14 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         tabLayout.setLayoutParams(tabParams);
         viewPager.setLayoutParams(pagerParams);
 
-        // Keep the tabs aligned with the active Material 3 surface palette.
-        tabLayout.setBackgroundColor(ThemeHelper.resolveColorFromAttr(requireContext(),
-                bottom ? com.google.android.material.R.attr.colorSurface
-                        : com.google.android.material.R.attr.colorPrimaryContainer));
+        // Keep the tabs aligned with the same surface palette used by the main content cards.
+        tabLayout.setBackgroundColor(ThemeHelper.resolveColorFromAttr(
+                requireContext(),
+                com.google.android.material.R.attr.colorSurface));
 
         @ColorInt final int iconColor = ThemeHelper.resolveColorFromAttr(
                 requireContext(),
-                com.google.android.material.R.attr.colorOnPrimaryContainer
+                com.google.android.material.R.attr.colorOnSurface
         );
         tabLayout.setTabRippleColor(ColorStateList.valueOf(iconColor).withAlpha(32));
         tabLayout.setTabIconTint(ColorStateList.valueOf(iconColor));
