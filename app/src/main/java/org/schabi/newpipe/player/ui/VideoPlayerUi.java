@@ -1290,20 +1290,18 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         final List<MaterialActionSheetDialog.ActionItem> actionItems = new ArrayList<>();
         for (int i = 0; i < availableStreams.size(); i++) {
             final VideoStream videoStream = availableStreams.get(i);
-            final String title = MediaFormat.getNameById(videoStream.getFormatId()) + " "
-                    + videoStream.getResolution();
             final int streamIndex = i;
             actionItems.add(MaterialActionSheetDialog.ActionItem.checked(
                     POPUP_MENU_ID_QUALITY + i,
-                    title,
+                    buildQualityActionTitle(videoStream),
                     0,
                     selectedStreamIndex == i,
-                    () -> onQualityItemClick(streamIndex, title)));
+                    () -> onQualityItemClick(streamIndex)));
         }
         showActionSheet(binding.qualityTextView.getText(), actionItems);
 
         player.getSelectedVideoStream()
-                .map(s -> MediaFormat.getNameById(s.getFormatId()) + " " + s.getResolution())
+                .map(VideoStream::getResolution)
                 .ifPresent(binding.qualityTextView::setText);
     }
 
@@ -1332,8 +1330,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         showActionSheet(binding.audioTrackTextView.getText(), actionItems);
     }
 
-    private void onQualityItemClick(final int menuItemIndex,
-                                    @NonNull final CharSequence title) {
+    private void onQualityItemClick(final int menuItemIndex) {
         @Nullable final MediaItemTag currentMetadata = player.getCurrentMetadata();
         if (currentMetadata == null || currentMetadata.getMaybeQuality().isEmpty()) {
             return;
@@ -1346,10 +1343,17 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             return;
         }
 
-        final String newResolution = availableStreams.get(menuItemIndex).getResolution();
-        player.setPlaybackQuality(newResolution);
+        final VideoStream selectedStream = availableStreams.get(menuItemIndex);
+        player.setPlaybackQuality(selectedStream);
+        binding.qualityTextView.setText(selectedStream.getResolution());
+    }
 
-        binding.qualityTextView.setText(title);
+    @NonNull
+    private String buildQualityActionTitle(@NonNull final VideoStream videoStream) {
+        final String formatName = MediaFormat.getNameById(videoStream.getFormatId());
+        return formatName.isEmpty()
+                ? videoStream.getResolution()
+                : formatName + " " + videoStream.getResolution();
     }
 
     private void onAudioTrackItemClick(final int menuItemIndex,
