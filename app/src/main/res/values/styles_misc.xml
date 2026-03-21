@@ -289,7 +289,7 @@
         <item name="tabPaddingEnd">16dp</item>
         <item name="tabPaddingBottom">10dp</item>
         <item name="tabRippleColor">?attr/colorControlHighlight</item>
-        <item name="tabSelectedTextColor">?attr/colorOnSecondaryContainer</item>
+        <item name="tabSelectedTextColor">?attr/colorOnSurface</item>
         <item name="tabTextAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
         <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
     </style>
