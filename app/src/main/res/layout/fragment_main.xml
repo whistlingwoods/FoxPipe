@@ -13,9 +13,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:background="?attr/colorSurfaceContainer"
-        android:paddingStart="12dp"
+        android:paddingStart="0dp"
         android:paddingTop="8dp"
-        android:paddingEnd="12dp"
+        android:paddingEnd="0dp"
         android:paddingBottom="8dp"
         app:tabIconTint="@color/drawer_item_tint"
         app:tabMode="scrollable" />

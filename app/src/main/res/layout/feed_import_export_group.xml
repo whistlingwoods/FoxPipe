@@ -7,17 +7,6 @@
     android:layout_marginTop="16dp"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="14dp"
-        android:background="?attr/colorSurfaceContainerHigh">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="5dp"
-            android:background="@drawable/bg_md3_toolbar_shadow" />
-    </FrameLayout>
-
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
