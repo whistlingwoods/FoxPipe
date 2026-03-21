@@ -199,6 +199,7 @@
         <item name="android:insetBottom">0dp</item>
         <item name="strokeWidth">0dp</item>
         <item name="iconPadding">0dp</item>
+        <item name="iconSize">0dp</item>
     </style>
 
     <style name="Widget.NewPipe.IconButton.Surface"

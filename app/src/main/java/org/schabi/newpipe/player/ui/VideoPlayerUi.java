@@ -1494,8 +1494,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (actionSheetDialog != null) {
             actionSheetDialog.dismiss();
         }
+        final Context actionSheetContext = binding.getRoot().getContext();
         actionSheetDialog = MaterialActionSheetDialog.show(
-                context,
+                actionSheetContext,
                 title,
                 items,
                 this::onActionSheetDismissed);
