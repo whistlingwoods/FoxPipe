@@ -248,36 +248,20 @@ public class VideoPlaybackResolver implements PlaybackResolver {
         @NonNull
         private final String codec;
 
-        private PlaybackQualitySelection(@NonNull final String streamId,
-                                         final int itag,
-                                         final int formatId,
-                                         @NonNull final String resolution,
-                                         final boolean videoOnly,
-                                         final int bitrate,
-                                         final int fps,
-                                         @NonNull final String codec) {
-            this.streamId = streamId;
-            this.itag = itag;
-            this.formatId = formatId;
-            this.resolution = resolution;
-            this.videoOnly = videoOnly;
-            this.bitrate = bitrate;
-            this.fps = fps;
-            this.codec = codec;
+        private PlaybackQualitySelection(@NonNull final VideoStream videoStream) {
+            this.streamId = videoStream.getId();
+            this.itag = videoStream.getItag();
+            this.formatId = videoStream.getFormatId();
+            this.resolution = videoStream.getResolution();
+            this.videoOnly = videoStream.isVideoOnly();
+            this.bitrate = videoStream.getBitrate();
+            this.fps = videoStream.getFps();
+            this.codec = Objects.toString(videoStream.getCodec(), "");
         }
 
         @NonNull
         private static PlaybackQualitySelection from(@NonNull final VideoStream videoStream) {
-            return new PlaybackQualitySelection(
-                    videoStream.getId(),
-                    videoStream.getItag(),
-                    videoStream.getFormatId(),
-                    videoStream.getResolution(),
-                    videoStream.isVideoOnly(),
-                    videoStream.getBitrate(),
-                    videoStream.getFps(),
-                    Objects.toString(videoStream.getCodec(), "")
-            );
+            return new PlaybackQualitySelection(videoStream);
         }
 
         private boolean matches(@NonNull final VideoStream videoStream) {

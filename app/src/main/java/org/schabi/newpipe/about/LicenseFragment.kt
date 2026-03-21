@@ -124,14 +124,15 @@ class LicenseFragment : Fragment() {
 
                     val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(
                         hostActivity
-                    )
-                        .setTitle(softwareComponent.name)
-                        .setView(webView)
-                        .setPositiveButton(R.string.done) { dialog, _ -> dialog.dismiss() }
+                    ).apply {
+                        setTitle(softwareComponent.name)
+                        setView(webView)
+                        setPositiveButton(R.string.done) { dialog, _ -> dialog.dismiss() }
 
-                    if (softwareComponent != NEWPIPE_SOFTWARE_COMPONENT) {
-                        builder.setNeutralButton(R.string.open_website_license) { _, _ ->
-                            ShareUtils.openUrlInApp(hostActivity, softwareComponent.link)
+                        if (softwareComponent != NEWPIPE_SOFTWARE_COMPONENT) {
+                            setNeutralButton(R.string.open_website_license) { _, _ ->
+                                ShareUtils.openUrlInApp(hostActivity, softwareComponent.link)
+                            }
                         }
                     }
 
