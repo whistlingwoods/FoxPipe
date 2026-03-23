@@ -37,11 +37,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.Spinner;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -82,6 +80,7 @@ import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.settings.UpdateSettingsFragment;
 import org.schabi.newpipe.settings.migration.MigrationManager;
+import org.schabi.newpipe.ui.MaterialActionSheetDialog;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.KioskTranslator;
@@ -114,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
     private ToolbarLayoutBinding toolbarLayoutBinding;
 
     private ActionBarDrawerToggle toggle;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     private boolean servicesShown = false;
     private int dynamicColorsSignature;
@@ -166,6 +167,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
 
         mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         drawerLayoutBinding = mainBinding.drawerLayout;
@@ -173,6 +185,20 @@ public class MainActivity extends AppCompatActivity {
                 .getHeaderView(0));
         toolbarLayoutBinding = mainBinding.toolbarLayout;
         setContentView(mainBinding.getRoot());
+        BottomSheetBehavior.from(mainBinding.fragmentPlayerHolder)
+                .addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull final View bottomSheet,
+                                               final int newState) {
+                        updateBackPressedCallbackState();
+                    }
+
+                    @Override
+                    public void onSlide(@NonNull final View bottomSheet,
+                                        final float slideOffset) {
+                        // no-op
+                    }
+                });
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             initFragments();
@@ -208,6 +234,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         MigrationManager.showUserInfoIfPresent(this);
+        mainBinding.getRoot().post(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
     }
 
     @Override
@@ -251,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDrawerOpened(final View drawerView) {
                 lastService = ServiceHelper.getSelectedServiceId(MainActivity.this);
+                updateBackPressedCallbackState();
             }
 
             @Override
@@ -261,6 +292,7 @@ public class MainActivity extends AppCompatActivity {
                 if (lastService != ServiceHelper.getSelectedServiceId(MainActivity.this)) {
                     ActivityCompat.recreate(MainActivity.this);
                 }
+                updateBackPressedCallbackState();
             }
         });
 
@@ -460,46 +492,40 @@ public class MainActivity extends AppCompatActivity {
     private void enhancePeertubeMenu(final MenuItem menuItem) {
         final PeertubeInstance currentInstance = PeertubeHelper.getCurrentInstance();
         menuItem.setTitle(currentInstance.getName());
-        final Spinner spinner = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
+        final var instanceSelector = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
                 .getRoot();
         final List<PeertubeInstance> instances = PeertubeHelper.getInstanceList(this);
-        final List<String> items = new ArrayList<>();
-        int defaultSelect = 0;
-        for (final PeertubeInstance instance : instances) {
-            items.add(instance.getName());
-            if (instance.getUrl().equals(currentInstance.getUrl())) {
-                defaultSelect = items.size() - 1;
+        instanceSelector.setText(currentInstance.getName());
+        instanceSelector.setOnClickListener(v -> {
+            final List<MaterialActionSheetDialog.ActionItem> items = new ArrayList<>();
+            for (final PeertubeInstance instance : instances) {
+                final boolean isSelected =
+                        instance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl());
+                items.add(MaterialActionSheetDialog.ActionItem.checked(
+                        instance.getUrl().hashCode(),
+                        instance.getName(),
+                        0,
+                        isSelected,
+                        () -> {
+                            if (isSelected) {
+                                return;
+                            }
+                            PeertubeHelper.selectInstance(
+                                    instance,
+                                    getApplicationContext());
+                            changeService(menuItem);
+                            mainBinding.getRoot().closeDrawers();
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                getSupportFragmentManager().popBackStack(
+                                        null,
+                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                ActivityCompat.recreate(MainActivity.this);
+                            }, 300);
+                        }));
             }
-        }
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                R.layout.instance_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setSelection(defaultSelect, false);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(final AdapterView<?> parent, final View view,
-                                       final int position, final long id) {
-                final PeertubeInstance newInstance = instances.get(position);
-                if (newInstance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl())) {
-                    return;
-                }
-                PeertubeHelper.selectInstance(newInstance, getApplicationContext());
-                changeService(menuItem);
-                mainBinding.getRoot().closeDrawers();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    getSupportFragmentManager().popBackStack(null,
-                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    ActivityCompat.recreate(MainActivity.this);
-                }, 300);
-            }
-
-            @Override
-            public void onNothingSelected(final AdapterView<?> parent) {
-
-            }
+            MaterialActionSheetDialog.show(this, getString(R.string.choose_instance_prompt), items);
         });
-        menuItem.setActionView(spinner);
+        menuItem.setActionView(instanceSelector);
     }
 
     @Override
@@ -565,6 +591,7 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.enable_watch_history_key), true);
         drawerLayoutBinding.navigation.getMenu().findItem(ITEM_ID_HISTORY)
                 .setVisible(isHistoryEnabled);
+        updateDrawerNavigation();
     }
 
     @Override
@@ -601,8 +628,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         if (DEBUG) {
             Log.d(TAG, "onBackPressed() called");
         }
@@ -652,8 +678,46 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
             finish();
         } else {
-            super.onBackPressed();
+            performDefaultBackNavigation();
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            MainActivity.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        try {
+            MainActivity.super.onBackPressed();
+        } finally {
+            backPressedCallback.setEnabled(true);
+        }
+    }
+
+    public void updateBackPressedCallbackState() {
+        if (backPressedCallback == null || mainBinding == null) {
+            return;
+        }
+        backPressedCallback.setEnabled(shouldInterceptBackPress());
+    }
+
+    private boolean shouldInterceptBackPress() {
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            return true;
+        }
+
+        if (!bottomSheetHiddenOrCollapsed()) {
+            return true;
+        }
+
+        final Fragment fragment = getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_holder);
+        return (fragment instanceof BackPressable
+                && ((BackPressable) fragment).canHandleBackPress())
+                || fragment instanceof CommentRepliesFragment;
     }
 
     @Override
@@ -800,12 +864,13 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             if (toggle != null) {
                 toggle.syncState();
-                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> mainBinding.getRoot()
-                        .open());
-                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
+                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v ->
+                        mainBinding.getRoot().openDrawer(drawerLayoutBinding.navigation));
+                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             }
         } else {
             mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            mainBinding.getRoot().closeDrawer(drawerLayoutBinding.navigation, false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> onHomeButtonPressed());
         }

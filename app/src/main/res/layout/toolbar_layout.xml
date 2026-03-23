@@ -10,12 +10,14 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/bg_pilot_toolbar"
+        android:background="?attr/colorSurfaceContainer"
         android:gravity="center_vertical"
         android:minHeight="?attr/actionBarSize"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
-        android:theme="@style/PilotToolbarTheme">
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+        app:titleTextColor="?attr/colorOnSurface">
 
         <include
             android:id="@+id/toolbar_search_container"

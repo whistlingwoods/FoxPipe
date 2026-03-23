@@ -10,7 +10,7 @@
     android:layout_marginBottom="3dp"
     android:minHeight="?listPreferredItemHeightSmall"
     android:orientation="horizontal"
-    app:cardBackgroundColor="?attr/card_item_background_color"
+    app:cardBackgroundColor="?attr/colorSurfaceContainer"
     app:cardCornerRadius="22dp"
     app:cardElevation="0dp">
 

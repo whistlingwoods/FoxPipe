@@ -2,9 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_md3_bottom_sheet"
+    android:clipToOutline="true"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <View
+        android:layout_width="32dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_md3_drag_handle" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/actionSheetTitle"
@@ -15,18 +24,14 @@
         android:paddingEnd="24dp"
         android:paddingBottom="8dp"
         android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:textColor="?attr/pilot_on_surface_variant_color"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:visibility="gone" />
 
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/actionSheetList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
-        android:cacheColorHint="@android:color/transparent"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp"
-        android:listSelector="@android:color/transparent"
         android:overScrollMode="never" />
 
 </LinearLayout>

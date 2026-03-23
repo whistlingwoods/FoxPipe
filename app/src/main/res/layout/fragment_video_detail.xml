@@ -5,7 +5,7 @@
     android:id="@+id/video_item_detail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:focusableInTouchMode="true">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -42,7 +42,7 @@
                         android:id="@+id/detail_thumbnail_image_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="?windowBackground"
+                        android:background="?android:attr/windowBackground"
                         android:contentDescription="@string/detail_thumbnail_view_description"
                         android:minHeight="200dp"
                         android:scaleType="fitCenter"
@@ -154,7 +154,7 @@
                     android:id="@+id/detail_content_root_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="?attr/pilot_page_background_color"
+                    android:background="?attr/colorSurface"
                     app:layout_scrollFlags="scroll">
 
                 <!-- TITLE -->
@@ -193,7 +193,7 @@
                             android:layout_marginTop="11dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_expand_more"
-                            app:tint="?attr/pilot_on_surface_variant_color"
+                            app:tint="?attr/colorOnSurfaceVariant"
                             tools:ignore="ContentDescription" />
 
                 </FrameLayout>
@@ -563,7 +563,7 @@
                         android:layout_height="1px"
                         android:layout_marginLeft="8dp"
                         android:layout_marginRight="8dp"
-                        android:background="?attr/separator_color" />
+                        android:background="?attr/colorOutlineVariant" />
 
                     <org.schabi.newpipe.views.NewPipeTextView
                         android:id="@+id/detail_meta_info_text_view"
@@ -579,7 +579,7 @@
                         android:layout_height="1px"
                         android:layout_marginLeft="8dp"
                         android:layout_marginRight="8dp"
-                        android:background="?attr/separator_color" />
+                        android:background="?attr/colorOutlineVariant" />
 
                 </LinearLayout>
             </RelativeLayout>
@@ -594,16 +594,17 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
+            style="@style/Widget.NewPipe.TabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
-            android:background="?attr/pilot_surface_color"
-            app:elevation="16dp"
-            app:tabBackground="?attr/pilot_surface_variant_color"
-            app:tabGravity="fill"
-            app:tabIconTint="?attr/pilot_on_primary_container_color"
-            app:tabIndicatorColor="?attr/pilot_primary_container_color"
-            app:tabIndicatorGravity="top" />
+            android:background="?attr/colorSurfaceContainer"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
+            app:elevation="8dp"
+            app:tabIconTint="@color/drawer_item_tint" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -612,7 +613,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0.9"
-        android:background="?attr/windowBackground">
+        android:background="?android:attr/windowBackground">
 
         <ImageView
             android:id="@+id/overlay_thumbnail"
@@ -635,7 +636,6 @@
             android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="vertical"
-            android:theme="@style/ContrastTintTheme"
             tools:ignore="RtlHardcoded">
 
             <org.schabi.newpipe.views.NewPipeTextView
@@ -648,6 +648,7 @@
                 android:scrollHorizontally="true"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="@color/contrastColor"
                 android:textSize="@dimen/video_item_search_title_text_size"
                 tools:ignore="RtlHardcoded"
                 tools:text="The Video Title LONG very LONVideo Title LONG very LONG" />
@@ -662,6 +663,7 @@
                 android:scrollHorizontally="true"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@color/contrastColor"
                 android:textSize="@dimen/video_item_search_uploader_text_size"
                 tools:text="The Video Artist  LONG very LONG very Long" />
 
@@ -673,7 +675,6 @@
             android:layout_height="60dp"
             android:layout_alignParentEnd="true"
             android:gravity="center_vertical"
-            android:theme="@style/ContrastTintTheme"
             tools:ignore="RtlHardcoded">
 
             <org.schabi.newpipe.views.PilotIconButton

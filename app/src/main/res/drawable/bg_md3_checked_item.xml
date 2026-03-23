@@ -5,21 +5,21 @@
 
     <item android:state_checked="true" android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/dark_ripple_color" />
+            <solid android:color="?attr/colorControlHighlight" />
             <corners android:radius="20dp" />
         </shape>
     </item>
 
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/dark_ripple_color" />
+            <solid android:color="?attr/colorControlHighlight" />
             <corners android:radius="20dp" />
         </shape>
     </item>
 
     <item android:state_checked="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/dark_selected_color" />
+            <solid android:color="?attr/colorSecondaryContainer" />
             <corners android:radius="20dp" />
         </shape>
     </item>

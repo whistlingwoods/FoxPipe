@@ -2419,6 +2419,13 @@ public final class Player implements PlaybackListener, Listener {
         reloadPlayQueueManager();
     }
 
+    public void setPlaybackQuality(@Nullable final VideoStream videoStream) {
+        saveStreamProgressState();
+        setRecovery();
+        videoResolver.setPlaybackQuality(videoStream);
+        reloadPlayQueueManager();
+    }
+
     public void setAudioTrack(@Nullable final String audioTrackId) {
         saveStreamProgressState();
         setRecovery();

@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -83,6 +84,8 @@ public class SettingsActivity extends AppCompatActivity implements
     private EditText searchEditText;
     private int dynamicColorsSignature;
     @Nullable
+    private OnBackPressedCallback backPressedCallback;
+    @Nullable
     private WallpaperManager wallpaperManager;
     @Nullable
     private WallpaperManager.OnColorsChangedListener wallpaperColorsChangedListener;
@@ -102,6 +105,13 @@ public class SettingsActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceBundle);
         Bridge.restoreInstanceState(this, savedInstanceBundle);
         final boolean restored = savedInstanceBundle != null;
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
 
         final SettingsLayoutBinding settingsLayoutBinding =
                 SettingsLayoutBinding.inflate(getLayoutInflater());
@@ -149,6 +159,8 @@ public class SettingsActivity extends AppCompatActivity implements
                 }
             };
         }
+
+        updateBackPressedCallbackState();
     }
 
     @Override
@@ -202,13 +214,27 @@ public class SettingsActivity extends AppCompatActivity implements
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         if (isSearchActive()) {
             setSearchActive(false);
             return;
         }
-        super.onBackPressed();
+        performDefaultBackNavigation();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            SettingsActivity.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        try {
+            SettingsActivity.super.onBackPressed();
+        } finally {
+            backPressedCallback.setEnabled(true);
+        }
     }
 
     @Override
@@ -388,6 +414,7 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         resetSearchText();
+        updateBackPressedCallbackState();
     }
 
     private void hideSearchFragment() {
@@ -400,6 +427,13 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private boolean isSearchActive() {
         return searchContainer.getVisibility() == View.VISIBLE;
+    }
+
+    private void updateBackPressedCallbackState() {
+        if (backPressedCallback == null || searchContainer == null) {
+            return;
+        }
+        backPressedCallback.setEnabled(isSearchActive());
     }
 
     private void onSearchChanged() {
@@ -445,9 +479,9 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         // Run the highlighting
-        if (currentFragment instanceof PreferenceFragmentCompat) {
+        if (currentFragment instanceof PreferenceUiHost) {
             PreferenceSearchResultHighlighter
-                    .highlight(result, (PreferenceFragmentCompat) currentFragment);
+                    .highlight(result, (PreferenceUiHost) currentFragment);
         }
     }
 

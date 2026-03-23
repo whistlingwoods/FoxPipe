@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.evernote.android.state.State;
 
+import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.FragmentSearchBinding;
 import org.schabi.newpipe.error.ErrorInfo;
@@ -665,6 +666,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         suggestionsPanelVisible = true;
         animate(searchBinding.suggestionsPanel, true, 200,
                 AnimationType.LIGHT_SLIDE_AND_ALPHA);
+        notifyBackPressHandlingChanged();
     }
 
     private void hideSuggestionsPanel() {
@@ -674,6 +676,13 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         suggestionsPanelVisible = false;
         animate(searchBinding.suggestionsPanel, false, 200,
                 AnimationType.LIGHT_SLIDE_AND_ALPHA);
+        notifyBackPressHandlingChanged();
+    }
+
+    private void notifyBackPressHandlingChanged() {
+        if (activity instanceof MainActivity) {
+            ((MainActivity) activity).updateBackPressedCallbackState();
+        }
     }
 
     private void showKeyboardSearch() {
@@ -716,10 +725,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     }
 
     @Override
-    public boolean onBackPressed() {
-        if (suggestionsPanelVisible
+    public boolean canHandleBackPress() {
+        return suggestionsPanelVisible
                 && !infoListAdapter.getItemsList().isEmpty()
-                && !isLoading.get()) {
+                && !isLoading.get();
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if (canHandleBackPress()) {
             hideSuggestionsPanel();
             hideKeyboardSearch();
             searchEditText.setText(lastSearchedString);

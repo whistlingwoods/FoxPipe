@@ -2,9 +2,11 @@ package org.schabi.newpipe.about
 
 import android.os.Bundle
 import android.util.Base64
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.BundleCompat
@@ -29,6 +31,7 @@ class LicenseFragment : Fragment() {
     private lateinit var softwareComponents: List<SoftwareComponent>
     private var activeSoftwareComponent: SoftwareComponent? = null
     private val compositeDisposable = CompositeDisposable()
+    private var licenseDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +45,14 @@ class LicenseFragment : Fragment() {
     override fun onDestroy() {
         compositeDisposable.dispose()
         super.onDestroy()
+    }
+
+    override fun onDestroyView() {
+        compositeDisposable.clear()
+        licenseDialog?.dismiss()
+        licenseDialog = null
+        activeSoftwareComponent = null
+        super.onDestroyView()
     }
 
     override fun onCreateView(
@@ -90,40 +101,72 @@ class LicenseFragment : Fragment() {
         return if (context == null) {
             Disposable.empty()
         } else {
-            val context = requireContext()
+            val formattingContext = requireContext().applicationContext
             activeSoftwareComponent = softwareComponent
-            Observable.fromCallable { getFormattedLicense(context, softwareComponent.license) }
+            Observable.fromCallable {
+                getFormattedLicense(formattingContext, softwareComponent.license)
+            }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { formattedLicense ->
+                .subscribe({ formattedLicense ->
+                    val hostActivity = activity ?: return@subscribe
+                    if (!isAdded || view == null
+                        || hostActivity.isFinishing || hostActivity.isDestroyed
+                    ) {
+                        return@subscribe
+                    }
                     val webViewData = Base64.encodeToString(
                         formattedLicense.toByteArray(),
                         Base64.NO_PADDING
                     )
-                    val webView = WebView(context)
+                    val webView = WebView(hostActivity)
                     webView.loadData(webViewData, "text/html; charset=UTF-8", "base64")
 
-                    val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(softwareComponent.name)
-                        .setView(webView)
-                        .setOnCancelListener { activeSoftwareComponent = null }
-                        .setOnDismissListener { activeSoftwareComponent = null }
-                        .setPositiveButton(R.string.done) { dialog, _ -> dialog.dismiss() }
+                    val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(
+                        hostActivity
+                    ).apply {
+                        setTitle(softwareComponent.name)
+                        setView(webView)
+                        setPositiveButton(R.string.done) { dialog, _ -> dialog.dismiss() }
 
-                    if (softwareComponent != NEWPIPE_SOFTWARE_COMPONENT) {
-                        builder.setNeutralButton(R.string.open_website_license) { _, _ ->
-                            ShareUtils.openUrlInApp(requireContext(), softwareComponent.link)
+                        if (softwareComponent != NEWPIPE_SOFTWARE_COMPONENT) {
+                            setNeutralButton(R.string.open_website_license) { _, _ ->
+                                ShareUtils.openUrlInApp(hostActivity, softwareComponent.link)
+                            }
                         }
                     }
 
-                    builder.show()
-                }
+                    try {
+                        val dialog = builder.create()
+                        dialog.setOnCancelListener {
+                            if (licenseDialog === dialog) {
+                                activeSoftwareComponent = null
+                                licenseDialog = null
+                            }
+                        }
+                        dialog.setOnDismissListener {
+                            if (licenseDialog === dialog) {
+                                activeSoftwareComponent = null
+                                licenseDialog = null
+                            }
+                        }
+                        dialog.show()
+                        licenseDialog = dialog
+                    } catch (exception: WindowManager.BadTokenException) {
+                        Log.w(TAG, "Skip showing license dialog for a destroyed activity", exception)
+                        activeSoftwareComponent = null
+                    }
+                }, { throwable ->
+                    Log.e(TAG, "Unable to load license dialog", throwable)
+                    activeSoftwareComponent = null
+                })
         }
     }
 
     companion object {
         private const val ARG_COMPONENTS = "components"
         private const val SOFTWARE_COMPONENT_KEY = "ACTIVE_SOFTWARE_COMPONENT"
+        private const val TAG = "LicenseFragment"
         private val NEWPIPE_SOFTWARE_COMPONENT = SoftwareComponent(
             "NewPipe",
             "2014-2023",

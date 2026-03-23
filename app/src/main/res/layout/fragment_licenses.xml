@@ -2,7 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:fillViewport="true"
     android:paddingStart="16dp"
     android:paddingTop="16dp"
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/app_license"
-            android:textColor="?attr/pilot_on_surface_variant_color" />
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/licenses_app_read_license"
@@ -45,7 +45,7 @@
             android:layout_height="1dp"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="16dp"
-            android:background="?attr/separator_color" />
+            android:background="?attr/colorOutlineVariant" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:layout_width="match_parent"

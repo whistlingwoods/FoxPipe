@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color">
+    android:background="?attr/colorSurface">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_layout"
@@ -40,7 +40,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:shapeAppearance="@style/RoundedPanelImageView"
-                    app:strokeColor="?attr/pilot_outline_color"
+                    app:strokeColor="?attr/colorOutline"
                     app:strokeWidth="1dp"
                     app:tint="@null"
                     tools:ignore="ContentDescription" />
@@ -72,7 +72,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:shapeAppearance="@style/CircularImageView"
-                        app:strokeColor="?attr/pilot_surface_color"
+                        app:strokeColor="?attr/colorSurface"
                         app:strokeWidth="3dp"
                         app:tint="@null" />
 
@@ -86,7 +86,7 @@
                         app:layout_constraintBottom_toBottomOf="@id/channel_avatar_view"
                         app:layout_constraintEnd_toEndOf="@id/channel_avatar_view"
                         app:shapeAppearance="@style/CircularImageView"
-                        app:strokeColor="?attr/pilot_surface_color"
+                        app:strokeColor="?attr/colorSurface"
                         app:strokeWidth="2dp"
                         app:tint="@null"
                         tools:visibility="visible" />
@@ -171,20 +171,16 @@
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
+            style="@style/Widget.NewPipe.TabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/pilot_page_background_color"
-            android:paddingStart="8dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="8dp"
-            android:paddingBottom="4dp"
-            app:tabGravity="fill"
-            app:tabIndicatorColor="?attr/colorPrimary"
-            app:tabIndicatorFullWidth="false"
+            android:background="?attr/colorSurfaceContainer"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="8dp"
             app:tabMode="scrollable"
-            app:tabRippleColor="?attr/pilot_primary_container_color"
-            app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?attr/pilot_on_surface_variant_color" />
+            app:tabIconTint="@color/drawer_item_tint" />
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/view_pager"

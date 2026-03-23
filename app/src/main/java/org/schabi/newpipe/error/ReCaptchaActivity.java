@@ -13,6 +13,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -66,12 +67,21 @@ public class ReCaptchaActivity extends AppCompatActivity {
 
     private ActivityRecaptchaBinding recaptchaBinding;
     private String foundCookies = "";
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         ThemeHelper.setTheme(this);
         super.onCreate(savedInstanceState);
+        backPressedCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                saveCookiesAndFinish();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
 
         recaptchaBinding = ActivityRecaptchaBinding.inflate(getLayoutInflater());
         setContentView(recaptchaBinding.getRoot());
@@ -125,12 +135,6 @@ public class ReCaptchaActivity extends AppCompatActivity {
         }
 
         return true;
-    }
-
-    @Override
-    @SuppressLint("MissingSuperCall") // saveCookiesAndFinish method handles back navigation
-    public void onBackPressed() {
-        saveCookiesAndFinish();
     }
 
     @Override

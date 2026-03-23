@@ -3,7 +3,7 @@
 
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="?attr/pilot_surface_container_high_color" />
+            <solid android:color="?attr/colorSurfaceContainerHigh" />
             <corners android:radius="18dp" />
             <stroke
                 android:width="2dp"
@@ -13,11 +13,11 @@
 
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="?attr/pilot_surface_container_high_color" />
+            <solid android:color="?attr/colorSurfaceContainerHigh" />
             <corners android:radius="18dp" />
             <stroke
                 android:width="1dp"
-                android:color="?attr/pilot_outline_color" />
+                android:color="?attr/colorOutline" />
         </shape>
     </item>
 </selector>

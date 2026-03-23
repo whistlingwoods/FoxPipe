@@ -29,7 +29,7 @@
         android:contentDescription="@string/list_view_mode"
         android:padding="8dp"
         app:icon="@drawable/ic_apps"
-        app:iconTint="?attr/pilot_on_surface_color" />
+        app:iconTint="?attr/colorOnSurface" />
 
     <org.schabi.newpipe.views.PilotIconButton
         android:id="@+id/header_sort"
@@ -40,5 +40,5 @@
         android:contentDescription="@string/sort"
         android:padding="8dp"
         app:icon="@drawable/ic_sort"
-        app:iconTint="?attr/pilot_on_surface_color" />
+        app:iconTint="?attr/colorOnSurface" />
 </LinearLayout>

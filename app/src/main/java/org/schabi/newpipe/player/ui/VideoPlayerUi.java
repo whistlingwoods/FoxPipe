@@ -16,6 +16,8 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.getTimeString;
 import static org.schabi.newpipe.player.helper.PlayerHelper.nextResizeModeAndSaveToPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
@@ -33,6 +35,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -83,6 +86,7 @@ import org.schabi.newpipe.player.seekbarpreview.SeekbarPreviewThumbnailHolder;
 import org.schabi.newpipe.ui.MaterialActionSheetDialog;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
+import org.schabi.newpipe.util.ListHelper;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.SponsorBlockHelper;
@@ -1201,8 +1205,14 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     //region Action sheets
 
     private void buildQualityMenu() {
-        player.getSelectedVideoStream()
-                .ifPresent(s -> binding.qualityTextView.setText(s.getResolution()));
+        final List<VideoStream> availableStreams = getAvailableVideoStreams();
+        final int selectedStreamIndex = getSelectedVideoStreamIndex(availableStreams);
+        if (selectedStreamIndex >= 0 && selectedStreamIndex < availableStreams.size()) {
+            binding.qualityTextView.setText(availableStreams.get(selectedStreamIndex)
+                    .getResolution());
+        } else if (!availableStreams.isEmpty()) {
+            binding.qualityTextView.setText(availableStreams.get(0).getResolution());
+        }
     }
 
     private void buildAudioTrackMenu() {
@@ -1277,34 +1287,23 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     protected abstract void onPlaybackSpeedClicked();
 
     private void onQualityClicked() {
-        @Nullable final MediaItemTag currentMetadata = player.getCurrentMetadata();
-        if (currentMetadata == null || currentMetadata.getMaybeQuality().isEmpty()) {
-            return;
-        }
-        final MediaItemTag.Quality quality = currentMetadata.getMaybeQuality().get();
-        final List<VideoStream> availableStreams = quality.getSortedVideoStreams();
+        final List<VideoStream> availableStreams = getAvailableVideoStreams();
         if (availableStreams.isEmpty()) {
             return;
         }
-        final int selectedStreamIndex = quality.getSelectedVideoStreamIndex();
+        final int selectedStreamIndex = getSelectedVideoStreamIndex(availableStreams);
         final List<MaterialActionSheetDialog.ActionItem> actionItems = new ArrayList<>();
         for (int i = 0; i < availableStreams.size(); i++) {
             final VideoStream videoStream = availableStreams.get(i);
-            final String title = MediaFormat.getNameById(videoStream.getFormatId()) + " "
-                    + videoStream.getResolution();
             final int streamIndex = i;
             actionItems.add(MaterialActionSheetDialog.ActionItem.checked(
                     POPUP_MENU_ID_QUALITY + i,
-                    title,
+                    buildQualityActionTitle(videoStream),
                     0,
                     selectedStreamIndex == i,
-                    () -> onQualityItemClick(streamIndex, title)));
+                    () -> onQualityItemClick(streamIndex)));
         }
         showActionSheet(binding.qualityTextView.getText(), actionItems);
-
-        player.getSelectedVideoStream()
-                .map(s -> MediaFormat.getNameById(s.getFormatId()) + " " + s.getResolution())
-                .ifPresent(binding.qualityTextView::setText);
     }
 
     private void onAudioTracksClicked() {
@@ -1332,24 +1331,24 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         showActionSheet(binding.audioTrackTextView.getText(), actionItems);
     }
 
-    private void onQualityItemClick(final int menuItemIndex,
-                                    @NonNull final CharSequence title) {
-        @Nullable final MediaItemTag currentMetadata = player.getCurrentMetadata();
-        if (currentMetadata == null || currentMetadata.getMaybeQuality().isEmpty()) {
-            return;
-        }
-
-        final MediaItemTag.Quality quality = currentMetadata.getMaybeQuality().get();
-        final List<VideoStream> availableStreams = quality.getSortedVideoStreams();
-        final int selectedStreamIndex = quality.getSelectedVideoStreamIndex();
+    private void onQualityItemClick(final int menuItemIndex) {
+        final List<VideoStream> availableStreams = getAvailableVideoStreams();
+        final int selectedStreamIndex = getSelectedVideoStreamIndex(availableStreams);
         if (selectedStreamIndex == menuItemIndex || availableStreams.size() <= menuItemIndex) {
             return;
         }
 
-        final String newResolution = availableStreams.get(menuItemIndex).getResolution();
-        player.setPlaybackQuality(newResolution);
+        final VideoStream selectedStream = availableStreams.get(menuItemIndex);
+        player.setPlaybackQuality(selectedStream);
+        binding.qualityTextView.setText(selectedStream.getResolution());
+    }
 
-        binding.qualityTextView.setText(title);
+    @NonNull
+    private String buildQualityActionTitle(@NonNull final VideoStream videoStream) {
+        final String formatName = MediaFormat.getNameById(videoStream.getFormatId());
+        return formatName.isEmpty()
+                ? videoStream.getResolution()
+                : formatName + " " + videoStream.getResolution();
     }
 
     private void onAudioTrackItemClick(final int menuItemIndex,
@@ -1379,13 +1378,43 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         }
         isSomeActionSheetVisible = false;
         actionSheetDialog = null;
-        player.getSelectedVideoStream()
-                .ifPresent(s -> binding.qualityTextView.setText(s.getResolution()));
 
         if (player.isPlaying()) {
             hideControls(DEFAULT_CONTROLS_DURATION, 0);
             hideSystemUIIfNeeded();
         }
+    }
+
+    @NonNull
+    private List<VideoStream> getAvailableVideoStreams() {
+        @Nullable final MediaItemTag currentMetadata = player.getCurrentMetadata();
+        if (currentMetadata != null && currentMetadata.getMaybeQuality().isPresent()) {
+            return currentMetadata.getMaybeQuality().get().getSortedVideoStreams();
+        }
+
+        return player.getCurrentStreamInfo()
+                .map(info -> ListHelper.getSortedStreamVideosList(
+                        context,
+                        ListHelper.getPlayableStreams(info.getVideoStreams(), info.getServiceId()),
+                        ListHelper.getPlayableStreams(
+                                info.getVideoOnlyStreams(),
+                                info.getServiceId()),
+                        false,
+                        true))
+                .orElse(Collections.emptyList());
+    }
+
+    private int getSelectedVideoStreamIndex(@NonNull final List<VideoStream> availableStreams) {
+        @Nullable final MediaItemTag currentMetadata = player.getCurrentMetadata();
+        if (currentMetadata == null || currentMetadata.getMaybeQuality().isEmpty()) {
+            return -1;
+        }
+
+        final int selectedStreamIndex =
+                currentMetadata.getMaybeQuality().get().getSelectedVideoStreamIndex();
+        return selectedStreamIndex >= 0 && selectedStreamIndex < availableStreams.size()
+                ? selectedStreamIndex
+                : -1;
     }
 
     private void onCaptionClicked() {
@@ -1468,12 +1497,51 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (actionSheetDialog != null) {
             actionSheetDialog.dismiss();
         }
-        isSomeActionSheetVisible = true;
+        @Nullable final Context actionSheetContext = resolveActionSheetContext();
+        if (actionSheetContext == null) {
+            isSomeActionSheetVisible = false;
+            return;
+        }
         actionSheetDialog = MaterialActionSheetDialog.show(
-                context,
+                actionSheetContext,
                 title,
                 items,
                 this::onActionSheetDismissed);
+        isSomeActionSheetVisible = actionSheetDialog != null;
+    }
+
+    @Nullable
+    private Context resolveActionSheetContext() {
+        final Context rootContext = binding.getRoot().getContext();
+        if (findActivity(rootContext) != null) {
+            return rootContext;
+        }
+
+        ViewParent parent = binding.getRoot().getParent();
+        while (parent instanceof View) {
+            final Context parentContext = ((View) parent).getContext();
+            if (findActivity(parentContext) != null) {
+                return parentContext;
+            }
+            parent = parent.getParent();
+        }
+        return null;
+    }
+
+    @Nullable
+    private static Context findActivity(@Nullable final Context context) {
+        Context currentContext = context;
+        while (currentContext instanceof ContextWrapper) {
+            if (currentContext instanceof android.app.Activity) {
+                return currentContext;
+            }
+            final Context baseContext = ((ContextWrapper) currentContext).getBaseContext();
+            if (baseContext == currentContext) {
+                return null;
+            }
+            currentContext = baseContext;
+        }
+        return null;
     }
     //endregion
 

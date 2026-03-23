@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -37,7 +37,7 @@
         android:padding="16dp"
         android:text="@string/no_feed_group_created_yet"
         android:textAppearance="?android:attr/textAppearanceListItem"
-        android:textColor="?attr/pilot_on_surface_variant_color" />
+        android:textColor="?attr/colorOnSurfaceVariant" />
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"

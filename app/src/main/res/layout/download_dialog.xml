@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/pilot_page_background_color"
+    android:background="?attr/colorSurface"
     android:orientation="vertical">
 
     <include
@@ -92,29 +92,72 @@
                 </RadioGroup>
             </LinearLayout>
 
-            <Spinner
-                android:id="@+id/quality_spinner"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/quality_spinner_container"
+                style="@style/Widget.NewPipe.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:minWidth="150dp"
-                tools:listitem="@layout/stream_quality_item" />
+                app:endIconMode="dropdown_menu"
+                app:hintEnabled="false">
 
-            <Spinner
-                android:id="@+id/audio_track_spinner"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/quality_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    tools:text="1080p60 • MPEG-4 • 123 MB" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/audio_track_spinner_container"
+                style="@style/Widget.NewPipe.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:minWidth="150dp"
-                tools:visibility="gone" />
+                android:visibility="gone"
+                app:endIconMode="dropdown_menu"
+                app:hintEnabled="false"
+                tools:visibility="visible">
 
-            <Spinner
-                android:id="@+id/audio_stream_spinner"
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/audio_track_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    tools:text="English • English (Original)" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/audio_stream_spinner_container"
+                style="@style/Widget.NewPipe.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:minWidth="150dp"
-                tools:visibility="gone" />
+                android:visibility="gone"
+                app:endIconMode="dropdown_menu"
+                app:hintEnabled="false"
+                tools:visibility="visible">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/audio_stream_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textColorHint="?attr/colorOnSurfaceVariant"
+                    tools:text="160kbps • opus • 12.3 MB" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/audio_track_present_in_video_text"
@@ -123,7 +166,7 @@
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="@string/audio_track_present_in_video"
-                android:textColor="?attr/pilot_on_surface_variant_color"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
 
             <org.schabi.newpipe.views.NewPipeTextView
@@ -172,7 +215,7 @@
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="@string/streams_not_yet_supported_removed"
-                android:textColor="?attr/pilot_on_surface_variant_color"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
