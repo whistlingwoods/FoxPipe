@@ -703,6 +703,7 @@
     <string name="remove_duplicates_message">你想删除这个播放列表中所有重复项吗？</string>
     <string name="feed_hide_streams_title">显示下列音视频流</string>
     <string name="feed_show_hide_streams">显示/隐藏音视频流</string>
+    <string name="feed_filter_channels">按频道筛选</string>
     <string name="feed_show_watched">完整看过</string>
     <string name="feed_show_partially_watched">只看了一部分</string>
     <string name="feed_show_upcoming">即将到来</string>

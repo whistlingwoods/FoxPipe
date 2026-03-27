@@ -564,6 +564,16 @@ public final class NavigationHelper {
                 .commit();
     }
 
+    public static void openFeedFragment(@NonNull final Context context,
+                                        @NonNull final FragmentManager fragmentManager,
+                                        final long groupId,
+                                        @Nullable final String groupName) {
+        defaultTransaction(fragmentManager)
+                .replace(R.id.fragment_holder, FeedFragment.newInstance(groupId, groupName))
+                .addToBackStack(null)
+                .commit();
+    }
+
     public static void openBookmarksFragment(final FragmentManager fragmentManager) {
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_holder, new BookmarkFragment())
