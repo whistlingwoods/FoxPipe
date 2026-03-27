@@ -1310,7 +1310,15 @@ public final class VideoDetailFragment
                     }
                     // Fallback: infer from "p" query parameter if available (BiliBili)
                     if (startIndex == 0 && currentUrl != null) {
-                        final int p = getIntQueryParam(currentUrl, "p", -1);
+                        final int p;
+                        {
+                            int tmpP = -1;
+                            try {
+                                final String qp = Uri.parse(currentUrl).getQueryParameter("p");
+                                if (qp != null) tmpP = Integer.parseInt(qp);
+                            } catch (final NumberFormatException ignored) { }
+                            p = tmpP;
+                        }
                         if (p >= 1 && p <= parts.size()) {
                             startIndex = p - 1;
                         }
