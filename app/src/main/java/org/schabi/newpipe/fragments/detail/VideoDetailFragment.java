@@ -164,8 +164,6 @@ public final class VideoDetailFragment
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
 
-    // When the player is closed by the user, force re-fetch of stream info on next play
-    private boolean forceReloadOnNextPlay = false;
 
     // tabs
     private boolean showComments;
@@ -390,10 +388,6 @@ public final class VideoDetailFragment
         // Check if it was loading when the fragment was stopped/paused
         if (wasLoading.getAndSet(false) && !wasCleared()) {
             startLoading(false);
-        }
-        // If the user previously closed the player, ensure we re-fetch stream info on next play
-        if (forceReloadOnNextPlay && !isPlayerAvailable()) {
-            currentInfo = null;
         }
     }
 
@@ -898,7 +892,7 @@ public final class VideoDetailFragment
 
     private void runWorker(final boolean forceLoad, final boolean addToBackStack) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, (forceLoad || forceReloadOnNextPlay))
+        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
@@ -923,8 +917,6 @@ public final class VideoDetailFragment
                         if (isAutoplayEnabled()) {
                             openVideoPlayerAutoFullscreen();
                         }
-                        // After successful fetch, clear the reload flag
-                        forceReloadOnNextPlay = false;
                     }
                 }, throwable -> showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,
                         url == null ? "no url" : url, serviceId, url)));
@@ -1197,11 +1189,6 @@ public final class VideoDetailFragment
      *                                       in landscape and screen orientation is locked
      */
     public void openVideoPlayer(final boolean directlyFullscreenIfApplicable) {
-        // If the player was previously closed, force a fresh info fetch before opening
-        if (forceReloadOnNextPlay) {
-            // reset cached info so startLoading() will fetch again
-            currentInfo = null;
-        }
         if (directlyFullscreenIfApplicable
                 && !DeviceUtils.isLandscape(requireContext())
                 && PlayerHelper.globalScreenOrientationLocked(requireContext())) {
@@ -2011,8 +1998,6 @@ public final class VideoDetailFragment
             }
             updateOverlayPlayQueueButtonVisibility();
         }
-        // Mark that the player was closed so next play re-fetches stream info
-        forceReloadOnNextPlay = true;
     }
 
     @Override
