@@ -164,6 +164,9 @@ public final class VideoDetailFragment
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
 
+    // Flag to avoid infinite refresh loops on playback error
+    private boolean attemptedRefreshOnError = false;
+
 
     // tabs
     private boolean showComments;
@@ -1921,6 +1924,7 @@ public final class VideoDetailFragment
 
         switch (state) {
             case Player.STATE_PLAYING:
+                attemptedRefreshOnError = false;
                 if (binding.positionView.getAlpha() != 1.0f
                         && player.getPlayQueue() != null
                         && player.getPlayQueue().getItem() != null
@@ -1979,6 +1983,11 @@ public final class VideoDetailFragment
 
     @Override
     public void onPlayerError(final PlaybackException error, final boolean isCatchableException) {
+        // Try a one-time refresh if this looks like an expired/invalid URL
+        if (!attemptedRefreshOnError && looksLikeLinkExpiry(error)) {
+            tryRefreshStreamAndResume();
+            return;
+        }
         if (!isCatchableException) {
             // Properly exit from fullscreen
             toggleFullscreenIfInFullscreenMode();
@@ -2621,5 +2630,39 @@ public final class VideoDetailFragment
                 && newState != BottomSheetBehavior.STATE_SETTLING) {
             lastStableBottomSheetState = newState;
         }
+    }
+
+
+    private boolean looksLikeLinkExpiry(final PlaybackException error) {
+        if (error == null || error.getMessage() == null) return false;
+        final String msg = error.getMessage().toLowerCase();
+        return msg.contains("403") || msg.contains("expired") || msg.contains("signature")
+                || msg.contains("forbidden") || msg.contains("invalid status")
+                || msg.contains("http") && (msg.contains("404") || msg.contains("410"));
+    }
+
+    private void tryRefreshStreamAndResume() {
+        // Force reload of current stream info and resume
+        if (url == null) return;
+        attemptedRefreshOnError = true;
+        if (binding != null) {
+            // Provide immediate UI feedback by showing loading state
+            showLoading();
+        }
+        currentWorker = org.schabi.newpipe.util.ExtractorHelper.getStreamInfo(serviceId, url, true)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result -> {
+                    isLoading.set(false);
+                    currentInfo = result;
+                    // Rebuild play queue from fresh info and restart playback
+                    playQueue = setupPlayQueueForIntent(false);
+                    autoPlayEnabled = true;
+                    openMainPlayer();
+                }, throwable -> {
+                    // If refresh failed, fall back to default handling
+                    showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,
+                            url == null ? "no url" : url, serviceId, url));
+                });
     }
 }
