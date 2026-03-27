@@ -164,6 +164,9 @@ public final class VideoDetailFragment
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
 
+    // When the player is closed by the user, force re-fetch of stream info on next play
+    private boolean forceReloadOnNextPlay = false;
+
     // tabs
     private boolean showComments;
     private boolean showRelatedItems;
@@ -387,6 +390,10 @@ public final class VideoDetailFragment
         // Check if it was loading when the fragment was stopped/paused
         if (wasLoading.getAndSet(false) && !wasCleared()) {
             startLoading(false);
+        }
+        // If the user previously closed the player, ensure we re-fetch stream info on next play
+        if (forceReloadOnNextPlay && !isPlayerAvailable()) {
+            currentInfo = null;
         }
     }
 
@@ -891,7 +898,7 @@ public final class VideoDetailFragment
 
     private void runWorker(final boolean forceLoad, final boolean addToBackStack) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad)
+        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, (forceLoad || forceReloadOnNextPlay))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
@@ -916,6 +923,8 @@ public final class VideoDetailFragment
                         if (isAutoplayEnabled()) {
                             openVideoPlayerAutoFullscreen();
                         }
+                        // After successful fetch, clear the reload flag
+                        forceReloadOnNextPlay = false;
                     }
                 }, throwable -> showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,
                         url == null ? "no url" : url, serviceId, url)));
@@ -1188,6 +1197,11 @@ public final class VideoDetailFragment
      *                                       in landscape and screen orientation is locked
      */
     public void openVideoPlayer(final boolean directlyFullscreenIfApplicable) {
+        // If the player was previously closed, force a fresh info fetch before opening
+        if (forceReloadOnNextPlay) {
+            // reset cached info so startLoading() will fetch again
+            currentInfo = null;
+        }
         if (directlyFullscreenIfApplicable
                 && !DeviceUtils.isLandscape(requireContext())
                 && PlayerHelper.globalScreenOrientationLocked(requireContext())) {
@@ -1289,7 +1303,36 @@ public final class VideoDetailFragment
         PlayQueue queue = playQueue;
         // Size can be 0 because queue removes bad stream automatically when error occurs
         if (queue == null || queue.isEmpty()) {
-            queue = new SinglePlayQueue(currentInfo);
+            // If the current stream has partitions (e.g., multi-part videos like BiliBili 分P),
+            // build a queue from the partitions starting at the current part.
+            try {
+                if (currentInfo != null && currentInfo.getPartitions() != null
+                        && !currentInfo.getPartitions().isEmpty()) {
+                    final var parts = currentInfo.getPartitions();
+                    final String currentUrl = currentInfo.getUrl();
+                    int startIndex = 0;
+                    // First try exact URL match
+                    for (int i = 0; i < parts.size(); i++) {
+                        if (currentUrl != null && currentUrl.equals(parts.get(i).getUrl())) {
+                            startIndex = i;
+                            break;
+                        }
+                    }
+                    // Fallback: infer from "p" query parameter if available (BiliBili)
+                    if (startIndex == 0 && currentUrl != null) {
+                        final int p = getIntQueryParam(currentUrl, "p", -1);
+                        if (p >= 1 && p <= parts.size()) {
+                            startIndex = p - 1;
+                        }
+                    }
+                    queue = new SinglePlayQueue(parts, Math.max(0, Math.min(startIndex, parts.size() - 1)));
+                } else {
+                    queue = new SinglePlayQueue(currentInfo);
+                }
+            } catch (Throwable t) {
+                // Defensive: fall back to single item queue on any error
+                queue = new SinglePlayQueue(currentInfo);
+            }
         }
 
         return queue;
@@ -1968,6 +2011,8 @@ public final class VideoDetailFragment
             }
             updateOverlayPlayQueueButtonVisibility();
         }
+        // Mark that the player was closed so next play re-fetches stream info
+        forceReloadOnNextPlay = true;
     }
 
     @Override
