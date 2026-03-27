@@ -1290,47 +1290,44 @@ public final class VideoDetailFragment
             return new SinglePlayQueue(currentInfo);
         }
 
-        PlayQueue queue = playQueue;
-        // Size can be 0 because queue removes bad stream automatically when error occurs
-        if (queue == null || queue.isEmpty()) {
-            // If the current stream has partitions (e.g., multi-part videos like BiliBili 分P),
-            // build a queue from the partitions starting at the current part.
-            try {
-                if (currentInfo != null && currentInfo.getPartitions() != null
-                        && !currentInfo.getPartitions().isEmpty()) {
-                    final var parts = currentInfo.getPartitions();
-                    final String currentUrl = currentInfo.getUrl();
-                    int startIndex = 0;
-                    // First try exact URL match
-                    for (int i = 0; i < parts.size(); i++) {
-                        if (currentUrl != null && currentUrl.equals(parts.get(i).getUrl())) {
-                            startIndex = i;
-                            break;
-                        }
+        PlayQueue queue;
+        try {
+            if (currentInfo != null && currentInfo.getPartitions() != null
+                    && !currentInfo.getPartitions().isEmpty()) {
+                final var parts = currentInfo.getPartitions();
+                final String currentUrl = currentInfo.getOriginalUrl() != null
+                        ? currentInfo.getOriginalUrl()
+                        : currentInfo.getUrl();
+                int startIndex = 0;
+                // First try exact URL match
+                for (int i = 0; i < parts.size(); i++) {
+                    if (currentUrl != null && currentUrl.equals(parts.get(i).getUrl())) {
+                        startIndex = i;
+                        break;
                     }
-                    // Fallback: infer from "p" query parameter if available (BiliBili)
-                    if (startIndex == 0 && currentUrl != null) {
-                        final int p;
-                        {
-                            int tmpP = -1;
-                            try {
-                                final String qp = Uri.parse(currentUrl).getQueryParameter("p");
-                                if (qp != null) tmpP = Integer.parseInt(qp);
-                            } catch (final NumberFormatException ignored) { }
-                            p = tmpP;
-                        }
-                        if (p >= 1 && p <= parts.size()) {
-                            startIndex = p - 1;
-                        }
-                    }
-                    queue = new SinglePlayQueue(parts, Math.max(0, Math.min(startIndex, parts.size() - 1)));
-                } else {
-                    queue = new SinglePlayQueue(currentInfo);
                 }
-            } catch (Throwable t) {
-                // Defensive: fall back to single item queue on any error
+                // Fallback: infer from "p" query parameter if available (BiliBili)
+                if (startIndex == 0 && currentUrl != null) {
+                    final int p;
+                    {
+                        int tmpP = -1;
+                        try {
+                            final String qp = Uri.parse(currentUrl).getQueryParameter("p");
+                            if (qp != null) tmpP = Integer.parseInt(qp);
+                        } catch (final NumberFormatException ignored) { }
+                        p = tmpP;
+                    }
+                    if (p >= 1 && p <= parts.size()) {
+                        startIndex = p - 1;
+                    }
+                }
+                queue = new SinglePlayQueue(parts, Math.max(0, Math.min(startIndex, parts.size() - 1)));
+            } else {
                 queue = new SinglePlayQueue(currentInfo);
             }
+        } catch (Throwable t) {
+            // Defensive: fall back to single item queue on any error
+            queue = new SinglePlayQueue(currentInfo);
         }
 
         return queue;
