@@ -192,6 +192,18 @@ public class PlayerDataSource {
                 .setContinueLoadingCheckIntervalBytes(progressiveLoadIntervalBytes);
     }
 
+    // BiliBili-specific factories using Referer headers
+    public HlsMediaSource.Factory getBiliHlsMediaSourceFactory() {
+        return new HlsMediaSource.Factory(biliCacheDataSourceFactory)
+                .setAllowChunklessPreparation(true);
+    }
+
+    public DashMediaSource.Factory getBiliDashMediaSourceFactory() {
+        return new DashMediaSource.Factory(
+                getDefaultDashChunkSourceFactory(biliCacheDataSourceFactory),
+                biliCacheDataSourceFactory);
+    }
+
     public HlsMediaSource.Factory getNiconicoHlsMediaSourceFactory(final String url) {
         return new HlsMediaSource.Factory(getNiconicoDataSourceFactory(url));
     }
