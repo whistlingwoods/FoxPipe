@@ -127,10 +127,13 @@ public final class PlayerService extends MediaBrowserServiceCompat {
                             final long now = SystemClock.elapsedRealtime();
                             if (now - lastReloadMs > 1000) { // debounce 1s
                                 lastReloadMs = now;
+                                // Clear all cached infos to avoid stale URLs after transport switch
+                                InfoCache.getInstance().clearCache();
                                 if (player != null) {
                                     final PlayQueue pq = player.getPlayQueue();
                                     final PlayQueueItem ci = pq != null ? pq.getItem() : null;
                                     if (ci != null) {
+                                        // Extra safety: also remove current item explicitly
                                         InfoCache.getInstance().removeInfo(ci.getServiceId(), ci.getUrl(), InfoCache.Type.STREAM);
                                     }
                                     player.setRecovery();

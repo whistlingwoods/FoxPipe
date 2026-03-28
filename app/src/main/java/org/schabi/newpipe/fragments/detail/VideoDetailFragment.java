@@ -850,8 +850,12 @@ public final class VideoDetailFragment
             player.disablePreloadingOfCurrentTrack();
         }
 
+        // Ensure we don't reuse stale cached StreamInfo when user re-opens from history
+        if (newUrl != null) {
+            InfoCache.getInstance().removeInfo(newServiceId, newUrl, InfoCache.Type.STREAM);
+        }
         setInitialData(newServiceId, newUrl, newTitle, newQueue);
-        startLoading(false, true);
+        startLoading(true, true);
     }
 
     private void prepareAndHandleInfoIfNeededAfterDelay(final StreamInfo info,
@@ -2732,6 +2736,8 @@ public final class VideoDetailFragment
             // Provide immediate UI feedback by showing loading state
             showLoading();
         }
+        // Clear InfoCache to ensure we don't reuse stale URLs on refresh
+        InfoCache.getInstance().removeInfo(serviceId, url, InfoCache.Type.STREAM);
         currentWorker = org.schabi.newpipe.util.ExtractorHelper.getStreamInfo(serviceId, url, true)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
