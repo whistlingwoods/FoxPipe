@@ -33,6 +33,8 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.SystemClock;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -83,6 +85,7 @@ public final class PlayerService extends MediaBrowserServiceCompat {
     @Nullable private ConnectivityManager.NetworkCallback networkCallback;
     private int lastTransport = -1;
     private long lastReloadMs = 0L;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Nullable
     private Player player;
@@ -136,8 +139,13 @@ public final class PlayerService extends MediaBrowserServiceCompat {
                                         // Extra safety: also remove current item explicitly
                                         InfoCache.getInstance().removeInfo(ci.getServiceId(), ci.getUrl(), InfoCache.Type.STREAM);
                                     }
-                                    player.setRecovery();
-                                    player.reloadPlayQueueManager();
+                                    // ExoPlayer must be accessed on main thread
+                                    mainHandler.post(() -> {
+                                        if (player != null) {
+                                            player.setRecovery();
+                                            player.reloadPlayQueueManager();
+                                        }
+                                    });
                                 }
                             }
                         }
