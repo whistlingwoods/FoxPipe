@@ -25,6 +25,11 @@ import android.database.ContentObserver;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
+import android.os.SystemClock;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -130,6 +135,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.net.UnknownHostException;
+import java.net.SocketTimeoutException;
+import java.net.ConnectException;
+import java.io.EOFException;
 import java.util.function.Consumer;
 
 import coil3.util.CoilUtils;
@@ -224,6 +233,14 @@ public final class VideoDetailFragment
     private BottomSheetBehavior<FrameLayout> bottomSheetBehavior;
     private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback;
     private BroadcastReceiver broadcastReceiver;
+
+    // Network change handling for direct-link refresh
+    @Nullable
+    private ConnectivityManager connectivityManager;
+    @Nullable
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private int lastNetworkTransport = -1; // -1 = unknown, -2 = other
+    private long lastNetworkRefreshMs = 0L;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Views
@@ -332,6 +349,7 @@ public final class VideoDetailFragment
         prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
         setupBroadcastReceiver();
+        setupNetworkCallbacks();
 
         settingsContentObserver = new ContentObserver(new Handler()) {
             @Override
@@ -344,6 +362,10 @@ public final class VideoDetailFragment
         activity.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION), false,
                 settingsContentObserver);
+
+        if (connectivityManager == null) {
+            connectivityManager = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        }
     }
 
     @Override
@@ -419,6 +441,7 @@ public final class VideoDetailFragment
                 .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
         activity.unregisterReceiver(broadcastReceiver);
         activity.getContentResolver().unregisterContentObserver(settingsContentObserver);
+        teardownNetworkCallbacks();
 
         if (positionSubscriber != null) {
             positionSubscriber.dispose();
@@ -1988,8 +2011,8 @@ public final class VideoDetailFragment
 
     @Override
     public void onPlayerError(final PlaybackException error, final boolean isCatchableException) {
-        // Try a one-time refresh if this looks like an expired/invalid URL
-        if (!attemptedRefreshOnError && looksLikeLinkExpiry(error)) {
+        // Try a one-time refresh if this looks like an expired/invalid URL or a network switch
+        if (!attemptedRefreshOnError && (looksLikeLinkExpiry(error) || looksLikeNetworkChange(error))) {
             tryRefreshStreamAndResume();
             return;
         }
@@ -2639,11 +2662,66 @@ public final class VideoDetailFragment
 
 
     private boolean looksLikeLinkExpiry(final PlaybackException error) {
-        if (error == null || error.getMessage() == null) return false;
-        final String msg = error.getMessage().toLowerCase();
-        return msg.contains("403") || msg.contains("expired") || msg.contains("signature")
-                || msg.contains("forbidden") || msg.contains("invalid status")
-                || msg.contains("http") && (msg.contains("404") || msg.contains("410"));
+        if (error == null) return false;
+        final String m = String.valueOf(error.getMessage()).toLowerCase();
+        return m.contains("403") || m.contains("expired") || m.contains("signature")
+                || m.contains("forbidden") || m.contains("invalid status")
+                || (m.contains("http") && (m.contains("404") || m.contains("410")));
+    }
+
+    private boolean looksLikeNetworkChange(final PlaybackException error) {
+        if (error == null) return false;
+        final Throwable cause = error.getCause();
+        if (cause == null) return false;
+        // Common connectivity exceptions observed on network switch
+        return (cause instanceof UnknownHostException)
+                || (cause instanceof SocketTimeoutException)
+                || (cause instanceof ConnectException)
+                || (cause instanceof EOFException);
+    }
+
+    private void setupNetworkCallbacks() {
+        if (activity == null) return;
+        if (connectivityManager == null) return;
+        if (networkCallback != null) return; // already set
+        final NetworkRequest request = new NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                .build();
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override public void onAvailable(@NonNull Network network) {
+                // no-op; wait for onCapabilitiesChanged to detect transport
+            }
+            @Override public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities caps) {
+                final int transport = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ? NetworkCapabilities.TRANSPORT_WIFI
+                        : caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ? NetworkCapabilities.TRANSPORT_CELLULAR : -2;
+                if (transport != lastNetworkTransport) {
+                    lastNetworkTransport = transport;
+                    // Debounce refresh: avoid multiple immediate refreshes
+                    final long now = SystemClock.elapsedRealtime();
+                    if (now - lastNetworkRefreshMs > 1000) {
+                        lastNetworkRefreshMs = now;
+                        // If we are currently showing a video (and not hidden), refresh links
+                        if (isPlayerServiceAvailable() && url != null) {
+                            attemptedRefreshOnError = false; // allow one refresh
+                            tryRefreshStreamAndResume();
+                        }
+                    }
+                }
+            }
+        };
+        try {
+            connectivityManager.registerNetworkCallback(request, networkCallback);
+        } catch (Exception ignored) { }
+    }
+
+    private void teardownNetworkCallbacks() {
+        if (connectivityManager != null && networkCallback != null) {
+            try { connectivityManager.unregisterNetworkCallback(networkCallback); } catch (Exception ignored) { }
+            networkCallback = null;
+            lastNetworkTransport = -1;
+        }
     }
 
     private void tryRefreshStreamAndResume() {
@@ -2663,7 +2741,8 @@ public final class VideoDetailFragment
                     // Rebuild play queue from fresh info and restart playback
                     playQueue = setupPlayQueueForIntent(false);
                     autoPlayEnabled = true;
-                    openMainPlayer();
+                    // Small delay to let network stabilize after transport switch
+                    new Handler(Looper.getMainLooper()).postDelayed(this::openMainPlayer, 150);
                 }, throwable -> {
                     // If refresh failed, fall back to default handling
                     showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,
