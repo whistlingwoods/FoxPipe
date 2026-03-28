@@ -47,6 +47,9 @@ import org.schabi.newpipe.player.mediabrowser.MediaBrowserPlaybackPreparer;
 import org.schabi.newpipe.player.mediasession.MediaSessionPlayerUi;
 import org.schabi.newpipe.player.notification.NotificationPlayerUi;
 import org.schabi.newpipe.player.notification.NotificationUtil;
+import org.schabi.newpipe.player.playqueue.PlayQueue;
+import org.schabi.newpipe.player.playqueue.PlayQueueItem;
+import org.schabi.newpipe.util.InfoCache;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.lang.ref.WeakReference;
@@ -125,6 +128,11 @@ public final class PlayerService extends MediaBrowserServiceCompat {
                             if (now - lastReloadMs > 1000) { // debounce 1s
                                 lastReloadMs = now;
                                 if (player != null) {
+                                    final PlayQueue pq = player.getPlayQueue();
+                                    final PlayQueueItem ci = pq != null ? pq.getItem() : null;
+                                    if (ci != null) {
+                                        InfoCache.getInstance().removeInfo(ci.getServiceId(), ci.getUrl(), InfoCache.Type.STREAM);
+                                    }
                                     player.setRecovery();
                                     player.reloadPlayQueueManager();
                                 }
