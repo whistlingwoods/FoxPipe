@@ -28,6 +28,12 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
+import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ServiceCompat;
@@ -69,6 +75,12 @@ public final class PlayerService extends MediaBrowserServiceCompat {
     private MediaSessionCompat mediaSession;
     private MediaSessionConnector sessionConnector;
 
+    // Network transport switch detection to reload sources at service level
+    @Nullable private ConnectivityManager connectivityManager;
+    @Nullable private ConnectivityManager.NetworkCallback networkCallback;
+    private int lastTransport = -1;
+    private long lastReloadMs = 0L;
+
     @Nullable
     private Player player;
 
@@ -93,6 +105,37 @@ public final class PlayerService extends MediaBrowserServiceCompat {
         ThemeHelper.setTheme(this);
 
         mediaBrowserImpl = new MediaBrowserImpl(this, this::notifyChildrenChanged);
+
+        // Setup network callback to handle Wi‑Fi/cellular switches and reload player sources
+        try {
+            connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connectivityManager != null && networkCallback == null) {
+                final NetworkRequest req = new NetworkRequest.Builder()
+                        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        .build();
+                networkCallback = new ConnectivityManager.NetworkCallback() {
+                    @Override public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities caps) {
+                        final int transport = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ? NetworkCapabilities.TRANSPORT_WIFI
+                                : caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ? NetworkCapabilities.TRANSPORT_CELLULAR : -1;
+                        if (transport != lastTransport) {
+                            lastTransport = transport;
+                            final long now = SystemClock.elapsedRealtime();
+                            if (now - lastReloadMs > 1000) { // debounce 1s
+                                lastReloadMs = now;
+                                if (player != null) {
+                                    player.setRecovery();
+                                    player.reloadPlayQueueManager();
+                                }
+                            }
+                        }
+                    }
+                };
+                connectivityManager.registerNetworkCallback(req, networkCallback);
+            }
+        } catch (Throwable ignored) { }
+
 
         // see https://developer.android.com/training/cars/media#browser_workflow
         mediaSession = new MediaSessionCompat(this, "MediaSessionPlayerServ");
@@ -215,6 +258,13 @@ public final class PlayerService extends MediaBrowserServiceCompat {
         mediaBrowserPlaybackPreparer.dispose();
         mediaSession.release();
         mediaBrowserImpl.dispose();
+
+        // unregister network callback
+        if (connectivityManager != null && networkCallback != null) {
+            try { connectivityManager.unregisterNetworkCallback(networkCallback); } catch (Exception ignored) {}
+            networkCallback = null;
+            lastTransport = -1;
+        }
     }
 
     private void cleanup() {
