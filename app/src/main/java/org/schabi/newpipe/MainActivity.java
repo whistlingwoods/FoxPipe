@@ -660,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
                 // Expand DetailsFragment if CommentRepliesFragment was opened
                 // and no other CommentRepliesFragments are on top of the back stack
                 // to show the top level comments again.
-                openDetailFragmentFromCommentReplies(fm, false);
+                openDetailFragmentFromCommentReplies(fm, true);
                 return;
             }
 

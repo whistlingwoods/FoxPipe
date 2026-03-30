@@ -228,6 +228,8 @@ class FeedLoadManager(private val context: Context) {
                     .filterIsInstance<StreamInfoItem>()
             }
 
+            maybeApplyRateLimitBackoff(subscriptionEntity.serviceId, errors)
+
             return Notification.createOnNext(
                 buildFeedUpdateInfo(
                     subscriptionEntity,
@@ -330,6 +332,12 @@ class FeedLoadManager(private val context: Context) {
             val jitterMillis = ThreadLocalRandom.current().nextLong(minimumIntervalMillis + 1)
             val delayedUntil = System.currentTimeMillis() + backoffMillis + jitterMillis
             nextAllowedStart.set(maxOf(nextAllowedStart.get(), delayedUntil))
+        }
+    }
+
+    private fun maybeApplyRateLimitBackoff(serviceId: Int, errors: List<Throwable>) {
+        errors.firstOrNull(::looksLikeRateLimit)?.let {
+            maybeApplyRateLimitBackoff(serviceId, it)
         }
     }
 
@@ -508,10 +516,12 @@ class FeedLoadManager(private val context: Context) {
          * Number of items to buffer to mass-insert in the database.
          */
         private const val BUFFER_COUNT_BEFORE_INSERT = 20
-    }
 
-    private val serviceFeedFetchIntervals = ConcurrentHashMap<Int, Long>()
-    private val serviceRequestLocks = ConcurrentHashMap<Int, Any>()
-    private val nextAllowedRequestStart = ConcurrentHashMap<Int, AtomicLong>()
-    private val youtubeExtractionCount = AtomicInteger()
+        // Keep pacing state across refresh service instances so repeated manual refreshes
+        // still honor the latest per-service cooldown.
+        private val serviceFeedFetchIntervals = ConcurrentHashMap<Int, Long>()
+        private val serviceRequestLocks = ConcurrentHashMap<Int, Any>()
+        private val nextAllowedRequestStart = ConcurrentHashMap<Int, AtomicLong>()
+        private val youtubeExtractionCount = AtomicInteger()
+    }
 }
