@@ -469,16 +469,6 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
             final Context context = requireContext();
             final SharedPreferences preferences = PreferenceManager
                     .getDefaultSharedPreferences(context);
-            final boolean prioritizeAboutTab = currentInfo.getServiceId()
-                    == ServiceList.BiliBili.getServiceId()
-                    && currentInfo.getRelatedItems().isEmpty();
-
-            if (prioritizeAboutTab && ChannelTabHelper.showChannelTab(
-                    context, preferences, R.string.show_channel_tabs_about)) {
-                tabAdapter.addFragment(
-                        new ChannelAboutFragment(currentInfo),
-                        context.getString(R.string.channel_tab_about));
-            }
 
             for (final ListLinkHandler linkHandler : currentInfo.getTabs()) {
                 final String tab = linkHandler.getContentFilters().get(0).getName();
@@ -491,7 +481,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                 }
             }
 
-            if (!prioritizeAboutTab && ChannelTabHelper.showChannelTab(
+            if (ChannelTabHelper.showChannelTab(
                     context, preferences, R.string.show_channel_tabs_about)) {
                 tabAdapter.addFragment(
                         new ChannelAboutFragment(currentInfo),
