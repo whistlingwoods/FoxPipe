@@ -42,13 +42,14 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setThemeResource(this, resolveFilePickerTheme());
         super.onCreate(savedInstanceState);
-        backPressedCallback = new OnBackPressedCallback(true) {
+        backPressedCallback = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
                 handleBackPressed();
             }
         };
         getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        updateBackPressedCallbackState();
     }
 
     private int resolveFilePickerTheme() {
@@ -80,11 +81,14 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
         }
 
         backPressedCallback.setEnabled(false);
-        try {
-            FilePickerActivityHelper.super.onBackPressed();
-        } finally {
-            backPressedCallback.setEnabled(true);
+        FilePickerActivityHelper.super.onBackPressed();
+    }
+
+    private void updateBackPressedCallbackState() {
+        if (backPressedCallback == null) {
+            return;
         }
+        backPressedCallback.setEnabled(currentFragment != null && !currentFragment.isBackTop());
     }
 
     @Override
@@ -174,6 +178,10 @@ public class FilePickerActivityHelper extends com.nononsenseapps.filepicker.File
                                    final SortedList<File> data) {
             super.onLoadFinished(loader, data);
             layoutManager.scrollToPosition(0);
+            final var activity = getActivity();
+            if (activity instanceof FilePickerActivityHelper) {
+                ((FilePickerActivityHelper) activity).updateBackPressedCallbackState();
+            }
         }
     }
 }

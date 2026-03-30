@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
-        backPressedCallback = new OnBackPressedCallback(true) {
+        backPressedCallback = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
                 handleBackPressed();
@@ -690,11 +690,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         backPressedCallback.setEnabled(false);
-        try {
-            MainActivity.super.onBackPressed();
-        } finally {
-            backPressedCallback.setEnabled(true);
-        }
+        MainActivity.super.onBackPressed();
     }
 
     public void updateBackPressedCallbackState() {

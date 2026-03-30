@@ -71,6 +71,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.tabs.TabLayout;
 
 import org.schabi.newpipe.App;
+import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.databinding.FragmentVideoDetailBinding;
@@ -776,6 +777,7 @@ public final class VideoDetailFragment
             }
             restoreDefaultOrientation();
             setAutoPlay(false);
+            notifyBackPressHandlingChanged();
             return true;
         }
 
@@ -784,6 +786,7 @@ public final class VideoDetailFragment
                 && player.getPlayQueue() != null
                 && player.videoPlayerSelected()
                 && player.getPlayQueue().previous()) {
+            notifyBackPressHandlingChanged();
             return true; // no code here, as previous() was used in the if
         }
 
@@ -797,8 +800,15 @@ public final class VideoDetailFragment
         stack.pop();
         // Get stack item from the new top
         setupFromHistoryItem(Objects.requireNonNull(stack.peek()));
+        notifyBackPressHandlingChanged();
 
         return true;
+    }
+
+    private void notifyBackPressHandlingChanged() {
+        if (activity instanceof MainActivity) {
+            ((MainActivity) activity).updateBackPressedCallbackState();
+        }
     }
 
     private void setupFromHistoryItem(final StackItem item) {
@@ -941,6 +951,7 @@ public final class VideoDetailFragment
                             if (stack.isEmpty() || !stack.peek().getPlayQueue()
                                     .equalStreams(playQueue)) {
                                 stack.push(new StackItem(serviceId, url, title, playQueue));
+                                notifyBackPressHandlingChanged();
                             }
                         }
 
@@ -1933,6 +1944,7 @@ public final class VideoDetailFragment
             if (playQueueItem != null) {
                 stack.push(new StackItem(playQueueItem.getServiceId(), playQueueItem.getUrl(),
                         playQueueItem.getTitle(), queue));
+                notifyBackPressHandlingChanged();
                 return;
             } // else continue below
         }
@@ -1945,6 +1957,7 @@ public final class VideoDetailFragment
             // Without that the cached playQueue will have an old recovery position
             stackWithQueue.setPlayQueue(queue);
         }
+        notifyBackPressHandlingChanged();
     }
 
     @Override
@@ -2067,6 +2080,7 @@ public final class VideoDetailFragment
         scrollToTop();
 
         tryAddVideoPlayerView();
+        notifyBackPressHandlingChanged();
     }
 
     @Override
