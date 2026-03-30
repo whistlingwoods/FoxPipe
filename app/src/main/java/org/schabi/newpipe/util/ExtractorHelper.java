@@ -42,10 +42,12 @@ import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.Page;
 import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfo;
 import org.schabi.newpipe.extractor.bulletComments.BulletCommentsInfoItem;
+import org.schabi.newpipe.extractor.channel.ChannelExtractor;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
+import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
@@ -55,6 +57,7 @@ import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
 import org.schabi.newpipe.util.text.TextLinkifier;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -126,6 +129,126 @@ public final class ExtractorHelper {
         return checkCache(forceLoad, serviceId, url, InfoCache.Type.CHANNEL,
                 Single.fromCallable(() ->
                         ChannelInfo.getInfo(NewPipe.getService(serviceId), url)));
+    }
+
+    public static Single<ChannelInfo> getChannelInfoWithoutInitialPage(
+            final int serviceId,
+            final String url,
+            final boolean forceLoad) {
+        checkServiceId(serviceId);
+
+        final Single<ChannelInfo> loadFromNetwork = Single.fromCallable(() -> {
+            final ChannelExtractor extractor = NewPipe.getService(serviceId).getChannelExtractor(url);
+            extractor.fetchPage();
+            return buildChannelInfoWithoutInitialPage(extractor);
+        });
+
+        if (forceLoad) {
+            CACHE.removeInfo(serviceId, url, InfoCache.Type.CHANNEL);
+            return loadFromNetwork;
+        }
+
+        return Maybe.concat(loadFromCache(serviceId, url, InfoCache.Type.CHANNEL),
+                        loadFromNetwork.toMaybe())
+                .firstElement()
+                .toSingle();
+    }
+
+    private static ChannelInfo buildChannelInfoWithoutInitialPage(
+            @NonNull final ChannelExtractor extractor)
+            throws IOException, ExtractionException {
+        final ChannelInfo info = new ChannelInfo(
+                extractor.getServiceId(),
+                extractor.getId(),
+                extractor.getUrl(),
+                extractor.getOriginalUrl(),
+                extractor.getName(),
+                extractor.getLinkHandler());
+
+        try {
+            info.setAvatarUrl(extractor.getAvatarUrl());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+        try {
+            info.setBannerUrl(extractor.getBannerUrl());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setAvatars(extractor.getAvatars());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+        if (info.getAvatarUrl() == null && !info.getAvatars().isEmpty()) {
+            info.setAvatarUrl(info.getAvatars().get(info.getAvatars().size() - 1).getUrl());
+        }
+
+        try {
+            info.setBanners(extractor.getBanners());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+        if (info.getBannerUrl() == null && !info.getBanners().isEmpty()) {
+            info.setBannerUrl(info.getBanners().get(info.getBanners().size() - 1).getUrl());
+        }
+
+        try {
+            info.setFeedUrl(extractor.getFeedUrl());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        info.setRelatedItems(Collections.emptyList());
+
+        try {
+            info.setSubscriberCount(extractor.getSubscriberCount());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+        try {
+            info.setDescription(extractor.getDescription());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setParentChannelName(extractor.getParentChannelName());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setParentChannelUrl(extractor.getParentChannelUrl());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setParentChannelAvatarUrl(extractor.getParentChannelAvatarUrl());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setVerified(extractor.isVerified());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        try {
+            info.setTabs(extractor.getTabs());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+        try {
+            info.setTags(extractor.getTags());
+        } catch (final Exception e) {
+            info.addError(e);
+        }
+
+        return info;
     }
 
     public static Single<ChannelTabInfo> getChannelTab(final int serviceId,

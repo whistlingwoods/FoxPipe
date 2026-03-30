@@ -72,11 +72,7 @@ public class BilibiliChannelExtractor extends ChannelExtractor {
         Map<String, List<String>> headers = getHeaders(getOriginalUrl());
         String id = getId();
 
-        getVideoImpl().onFetchPage(downloader, id, getUrl());
-
         userInfoData = requestUserSpaceResponse(downloader, QUERY_USER_INFO_URL + id, headers);
-
-        userLiveData = requestUserSpaceResponse(downloader, QUERY_LIVEROOM_STATUS_URL + id, headers);
     }
 
     @Nonnull
@@ -90,10 +86,15 @@ public class BilibiliChannelExtractor extends ChannelExtractor {
     public InfoItemsPage<StreamInfoItem> getInitialPage() throws IOException, ExtractionException {
 
         final StreamInfoItemsCollector collector = new StreamInfoItemsCollector(getServiceId());
+        userLiveData = requestUserSpaceResponse(
+                getDownloader(),
+                QUERY_LIVEROOM_STATUS_URL + getId(),
+                getHeaders(getOriginalUrl()));
         if (userLiveData.getObject("data").getObject(getId()).getInt("live_status") != 0) {
             collector.commit(new BilibiliLiveInfoItemExtractor(userLiveData.getObject("data").getObject(getId()), 1));
         }
         UserVideoImpl videoImpl = getVideoImpl();
+        videoImpl.onFetchPage(getDownloader(), getId(), getUrl());
         boolean hasVideos = videoImpl.getInitialPage(collector, this);
         Page nextPage = null;
         if (hasVideos) nextPage = new Page(getNextPageFromCurrentUrl(

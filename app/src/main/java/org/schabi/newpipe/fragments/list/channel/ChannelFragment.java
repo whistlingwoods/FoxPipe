@@ -35,6 +35,7 @@ import org.schabi.newpipe.databinding.FragmentChannelBinding;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
+import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
@@ -468,6 +469,16 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
             final Context context = requireContext();
             final SharedPreferences preferences = PreferenceManager
                     .getDefaultSharedPreferences(context);
+            final boolean prioritizeAboutTab = currentInfo.getServiceId()
+                    == ServiceList.BiliBili.getServiceId()
+                    && currentInfo.getRelatedItems().isEmpty();
+
+            if (prioritizeAboutTab && ChannelTabHelper.showChannelTab(
+                    context, preferences, R.string.show_channel_tabs_about)) {
+                tabAdapter.addFragment(
+                        new ChannelAboutFragment(currentInfo),
+                        context.getString(R.string.channel_tab_about));
+            }
 
             for (final ListLinkHandler linkHandler : currentInfo.getTabs()) {
                 final String tab = linkHandler.getContentFilters().get(0).getName();
@@ -480,7 +491,7 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
                 }
             }
 
-            if (ChannelTabHelper.showChannelTab(
+            if (!prioritizeAboutTab && ChannelTabHelper.showChannelTab(
                     context, preferences, R.string.show_channel_tabs_about)) {
                 tabAdapter.addFragment(
                         new ChannelAboutFragment(currentInfo),
@@ -565,7 +576,10 @@ public class ChannelFragment extends BaseStateFragment<ChannelInfo>
     }
 
     private void runWorker(final boolean forceLoad) {
-        currentWorker = ExtractorHelper.getChannelInfo(serviceId, url, forceLoad)
+        final boolean useLightChannelInfo = serviceId == ServiceList.BiliBili.getServiceId();
+        currentWorker = (useLightChannelInfo
+                ? ExtractorHelper.getChannelInfoWithoutInitialPage(serviceId, url, forceLoad)
+                : ExtractorHelper.getChannelInfo(serviceId, url, forceLoad))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result -> {
