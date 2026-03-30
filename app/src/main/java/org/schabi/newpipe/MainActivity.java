@@ -389,7 +389,9 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openSubscriptionFragment(getSupportFragmentManager());
                 break;
             case ITEM_ID_FEED:
-                NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                if (!trySelectFeedTabInMainFragment()) {
+                    NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                }
                 break;
             case ITEM_ID_BOOKMARKS:
                 NavigationHelper.openBookmarksFragment(getSupportFragmentManager());
@@ -401,6 +403,14 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openStatisticFragment(getSupportFragmentManager());
                 break;
         }
+    }
+
+    private boolean trySelectFeedTabInMainFragment() {
+        final FragmentManager fm = getSupportFragmentManager();
+        NavigationHelper.gotoMainFragment(fm);
+        fm.executePendingTransactions();
+        final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
+        return fragment instanceof MainFragment && ((MainFragment) fragment).selectFeedTab();
     }
 
     private void kioskSelected(final MenuItem item) throws ExtractionException {

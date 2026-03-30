@@ -17,29 +17,26 @@
         android:paddingStart="16dp"
         android:paddingEnd="4dp">
 
-        <com.google.android.material.textfield.TextInputLayout
+        <org.schabi.newpipe.views.NewPipeEditText
+            android:id="@+id/toolbar_search_edit_text"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            app:boxBackgroundMode="none"
-            app:hintEnabled="false">
-
-            <org.schabi.newpipe.views.NewPipeEditText
-                android:id="@+id/toolbar_search_edit_text"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@null"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:hint="@string/search"
-                android:imeOptions="actionSearch|flagNoFullscreen"
-                android:inputType="textFilter|textNoSuggestions"
-                android:maxLines="1"
-                android:nextFocusDown="@+id/suggestions_list"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
-                tools:ignore="RtlHardcoded" />
-        </com.google.android.material.textfield.TextInputLayout>
+            android:background="@null"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:gravity="center_vertical"
+            android:hint="@string/search"
+            android:imeOptions="actionSearch|flagNoFullscreen"
+            android:includeFontPadding="false"
+            android:inputType="textFilter|textNoSuggestions"
+            android:maxLines="1"
+            android:nextFocusDown="@+id/suggestions_list"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
+            tools:ignore="RtlHardcoded" />
 
         <FrameLayout
             android:id="@+id/toolbar_search_clear"

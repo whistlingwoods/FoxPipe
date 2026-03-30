@@ -249,6 +249,22 @@ public class MainFragment extends BaseFragment implements TabLayout.OnTabSelecte
         setTitle(tabsList.get(tabPosition).getTabName(requireContext()));
     }
 
+    public boolean selectFeedTab() {
+        if (binding == null) {
+            return false;
+        }
+        for (int i = 0; i < tabsList.size(); i++) {
+            final Tab tab = tabsList.get(i);
+            if (tab instanceof Tab.FeedTab || tab instanceof Tab.FeedGroupTab) {
+                binding.pager.setCurrentItem(i, false);
+                updateTitleForTab(i);
+                syncMainTabSelectionState();
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void commitPlaylistTabs() {
         pagerAdapter.getLocalPlaylistFragments()
                 .stream()
