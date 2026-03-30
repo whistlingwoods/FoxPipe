@@ -643,11 +643,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onBackPressed() called");
         }
 
-        if (DeviceUtils.isTv(this)) {
-            if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
-                mainBinding.getRoot().closeDrawers();
-                return;
-            }
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            mainBinding.getRoot().closeDrawers();
+            return;
         }
 
         // In case bottomSheet is not visible on the screen or collapsed we can assume that the user
@@ -656,19 +654,14 @@ public class MainActivity extends AppCompatActivity {
         if (bottomSheetHiddenOrCollapsed()) {
             final FragmentManager fm = getSupportFragmentManager();
             final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
-            // If current fragment implements BackPressable (i.e. can/wanna handle back press)
-            // delegate the back press to it
-            if (fragment instanceof BackPressable) {
-                if (((BackPressable) fragment).onBackPressed()) {
-                    return;
-                }
-            } else if (fragment instanceof CommentRepliesFragment) {
+            if (fragment instanceof CommentRepliesFragment) {
                 // expand DetailsFragment if CommentRepliesFragment was opened
                 // to show the top level comments again
                 // Expand DetailsFragment if CommentRepliesFragment was opened
                 // and no other CommentRepliesFragments are on top of the back stack
                 // to show the top level comments again.
                 openDetailFragmentFromCommentReplies(fm, false);
+                return;
             }
 
         } else {
@@ -703,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.super.onBackPressed();
     }
 
-    public void updateBackPressedCallbackState() {
+    private void updateBackPressedCallbackState() {
         if (backPressedCallback == null || mainBinding == null) {
             return;
         }
@@ -721,9 +714,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Fragment fragment = getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_holder);
-        return (fragment instanceof BackPressable
-                && ((BackPressable) fragment).canHandleBackPress())
-                || fragment instanceof CommentRepliesFragment;
+        return fragment instanceof CommentRepliesFragment;
     }
 
     @Override

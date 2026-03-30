@@ -51,6 +51,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -59,6 +60,7 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager.widget.ViewPager;
@@ -71,7 +73,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.tabs.TabLayout;
 
 import org.schabi.newpipe.App;
-import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.databinding.FragmentVideoDetailBinding;
@@ -230,6 +231,8 @@ public final class VideoDetailFragment
     private final CompositeDisposable disposables = new CompositeDisposable();
     @Nullable
     private Disposable positionSubscriber = null;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     private BottomSheetBehavior<FrameLayout> bottomSheetBehavior;
     private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback;
@@ -415,6 +418,7 @@ public final class VideoDetailFragment
         if (wasLoading.getAndSet(false) && !wasCleared()) {
             startLoading(false);
         }
+        notifyBackPressHandlingChanged();
     }
 
     @Override
@@ -465,6 +469,7 @@ public final class VideoDetailFragment
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        backPressedCallback = null;
         binding = null;
     }
 
@@ -650,6 +655,23 @@ public final class VideoDetailFragment
     @Override // called from onViewCreated in {@link BaseFragment#onViewCreated}
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
+        backPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!shouldHandleBackPress()) {
+                    setEnabled(false);
+                    try {
+                        requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                    } finally {
+                        notifyBackPressHandlingChanged();
+                    }
+                    return;
+                }
+                onBackPressed();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher()
+                .addCallback(getViewLifecycleOwner(), backPressedCallback);
 
         pageAdapter = new TabAdapter(getChildFragmentManager());
         binding.viewPager.setAdapter(pageAdapter);
@@ -806,9 +828,27 @@ public final class VideoDetailFragment
     }
 
     private void notifyBackPressHandlingChanged() {
-        if (activity instanceof MainActivity) {
-            ((MainActivity) activity).updateBackPressedCallbackState();
+        if (backPressedCallback != null) {
+            backPressedCallback.setEnabled(shouldHandleBackPress());
         }
+    }
+
+    private boolean shouldHandleBackPress() {
+        if (bottomSheetBehavior == null) {
+            return false;
+        }
+        final int state = bottomSheetBehavior.getState();
+        return !isMainDrawerOpen()
+                && state != BottomSheetBehavior.STATE_HIDDEN
+                && state != BottomSheetBehavior.STATE_COLLAPSED
+                && canHandleBackPress();
+    }
+
+    private boolean isMainDrawerOpen() {
+        final View navigationView = activity.findViewById(R.id.navigation);
+        return navigationView != null
+                && navigationView.getParent() instanceof DrawerLayout
+                && ((DrawerLayout) navigationView.getParent()).isDrawerOpen(navigationView);
     }
 
     private void setupFromHistoryItem(final StackItem item) {
@@ -2579,6 +2619,7 @@ public final class VideoDetailFragment
                     case BottomSheetBehavior.STATE_HALF_EXPANDED:
                         break;
                 }
+                notifyBackPressHandlingChanged();
             }
 
             @Override
@@ -2588,6 +2629,7 @@ public final class VideoDetailFragment
         };
 
         bottomSheetBehavior.addBottomSheetCallback(bottomSheetCallback);
+        notifyBackPressHandlingChanged();
 
         // User opened a new page and the player will hide itself
         activity.getSupportFragmentManager().addOnBackStackChangedListener(() -> {
