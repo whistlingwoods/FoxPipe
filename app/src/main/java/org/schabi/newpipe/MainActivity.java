@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+        if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
             initFragments();
         }
 
@@ -836,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
             // When user watch a video inside popup and then tries to open the video in main player
             // while the app is closed he will see a blank fragment on place of kiosk.
             // Let's open it first
-            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
                 NavigationHelper.openMainFragment(getSupportFragmentManager());
             }
 

@@ -71,7 +71,6 @@ import java.util.List;
 import java.util.Optional;
 
 public final class NavigationHelper {
-    public static final String MAIN_FRAGMENT_TAG = "main_fragment_tag";
     public static final String SEARCH_FRAGMENT_TAG = "search_fragment_tag";
 
     private static final String TAG = NavigationHelper.class.getSimpleName();
@@ -347,8 +346,9 @@ public final class NavigationHelper {
     }
 
     public static void gotoMainFragment(final FragmentManager fragmentManager) {
-        final boolean popped = fragmentManager.popBackStackImmediate(MAIN_FRAGMENT_TAG, 0);
-        if (!popped) {
+        fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        if (!(fragmentManager.findFragmentById(R.id.fragment_holder) instanceof MainFragment)) {
             openMainFragment(fragmentManager);
         }
     }
@@ -359,7 +359,6 @@ public final class NavigationHelper {
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_holder, new MainFragment())
-                .addToBackStack(MAIN_FRAGMENT_TAG)
                 .commit();
     }
 
