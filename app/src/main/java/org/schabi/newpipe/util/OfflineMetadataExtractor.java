@@ -120,7 +120,7 @@ public final class OfflineMetadataExtractor {
                         try {
                             retriever.release();
                         } catch (final Exception e) {
-                            // Log but don't fail - resource cleanup errors shouldn't block execution
+                            // Log but don't fail resource cleanup errors shouldn't block execution
                             Log.w(TAG, "Error releasing MediaMetadataRetriever", e);
                         }
                     }

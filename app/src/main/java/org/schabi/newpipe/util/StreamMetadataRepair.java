@@ -13,11 +13,9 @@ import org.schabi.newpipe.database.download.dao.OfflineFileMappingDAO;
 import org.schabi.newpipe.database.download.model.OfflineFileMappingEntity;
 import org.schabi.newpipe.database.stream.dao.StreamDAO;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
-import org.schabi.newpipe.extractor.Image;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.rxjava3.core.Single;

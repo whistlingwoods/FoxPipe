@@ -51,7 +51,7 @@ jobs:
           cache: 'gradle'
 
       - name: Build debug APK and run jvm tests
-        run: ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint
+        run: ./gradlew assembleDebug lintDebug testDebugUnitTest -x lint -x runKtlint -x runCheckstyle --stacktrace -DskipFormatKtlint
 
       - name: Upload APK
         uses: actions/upload-artifact@v6

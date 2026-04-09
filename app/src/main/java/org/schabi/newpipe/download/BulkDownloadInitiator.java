@@ -135,7 +135,8 @@ public final class BulkDownloadInitiator {
         // Bind to DownloadManagerService and start queueing downloads
         final Intent intent = new Intent(context, DownloadManagerService.class);
         final ServiceConnection[] connection = new ServiceConnection[1];
-        final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        final android.os.Handler timeoutHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
         final boolean[] isConnected = {false};
 
         // Timeout runnable - unbind if service doesn't connect within 5 seconds
