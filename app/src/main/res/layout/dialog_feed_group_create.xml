@@ -4,7 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:background="?attr/colorSurface"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -15,12 +20,14 @@
             android:id="@+id/options_root"
             android:layout_width="match_parent"
             android:layout_height="180dp"
+            android:background="@drawable/bg_pilot_surface"
+            android:clipToOutline="true"
             android:orientation="vertical"
-            android:padding="8dp"
+            android:padding="16dp"
             android:visibility="gone"
             tools:visibility="visible">
 
-            <ImageButton
+            <ImageView
                 android:id="@+id/icon_preview"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
@@ -33,6 +40,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/group_name_input_container"
+                style="@style/Widget.NewPipe.TextInputLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -47,8 +55,9 @@
 
                 <org.schabi.newpipe.views.NewPipeEditText
                     android:id="@+id/group_name_input"
+                    style="@style/Widget.NewPipe.TextInputEditText"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     android:importantForAutofill="no"
                     android:inputType="textCapSentences"
                     android:maxLines="1"
@@ -62,22 +71,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/group_name_input_container"
                 tools:text="15 selected" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/select_channel_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
+                style="@style/PilotFilledButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
                 android:layout_marginBottom="4dp"
                 android:text="@string/feed_group_dialog_select_subscriptions"
-                android:textAllCaps="true"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -88,6 +94,8 @@
             android:id="@+id/icon_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_pilot_surface"
+            android:clipToOutline="true"
             android:clipToPadding="false"
             android:padding="4dp"
             android:paddingTop="16dp"
@@ -101,14 +109,17 @@
             android:id="@+id/subscriptions_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_pilot_surface"
+            android:clipToOutline="true"
             android:orientation="vertical">
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/subscriptions_header_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorSurfaceContainerHigh"
                 android:gravity="center_vertical"
-                android:theme="@style/ContrastToolbarTheme">
+                app:popupTheme="@style/ToolbarPopupTheme">
 
                 <LinearLayout
                     android:id="@+id/subscriptions_header_info_container"
@@ -122,7 +133,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
                         android:text="@string/tab_subscriptions"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="?attr/colorOnSurface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
@@ -131,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="start|center_vertical"
-                        android:textColor="?android:attr/textColorPrimary"
+                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="12sp"
                         tools:text="1 selected" />
                 </LinearLayout>
@@ -141,14 +152,14 @@
                     layout="@layout/toolbar_search_layout"
                     android:visibility="gone" />
 
-            </androidx.appcompat.widget.Toolbar>
+            </com.google.android.material.appbar.MaterialToolbar>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/subscriptions_selector_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
-                android:padding="2dp"
+                android:padding="8dp"
                 tools:itemCount="200"
                 tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 tools:listitem="@layout/picker_subscription_item"
@@ -157,15 +168,18 @@
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/delete_screen_message"
-            style="@style/TextAppearance.AppCompat.Subhead"
-            android:layout_width="wrap_content"
+            android:textAppearance="@style/TextAppearance.NewPipe.BodyLarge"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
+            android:background="@drawable/bg_pilot_surface_variant"
+            android:clipToOutline="true"
             android:paddingLeft="?dialogPreferredPadding"
             android:paddingTop="16dp"
             android:paddingRight="?dialogPreferredPadding"
             android:paddingBottom="16dp"
             android:text="@string/feed_group_dialog_delete_message"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="visible" />
     </FrameLayout>
 
@@ -173,7 +187,9 @@
         android:id="@+id/separator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?attr/separator_color" />
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="?attr/colorOutlineVariant" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -184,31 +200,32 @@
         android:paddingRight="12dp"
         android:paddingBottom="4dp">
 
-        <ImageButton
+        <org.schabi.newpipe.views.PilotIconButton
             android:id="@+id/delete_button"
-            style="?buttonBarButtonStyle"
+            style="@style/Widget.NewPipe.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
             android:minWidth="0dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_delete"
+            android:padding="8dp"
             android:visibility="gone"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="?attr/colorPrimary"
             tools:ignore="ContentDescription"
             tools:visibility="visible" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel_button"
-            style="?buttonBarButtonStyle"
+            style="@style/PilotTextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toStartOf="@+id/confirm_button"
             android:text="@string/cancel" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/confirm_button"
-            style="?buttonBarButtonStyle"
+            style="@style/PilotFilledButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"

@@ -30,7 +30,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -550,7 +549,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         dialogBinding.dialogEditText.setSelection(dialogBinding.dialogEditText.getText().length());
         dialogBinding.dialogEditText.setText(name);
 
-        new AlertDialog.Builder(getContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(getContext())
                 .setTitle(R.string.rename_playlist)
                 .setView(dialogBinding.getRoot())
                 .setCancelable(true)
@@ -623,7 +622,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
     }
 
     private void openRemoveDuplicatesDialog() {
-        new AlertDialog.Builder(this.getActivity())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this.getActivity())
                 .setTitle(R.string.remove_duplicates_title)
                 .setMessage(R.string.remove_duplicates_message)
                 .setPositiveButton(R.string.ok, (dialog, i) ->
@@ -873,7 +872,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
      * After the user has made a choice, the playlist is shared.
      */
     private void createShareConfirmationDialog() {
-        new AlertDialog.Builder(requireContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.share_playlist)
                 .setCancelable(true)
                 .setPositiveButton(R.string.share_playlist_with_titles, (dialog, which) ->
@@ -893,8 +892,9 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
      * The user can also choose to remove partially watched streams.
      */
     private void openRemoveWatchedConfirmationDialog() {
-        final android.widget.CheckBox removePartiallyWatchedCheckbox =
-                new android.widget.CheckBox(requireContext());
+        final com.google.android.material.checkbox.MaterialCheckBox removePartiallyWatchedCheckbox =
+                new com.google.android.material.checkbox.MaterialCheckBox(requireContext());
+        removePartiallyWatchedCheckbox.setUseMaterialThemeColors(true);
         removePartiallyWatchedCheckbox.setText(
                 R.string.remove_watched_popup_partially_watched_streams);
 
@@ -907,7 +907,7 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         checkboxContainer.addView(removePartiallyWatchedCheckbox,
                 new LayoutParams(MATCH_PARENT, WRAP_CONTENT));
 
-        new AlertDialog.Builder(requireContext())
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setMessage(R.string.remove_watched_popup_warning)
                 .setTitle(R.string.remove_watched_popup_title)
                 .setView(checkboxContainer)
@@ -922,4 +922,3 @@ public class LocalPlaylistFragment extends BaseLocalListFragment<List<PlaylistSt
         this.tabsPagerAdapter = tabsPagerAdapter;
     }
 }
-

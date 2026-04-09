@@ -32,6 +32,7 @@
         android:name=".App"
         android:allowBackup="true"
         android:banner="@mipmap/newpipe_tv_banner"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:logo="@mipmap/ic_launcher"
@@ -92,17 +93,14 @@
             android:label="@string/settings" />
 
         <activity
+            android:name=".views.BiliBiliLoginWebViewActivity"
+            android:exported="false"
+            android:label="@string/settings_category_bilibili_account_title" />
+
+        <activity
             android:name=".about.AboutActivity"
             android:exported="false"
             android:label="@string/title_activity_about" />
-
-        <service
-            android:name=".local.subscription.services.SubscriptionsImportService"
-            android:foregroundServiceType="dataSync" />
-
-        <service
-            android:name=".local.subscription.services.SubscriptionsExportService"
-            android:foregroundServiceType="dataSync" />
 
         <service
             android:name=".local.feed.service.FeedLoadService"
@@ -434,6 +432,38 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
                 <data android:sspPattern="bandcamp.com/?show=*" />
+            </intent-filter>
+
+            <!-- BiliBili filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="*.bilibili.com" />
+                <data android:host="bilibili.com" />
+                <data android:pathPrefix="/video/" />
+                <data android:pathPrefix="/bangumi/play/" />
+                <data android:pathPrefix="/space/" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="live.bilibili.com" />
+                <data android:host="b23.tv" />
             </intent-filter>
 
         </activity>

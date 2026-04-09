@@ -11,16 +11,45 @@ import androidx.annotation.StringRes
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.grack.nanojson.JsonParser
+import java.util.HashSet
 import java.util.concurrent.TimeUnit
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.StreamingService
 import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockApiSettings
 import org.schabi.newpipe.ktx.getStringSafe
 
 object ServiceHelper {
-    private val DEFAULT_FALLBACK_SERVICE: StreamingService = ServiceList.YouTube
+    private const val DEFAULT_FALLBACK_SERVICE_ID = 0
+    private const val DEFAULT_FALLBACK_SERVICE_NAME = "YouTube"
+
+    private fun getKnownServiceId(serviceName: String?): Int? {
+        return when (serviceName) {
+            "YouTube" -> 0
+            "SoundCloud" -> 1
+            "media.ccc.de" -> 2
+            "PeerTube" -> 3
+            "Bandcamp" -> 4
+            "BiliBili" -> 5
+            "NicoNico" -> 6
+            else -> null
+        }
+    }
+
+    private fun getKnownServiceName(serviceId: Int): String? {
+        return when (serviceId) {
+            0 -> "YouTube"
+            1 -> "SoundCloud"
+            2 -> "media.ccc.de"
+            3 -> "PeerTube"
+            4 -> "Bandcamp"
+            5 -> "BiliBili"
+            6 -> "NicoNico"
+            else -> null
+        }
+    }
 
     @JvmStatic
     @DrawableRes
@@ -31,6 +60,7 @@ object ServiceHelper {
             2 -> R.drawable.ic_placeholder_media_ccc
             3 -> R.drawable.ic_placeholder_peertube
             4 -> R.drawable.ic_placeholder_bandcamp
+            5 -> R.drawable.ic_bilibili
             else -> R.drawable.ic_circle
         }
     }
@@ -46,9 +76,19 @@ object ServiceHelper {
             "users" -> context.getString(R.string.users)
             "conferences" -> context.getString(R.string.conferences)
             "events" -> context.getString(R.string.events)
+            "lives" -> context.getString(R.string.lives)
+            "animes" -> context.getString(R.string.animes)
+            "movies_and_tv" -> context.getString(R.string.movies_and_tv)
+            "tags_only" -> context.getString(R.string.tags_only)
             "music_songs" -> context.getString(R.string.songs)
             "music_albums" -> context.getString(R.string.albums)
             "music_artists" -> context.getString(R.string.artists)
+            "sort_view" -> context.getString(R.string.sort_view)
+            "sort_bookmark" -> context.getString(R.string.sort_bookmark)
+            "sort_comments" -> context.getString(R.string.sort_comments)
+            "sort_bullet_comments" -> context.getString(R.string.sort_bullet_comments)
+            "sort_publish_time" -> context.getString(R.string.sort_publish_time)
+            "sort_overall" -> context.getString(R.string.sort_overall)
             else -> filter
         }
     }
@@ -87,7 +127,15 @@ object ServiceHelper {
 
     @JvmStatic
     fun getSelectedServiceId(context: Context): Int {
-        return (getSelectedService(context) ?: DEFAULT_FALLBACK_SERVICE).serviceId
+        val serviceName: String = PreferenceManager.getDefaultSharedPreferences(context)
+            .getStringSafe(
+                context.getString(R.string.current_service_key),
+                context.getString(R.string.default_service_value)
+            )
+
+        return getKnownServiceId(serviceName)
+            ?: getSelectedService(context)?.serviceId
+            ?: DEFAULT_FALLBACK_SERVICE_ID
     }
 
     @JvmStatic
@@ -103,7 +151,7 @@ object ServiceHelper {
 
     @JvmStatic
     fun getNameOfServiceById(serviceId: Int): String {
-        return ServiceList.all().stream()
+        return getKnownServiceName(serviceId) ?: ServiceList.all().stream()
             .filter { it.serviceId == serviceId }
             .findFirst()
             .map(StreamingService::getServiceInfo)
@@ -123,8 +171,9 @@ object ServiceHelper {
 
     @JvmStatic
     fun setSelectedServiceId(context: Context, serviceId: Int) {
-        val serviceName = runCatching { NewPipe.getService(serviceId).serviceInfo.name }
-            .getOrDefault(DEFAULT_FALLBACK_SERVICE.serviceInfo.name)
+        val serviceName = getKnownServiceName(serviceId)
+            ?: runCatching { NewPipe.getService(serviceId).serviceInfo.name }
+                .getOrDefault(DEFAULT_FALLBACK_SERVICE_NAME)
 
         setSelectedServicePreferences(context, serviceName)
     }
@@ -144,25 +193,77 @@ object ServiceHelper {
     }
 
     fun initService(context: Context, serviceId: Int) {
-        if (serviceId == ServiceList.PeerTube.serviceId) {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            val json = sharedPreferences.getString(
-                context.getString(R.string.peertube_selected_instance_key),
-                null
-            ) ?: return
+        when (serviceId) {
+            ServiceList.PeerTube.serviceId -> {
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+                val json = sharedPreferences.getString(
+                    context.getString(R.string.peertube_selected_instance_key),
+                    null
+                ) ?: return
 
-            val jsonObject = runCatching { JsonParser.`object`().from(json) }
-                .getOrElse { return@initService }
+                val jsonObject = runCatching { JsonParser.`object`().from(json) }
+                    .getOrNull() ?: return
 
-            ServiceList.PeerTube.instance = PeertubeInstance(
-                jsonObject.getString("url"),
-                jsonObject.getString("name")
-            )
+                ServiceList.PeerTube.instance = PeertubeInstance(
+                    jsonObject.getString("url"),
+                    jsonObject.getString("name")
+                )
+            }
+
+            ServiceList.BiliBili.serviceId -> {
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+                val useOverrideCookies = sharedPreferences.getBoolean(
+                    context.getString(R.string.override_cookies_bilibili_key),
+                    false
+                )
+                val cookiesKey = if (useOverrideCookies) {
+                    R.string.override_cookies_bilibili_value_key
+                } else {
+                    R.string.bilibili_cookies_key
+                }
+                val cookies = sharedPreferences.getString(context.getString(cookiesKey), "")
+                    ?: ""
+                val defaultCookieFunctions = setOf("high_res", "ai_subtitle")
+                val cookieFunctions = HashSet(
+                    sharedPreferences.getStringSet(
+                        context.getString(R.string.cookie_functions_bilibili_key),
+                        defaultCookieFunctions
+                    ) ?: defaultCookieFunctions
+                )
+
+                ServiceList.BiliBili.setTokens(cookies)
+                ServiceList.BiliBili.setCookieFunctions(cookieFunctions)
+            }
         }
     }
 
     @JvmStatic
     fun initServices(context: Context) {
-        ServiceList.all().forEach { initService(context, it.serviceId) }
+        val sponsorBlockApiSettings = buildSponsorBlockApiSettings(context)
+        ServiceList.all().forEach {
+            initService(context, it.serviceId)
+            it.sponsorBlockApiSettings = sponsorBlockApiSettings
+        }
+    }
+
+    private fun buildSponsorBlockApiSettings(context: Context): SponsorBlockApiSettings? {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        if (!prefs.getBoolean(context.getString(R.string.sponsor_block_enable_key), false)) {
+            return null
+        }
+
+        return SponsorBlockApiSettings().apply {
+            apiUrl = context.getString(R.string.sponsor_block_api_url_default)
+            userId = SponsorBlockHelper.getUserId(context)
+            includeSponsorCategory = true
+            includeIntroCategory = true
+            includeOutroCategory = true
+            includeInteractionCategory = true
+            includeHighlightCategory = true
+            includeSelfPromoCategory = true
+            includeMusicCategory = true
+            includePreviewCategory = true
+            includeFillerCategory = true
+        }
     }
 }

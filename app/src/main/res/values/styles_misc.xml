@@ -2,52 +2,112 @@
 <resources>
 
     <!-- Follows service's primary color -->
-    <style name="ServiceColoredButton" parent="Widget.AppCompat.Button.Colored">
-        <item name="colorButtonNormal">?attr/colorPrimary</item>
+    <style name="ServiceColoredButton" parent="Widget.Material3.Button">
+        <item name="backgroundTint">?attr/colorPrimary</item>
         <item name="android:textColor">@color/subscribe_text_color</item>
-        <item name="colorControlHighlight">@color/dark_ripple_color</item>
+        <item name="rippleColor">@color/dark_ripple_color</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <style name="PilotFilledButton" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="PilotTextButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
 
-    <!--File picker styles-->
-    <style name="FilePickerThemeLight" parent="NNF_BaseTheme.Light">
+    <!-- File picker styles -->
+    <style name="FilePickerThemeLight" parent="LightTheme">
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
-        <item name="colorAccent">@color/light_settings_accent_color</item>
-
-        <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
-
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="nnf_separator_color">@color/light_separator_color</item>
-
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeLight</item>
     </style>
 
-    <style name="FilePickerThemeDark" parent="NNF_BaseTheme">
+    <style name="FilePickerThemeDark" parent="DarkTheme">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="colorAccent">@color/dark_settings_accent_color</item>
-
-        <item name="actionColor">@color/white</item>
         <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
-
         <item name="android:windowBackground">@color/dark_background_color</item>
-        <item name="nnf_separator_color">@color/black_separator_color</item>
-
+        <item name="nnf_separator_color">@color/dark_separator_color</item>
         <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
     </style>
 
-    <style name="FilePickerAlertDialogThemeLight" parent="Theme.AppCompat.DayNight.Dialog.Alert">
-        <item name="colorPrimary">@color/light_youtube_primary_color</item>
-        <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
-        <item name="colorAccent">@color/light_settings_accent_color</item>
-    </style>
-
-    <style name="FilePickerAlertDialogThemeDark" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+    <style name="FilePickerThemeBlack" parent="BlackTheme">
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
-        <item name="colorAccent">@color/dark_settings_accent_color</item>
+        <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
+        <item name="android:windowBackground">@color/black_background_color</item>
+        <item name="nnf_separator_color">@color/black_separator_color</item>
+        <item name="alertDialogTheme">@style/FilePickerAlertDialogThemeDark</item>
+    </style>
+
+    <style name="FilePickerAlertDialogThemeLight" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/light_youtube_primary_color</item>
+        <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
+    </style>
+
+    <style name="FilePickerAlertDialogThemeDark" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/dark_youtube_primary_color</item>
+        <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
+    </style>
+
+    <style name="TextAppearance.NewPipe.BodyLarge" parent="TextAppearance.Material3.BodyLarge" />
+
+    <style name="TextAppearance.NewPipe.BodyMedium" parent="TextAppearance.Material3.BodyMedium" />
+
+    <style name="TextAppearance.NewPipe.BodySmall" parent="TextAppearance.Material3.BodySmall" />
+
+    <style name="TextAppearance.NewPipe.LabelMedium"
+        parent="TextAppearance.Material3.LabelMedium" />
+
+    <style name="TextAppearance.NewPipe.LabelLarge"
+        parent="TextAppearance.Material3.LabelLarge" />
+
+    <style name="TextAppearance.NewPipe.TitleMedium"
+        parent="TextAppearance.Material3.TitleMedium" />
+
+    <style name="ThemeOverlay.NewPipe.Player" parent="">
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">#42FFFFFF</item>
+        <item name="colorOnPrimaryContainer">@color/white</item>
+        <item name="colorSecondaryContainer">#33FFFFFF</item>
+        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorSurface">#FF111417</item>
+        <item name="colorSurfaceVariant">#FF1A1F24</item>
+        <item name="colorSurfaceContainer">#99151A1F</item>
+        <item name="colorSurfaceContainerHigh">#B322282E</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/white_secondary</item>
+        <item name="colorOutline">#52FFFFFF</item>
+        <item name="colorControlHighlight">#29FFFFFF</item>
+        <item name="tint">@color/white</item>
+        <item name="iconTint">@color/white</item>
     </style>
 
     <style name="PlayQueueItemTextTheme">
@@ -55,56 +115,269 @@
         <item name="android:textAppearanceSmall">@style/PlayQueueItemSubtitle</item>
     </style>
 
-    <style name="PlayQueueItemTitle" parent="TextAppearance.AppCompat.Large">
-        <item name="android:textColor">@color/white</item>
+    <style name="PlayQueueItemTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
-    <style name="PlayQueueItemSubtitle" parent="TextAppearance.AppCompat.Small">
-        <item name="android:textColor">@color/white_secondary</item>
-    </style>
-
-    <style name="FloatingActionButtonTheme" parent="Widget.Design.FloatingActionButton">
-        <item name="tint">?attr/actionColor</item>
+    <style name="PlayQueueItemSubtitle" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
-    <style name="DarkPopupMenu" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="FloatingActionButtonTheme"
+        parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
+        <item name="tint">?attr/colorOnPrimaryContainer</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+    </style>
 
-    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="Widget.NewPipe.CircularProgressIndicator"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/colorSurfaceVariant</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark"
+        parent="Widget.Material3.CircularProgressIndicator">
+        <item name="indicatorColor">@color/white</item>
+        <item name="trackColor">@color/white_secondary</item>
+        <item name="indicatorSize">40dp</item>
+        <item name="trackThickness">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Small"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorSize">42dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.CircularProgressIndicator.OnDark.Gesture"
+        parent="Widget.NewPipe.CircularProgressIndicator.OnDark">
+        <item name="indicatorInset">8dp</item>
+        <item name="indicatorSize">112dp</item>
+        <item name="trackThickness">6dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator"
+        parent="Widget.Material3.LinearProgressIndicator">
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/colorSurfaceVariant</item>
+        <item name="trackThickness">4dp</item>
+        <item name="trackCornerRadius">2dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.LinearProgressIndicator.Slim"
+        parent="Widget.NewPipe.LinearProgressIndicator">
+        <item name="trackThickness">2dp</item>
+        <item name="trackCornerRadius">1dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.IconButton" parent="Widget.Material3.Button.TextButton">
+        <item name="android:minHeight">40dp</item>
+        <item name="android:minWidth">40dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingEnd">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconSize">0dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.IconButton.Surface"
+        parent="Widget.NewPipe.IconButton">
+        <item name="backgroundTint">?attr/colorSurfaceContainerHigh</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.IconButton" parent="Widget.NewPipe.IconButton">
+        <item name="android:minHeight">@dimen/player_control_button_size</item>
+        <item name="android:minWidth">@dimen/player_control_button_size</item>
+        <item name="backgroundTint">?attr/colorSurfaceContainerHigh</item>
+        <item name="cornerRadius">@dimen/player_md3_button_radius</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.IconButton.Filled"
+        parent="Widget.NewPipe.Player.IconButton">
+        <item name="backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="iconTint">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TransportButton"
+        parent="Widget.NewPipe.Player.IconButton">
+        <item name="android:minHeight">@dimen/player_md3_transport_button_size</item>
+        <item name="android:minWidth">@dimen/player_md3_transport_button_size</item>
+        <item name="cornerRadius">@dimen/player_md3_transport_button_radius</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.PlayPauseButton"
+        parent="Widget.NewPipe.Player.IconButton.Filled">
+        <item name="android:minHeight">@dimen/player_md3_play_pause_button_size</item>
+        <item name="android:minWidth">@dimen/player_md3_play_pause_button_size</item>
+        <item name="cornerRadius">@dimen/player_md3_play_pause_button_radius</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TextChip" parent="Widget.Material3.Chip.Suggestion">
+        <item name="android:minHeight">@dimen/player_md3_chip_height</item>
+        <item name="android:minWidth">@dimen/player_md3_chip_min_width</item>
+        <item name="chipMinHeight">@dimen/player_md3_chip_height</item>
+        <item name="chipBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="chipCornerRadius">@dimen/player_md3_chip_radius</item>
+        <item name="chipStrokeColor">?attr/colorOutline</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStartPadding">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="chipEndPadding">@dimen/player_md3_chip_horizontal_padding</item>
+        <item name="textStartPadding">0dp</item>
+        <item name="textEndPadding">0dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+        <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.NewPipe.Player.TextChip.Emphasized"
+        parent="Widget.NewPipe.Player.TextChip">
+        <item name="chipBackgroundColor">?attr/colorSecondaryContainer</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="android:textColor">?attr/colorOnSecondaryContainer</item>
+    </style>
+
+    <style name="Widget.NewPipe.TagChip" parent="Widget.Material3.Chip.Suggestion">
+        <item name="chipBackgroundColor">?attr/colorSurfaceContainerHigh</item>
+        <item name="chipMinHeight">32dp</item>
+        <item name="chipStrokeColor">?attr/colorOutline</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="rippleColor">?attr/colorControlHighlight</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textAppearance">@style/TextAppearance.NewPipe.LabelMedium</item>
+    </style>
+
+    <style name="Widget.NewPipe.TabLayout" parent="">
+        <item name="tabBackground">@drawable/bg_tab_background_surface</item>
+        <item name="tabIndicatorHeight">0dp</item>
+        <item name="tabIndicatorFullWidth">false</item>
+        <item name="tabGravity">fill</item>
+        <item name="tabInlineLabel">true</item>
+        <item name="tabMinWidth">72dp</item>
+        <item name="tabMode">fixed</item>
+        <item name="tabPaddingStart">16dp</item>
+        <item name="tabPaddingTop">10dp</item>
+        <item name="tabPaddingEnd">16dp</item>
+        <item name="tabPaddingBottom">10dp</item>
+        <item name="tabRippleColor">?attr/colorControlHighlight</item>
+        <item name="tabSelectedTextColor">?attr/colorOnSurface</item>
+        <item name="tabTextAppearance">@style/TextAppearance.NewPipe.LabelLarge</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.NewPipe.CardView" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainer</item>
+        <item name="cardCornerRadius">22dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardUseCompatPadding">false</item>
+    </style>
+
+    <style name="Widget.NewPipe.MaterialCardView" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">?attr/colorSurfaceContainer</item>
+        <item name="cardCornerRadius">22dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardUseCompatPadding">false</item>
+        <item name="strokeColor">?attr/colorOutline</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.TextInputLayout"
+        parent="Widget.Material3.TextInputLayout.FilledBox">
+        <item name="boxBackgroundColor">?attr/colorSurfaceVariant</item>
+        <item name="boxCornerRadiusTopStart">20dp</item>
+        <item name="boxCornerRadiusTopEnd">20dp</item>
+        <item name="boxCornerRadiusBottomStart">20dp</item>
+        <item name="boxCornerRadiusBottomEnd">20dp</item>
+        <item name="boxStrokeColor">?attr/colorPrimary</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="hintTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="placeholderTextColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.NewPipe.TextInputEditText"
+        parent="Widget.Material3.TextInputEditText.FilledBox">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="Widget.NewPipe.SeekBar" parent="Widget.Material3.Slider">
+        <item name="android:progressTint">?attr/colorPrimary</item>
+        <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
+        <item name="android:progressBackgroundTint">?attr/colorSurfaceVariant</item>
+        <item name="android:thumbTint">?attr/colorPrimary</item>
+        <item name="thumbColor">?attr/colorPrimary</item>
+        <item name="haloColor">?attr/colorPrimaryContainer</item>
+        <item name="trackColorActive">?attr/colorPrimary</item>
+        <item name="trackColorInactive">?attr/colorSurfaceVariant</item>
+        <item name="labelBehavior">gone</item>
+        <item name="trackHeight">4dp</item>
+    </style>
+
+    <style name="Widget.NewPipe.MaterialSwitch"
+        parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="thumbTint">@color/switch_thumb_tint</item>
+        <item name="trackTint">@color/switch_track_tint</item>
+    </style>
+
+    <style name="ToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">?attr/actionColor</item>
-        <item name="android:textColorSecondary">?attr/actionColor</item>
-        <item name="tint">?attr/actionColor</item>
-        <item name="iconTint">?attr/actionColor</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="colorOnSurface">?attr/colorOnSurface</item>
+        <item name="tint">?attr/colorOnSurface</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
     </style>
-    <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
-        <item name="tint">@color/contrastColor</item>
-    </style>
-    <style name="ContrastToolbarTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
-        <item name="popupTheme">@style/ToolbarPopupTheme</item>
+    <style name="ToolbarPopupTheme" parent="">
         <item name="android:textColorPrimary">@color/contrastColor</item>
         <item name="android:textColorSecondary">@color/contrastColor</item>
+        <item name="colorOnSurface">@color/contrastColor</item>
         <item name="tint">@color/contrastColor</item>
         <item name="iconTint">@color/contrastColor</item>
-        <item name="toolbarSearchColor">@color/contrastColor</item>
-    </style>
-
-    <style name="WhiteTintTheme">
-        <item name="tint">@color/white</item>
-        <item name="iconTint">@color/white</item>
-    </style>
-    <style name="ContrastTintTheme">
-        <item name="tint">@color/contrastColor</item>
-        <item name="iconTint">@color/contrastColor</item>
-    </style>
-
-    <style name="ToolbarSearchInputTheme">
-        <item name="colorPrimary">?attr/toolbarSearchColor</item>
-        <item name="colorPrimaryDark">?attr/toolbarSearchColor</item>
-        <item name="colorAccent">?attr/toolbarSearchColor</item>
     </style>
 
     <style name="CircularImageView">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
+    </style>
+
+    <style name="RoundedPanelImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="RoundedThumbnailImageView">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">18dp</item>
     </style>
 
 </resources>

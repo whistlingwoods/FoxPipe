@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -72,7 +71,6 @@ import java.util.List;
 import java.util.Optional;
 
 public final class NavigationHelper {
-    public static final String MAIN_FRAGMENT_TAG = "main_fragment_tag";
     public static final String SEARCH_FRAGMENT_TAG = "search_fragment_tag";
 
     private static final String TAG = NavigationHelper.class.getSimpleName();
@@ -322,7 +320,7 @@ public final class NavigationHelper {
                                                      @NonNull final Intent intent) {
         if (!ShareUtils.tryOpenIntentInApp(context, intent)) {
             if (context instanceof Activity) {
-                new AlertDialog.Builder(context)
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                         .setMessage(R.string.no_player_found)
                         .setPositiveButton(R.string.install, (dialog, which) ->
                                 ShareUtils.installApp(context,
@@ -348,8 +346,9 @@ public final class NavigationHelper {
     }
 
     public static void gotoMainFragment(final FragmentManager fragmentManager) {
-        final boolean popped = fragmentManager.popBackStackImmediate(MAIN_FRAGMENT_TAG, 0);
-        if (!popped) {
+        fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        if (!(fragmentManager.findFragmentById(R.id.fragment_holder) instanceof MainFragment)) {
             openMainFragment(fragmentManager);
         }
     }
@@ -360,7 +359,6 @@ public final class NavigationHelper {
         fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_holder, new MainFragment())
-                .addToBackStack(MAIN_FRAGMENT_TAG)
                 .commit();
     }
 
@@ -565,6 +563,16 @@ public final class NavigationHelper {
                 .commit();
     }
 
+    public static void openFeedFragment(@NonNull final Context context,
+                                        @NonNull final FragmentManager fragmentManager,
+                                        final long groupId,
+                                        @Nullable final String groupName) {
+        defaultTransaction(fragmentManager)
+                .replace(R.id.fragment_holder, FeedFragment.newInstance(groupId, groupName))
+                .addToBackStack(null)
+                .commit();
+    }
+
     public static void openBookmarksFragment(final FragmentManager fragmentManager) {
         defaultTransaction(fragmentManager)
                 .replace(R.id.fragment_holder, new BookmarkFragment())
@@ -684,6 +692,13 @@ public final class NavigationHelper {
 
     public static void openSettings(final Context context) {
         final Intent intent = new Intent(context, SettingsActivity.class);
+        context.startActivity(intent);
+    }
+
+    public static void openSettings(final Context context,
+                                    final Class<? extends Fragment> fragmentClass) {
+        final Intent intent = new Intent(context, SettingsActivity.class);
+        intent.putExtra(SettingsActivity.EXTRA_INITIAL_FRAGMENT, fragmentClass.getName());
         context.startActivity(intent);
     }
 

@@ -55,11 +55,29 @@
         android:textSize="@dimen/comment_item_content_text_size"
         tools:text="@tools:sample/lorem/random[1]" />
 
+    <HorizontalScrollView
+        android:id="@+id/commentPicturesScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/itemCommentContentView"
+        android:layout_marginTop="8dp"
+        android:layout_toEndOf="@+id/itemThumbnailView"
+        android:overScrollMode="never"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/commentPicturesContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
     <ImageView
         android:id="@+id/detail_thumbs_up_img_view"
         android:layout_width="@dimen/video_item_detail_like_image_width"
         android:layout_height="@dimen/video_item_detail_like_image_height"
-        android:layout_below="@id/itemCommentContentView"
+        android:layout_below="@id/commentPicturesScrollView"
         android:layout_alignBottom="@+id/replies_button"
         android:layout_toEndOf="@+id/itemThumbnailView"
         android:contentDescription="@string/detail_likes_img_view_description"
@@ -90,15 +108,14 @@
         android:contentDescription="@string/detail_heart_img_view_description"
         android:src="@drawable/ic_heart" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/replies_button"
-        style="?android:attr/borderlessButtonStyle"
+        style="@style/PilotTextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/itemCommentContentView"
+        android:layout_below="@id/commentPicturesScrollView"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="@dimen/video_item_detail_heart_margin"
-        android:minHeight="0dp"
         tools:text="543 replies" />
 
 </RelativeLayout>

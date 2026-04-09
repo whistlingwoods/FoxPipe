@@ -7,18 +7,35 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.annotation.XmlRes;
+import androidx.fragment.app.DialogFragment;
+import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
+import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceGroup;
+import androidx.preference.SwitchPreference;
+import androidx.preference.SwitchPreferenceCompat;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipe.MainActivity;
+import org.schabi.newpipe.R;
+import org.schabi.newpipe.settings.dialog.MaterialEditTextPreferenceDialogFragment;
+import org.schabi.newpipe.settings.dialog.MaterialListPreferenceDialogFragment;
+import org.schabi.newpipe.settings.dialog.MaterialMultiSelectListPreferenceDialogFragment;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.util.Objects;
 
-public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
+public abstract class BasePreferenceFragment extends PreferenceFragmentCompat
+        implements PreferenceUiHost {
     protected final String TAG = getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
     protected static final boolean DEBUG = MainActivity.DEBUG;
+    private static final String PREFERENCE_DIALOG_TAG =
+            "androidx.preference.PreferenceFragment.DIALOG";
 
     SharedPreferences defaultPreferences;
 
@@ -29,8 +46,13 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
     }
 
     protected void addPreferencesFromResourceRegistry() {
-        addPreferencesFromResource(
+        inflatePreferences(
                 SettingsResourceRegistry.getInstance().getPreferencesResId(this.getClass()));
+    }
+
+    protected final void inflatePreferences(@XmlRes final int preferencesResId) {
+        addPreferencesFromResource(preferencesResId);
+        applyMaterialPreferenceStyling(getPreferenceScreen());
     }
 
     @Override
@@ -38,6 +60,11 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
                               @Nullable final Bundle savedInstanceState) {
         super.onViewCreated(rootView, savedInstanceState);
         setDivider(null);
+        final RecyclerView listView = getListView();
+        final int verticalPadding =
+                Math.round(getResources().getDisplayMetrics().density * 8f);
+        listView.setClipToPadding(false);
+        listView.setPadding(0, verticalPadding, 0, verticalPadding);
         ThemeHelper.setTitleToAppCompatActivity(getActivity(), getPreferenceScreen().getTitle());
     }
 
@@ -52,5 +79,85 @@ public abstract class BasePreferenceFragment extends PreferenceFragmentCompat {
         final T preference = findPreference(getString(resId));
         Objects.requireNonNull(preference);
         return preference;
+    }
+
+    @Override
+    public final Preference findPreferenceByKey(@NonNull final String key) {
+        return findPreference(key);
+    }
+
+    @NonNull
+    @Override
+    public final RecyclerView getPreferenceListView() {
+        return getListView();
+    }
+
+    @Override
+    public final void scrollToPreferenceItem(@NonNull final Preference preference) {
+        scrollToPreference(preference);
+    }
+
+    @Override
+    public final androidx.fragment.app.FragmentActivity getPreferenceHostActivity() {
+        return getActivity();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onDisplayPreferenceDialog(@NonNull final Preference preference) {
+        if (getParentFragmentManager().findFragmentByTag(PREFERENCE_DIALOG_TAG) != null) {
+            return;
+        }
+
+        final DialogFragment dialogFragment = createMaterialDialogFragment(preference);
+        if (dialogFragment == null) {
+            super.onDisplayPreferenceDialog(preference);
+            return;
+        }
+
+        dialogFragment.setTargetFragment(this, 0);
+        dialogFragment.show(getParentFragmentManager(), PREFERENCE_DIALOG_TAG);
+    }
+
+    private void applyMaterialPreferenceStyling(@Nullable final Preference preference) {
+        if (preference == null) {
+            return;
+        }
+
+        if (preference instanceof PreferenceCategory) {
+            preference.setLayoutResource(R.layout.preference_category_material);
+        } else if (preference.getLayoutResource() == androidx.preference.R.layout.preference) {
+            preference.setLayoutResource(R.layout.preference_material);
+        }
+
+        if (preference instanceof SwitchPreferenceCompat) {
+            preference.setWidgetLayoutResource(R.layout.preference_widget_material_switch_compat);
+        } else if (preference instanceof SwitchPreference) {
+            preference.setWidgetLayoutResource(R.layout.preference_widget_material_switch);
+        }
+
+        if (!(preference instanceof PreferenceGroup)) {
+            return;
+        }
+
+        final PreferenceGroup preferenceGroup = (PreferenceGroup) preference;
+        for (int i = 0; i < preferenceGroup.getPreferenceCount(); i++) {
+            applyMaterialPreferenceStyling(preferenceGroup.getPreference(i));
+        }
+    }
+
+    @Nullable
+    private DialogFragment createMaterialDialogFragment(@NonNull final Preference preference) {
+        if (preference instanceof EditTextPreference) {
+            return MaterialEditTextPreferenceDialogFragment.newInstance(preference.getKey());
+        }
+        if (preference instanceof MultiSelectListPreference) {
+            return MaterialMultiSelectListPreferenceDialogFragment.newInstance(
+                    preference.getKey());
+        }
+        if (preference instanceof ListPreference) {
+            return MaterialListPreferenceDialogFragment.newInstance(preference.getKey());
+        }
+        return null;
     }
 }

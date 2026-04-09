@@ -36,13 +36,14 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.evernote.android.state.State
 import com.xwray.groupie.GroupieAdapter
@@ -55,6 +56,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.time.OffsetDateTime
 import java.util.function.Consumer
+import kotlin.math.roundToInt
 import org.schabi.newpipe.NewPipeDatabase
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity
@@ -81,6 +83,7 @@ import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.NavigationHelper
 import org.schabi.newpipe.util.ThemeHelper.getGridSpanCountStreams
 import org.schabi.newpipe.util.ThemeHelper.getItemViewMode
+import org.schabi.newpipe.util.ThemeHelper.resolveColorFromAttr
 import org.schabi.newpipe.util.ThemeHelper.resolveDrawable
 import org.schabi.newpipe.util.ThemeHelper.shouldUseGridLayout
 
@@ -128,7 +131,11 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             .registerOnSharedPreferenceChangeListener(onSettingsChangeListener)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_feed, container, false)
     }
 
@@ -160,6 +167,7 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         })
 
         feedBinding.itemsList.adapter = groupAdapter
+        configureSwipeRefresh()
         setupListViewMode()
     }
 
@@ -184,11 +192,41 @@ class FeedFragment : BaseStateFragment<FeedState>() {
 
     private fun setupListViewMode() {
         // does everything needed to setup the layouts for grid or list modes
-        groupAdapter.spanCount = if (shouldUseGridLayout(context)) getGridSpanCountStreams(context) else 1
-        feedBinding.itemsList.layoutManager = GridLayoutManager(requireContext(), groupAdapter.spanCount).apply {
+        groupAdapter.spanCount = if (shouldUseGridLayout(context)) {
+            getGridSpanCountStreams(context)
+        } else {
+            1
+        }
+        feedBinding.itemsList.layoutManager = GridLayoutManager(
+            requireContext(),
+            groupAdapter.spanCount
+        ).apply {
             spanSizeLookup = groupAdapter.spanSizeLookup
         }
     }
+
+    private fun configureSwipeRefresh() {
+        feedBinding.swipeRefreshLayout.setColorSchemeColors(
+            resolveColorFromAttr(
+                requireContext(),
+                com.google.android.material.R.attr.colorPrimary
+            )
+        )
+        feedBinding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+            resolveColorFromAttr(
+                requireContext(),
+                com.google.android.material.R.attr.colorSurfaceContainerHigh
+            )
+        )
+        feedBinding.swipeRefreshLayout.setDistanceToTriggerSync(dpToPx(96))
+        feedBinding.swipeRefreshLayout.setProgressViewOffset(
+            false,
+            dpToPx(24),
+            dpToPx(88)
+        )
+    }
+
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).roundToInt()
 
     override fun initListeners() {
         super.initListeners()
@@ -212,6 +250,8 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         activity.supportActionBar?.subtitle = groupName
 
         inflater.inflate(R.menu.menu_feed_fragment, menu)
+        // update subtitle with selected group name
+        activity.supportActionBar?.subtitle = groupName
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -225,15 +265,34 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                 else -> R.string.feed_use_dedicated_fetch_method_enable_button
             }
 
-            AlertDialog.Builder(requireContext())
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                 .setMessage(R.string.feed_use_dedicated_fetch_method_help_text)
                 .setNeutralButton(enableDisableButtonText) { _, _ ->
                     sharedPreferences.edit {
-                        putBoolean(getString(R.string.feed_use_dedicated_fetch_method_key), !usingDedicatedMethod)
+                        putBoolean(
+                            getString(R.string.feed_use_dedicated_fetch_method_key),
+                            !usingDedicatedMethod
+                        )
                     }
                 }
                 .setPositiveButton(resources.getString(R.string.ok), null)
                 .show()
+            return true
+        } else if (item.itemId == R.id.menu_item_feed_filter_channels) {
+            // Open channel group selector to filter feed by channel group
+            val dialog = org.schabi.newpipe.settings.SelectFeedGroupFragment()
+            dialog.setOnSelectedListener(object : org.schabi.newpipe.settings.SelectFeedGroupFragment.OnSelectedListener {
+                override fun onFeedGroupSelected(groupId: Long?, name: String?, icon: Int) {
+                    val safeId = groupId ?: FeedGroupEntity.GROUP_ALL_ID
+                    val safeName = name ?: ""
+                    // Navigate to a new FeedFragment instance scoped to selected group
+                    org.schabi.newpipe.util.NavigationHelper.openFeedFragment(requireContext(), fm, safeId, safeName)
+                }
+            })
+            dialog.setOnCancelListener(object : org.schabi.newpipe.settings.SelectFeedGroupFragment.OnCancelListener {
+                override fun onCancel() { /* no-op */ }
+            })
+            dialog.show(parentFragmentManager, "select_feed_group_filter")
             return true
         } else if (item.itemId == R.id.menu_item_feed_toggle_played_items) {
             showStreamVisibilityDialog()
@@ -255,11 +314,38 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             viewModel.getShowFutureItemsFromPreferences()
         )
 
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.feed_hide_streams_title)
-            .setMultiChoiceItems(dialogItems, checkedDialogItems) { _, which, isChecked ->
-                checkedDialogItems[which] = isChecked
+        val recyclerView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_preference_choice_list, null, false) as RecyclerView
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun onCreateViewHolder(
+                parent: ViewGroup,
+                viewType: Int
+            ): RecyclerView.ViewHolder {
+                val itemView = LayoutInflater.from(parent.context).inflate(
+                    R.layout.item_preference_multi_choice,
+                    parent,
+                    false
+                ) as com.google.android.material.checkbox.MaterialCheckBox
+                return object : RecyclerView.ViewHolder(itemView) {}
             }
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val checkBox =
+                    holder.itemView as com.google.android.material.checkbox.MaterialCheckBox
+                checkBox.text = dialogItems[position]
+                checkBox.isChecked = checkedDialogItems[position]
+                checkBox.setOnClickListener {
+                    checkedDialogItems[position] = checkBox.isChecked
+                }
+            }
+
+            override fun getItemCount(): Int = dialogItems.size
+        }
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.feed_hide_streams_title)
+            .setView(recyclerView)
             .setPositiveButton(R.string.ok) { _, _ ->
                 viewModel.setSaveShowPlayedItems(checkedDialogItems[0])
                 viewModel.setSaveShowPartiallyPlayedItems(checkedDialogItems[1])
@@ -511,7 +597,9 @@ class FeedFragment : BaseStateFragment<FeedState>() {
             false
         )
 
-        val builder = AlertDialog.Builder(requireContext())
+        val builder = com.google.android.material.dialog.MaterialAlertDialogBuilder(
+            requireContext()
+        )
             .setTitle(R.string.feed_load_error)
             .setPositiveButton(R.string.unsubscribe) { _, _ ->
                 SubscriptionManager(requireContext())
@@ -527,7 +615,9 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         } else if (cause is ContentNotAvailableException) {
             if (isFastFeedModeEnabled) {
                 message += "\n" + getString(R.string.feed_load_error_fast_unknown)
-                builder.setNeutralButton(R.string.feed_use_dedicated_fetch_method_disable_button) { _, _ ->
+                builder.setNeutralButton(
+                    R.string.feed_use_dedicated_fetch_method_disable_button
+                ) { _, _ ->
                     sharedPreferences.edit {
                         putBoolean(getString(R.string.feed_use_dedicated_fetch_method_key), false)
                     }
@@ -581,7 +671,12 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                         // Merge the drawables together. Otherwise we would lose the "select" effect
                         LayerDrawable(
                             arrayOf(
-                                resolveDrawable(ctx, R.attr.dashed_border),
+                                requireNotNull(
+                                    AppCompatResources.getDrawable(
+                                        ctx,
+                                        R.drawable.bg_md3_dashed_border
+                                    )
+                                ),
                                 resolveDrawable(ctx, android.R.attr.selectableItemBackground)
                             )
                         )
@@ -688,9 +783,15 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         const val KEY_GROUP_NAME = "ARG_GROUP_NAME"
 
         @JvmStatic
-        fun newInstance(groupId: Long = FeedGroupEntity.GROUP_ALL_ID, groupName: String? = null): FeedFragment {
+        fun newInstance(
+            groupId: Long = FeedGroupEntity.GROUP_ALL_ID,
+            groupName: String? = null
+        ): FeedFragment {
             val feedFragment = FeedFragment()
-            feedFragment.arguments = bundleOf(KEY_GROUP_ID to groupId, KEY_GROUP_NAME to groupName)
+            feedFragment.arguments = bundleOf(
+                KEY_GROUP_ID to groupId,
+                KEY_GROUP_NAME to groupName
+            )
             return feedFragment
         }
     }

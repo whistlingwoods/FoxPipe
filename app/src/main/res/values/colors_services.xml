@@ -35,4 +35,11 @@
     <color name="dark_bandcamp_primary_color">#1383a1</color>
     <color name="dark_bandcamp_accent_color">#FFFFFF</color>
 
+    <!-- BiliBili -->
+    <color name="light_bilibili_primary_color">#FB7299</color>
+    <color name="light_bilibili_accent_color">#000000</color>
+
+    <color name="dark_bilibili_primary_color">#D94E74</color>
+    <color name="dark_bilibili_accent_color">#FFFFFF</color>
+
 </resources>

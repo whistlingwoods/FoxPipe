@@ -1,6 +1,5 @@
 package org.schabi.newpipe.settings;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -41,7 +40,7 @@ public class UpdateSettingsFragment extends BasePreferenceFragment {
     }
 
     public static void askForConsentToUpdateChecks(final Context context) {
-        new AlertDialog.Builder(context)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.check_for_updates))
                 .setMessage(context.getString(R.string.auto_update_check_description))
                 .setPositiveButton(context.getString(R.string.yes), (d, w) -> {

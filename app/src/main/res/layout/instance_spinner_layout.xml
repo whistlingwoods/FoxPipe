@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Spinner xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.google.android.material.button.MaterialButton
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/spinner"
+    style="@style/PilotTextButton"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:gravity="end"
-    android:prompt="@string/choose_instance_prompt"
-    tools:listitem="@layout/instance_spinner_item" />
+    android:gravity="end|center_vertical"
+    android:minHeight="0dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:text="@string/choose_instance_prompt"
+    android:textSize="12sp"
+    app:icon="@drawable/ic_expand_more"
+    app:iconGravity="textEnd"
+    app:iconPadding="4dp"
+    app:iconTint="?attr/colorPrimary" />

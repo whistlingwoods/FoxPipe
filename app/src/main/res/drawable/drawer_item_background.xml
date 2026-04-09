@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_checked="true">
+        <inset
+            android:insetLeft="@dimen/drawer_item_horizontal_inset"
+            android:insetTop="@dimen/drawer_item_vertical_inset"
+            android:insetRight="@dimen/drawer_item_horizontal_inset"
+            android:insetBottom="@dimen/drawer_item_vertical_inset"
+            android:drawable="@drawable/bg_drawer_item_checked" />
+    </item>
+
+    <item android:drawable="@android:color/transparent" />
+</selector>

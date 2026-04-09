@@ -5,6 +5,13 @@ package org.schabi.newpipe.fragments;
  */
 public interface BackPressable {
     /**
+     * @return whether this fragment should intercept the next back press
+     */
+    default boolean canHandleBackPress() {
+        return true;
+    }
+
+    /**
      * A back press was delegated to this fragment.
      *
      * @return if the back press was handled

@@ -1,25 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginLeft="5dp"
-    android:layout_marginTop="3dp"
-    android:layout_marginRight="5dp"
-    android:layout_marginBottom="3dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="4dp"
     android:focusable="true"
     android:minHeight="?listPreferredItemHeightSmall"
     android:orientation="horizontal"
-    app:cardCornerRadius="5dp"
-    app:cardElevation="4dp">
+    app:cardBackgroundColor="?attr/colorSurfaceVariant"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="0dp"
+    app:strokeColor="?attr/colorOutline"
+    app:strokeWidth="1dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical">
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <ImageView
             android:id="@+id/tabIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -45,7 +48,7 @@
             tools:ignore="RtlHardcoded"
             tools:text="Lorem ipsum dolor sit amet" />
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <ImageView
             android:id="@+id/handle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -58,4 +61,4 @@
             android:src="@drawable/ic_drag_handle"
             tools:ignore="ContentDescription,RtlHardcoded" />
     </RelativeLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

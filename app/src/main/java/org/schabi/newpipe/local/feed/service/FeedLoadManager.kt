@@ -13,8 +13,11 @@ import io.reactivex.rxjava3.processors.PublishProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity
 import org.schabi.newpipe.database.subscription.NotificationMode
@@ -94,10 +97,6 @@ class FeedLoadManager(private val context: Context) {
             else -> feedDatabaseManager.outdatedSubscriptionsForGroup(groupId, outdatedThreshold)
         }
 
-        // like `currentProgress`, but counts the number of YouTube extractions that have begun, so
-        // they can be properly throttled every once in a while (see doOnNext below)
-        val youtubeExtractionCount = AtomicInteger()
-
         return outdatedSubscriptions
             .take(1)
             .doOnNext {
@@ -114,19 +113,11 @@ class FeedLoadManager(private val context: Context) {
             // Randomize user subscription ordering to attempt to resist fingerprinting
             .flatMap { Flowable.fromIterable(it.shuffled()) }
             .takeWhile { !cancelSignal.get() }
-            .doOnNext { subscriptionEntity ->
-                // throttle YouTube extractions once every BATCH_SIZE to avoid being rate limited
-                if (subscriptionEntity.serviceId == ServiceList.YouTube.serviceId) {
-                    val previousCount = youtubeExtractionCount.getAndIncrement()
-                    if (previousCount != 0 && previousCount % BATCH_SIZE == 0) {
-                        Thread.sleep(DELAY_BETWEEN_BATCHES_MILLIS.random())
-                    }
-                }
-            }
             .parallel(PARALLEL_EXTRACTIONS, PARALLEL_EXTRACTIONS * 2)
             .runOn(Schedulers.io(), PARALLEL_EXTRACTIONS * 2)
             .filter { !cancelSignal.get() }
             .map { subscriptionEntity ->
+                throttleServiceRequests(subscriptionEntity.serviceId)
                 loadStreams(subscriptionEntity, useFeedExtractor, defaultSharedPreferences)
             }
             .sequential()
@@ -171,8 +162,10 @@ class FeedLoadManager(private val context: Context) {
             var originalInfo: Info? = null
             var streams: List<StreamInfoItem>? = null
             val errors = ArrayList<Throwable>()
+            val shouldUseDedicatedFeed =
+                shouldUseDedicatedFeedExtractor(useFeedExtractor, subscriptionEntity.serviceId)
 
-            if (useFeedExtractor) {
+            if (shouldUseDedicatedFeed) {
                 NewPipe.getService(subscriptionEntity.serviceId)
                     .getFeedExtractor(subscriptionEntity.url)
                     ?.also { feedExtractor ->
@@ -235,8 +228,10 @@ class FeedLoadManager(private val context: Context) {
                     .filterIsInstance<StreamInfoItem>()
             }
 
+            maybeApplyRateLimitBackoff(subscriptionEntity.serviceId, errors)
+
             return Notification.createOnNext(
-                FeedUpdateInfo(
+                buildFeedUpdateInfo(
                     subscriptionEntity,
                     originalInfo!!,
                     streams!!,
@@ -244,6 +239,7 @@ class FeedLoadManager(private val context: Context) {
                 )
             )
         } catch (e: Throwable) {
+            maybeApplyRateLimitBackoff(subscriptionEntity.serviceId, error ?: e)
             val request = "${subscriptionEntity.serviceId}:${subscriptionEntity.url}"
             val wrapper = FeedLoadService.RequestException(
                 subscriptionEntity.uid,
@@ -253,6 +249,149 @@ class FeedLoadManager(private val context: Context) {
             )
             return Notification.createOnError(wrapper)
         }
+    }
+
+    private fun buildFeedUpdateInfo(
+        subscriptionEntity: SubscriptionEntity,
+        info: Info,
+        streams: List<StreamInfoItem>,
+        errors: List<Throwable>
+    ): FeedUpdateInfo {
+        if (info !is FeedInfo) {
+            return FeedUpdateInfo(subscriptionEntity, info, streams, errors)
+        }
+
+        val resolvedName = info.name
+            .takeIf { it.isNotBlank() && it != info.id && it != info.url }
+            ?: subscriptionEntity.name.orEmpty()
+        val resolvedUrl = info.url.takeIf { it.isNotBlank() } ?: subscriptionEntity.url.orEmpty()
+
+        return FeedUpdateInfo(
+            uid = subscriptionEntity.uid,
+            notificationMode = subscriptionEntity.notificationMode,
+            name = resolvedName,
+            avatarUrl = subscriptionEntity.avatarUrl,
+            url = resolvedUrl,
+            serviceId = info.serviceId,
+            description = null,
+            subscriberCount = null,
+            streams = streams,
+            errors = errors
+        )
+    }
+
+    private fun throttleServiceRequests(serviceId: Int) {
+        val minimumIntervalMillis = serviceFeedFetchInterval(serviceId)
+        if (minimumIntervalMillis <= 0L) {
+            throttleYoutubeBatch(serviceId)
+            return
+        }
+
+        val serviceLock = serviceRequestLocks.computeIfAbsent(serviceId) { Any() }
+        synchronized(serviceLock) {
+            val nextAllowedStart = nextAllowedRequestStart.computeIfAbsent(serviceId) {
+                AtomicLong(0L)
+            }
+            val now = System.currentTimeMillis()
+            val waitMillis = nextAllowedStart.get() - now
+            if (waitMillis > 0L) {
+                Thread.sleep(waitMillis)
+            }
+
+            val jitterMillis = ThreadLocalRandom.current().nextLong(
+                serviceRequestJitterMillis(serviceId, minimumIntervalMillis) + 1
+            )
+            nextAllowedStart.set(System.currentTimeMillis() + minimumIntervalMillis + jitterMillis)
+        }
+    }
+
+    private fun throttleYoutubeBatch(serviceId: Int) {
+        if (serviceId != ServiceList.YouTube.serviceId) {
+            return
+        }
+
+        val previousCount = youtubeExtractionCount.getAndIncrement()
+        if (previousCount != 0 && previousCount % BATCH_SIZE == 0) {
+            Thread.sleep(DELAY_BETWEEN_BATCHES_MILLIS.random())
+        }
+    }
+
+    private fun maybeApplyRateLimitBackoff(serviceId: Int, throwable: Throwable) {
+        val minimumIntervalMillis = serviceFeedFetchInterval(serviceId)
+        if (minimumIntervalMillis <= 0L || !looksLikeRateLimit(throwable)) {
+            return
+        }
+
+        val serviceLock = serviceRequestLocks.computeIfAbsent(serviceId) { Any() }
+        synchronized(serviceLock) {
+            val nextAllowedStart = nextAllowedRequestStart.computeIfAbsent(serviceId) {
+                AtomicLong(0L)
+            }
+            val backoffMillis =
+                minimumIntervalMillis * rateLimitBackoffMultiplier(serviceId)
+            val jitterMillis = ThreadLocalRandom.current().nextLong(minimumIntervalMillis + 1)
+            val delayedUntil = System.currentTimeMillis() + backoffMillis + jitterMillis
+            nextAllowedStart.set(maxOf(nextAllowedStart.get(), delayedUntil))
+        }
+    }
+
+    private fun maybeApplyRateLimitBackoff(serviceId: Int, errors: List<Throwable>) {
+        errors.firstOrNull(::looksLikeRateLimit)?.let {
+            maybeApplyRateLimitBackoff(serviceId, it)
+        }
+    }
+
+    private fun serviceFeedFetchInterval(serviceId: Int): Long {
+        return serviceFeedFetchIntervals.computeIfAbsent(serviceId) {
+            try {
+                NewPipe.getService(serviceId).feedFetchInterval
+            } catch (e: Exception) {
+                0L
+            }
+        }
+    }
+
+    private fun shouldUseDedicatedFeedExtractor(
+        preferenceEnabled: Boolean,
+        serviceId: Int
+    ): Boolean = preferenceEnabled || serviceId == ServiceList.BiliBili.serviceId
+
+    private fun serviceRequestJitterMillis(serviceId: Int, minimumIntervalMillis: Long): Long {
+        if (serviceId == ServiceList.BiliBili.serviceId) {
+            return minOf(200L, minimumIntervalMillis / 10)
+        }
+        return minimumIntervalMillis / 5
+    }
+
+    private fun rateLimitBackoffMultiplier(serviceId: Int): Long {
+        if (serviceId == ServiceList.BiliBili.serviceId) {
+            return BILIBILI_RATE_LIMIT_BACKOFF_MULTIPLIER
+        }
+        return RATE_LIMIT_BACKOFF_MULTIPLIER
+    }
+
+    private fun looksLikeRateLimit(throwable: Throwable): Boolean {
+        var current: Throwable? = throwable
+        while (current != null) {
+            val message = current.message?.lowercase().orEmpty()
+            if (
+                message.contains("429") ||
+                message.contains("rate limit") ||
+                message.contains("too many request") ||
+                message.contains("too many requests") ||
+                message.contains("request limit") ||
+                message.contains("frequency") ||
+                message.contains("blocked us") ||
+                message.contains("risk control") ||
+                message.contains("-352") ||
+                message.contains("风控") ||
+                message.contains("请求过快")
+            ) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 
     /**
@@ -364,8 +503,25 @@ class FeedLoadManager(private val context: Context) {
         private val DELAY_BETWEEN_BATCHES_MILLIS = (6000L..12000L)
 
         /**
+         * Multiply the service feed interval by this factor after a likely rate-limit failure.
+         */
+        private const val RATE_LIMIT_BACKOFF_MULTIPLIER = 3L
+
+        /**
+         * Use a stronger cooldown for BiliBili after a likely risk-control hit.
+         */
+        private const val BILIBILI_RATE_LIMIT_BACKOFF_MULTIPLIER = 6L
+
+        /**
          * Number of items to buffer to mass-insert in the database.
          */
         private const val BUFFER_COUNT_BEFORE_INSERT = 20
+
+        // Keep pacing state across refresh service instances so repeated manual refreshes
+        // still honor the latest per-service cooldown.
+        private val serviceFeedFetchIntervals = ConcurrentHashMap<Int, Long>()
+        private val serviceRequestLocks = ConcurrentHashMap<Int, Any>()
+        private val nextAllowedRequestStart = ConcurrentHashMap<Int, AtomicLong>()
+        private val youtubeExtractionCount = AtomicInteger()
     }
 }

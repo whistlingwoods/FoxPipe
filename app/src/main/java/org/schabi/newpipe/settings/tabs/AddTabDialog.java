@@ -6,12 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.AppCompatImageView;
 
 import org.schabi.newpipe.R;
 
@@ -21,7 +21,7 @@ public final class AddTabDialog {
     AddTabDialog(@NonNull final Context context, @NonNull final ChooseTabListItem[] items,
                  @NonNull final DialogInterface.OnClickListener actions) {
 
-        dialog = new AlertDialog.Builder(context)
+        dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
                 .setTitle(context.getString(R.string.tab_choose))
                 .setAdapter(new DialogListAdapter(context, items), actions)
                 .create();
@@ -85,7 +85,7 @@ public final class AddTabDialog {
             }
 
             final ChooseTabListItem item = getItem(position);
-            final AppCompatImageView tabIconView = convertView.findViewById(R.id.tabIcon);
+            final ImageView tabIconView = convertView.findViewById(R.id.tabIcon);
             final TextView tabNameView = convertView.findViewById(R.id.tabName);
 
             tabIconView.setImageResource(item.itemIcon > 0 ? item.itemIcon : fallbackIcon);

@@ -1,37 +1,47 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="16dp"
+    android:background="@drawable/bg_download_mission_card"
+    android:clipToOutline="true"
+    android:padding="1dp">
 
     <RelativeLayout
         android:id="@+id/item_bkg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="2dp"
-        android:background="@color/bluegray">
+        android:minHeight="92dp"
+        android:paddingStart="16dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="14dp">
 
         <ImageView
             android:id="@+id/item_icon"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:layout_centerVertical="true"
             android:contentDescription="TODO"
             android:gravity="center"
-            android:padding="15dp"
-            android:scaleType="fitXY"
-            app:tint="?attr/actionColor" />
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            app:tint="?attr/colorPrimary" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/item_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/item_more"
-            android:layout_toRightOf="@id/item_icon"
+            android:layout_toStartOf="@+id/item_more"
+            android:layout_toEndOf="@id/item_icon"
             android:ellipsize="end"
-            android:padding="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:text="XXX.xx"
-            android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.NewPipe.TitleMedium"
+            android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
         <org.schabi.newpipe.views.NewPipeTextView
@@ -39,27 +49,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/item_name"
-            android:layout_toRightOf="@id/item_icon"
-            android:padding="6dp"
+            android:layout_toEndOf="@id/item_icon"
+            android:paddingStart="12dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="8dp"
             android:singleLine="true"
             android:text="100.00MB"
-            android:textColor="@color/white"
-            android:textSize="12sp" />
+            android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/item_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/item_name"
-            android:layout_marginLeft="6dp"
-            android:layout_marginRight="5dp"
-            android:layout_toLeftOf="@+id/item_more"
-            android:layout_toRightOf="@id/item_size"
-            android:padding="6dp"
+            android:layout_marginStart="4dp"
+            android:layout_toStartOf="@+id/item_more"
+            android:layout_toEndOf="@id/item_size"
+            android:paddingTop="6dp"
+            android:paddingEnd="8dp"
             android:singleLine="true"
             android:text="0%"
-            android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textAppearance="@style/TextAppearance.NewPipe.LabelMedium"
+            android:textColor="?attr/colorPrimary"
             android:textStyle="bold" />
 
         <org.schabi.newpipe.views.NewPipeTextView
@@ -67,26 +80,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/item_name"
-            android:layout_toLeftOf="@id/item_more"
-            android:padding="6dp"
+            android:layout_alignParentEnd="true"
+            android:layout_toStartOf="@id/item_more"
+            android:paddingTop="6dp"
+            android:paddingStart="8dp"
             android:singleLine="true"
             android:text=""
-            android:textColor="@color/white"
-            android:textSize="12sp" />
+            android:textAppearance="@style/TextAppearance.NewPipe.BodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            />
 
-        <ImageView
+        <org.schabi.newpipe.views.PilotIconButton
             android:id="@+id/item_more"
-            style="?attr/buttonBarButtonStyle"
-            android:layout_width="49dp"
-            android:layout_height="49dp"
-            android:layout_alignParentRight="true"
+            style="@style/Widget.NewPipe.IconButton.Surface"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="4dp"
             android:contentDescription="TODO"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_more_vert"
-            app:tint="?attr/actionColor" />
+            app:icon="@drawable/ic_more_vert" />
 
     </RelativeLayout>
 
-</RelativeLayout>
+</FrameLayout>

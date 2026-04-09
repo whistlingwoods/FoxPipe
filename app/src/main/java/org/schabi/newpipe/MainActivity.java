@@ -20,14 +20,12 @@
 
 package org.schabi.newpipe;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -39,15 +37,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.Spinner;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -83,6 +80,7 @@ import org.schabi.newpipe.player.helper.PlayerHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.settings.UpdateSettingsFragment;
 import org.schabi.newpipe.settings.migration.MigrationManager;
+import org.schabi.newpipe.ui.MaterialActionSheetDialog;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.KioskTranslator;
@@ -115,8 +113,11 @@ public class MainActivity extends AppCompatActivity {
     private ToolbarLayoutBinding toolbarLayoutBinding;
 
     private ActionBarDrawerToggle toggle;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     private boolean servicesShown = false;
+    private int dynamicColorsSignature;
 
     private BroadcastReceiver broadcastReceiver;
 
@@ -148,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         Localization.migrateAppLanguageSettingIfNecessary(getApplicationContext());
         ThemeHelper.setDayNightMode(this);
         ThemeHelper.setTheme(this, ServiceHelper.getSelectedServiceId(this));
+        dynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
 
         // Fixes text color turning black in dark/black mode:
         // https://github.com/TeamNewPipe/NewPipe/issues/12016
@@ -165,6 +167,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
+        backPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
 
         mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         drawerLayoutBinding = mainBinding.drawerLayout;
@@ -172,8 +185,22 @@ public class MainActivity extends AppCompatActivity {
                 .getHeaderView(0));
         toolbarLayoutBinding = mainBinding.toolbarLayout;
         setContentView(mainBinding.getRoot());
+        BottomSheetBehavior.from(mainBinding.fragmentPlayerHolder)
+                .addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+                    @Override
+                    public void onStateChanged(@NonNull final View bottomSheet,
+                                               final int newState) {
+                        updateBackPressedCallbackState();
+                    }
 
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                    @Override
+                    public void onSlide(@NonNull final View bottomSheet,
+                                        final float slideOffset) {
+                        // no-op
+                    }
+                });
+
+        if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
             initFragments();
         }
 
@@ -207,6 +234,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         MigrationManager.showUserInfoIfPresent(this);
+        mainBinding.getRoot().post(() -> {
+            updateBackPressedCallbackState();
+            updateDrawerNavigation();
+        });
     }
 
     @Override
@@ -250,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDrawerOpened(final View drawerView) {
                 lastService = ServiceHelper.getSelectedServiceId(MainActivity.this);
+                updateBackPressedCallbackState();
             }
 
             @Override
@@ -260,6 +292,7 @@ public class MainActivity extends AppCompatActivity {
                 if (lastService != ServiceHelper.getSelectedServiceId(MainActivity.this)) {
                     ActivityCompat.recreate(MainActivity.this);
                 }
+                updateBackPressedCallbackState();
             }
         });
 
@@ -356,7 +389,9 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openSubscriptionFragment(getSupportFragmentManager());
                 break;
             case ITEM_ID_FEED:
-                NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                if (!trySelectFeedTabInMainFragment()) {
+                    NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                }
                 break;
             case ITEM_ID_BOOKMARKS:
                 NavigationHelper.openBookmarksFragment(getSupportFragmentManager());
@@ -368,6 +403,14 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openStatisticFragment(getSupportFragmentManager());
                 break;
         }
+    }
+
+    private boolean trySelectFeedTabInMainFragment() {
+        final FragmentManager fm = getSupportFragmentManager();
+        NavigationHelper.gotoMainFragment(fm);
+        fm.executePendingTransactions();
+        final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
+        return fragment instanceof MainFragment && ((MainFragment) fragment).selectFeedTab();
     }
 
     private void kioskSelected(final MenuItem item) throws ExtractionException {
@@ -459,46 +502,40 @@ public class MainActivity extends AppCompatActivity {
     private void enhancePeertubeMenu(final MenuItem menuItem) {
         final PeertubeInstance currentInstance = PeertubeHelper.getCurrentInstance();
         menuItem.setTitle(currentInstance.getName());
-        final Spinner spinner = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
+        final var instanceSelector = InstanceSpinnerLayoutBinding.inflate(LayoutInflater.from(this))
                 .getRoot();
         final List<PeertubeInstance> instances = PeertubeHelper.getInstanceList(this);
-        final List<String> items = new ArrayList<>();
-        int defaultSelect = 0;
-        for (final PeertubeInstance instance : instances) {
-            items.add(instance.getName());
-            if (instance.getUrl().equals(currentInstance.getUrl())) {
-                defaultSelect = items.size() - 1;
+        instanceSelector.setText(currentInstance.getName());
+        instanceSelector.setOnClickListener(v -> {
+            final List<MaterialActionSheetDialog.ActionItem> items = new ArrayList<>();
+            for (final PeertubeInstance instance : instances) {
+                final boolean isSelected =
+                        instance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl());
+                items.add(MaterialActionSheetDialog.ActionItem.checked(
+                        instance.getUrl().hashCode(),
+                        instance.getName(),
+                        0,
+                        isSelected,
+                        () -> {
+                            if (isSelected) {
+                                return;
+                            }
+                            PeertubeHelper.selectInstance(
+                                    instance,
+                                    getApplicationContext());
+                            changeService(menuItem);
+                            mainBinding.getRoot().closeDrawers();
+                            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                                getSupportFragmentManager().popBackStack(
+                                        null,
+                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                ActivityCompat.recreate(MainActivity.this);
+                            }, 300);
+                        }));
             }
-        }
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                R.layout.instance_spinner_item, items);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setSelection(defaultSelect, false);
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(final AdapterView<?> parent, final View view,
-                                       final int position, final long id) {
-                final PeertubeInstance newInstance = instances.get(position);
-                if (newInstance.getUrl().equals(PeertubeHelper.getCurrentInstance().getUrl())) {
-                    return;
-                }
-                PeertubeHelper.selectInstance(newInstance, getApplicationContext());
-                changeService(menuItem);
-                mainBinding.getRoot().closeDrawers();
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    getSupportFragmentManager().popBackStack(null,
-                            FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    ActivityCompat.recreate(MainActivity.this);
-                }, 300);
-            }
-
-            @Override
-            public void onNothingSelected(final AdapterView<?> parent) {
-
-            }
+            MaterialActionSheetDialog.show(this, getString(R.string.choose_instance_prompt), items);
         });
-        menuItem.setActionView(spinner);
+        menuItem.setActionView(instanceSelector);
     }
 
     @Override
@@ -517,6 +554,13 @@ public class MainActivity extends AppCompatActivity {
         // Change the date format to match the selected language on resume
         Localization.initPrettyTime(Localization.resolvePrettyTime());
         super.onResume();
+
+        final int currentDynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
+        if (dynamicColorsSignature != currentDynamicColorsSignature) {
+            dynamicColorsSignature = currentDynamicColorsSignature;
+            ActivityCompat.recreate(this);
+            return;
+        }
 
         // Close drawer on return, and don't show animation,
         // so it looks like the drawer isn't open when the user returns to MainActivity
@@ -557,6 +601,7 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.enable_watch_history_key), true);
         drawerLayoutBinding.navigation.getMenu().findItem(ITEM_ID_HISTORY)
                 .setVisible(isHistoryEnabled);
+        updateDrawerNavigation();
     }
 
     @Override
@@ -593,17 +638,14 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         if (DEBUG) {
             Log.d(TAG, "onBackPressed() called");
         }
 
-        if (DeviceUtils.isTv(this)) {
-            if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
-                mainBinding.getRoot().closeDrawers();
-                return;
-            }
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            mainBinding.getRoot().closeDrawers();
+            return;
         }
 
         // In case bottomSheet is not visible on the screen or collapsed we can assume that the user
@@ -612,19 +654,14 @@ public class MainActivity extends AppCompatActivity {
         if (bottomSheetHiddenOrCollapsed()) {
             final FragmentManager fm = getSupportFragmentManager();
             final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
-            // If current fragment implements BackPressable (i.e. can/wanna handle back press)
-            // delegate the back press to it
-            if (fragment instanceof BackPressable) {
-                if (((BackPressable) fragment).onBackPressed()) {
-                    return;
-                }
-            } else if (fragment instanceof CommentRepliesFragment) {
+            if (fragment instanceof CommentRepliesFragment) {
                 // expand DetailsFragment if CommentRepliesFragment was opened
                 // to show the top level comments again
                 // Expand DetailsFragment if CommentRepliesFragment was opened
                 // and no other CommentRepliesFragments are on top of the back stack
                 // to show the top level comments again.
-                openDetailFragmentFromCommentReplies(fm, false);
+                openDetailFragmentFromCommentReplies(fm, true);
+                return;
             }
 
         } else {
@@ -644,8 +681,40 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportFragmentManager().getBackStackEntryCount() == 1) {
             finish();
         } else {
-            super.onBackPressed();
+            performDefaultBackNavigation();
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            MainActivity.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        MainActivity.super.onBackPressed();
+    }
+
+    private void updateBackPressedCallbackState() {
+        if (backPressedCallback == null || mainBinding == null) {
+            return;
+        }
+        backPressedCallback.setEnabled(shouldInterceptBackPress());
+    }
+
+    private boolean shouldInterceptBackPress() {
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            return true;
+        }
+
+        if (!bottomSheetHiddenOrCollapsed()) {
+            return true;
+        }
+
+        final Fragment fragment = getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_holder);
+        return fragment instanceof CommentRepliesFragment;
     }
 
     @Override
@@ -767,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
             // When user watch a video inside popup and then tries to open the video in main player
             // while the app is closed he will see a blank fragment on place of kiosk.
             // Let's open it first
-            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
                 NavigationHelper.openMainFragment(getSupportFragmentManager());
             }
 
@@ -792,12 +861,13 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             if (toggle != null) {
                 toggle.syncState();
-                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> mainBinding.getRoot()
-                        .open());
-                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNDEFINED);
+                toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v ->
+                        mainBinding.getRoot().openDrawer(drawerLayoutBinding.navigation));
+                mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
             }
         } else {
             mainBinding.getRoot().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            mainBinding.getRoot().closeDrawer(drawerLayoutBinding.navigation, false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             toolbarLayoutBinding.toolbar.setNavigationOnClickListener(v -> onHomeButtonPressed());
         }
@@ -996,22 +1066,22 @@ public class MainActivity extends AppCompatActivity {
                 "pt", "cs", "sk", "fa", "ar", "tr", "el", "th", "ru", "uk", "ko", "zh", "ja");
         final var locale = Localization.getAppLocale();
         final String kaoBaseUrl = "https://keepandroidopen.org/";
-        final String kaoURIString;
+        final String kaoURI;
         if (supportedLannguages.contains(locale.getLanguage())) {
             if ("zh".equals(locale.getLanguage())) {
-                kaoURIString = kaoBaseUrl + ("TW".equals(locale.getCountry()) ? "zh-TW" : "zh-CN");
+                kaoURI = kaoBaseUrl + ("TW".equals(locale.getCountry()) ? "zh-TW" : "zh-CN");
             } else {
-                kaoURIString = kaoBaseUrl + locale.getLanguage();
+                kaoURI = kaoBaseUrl + locale.getLanguage();
             }
         } else {
-            kaoURIString = kaoBaseUrl;
+            kaoURI = kaoBaseUrl;
         }
-        final var kaoURI = Uri.parse(kaoURIString);
-        final var solutionURI = Uri.parse(
-                "https://github.com/woheller69/FreeDroidWarn?tab=readme-ov-file#solutions");
+        final var solutionURI =
+                "https://github.com/woheller69/FreeDroidWarn?tab=readme-ov-file#solutions";
 
         if (kaoLastCheck.plus(30, ChronoUnit.DAYS).isBefore(now)) {
-            final var dialog = new AlertDialog.Builder(this)
+            final var dialog =
+                    new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                     .setTitle("Keep Android Open")
                     .setCancelable(false)
                     .setMessage(this.getString(R.string.kao_dialog_warning))
@@ -1030,10 +1100,10 @@ public class MainActivity extends AppCompatActivity {
             // If we use setNeutralButton and etc. dialog will close after pressing the buttons,
             // but we want it to close only when positive button is pressed
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v ->
-                    this.startActivity(new Intent(Intent.ACTION_VIEW, kaoURI))
+                    ShareUtils.openUrlInBrowser(this, kaoURI)
             );
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
-                    this.startActivity(new Intent(Intent.ACTION_VIEW, solutionURI))
+                    ShareUtils.openUrlInBrowser(this, solutionURI)
             );
         }
     }

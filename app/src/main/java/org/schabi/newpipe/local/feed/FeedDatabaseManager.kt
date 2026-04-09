@@ -26,6 +26,7 @@ class FeedDatabaseManager(context: Context) {
     private val database = NewPipeDatabase.getInstance(context)
     private val feedTable = database.feedDAO()
     private val feedGroupTable = database.feedGroupDAO()
+    private val subscriptionTable = database.subscriptionDAO()
     private val streamTable = database.streamDAO()
 
     companion object {
@@ -85,6 +86,10 @@ class FeedDatabaseManager(context: Context) {
         items: List<StreamInfoItem>,
         oldestAllowedDate: OffsetDateTime = FEED_OLDEST_ALLOWED_DATE
     ) {
+        val subscription = runCatching {
+            subscriptionTable.getSubscription(subscriptionId)
+        }.getOrNull()
+
         val itemsToInsert = items.mapNotNull { stream ->
             val uploadDate = stream.uploadDate
 
@@ -98,7 +103,16 @@ class FeedDatabaseManager(context: Context) {
         feedTable.unlinkOldLivestreams(subscriptionId)
 
         if (itemsToInsert.isNotEmpty()) {
-            val streamEntities = itemsToInsert.map { StreamEntity(it) }
+            val streamEntities = itemsToInsert.map {
+                StreamEntity(it).apply {
+                    if (uploader.isBlank()) {
+                        uploader = subscription?.name.orEmpty()
+                    }
+                    if (uploaderUrl.isNullOrBlank()) {
+                        uploaderUrl = subscription?.url
+                    }
+                }
+            }
             val streamIds = streamTable.upsertAll(streamEntities)
             val feedEntities = streamIds.map { FeedEntity(it, subscriptionId) }
 

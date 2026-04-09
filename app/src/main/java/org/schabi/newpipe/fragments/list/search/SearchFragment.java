@@ -4,8 +4,6 @@ import static androidx.recyclerview.widget.ItemTouchHelper.Callback.makeMovement
 import static org.schabi.newpipe.extractor.utils.Utils.isBlank;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.util.ExtractorHelper.showMetaInfoInTextView;
-import static java.util.Arrays.asList;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,20 +25,23 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.collection.SparseArrayCompat;
 import androidx.core.text.HtmlCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.evernote.android.state.State;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.FragmentSearchBinding;
@@ -166,6 +167,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private View searchToolbarContainer;
     private EditText searchEditText;
     private View searchClear;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
 
     private boolean suggestionsPanelVisible = false;
 
@@ -221,6 +224,23 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     public void onViewCreated(@NonNull final View rootView, final Bundle savedInstanceState) {
         searchBinding = FragmentSearchBinding.bind(rootView);
         super.onViewCreated(rootView, savedInstanceState);
+        backPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!shouldHandleBackPress()) {
+                    setEnabled(false);
+                    try {
+                        requireActivity().getOnBackPressedDispatcher().onBackPressed();
+                    } finally {
+                        updateBackPressedCallbackState();
+                    }
+                    return;
+                }
+                onBackPressed();
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher()
+                .addCallback(getViewLifecycleOwner(), backPressedCallback);
 
         updateService();
         // Add the service name to search string hint
@@ -307,6 +327,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             hideKeyboardSearch();
             hideSuggestionsPanel();
         }
+        updateBackPressedCallbackState();
         wasSearchFocused = false;
     }
 
@@ -317,6 +338,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         unsetSearchListeners();
 
+        backPressedCallback = null;
         searchBinding = null;
         super.onDestroyView();
     }
@@ -668,6 +690,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         suggestionsPanelVisible = true;
         animate(searchBinding.suggestionsPanel, true, 200,
                 AnimationType.LIGHT_SLIDE_AND_ALPHA);
+        updateBackPressedCallbackState();
     }
 
     private void hideSuggestionsPanel() {
@@ -677,6 +700,34 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         suggestionsPanelVisible = false;
         animate(searchBinding.suggestionsPanel, false, 200,
                 AnimationType.LIGHT_SLIDE_AND_ALPHA);
+        updateBackPressedCallbackState();
+    }
+
+    private void updateBackPressedCallbackState() {
+        if (backPressedCallback != null) {
+            backPressedCallback.setEnabled(shouldHandleBackPress());
+        }
+    }
+
+    private boolean shouldHandleBackPress() {
+        return canHandleBackPress() && !isMainDrawerOpen() && isPlayerSheetHiddenOrCollapsed();
+    }
+
+    private boolean isMainDrawerOpen() {
+        final View navigationView = activity.findViewById(R.id.navigation);
+        return navigationView != null
+                && navigationView.getParent() instanceof DrawerLayout
+                && ((DrawerLayout) navigationView.getParent()).isDrawerOpen(navigationView);
+    }
+
+    private boolean isPlayerSheetHiddenOrCollapsed() {
+        final FrameLayout playerHolder = activity.findViewById(R.id.fragment_player_holder);
+        if (playerHolder == null) {
+            return true;
+        }
+        final int state = BottomSheetBehavior.from(playerHolder).getState();
+        return state == BottomSheetBehavior.STATE_HIDDEN
+                || state == BottomSheetBehavior.STATE_COLLAPSED;
     }
 
     private void showKeyboardSearch() {
@@ -699,7 +750,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             return;
         }
         final String query = item.query;
-        new AlertDialog.Builder(activity)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle(query)
                 .setMessage(R.string.delete_item_search_history)
                 .setCancelable(true)
@@ -719,10 +770,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     }
 
     @Override
-    public boolean onBackPressed() {
-        if (suggestionsPanelVisible
+    public boolean canHandleBackPress() {
+        return suggestionsPanelVisible
                 && !infoListAdapter.getItemsList().isEmpty()
-                && !isLoading.get()) {
+                && !isLoading.get();
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        if (canHandleBackPress()) {
             hideSuggestionsPanel();
             hideKeyboardSearch();
             searchEditText.setText(lastSearchedString);
@@ -886,14 +942,19 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (searchDisposable != null) {
             searchDisposable.dispose();
         }
+        final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.searchFor(serviceId,
                 searchString,
-                Arrays.asList(contentFilter),
+                effectiveContentFilter,
                 sortFilter)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnEvent((searchResult, throwable) -> isLoading.set(false))
+                .doOnEvent((searchResult, throwable) -> {
+                    isLoading.set(false);
+                    updateBackPressedCallbackState();
+                })
                 .subscribe(this::handleResult, this::onItemError);
+        updateBackPressedCallbackState();
 
     }
 
@@ -907,16 +968,21 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (searchDisposable != null) {
             searchDisposable.dispose();
         }
+        final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.getMoreSearchItems(
                 serviceId,
                 searchString,
-                asList(contentFilter),
+                effectiveContentFilter,
                 sortFilter,
                 nextPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnEvent((nextItemsResult, throwable) -> isLoading.set(false))
+                .doOnEvent((nextItemsResult, throwable) -> {
+                    isLoading.set(false);
+                    updateBackPressedCallbackState();
+                })
                 .subscribe(this::handleNextItems, this::onItemError);
+        updateBackPressedCallbackState();
     }
 
     @Override
@@ -938,6 +1004,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             showError(new ErrorInfo(exception, UserAction.SEARCHED, searchString, serviceId,
                     getOpenInBrowserUrlForErrors()));
         }
+        updateBackPressedCallbackState();
     }
 
     @Nullable
@@ -947,7 +1014,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         try {
             return service.getSearchQHFactory().getUrl(searchString,
-                    Arrays.asList(contentFilter), sortFilter);
+                    getEffectiveContentFilter(), sortFilter);
         } catch (final NullPointerException | ParsingException ignored) {
             return null;
         }
@@ -998,6 +1065,27 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private boolean isSearchEditBlank() {
         return isBlank(getSearchEditString());
+    }
+
+    private List<String> getEffectiveContentFilter() {
+        if (contentFilter.length > 0) {
+            return Arrays.asList(contentFilter);
+        }
+        if (service == null || service.getSearchQHFactory() == null) {
+            return Collections.emptyList();
+        }
+
+        final var availableContentFilter = service.getSearchQHFactory().getAvailableContentFilter();
+        if (availableContentFilter == null) {
+            return Collections.emptyList();
+        }
+
+        final var iterator = availableContentFilter.iterator();
+        if (!iterator.hasNext()) {
+            return Collections.emptyList();
+        }
+
+        return Collections.singletonList(iterator.next());
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1066,11 +1154,13 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             } else {
                 infoListAdapter.clearStreamItemList();
                 showEmptyState();
+                updateBackPressedCallbackState();
                 return;
             }
         }
 
         super.handleResult(result);
+        updateBackPressedCallbackState();
     }
 
     private void handleSearchSuggestion() {
@@ -1129,6 +1219,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         // still holds the correct value during the error handling
         nextPage = result.getNextPage();
         super.handleNextItems(result);
+        updateBackPressedCallbackState();
     }
 
     @Override
@@ -1136,6 +1227,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         super.handleError();
         hideSuggestionsPanel();
         hideKeyboardSearch();
+        updateBackPressedCallbackState();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

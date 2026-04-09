@@ -5,7 +5,11 @@
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
+    android:layout_marginStart="6dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="6dp"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/bg_md3_list_item_ripple"
     android:clickable="true"
     android:focusable="true"
     android:minWidth="@dimen/channel_item_grid_min_width"
@@ -18,8 +22,11 @@
         android:layout_centerHorizontal="true"
         android:layout_margin="2dp"
         android:contentDescription="@string/detail_uploader_thumbnail_view_description"
+        android:padding="1dp"
         android:src="@drawable/placeholder_person"
         app:shapeAppearance="@style/CircularImageView"
+        app:strokeColor="?attr/colorOutline"
+        app:strokeWidth="1dp"
         tools:ignore="RtlHardcoded" />
 
     <TextView

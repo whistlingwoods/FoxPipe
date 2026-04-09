@@ -527,6 +527,13 @@ public abstract class PlayQueue implements Serializable {
         return true;
     }
 
+    /**
+     * @return whether a previous item exists in play history
+     */
+    public synchronized boolean hasPrevious() {
+        return history.size() > 1;
+    }
+
     /*
      * Compares two PlayQueues. Useful when a user switches players but queue is the same so
      * we don't have to do anything with new queue.
@@ -572,4 +579,3 @@ public abstract class PlayQueue implements Serializable {
         }
     }
 }
-

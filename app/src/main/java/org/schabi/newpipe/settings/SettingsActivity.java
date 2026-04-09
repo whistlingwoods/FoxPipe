@@ -1,7 +1,10 @@
 package org.schabi.newpipe.settings;
 
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -9,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -66,6 +70,7 @@ public class SettingsActivity extends AppCompatActivity implements
         PreferenceSearchResultListener {
     private static final String TAG = "SettingsActivity";
     private static final boolean DEBUG = MainActivity.DEBUG;
+    public static final String EXTRA_INITIAL_FRAGMENT = "initial_fragment";
 
     @IdRes
     private static final int FRAGMENT_HOLDER_ID = R.id.settings_fragment_holder;
@@ -77,6 +82,13 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private View searchContainer;
     private EditText searchEditText;
+    private int dynamicColorsSignature;
+    @Nullable
+    private OnBackPressedCallback backPressedCallback;
+    @Nullable
+    private WallpaperManager wallpaperManager;
+    @Nullable
+    private WallpaperManager.OnColorsChangedListener wallpaperColorsChangedListener;
 
     // State
     @State
@@ -86,11 +98,20 @@ public class SettingsActivity extends AppCompatActivity implements
 
     @Override
     protected void onCreate(final Bundle savedInstanceBundle) {
-        setTheme(ThemeHelper.getSettingsThemeStyle(this));
+        ThemeHelper.setDayNightMode(this);
+        ThemeHelper.setSettingsTheme(this);
+        dynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
 
         super.onCreate(savedInstanceBundle);
         Bridge.restoreInstanceState(this, savedInstanceBundle);
         final boolean restored = savedInstanceBundle != null;
+        backPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                handleBackPressed();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
 
         final SettingsLayoutBinding settingsLayoutBinding =
                 SettingsLayoutBinding.inflate(getLayoutInflater());
@@ -108,14 +129,72 @@ public class SettingsActivity extends AppCompatActivity implements
                 }
             }
         } else {
+            final String initialFragmentClass =
+                    getIntent().getStringExtra(EXTRA_INITIAL_FRAGMENT);
+            final Fragment initialFragment =
+                    TextUtils.isEmpty(initialFragmentClass)
+                            ? new MainSettingsFragment()
+                            : instantiateFragment(initialFragmentClass);
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.settings_fragment_holder, new MainSettingsFragment())
+                    .replace(R.id.settings_fragment_holder, initialFragment)
                     .commit();
         }
 
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            wallpaperManager = getSystemService(WallpaperManager.class);
+            wallpaperColorsChangedListener = (wallpaperColors, which) -> {
+                if ((which & WallpaperManager.FLAG_SYSTEM) == 0) {
+                    return;
+                }
+
+                final int currentDynamicColorsSignature =
+                        ThemeHelper.getDynamicColorsSignature(this);
+                if (dynamicColorsSignature != currentDynamicColorsSignature) {
+                    dynamicColorsSignature = currentDynamicColorsSignature;
+                    recreate();
+                }
+            };
+        }
+
+        updateBackPressedCallbackState();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        final int currentDynamicColorsSignature = ThemeHelper.getDynamicColorsSignature(this);
+        if (dynamicColorsSignature != currentDynamicColorsSignature) {
+            dynamicColorsSignature = currentDynamicColorsSignature;
+            recreate();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.addOnColorsChangedListener(
+                    wallpaperColorsChangedListener, new Handler(getMainLooper()));
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+                && wallpaperManager != null
+                && wallpaperColorsChangedListener != null) {
+            wallpaperManager.removeOnColorsChangedListener(wallpaperColorsChangedListener);
+        }
+
+        super.onStop();
     }
 
     @Override
@@ -135,13 +214,23 @@ public class SettingsActivity extends AppCompatActivity implements
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public void onBackPressed() {
+    private void handleBackPressed() {
         if (isSearchActive()) {
             setSearchActive(false);
             return;
         }
-        super.onBackPressed();
+        performDefaultBackNavigation();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void performDefaultBackNavigation() {
+        if (backPressedCallback == null) {
+            SettingsActivity.super.onBackPressed();
+            return;
+        }
+
+        backPressedCallback.setEnabled(false);
+        SettingsActivity.super.onBackPressed();
     }
 
     @Override
@@ -321,6 +410,7 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         resetSearchText();
+        updateBackPressedCallbackState();
     }
 
     private void hideSearchFragment() {
@@ -333,6 +423,13 @@ public class SettingsActivity extends AppCompatActivity implements
 
     private boolean isSearchActive() {
         return searchContainer.getVisibility() == View.VISIBLE;
+    }
+
+    private void updateBackPressedCallbackState() {
+        if (backPressedCallback == null || searchContainer == null) {
+            return;
+        }
+        backPressedCallback.setEnabled(isSearchActive());
     }
 
     private void onSearchChanged() {
@@ -378,9 +475,9 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         // Run the highlighting
-        if (currentFragment instanceof PreferenceFragmentCompat) {
+        if (currentFragment instanceof PreferenceUiHost) {
             PreferenceSearchResultHighlighter
-                    .highlight(result, (PreferenceFragmentCompat) currentFragment);
+                    .highlight(result, (PreferenceUiHost) currentFragment);
         }
     }
 

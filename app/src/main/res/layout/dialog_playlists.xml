@@ -1,15 +1,23 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <RelativeLayout
         android:id="@+id/newPlaylist"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
+        android:background="@drawable/bg_md3_list_item_ripple"
         android:clickable="true"
-        android:focusable="true">
+        android:clipToOutline="true"
+        android:focusable="true"
+        android:paddingStart="12dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
 
         <ImageView
             android:id="@+id/newPlaylistIcon"
@@ -17,8 +25,6 @@
             android:layout_height="28dp"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
-            android:layout_marginLeft="12dp"
-            android:layout_marginRight="12dp"
             android:src="@drawable/ic_playlist_add"
             tools:ignore="ContentDescription,RtlHardcoded" />
 
@@ -38,12 +44,12 @@
         android:id="@+id/playlist_duplicate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/newPlaylist"
-        android:layout_marginHorizontal="@dimen/video_item_search_padding"
-        android:layout_marginBottom="@dimen/video_item_search_padding"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="@string/duplicate_in_playlist"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="13sp"
         android:visibility="gone"
         tools:text="@tools:sample/lorem[20]"
@@ -53,18 +59,20 @@
         android:id="@+id/separator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@+id/playlist_duplicate"
-        android:layout_marginLeft="@dimen/video_item_search_padding"
-        android:layout_marginRight="@dimen/video_item_search_padding"
-        android:background="?attr/separator_color" />
+        android:background="?attr/colorOutlineVariant" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlist_list"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/separator"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_pilot_surface"
+        android:clipToOutline="true"
+        android:clipToPadding="false"
+        android:padding="8dp"
         android:scrollbars="vertical"
         android:visibility="gone"
         tools:listitem="@layout/list_playlist_mini_item"
         tools:visibility="visible" />
-</RelativeLayout>
+</LinearLayout>

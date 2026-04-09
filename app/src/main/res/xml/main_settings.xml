@@ -35,9 +35,21 @@
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.AccountSettingsFragment"
+        android:icon="@drawable/ic_person"
+        android:title="@string/account"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.NotificationsSettingsFragment"
         android:icon="@drawable/ic_notifications"
         android:title="@string/notifications"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.SponsorBlockSettingsFragment"
+        android:icon="@drawable/ic_sponsor_block_enable"
+        android:title="@string/sponsor_block"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen

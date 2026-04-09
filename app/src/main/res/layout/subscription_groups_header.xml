@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -20,22 +21,24 @@
         android:textStyle="bold"
         tools:text="Header" />
 
-    <ImageButton
+    <org.schabi.newpipe.views.PilotIconButton
         android:id="@+id/header_toggle_view_mode"
+        style="@style/Widget.NewPipe.IconButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/list_view_mode"
         android:padding="8dp"
-        tools:src="@drawable/ic_apps" />
+        app:icon="@drawable/ic_apps"
+        app:iconTint="?attr/colorOnSurface" />
 
-    <ImageButton
+    <org.schabi.newpipe.views.PilotIconButton
         android:id="@+id/header_sort"
+        style="@style/Widget.NewPipe.IconButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginEnd="4dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/sort"
         android:padding="8dp"
-        android:src="@drawable/ic_sort" />
+        app:icon="@drawable/ic_sort"
+        app:iconTint="?attr/colorOnSurface" />
 </LinearLayout>

@@ -1,9 +1,6 @@
 package org.schabi.newpipe.local.subscription
 
-import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -15,10 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.evernote.android.state.State
@@ -27,12 +21,8 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.viewbinding.GroupieViewHolder
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity.Companion.GROUP_ALL_ID
-import org.schabi.newpipe.databinding.DialogTitleBinding
 import org.schabi.newpipe.databinding.FeedItemCarouselBinding
 import org.schabi.newpipe.databinding.FragmentSubscriptionBinding
 import org.schabi.newpipe.error.ErrorInfo
@@ -50,16 +40,12 @@ import org.schabi.newpipe.local.subscription.item.FeedGroupAddNewItem
 import org.schabi.newpipe.local.subscription.item.FeedGroupCardGridItem
 import org.schabi.newpipe.local.subscription.item.FeedGroupCardItem
 import org.schabi.newpipe.local.subscription.item.FeedGroupCarouselItem
+import org.schabi.newpipe.local.subscription.item.FeedImportExportItem
 import org.schabi.newpipe.local.subscription.item.GroupsHeader
 import org.schabi.newpipe.local.subscription.item.Header
 import org.schabi.newpipe.local.subscription.item.ImportSubscriptionsHintPlaceholderItem
-import org.schabi.newpipe.local.subscription.services.SubscriptionsExportService
-import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService
-import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.KEY_MODE
-import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.KEY_VALUE
-import org.schabi.newpipe.local.subscription.services.SubscriptionsImportService.PREVIOUS_EXPORT_MODE
-import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard
-import org.schabi.newpipe.streams.io.StoredFileHelper
+import org.schabi.newpipe.settings.BackupRestoreSettingsFragment
+import org.schabi.newpipe.ui.MaterialActionSheetDialog
 import org.schabi.newpipe.util.NavigationHelper
 import org.schabi.newpipe.util.OnClickGesture
 import org.schabi.newpipe.util.ServiceHelper
@@ -72,6 +58,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
 
     private lateinit var viewModel: SubscriptionViewModel
     private lateinit var subscriptionManager: SubscriptionManager
+    private lateinit var importExportHelper: SubscriptionsImportExportHelper
     private val disposables: CompositeDisposable = CompositeDisposable()
 
     private val groupAdapter = GroupAdapter<GroupieViewHolder<FeedItemCarouselBinding>>()
@@ -79,11 +66,6 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     private lateinit var feedGroupsCarousel: FeedGroupCarouselItem
     private lateinit var feedGroupsSortMenuItem: GroupsHeader
     private val subscriptionsSection = Section()
-
-    private val requestExportLauncher =
-        registerForActivityResult(StartActivityForResult(), this::requestExportResult)
-    private val requestImportLauncher =
-        registerForActivityResult(StartActivityForResult(), this::requestImportResult)
 
     @State
     @JvmField
@@ -104,6 +86,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         subscriptionManager = SubscriptionManager(requireContext())
+        importExportHelper = SubscriptionsImportExportHelper(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -143,7 +126,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         // -- Import --
         val importSubMenu = menu.addSubMenu(R.string.import_from)
 
-        addMenuItemToSubmenu(importSubMenu, R.string.previous_export) { onImportPreviousSelected() }
+        addMenuItemToSubmenu(importSubMenu, R.string.previous_export) { importExportHelper.onImportPreviousSelected() }
             .setIcon(R.drawable.ic_backup)
 
         for (service in ServiceList.all()) {
@@ -161,7 +144,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         // -- Export --
         val exportSubMenu = menu.addSubMenu(R.string.export_to)
 
-        addMenuItemToSubmenu(exportSubMenu, R.string.file) { onExportSelected() }
+        addMenuItemToSubmenu(exportSubMenu, R.string.file) { importExportHelper.onExportSelected() }
             .setIcon(R.drawable.ic_save)
     }
 
@@ -198,48 +181,18 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     }
 
     private fun onImportPreviousSelected() {
-        NoFileManagerSafeGuard.launchSafe(
-            requestImportLauncher,
-            StoredFileHelper.getPicker(activity, JSON_MIME_TYPE),
-            TAG,
-            requireContext()
-        )
+        importExportHelper.onImportPreviousSelected()
     }
 
     private fun onExportSelected() {
-        val date = SimpleDateFormat("yyyyMMddHHmm", Locale.ENGLISH).format(Date())
-        val exportName = "newpipe_subscriptions_$date.json"
-
-        NoFileManagerSafeGuard.launchSafe(
-            requestExportLauncher,
-            StoredFileHelper.getNewPicker(activity, exportName, JSON_MIME_TYPE, null),
-            TAG,
-            requireContext()
-        )
+        importExportHelper.onExportSelected()
     }
 
+    private fun onBackupSelected() {
+        NavigationHelper.openSettings(requireContext(), BackupRestoreSettingsFragment::class.java)
+    }
     private fun openReorderDialog() {
         FeedGroupReorderDialog().show(parentFragmentManager, null)
-    }
-
-    private fun requestExportResult(result: ActivityResult) {
-        if (result.data != null && result.resultCode == Activity.RESULT_OK) {
-            activity.startService(
-                Intent(activity, SubscriptionsExportService::class.java)
-                    .putExtra(SubscriptionsExportService.KEY_FILE_PATH, result.data?.data)
-            )
-        }
-    }
-
-    private fun requestImportResult(result: ActivityResult) {
-        if (result.data != null && result.resultCode == Activity.RESULT_OK) {
-            ImportConfirmationDialog.show(
-                this,
-                Intent(activity, SubscriptionsImportService::class.java)
-                    .putExtra(KEY_MODE, PREVIOUS_EXPORT_MODE)
-                    .putExtra(KEY_VALUE, result.data?.data)
-            )
-        }
     }
 
     // ////////////////////////////////////////////////////////////////////////
@@ -325,6 +278,19 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         subscriptionsSection.setHideWhenEmpty(true)
 
         groupAdapter.add(
+            Section().apply {
+                add(
+                    FeedImportExportItem(
+                        onImportPreviousSelected = ::onImportPreviousSelected,
+                        onImportFromServiceSelected = ::onImportFromServiceSelected,
+                        onBackupSelected = ::onBackupSelected,
+                        onExportSelected = ::onExportSelected
+                    )
+                )
+            }
+        )
+
+        groupAdapter.add(
             Section(
                 Header(getString(R.string.tab_subscriptions)),
                 listOf(subscriptionsSection)
@@ -337,36 +303,38 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     }
 
     private fun showLongTapDialog(selectedItem: ChannelInfoItem) {
-        val commands = arrayOf(
-            getString(R.string.share),
-            getString(R.string.open_in_browser),
-            getString(R.string.unsubscribe)
+        MaterialActionSheetDialog.show(
+            requireContext(),
+            selectedItem.name,
+            listOf(
+                MaterialActionSheetDialog.ActionItem.create(
+                    0,
+                    getString(R.string.share),
+                    R.drawable.ic_share
+                ) {
+                    ShareUtils.shareText(
+                        requireContext(),
+                        selectedItem.name,
+                        selectedItem.url,
+                        selectedItem.thumbnails
+                    )
+                },
+                MaterialActionSheetDialog.ActionItem.create(
+                    1,
+                    getString(R.string.open_in_browser),
+                    R.drawable.ic_language
+                ) {
+                    ShareUtils.openUrlInBrowser(requireContext(), selectedItem.url)
+                },
+                MaterialActionSheetDialog.ActionItem.create(
+                    2,
+                    getString(R.string.unsubscribe),
+                    R.drawable.ic_delete
+                ) {
+                    deleteChannel(selectedItem)
+                }
+            )
         )
-
-        val actions = DialogInterface.OnClickListener { _, i ->
-            when (i) {
-                0 -> ShareUtils.shareText(
-                    requireContext(),
-                    selectedItem.name,
-                    selectedItem.url,
-                    selectedItem.thumbnails
-                )
-
-                1 -> ShareUtils.openUrlInBrowser(requireContext(), selectedItem.url)
-
-                2 -> deleteChannel(selectedItem)
-            }
-        }
-
-        val dialogTitleBinding = DialogTitleBinding.inflate(LayoutInflater.from(requireContext()))
-        dialogTitleBinding.root.isSelected = true
-        dialogTitleBinding.itemTitleView.text = selectedItem.name
-        dialogTitleBinding.itemAdditionalDetails.visibility = View.GONE
-
-        AlertDialog.Builder(requireContext())
-            .setCustomTitle(dialogTitleBinding.root)
-            .setItems(commands, actions)
-            .show()
     }
 
     private fun deleteChannel(selectedItem: ChannelInfoItem) {

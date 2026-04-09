@@ -58,6 +58,7 @@ import android.media.AudioManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -89,6 +90,8 @@ import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.Image;
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockAction;
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment;
 import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
@@ -175,6 +178,7 @@ public final class Player implements PlaybackListener, Listener {
 
     public static final int PLAY_PREV_ACTIVATION_LIMIT_MILLIS = 5000; // 5 seconds
     public static final int PROGRESS_LOOP_INTERVAL_MILLIS = 1000; // 1 second
+    private static final int SPONSORBLOCK_SKIP_GRACE_MILLIS = 1000;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Other constants
@@ -268,6 +272,8 @@ public final class Player implements PlaybackListener, Listener {
     private final HistoryRecordManager recordManager;
 
     private boolean screenOn = true;
+    @Nullable
+    private SponsorBlockSegment lastSkippedSponsorBlockSegment;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -1018,8 +1024,10 @@ public final class Player implements PlaybackListener, Listener {
             return;
         }
 
-        onUpdateProgress(Math.max((int) simpleExoPlayer.getCurrentPosition(), 0),
+        final int currentProgress = Math.max((int) simpleExoPlayer.getCurrentPosition(), 0);
+        onUpdateProgress(currentProgress,
                 (int) simpleExoPlayer.getDuration(), simpleExoPlayer.getBufferedPercentage());
+        maybeSkipSponsorBlockSegment(currentProgress);
     }
 
     private Disposable getProgressUpdateDisposable() {
@@ -1905,6 +1913,7 @@ public final class Player implements PlaybackListener, Listener {
             return;
         }
 
+        lastSkippedSponsorBlockSegment = null;
         maybeAutoQueueNextStream(info);
 
         loadCurrentThumbnail(info.getThumbnails());
@@ -2045,6 +2054,59 @@ public final class Player implements PlaybackListener, Listener {
         return Optional.ofNullable(currentMetadata)
                 .flatMap(MediaItemTag::getMaybeAudioTrack)
                 .map(MediaItemTag.AudioTrack::getSelectedAudioStream);
+    }
+
+    private void maybeSkipSponsorBlockSegment(final int currentProgress) {
+        if (!isPrepared
+                || !prefs.getBoolean(context.getString(R.string.sponsor_block_enable_key), false)) {
+            return;
+        }
+
+        getCurrentSkippableSponsorBlockSegment(currentProgress).ifPresent(segment -> {
+            if (lastSkippedSponsorBlockSegment != null
+                    && Objects.equals(lastSkippedSponsorBlockSegment.uuid, segment.uuid)) {
+                return;
+            }
+
+            lastSkippedSponsorBlockSegment = segment;
+            seekTo((long) Math.ceil(segment.endTime));
+
+            if (prefs.getBoolean(context.getString(R.string.sponsor_block_notifications_key),
+                    true)) {
+                Toast.makeText(context, R.string.sponsor_block_skip_toast, Toast.LENGTH_SHORT)
+                        .show();
+            }
+        });
+    }
+
+    private Optional<SponsorBlockSegment> getCurrentSkippableSponsorBlockSegment(
+            final int currentProgress
+    ) {
+        if (lastSkippedSponsorBlockSegment != null
+                && (currentProgress < lastSkippedSponsorBlockSegment.startTime
+                - SPONSORBLOCK_SKIP_GRACE_MILLIS
+                || currentProgress > lastSkippedSponsorBlockSegment.endTime
+                + SPONSORBLOCK_SKIP_GRACE_MILLIS)) {
+            lastSkippedSponsorBlockSegment = null;
+        }
+
+        return getCurrentStreamInfo().flatMap(info -> {
+            final SponsorBlockSegment[] sponsorBlockSegments = info.getSponsorBlockSegments();
+            if (sponsorBlockSegments == null) {
+                return Optional.empty();
+            }
+
+            for (final SponsorBlockSegment segment : sponsorBlockSegments) {
+                if (segment.action != SponsorBlockAction.SKIP) {
+                    continue;
+                }
+                if (currentProgress < segment.startTime || currentProgress > segment.endTime) {
+                    continue;
+                }
+                return Optional.of(segment);
+            }
+            return Optional.empty();
+        });
     }
     //endregion
 
@@ -2354,6 +2416,13 @@ public final class Player implements PlaybackListener, Listener {
         saveStreamProgressState();
         setRecovery();
         videoResolver.setPlaybackQuality(quality);
+        reloadPlayQueueManager();
+    }
+
+    public void setPlaybackQuality(@Nullable final VideoStream videoStream) {
+        saveStreamProgressState();
+        setRecovery();
+        videoResolver.setPlaybackQuality(videoStream);
         reloadPlayQueueManager();
     }
 

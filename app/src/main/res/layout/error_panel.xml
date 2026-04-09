@@ -3,9 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_pilot_surface"
+    android:clipToOutline="true"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="18dp">
 
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/error_message_view"
@@ -24,6 +26,7 @@
         android:layout_marginTop="6dp"
         android:gravity="center"
         android:text="@string/general_error"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="16sp"
         android:visibility="gone"
         tools:text="YouTube provides this reason:"
@@ -36,53 +39,43 @@
         android:layout_marginTop="4dp"
         android:gravity="center"
         android:text="@string/general_error"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="16sp"
         android:textStyle="italic"
         android:visibility="gone"
         tools:text="This account has been terminated because we received multiple third-party claims of copyright infringement regarding material that the user posted."
         tools:visibility="visible" />
 
-
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/error_action_button"
+        style="@style/PilotFilledButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/error_snackbar_action"
+        android:textAlignment="center"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/error_retry_button"
+        style="@style/PilotFilledButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/error_snackbar_action"
-        android:textAlignment="center"
-        android:textAllCaps="true"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="16sp"
-        android:theme="@style/ServiceColoredButton"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <Button
-        android:id="@+id/error_retry_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
         android:text="@string/retry"
         android:textAlignment="center"
-        android:textAllCaps="true"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="16sp"
-        android:theme="@style/ServiceColoredButton"
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/error_open_in_browser"
+        style="@style/PilotFilledButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:text="@string/open_in_browser"
         android:textAlignment="center"
-        android:textAllCaps="true"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="16sp"
-        android:theme="@style/ServiceColoredButton"
         android:visibility="gone"
         tools:visibility="visible" />
 
