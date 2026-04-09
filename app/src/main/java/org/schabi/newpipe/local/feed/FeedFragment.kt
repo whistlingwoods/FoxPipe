@@ -250,6 +250,8 @@ class FeedFragment : BaseStateFragment<FeedState>() {
         activity.supportActionBar?.subtitle = groupName
 
         inflater.inflate(R.menu.menu_feed_fragment, menu)
+        // update subtitle with selected group name
+        activity.supportActionBar?.subtitle = groupName
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -275,6 +277,22 @@ class FeedFragment : BaseStateFragment<FeedState>() {
                 }
                 .setPositiveButton(resources.getString(R.string.ok), null)
                 .show()
+            return true
+        } else if (item.itemId == R.id.menu_item_feed_filter_channels) {
+            // Open channel group selector to filter feed by channel group
+            val dialog = org.schabi.newpipe.settings.SelectFeedGroupFragment()
+            dialog.setOnSelectedListener(object : org.schabi.newpipe.settings.SelectFeedGroupFragment.OnSelectedListener {
+                override fun onFeedGroupSelected(groupId: Long?, name: String?, icon: Int) {
+                    val safeId = groupId ?: FeedGroupEntity.GROUP_ALL_ID
+                    val safeName = name ?: ""
+                    // Navigate to a new FeedFragment instance scoped to selected group
+                    org.schabi.newpipe.util.NavigationHelper.openFeedFragment(requireContext(), fm, safeId, safeName)
+                }
+            })
+            dialog.setOnCancelListener(object : org.schabi.newpipe.settings.SelectFeedGroupFragment.OnCancelListener {
+                override fun onCancel() { /* no-op */ }
+            })
+            dialog.show(parentFragmentManager, "select_feed_group_filter")
             return true
         } else if (item.itemId == R.id.menu_item_feed_toggle_played_items) {
             showStreamVisibilityDialog()

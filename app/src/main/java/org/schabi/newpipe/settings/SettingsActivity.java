@@ -105,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceBundle);
         Bridge.restoreInstanceState(this, savedInstanceBundle);
         final boolean restored = savedInstanceBundle != null;
-        backPressedCallback = new OnBackPressedCallback(true) {
+        backPressedCallback = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
                 handleBackPressed();
@@ -230,11 +230,7 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         backPressedCallback.setEnabled(false);
-        try {
-            SettingsActivity.super.onBackPressed();
-        } finally {
-            backPressedCallback.setEnabled(true);
-        }
+        SettingsActivity.super.onBackPressed();
     }
 
     @Override

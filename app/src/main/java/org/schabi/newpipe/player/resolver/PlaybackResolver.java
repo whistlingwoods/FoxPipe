@@ -572,12 +572,38 @@ public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
                                                          final MediaItemTag metadata)
             throws ResolverException {
         throwResolverExceptionIfUrlNullOrEmpty(stream.getContent());
-        return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
-                new MediaItem.Builder()
-                        .setTag(metadata)
-                        .setUri(Uri.parse(stream.getContent()))
-                        .setCustomCacheKey(cacheKey)
-                        .build());
+        final DeliveryMethod method = stream.getDeliveryMethod();
+        switch (method) {
+            case HLS:
+                return dataSource.getBiliHlsMediaSourceFactory().createMediaSource(
+                        new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(stream.getContent()))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+            case DASH:
+                return dataSource.getBiliDashMediaSourceFactory().createMediaSource(
+                        new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(stream.getContent()))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+            case PROGRESSIVE_HTTP:
+                return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
+                        new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(stream.getContent()))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+            default:
+                // fallback to progressive behavior as before
+                return dataSource.getBiliMediaSourceFactory(streamInfo.getUrl()).createMediaSource(
+                        new MediaItem.Builder()
+                                .setTag(metadata)
+                                .setUri(Uri.parse(stream.getContent()))
+                                .setCustomCacheKey(cacheKey)
+                                .build());
+        }
     }
 
     private static MediaSource createNiconicoMediaSource(final Stream stream,

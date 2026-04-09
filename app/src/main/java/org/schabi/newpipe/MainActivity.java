@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
-        backPressedCallback = new OnBackPressedCallback(true) {
+        backPressedCallback = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
                 handleBackPressed();
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+        if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
             initFragments();
         }
 
@@ -389,7 +389,9 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openSubscriptionFragment(getSupportFragmentManager());
                 break;
             case ITEM_ID_FEED:
-                NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                if (!trySelectFeedTabInMainFragment()) {
+                    NavigationHelper.openFeedFragment(getSupportFragmentManager());
+                }
                 break;
             case ITEM_ID_BOOKMARKS:
                 NavigationHelper.openBookmarksFragment(getSupportFragmentManager());
@@ -401,6 +403,14 @@ public class MainActivity extends AppCompatActivity {
                 NavigationHelper.openStatisticFragment(getSupportFragmentManager());
                 break;
         }
+    }
+
+    private boolean trySelectFeedTabInMainFragment() {
+        final FragmentManager fm = getSupportFragmentManager();
+        NavigationHelper.gotoMainFragment(fm);
+        fm.executePendingTransactions();
+        final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
+        return fragment instanceof MainFragment && ((MainFragment) fragment).selectFeedTab();
     }
 
     private void kioskSelected(final MenuItem item) throws ExtractionException {
@@ -633,11 +643,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onBackPressed() called");
         }
 
-        if (DeviceUtils.isTv(this)) {
-            if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
-                mainBinding.getRoot().closeDrawers();
-                return;
-            }
+        if (mainBinding.getRoot().isDrawerOpen(drawerLayoutBinding.navigation)) {
+            mainBinding.getRoot().closeDrawers();
+            return;
         }
 
         // In case bottomSheet is not visible on the screen or collapsed we can assume that the user
@@ -646,19 +654,14 @@ public class MainActivity extends AppCompatActivity {
         if (bottomSheetHiddenOrCollapsed()) {
             final FragmentManager fm = getSupportFragmentManager();
             final Fragment fragment = fm.findFragmentById(R.id.fragment_holder);
-            // If current fragment implements BackPressable (i.e. can/wanna handle back press)
-            // delegate the back press to it
-            if (fragment instanceof BackPressable) {
-                if (((BackPressable) fragment).onBackPressed()) {
-                    return;
-                }
-            } else if (fragment instanceof CommentRepliesFragment) {
+            if (fragment instanceof CommentRepliesFragment) {
                 // expand DetailsFragment if CommentRepliesFragment was opened
                 // to show the top level comments again
                 // Expand DetailsFragment if CommentRepliesFragment was opened
                 // and no other CommentRepliesFragments are on top of the back stack
                 // to show the top level comments again.
-                openDetailFragmentFromCommentReplies(fm, false);
+                openDetailFragmentFromCommentReplies(fm, true);
+                return;
             }
 
         } else {
@@ -690,14 +693,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         backPressedCallback.setEnabled(false);
-        try {
-            MainActivity.super.onBackPressed();
-        } finally {
-            backPressedCallback.setEnabled(true);
-        }
+        MainActivity.super.onBackPressed();
     }
 
-    public void updateBackPressedCallbackState() {
+    private void updateBackPressedCallbackState() {
         if (backPressedCallback == null || mainBinding == null) {
             return;
         }
@@ -715,9 +714,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Fragment fragment = getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_holder);
-        return (fragment instanceof BackPressable
-                && ((BackPressable) fragment).canHandleBackPress())
-                || fragment instanceof CommentRepliesFragment;
+        return fragment instanceof CommentRepliesFragment;
     }
 
     @Override
@@ -839,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
             // When user watch a video inside popup and then tries to open the video in main player
             // while the app is closed he will see a blank fragment on place of kiosk.
             // Let's open it first
-            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            if (getSupportFragmentManager().findFragmentById(R.id.fragment_holder) == null) {
                 NavigationHelper.openMainFragment(getSupportFragmentManager());
             }
 

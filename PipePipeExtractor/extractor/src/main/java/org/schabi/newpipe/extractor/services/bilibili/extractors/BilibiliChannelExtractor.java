@@ -556,14 +556,21 @@ public class BilibiliChannelExtractor extends ChannelExtractor {
                 long code = responseJson.getLong("code");
                 if (code != 0) {
                     if (code == -352) {
-                        // blocked risk control
-                        DeviceForger.regenerateRandomDevice(); // try to regenerate a new one
+                        refreshAntiBotState();
                     }
                     currentTry -= 1;
+                    headers = getHeadersFromCurrentReferer(headers, url);
                 } else {
                     return responseJson;
                 }
             } catch (JsonParserException e) {
+                if (looksLikeRiskControlHtml(responseBody)) {
+                    currentTry -= 1;
+                    refreshAntiBotState();
+                    headers = getHeadersFromCurrentReferer(headers, url);
+                    continue;
+                }
+
                 e.printStackTrace();
                 throw new ParsingException("Failed parse response body: " + responseBody);
             }
@@ -575,8 +582,30 @@ public class BilibiliChannelExtractor extends ChannelExtractor {
                 + "\nTry to refresh, or report this!\n"
                 + responseBody;
         rotateVideoApiMode();
-        DeviceForger.regenerateRandomDevice(); // try to regenerate a new one
+        refreshAntiBotState();
         throw new ParsingException(msg);
+    }
+
+    private static void refreshAntiBotState() {
+        DeviceForger.regenerateRandomDevice();
+        BilibiliService.invalidateDefaultCookies();
+    }
+
+    private static boolean looksLikeRiskControlHtml(final String responseBody) {
+        return responseBody.contains("错误号: 412")
+                || responseBody.contains("security control policy")
+                || responseBody.contains("The request was rejected because of the bilibili")
+                || responseBody.contains("由于触发哔哩哔哩安全风控策略");
+    }
+
+    private static Map<String, List<String>> getHeadersFromCurrentReferer(
+            final Map<String, List<String>> previousHeaders,
+            final String requestUrl) throws IOException {
+        final List<String> referers = previousHeaders.get("Referer");
+        if (referers != null && !referers.isEmpty()) {
+            return getHeaders(referers.get(0));
+        }
+        return getHeaders(requestUrl);
     }
 
 }

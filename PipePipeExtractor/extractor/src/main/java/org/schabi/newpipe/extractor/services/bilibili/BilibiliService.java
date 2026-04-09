@@ -73,6 +73,7 @@ import java.util.stream.Collectors;
 public class BilibiliService extends StreamingService {
     private final WatchDataCache watchDataCache;
     private static LinkedHashMap<String, String> defaultLatestCookies = null;
+    private static String defaultLatestCookiesUserAgent = null;
 
     public static final String WWW_REFERER = "https://www.bilibili.com/";
     public static final String SPACE_REFERER = "https://space.bilibili.com/";
@@ -219,7 +220,11 @@ public class BilibiliService extends StreamingService {
     }
 
     static public LinkedHashMap<String, String> getDefaultCookies() throws IOException {
-        if (defaultLatestCookies == null || Long.parseLong(defaultLatestCookies.get("bili_ticket_expires")) <= Instant.now().getEpochSecond()) {
+        final String currentUserAgent = DeviceForger.requireRandomDevice().getUserAgent();
+        if (defaultLatestCookies == null
+                || !Objects.equals(defaultLatestCookiesUserAgent, currentUserAgent)
+                || Long.parseLong(defaultLatestCookies.get("bili_ticket_expires"))
+                <= Instant.now().getEpochSecond()) {
             Response response;
             try {
                 response = getDownloader().get(FETCH_COOKIE_URL, getUserAgentHeaders(WWW_REFERER));
@@ -257,8 +262,14 @@ public class BilibiliService extends StreamingService {
             cookies.put("buvid_fp", bytesToHex(randomBuvidFp));
 
             defaultLatestCookies = cookies;
+            defaultLatestCookiesUserAgent = currentUserAgent;
         }
         return defaultLatestCookies;
+    }
+
+    static public void invalidateDefaultCookies() {
+        defaultLatestCookies = null;
+        defaultLatestCookiesUserAgent = null;
     }
 
     static public LinkedHashMap<String, List<String>> getHeaders(String originalUrl) throws IOException {
