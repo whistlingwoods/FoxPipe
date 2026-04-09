@@ -16,6 +16,15 @@
 -dontwarn javax.script.**
 -keep class jdk.dynalink.** { *; }
 -dontwarn jdk.dynalink.**
+# Rules for jaudiotagger
+-keep class org.jaudiotagger.** { *; }
+-dontwarn org.jaudiotagger.**
+-keep class java.awt.**
+-dontwarn java.awt.**
+-keep class javax.imageio.**
+-dontwarn javax.imageio.**
+-keep class javax.swing.**
+-dontwarn javax.swing.**
 # Rules for jsoup
 # Ignore intended-to-be-optional re2j classes - only needed if using re2j for jsoup regex
 # jsoup safely falls back to JDK regex if re2j not on classpath, but has concrete re2j refs
