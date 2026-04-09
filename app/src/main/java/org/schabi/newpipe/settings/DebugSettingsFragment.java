@@ -2,6 +2,7 @@ package org.schabi.newpipe.settings;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.preference.Preference;
 
@@ -10,12 +11,18 @@ import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.local.feed.notifications.NotificationWorker;
+import org.schabi.newpipe.util.StreamMetadataRepair;
 import org.schabi.newpipe.util.image.PicassoHelper;
 
 import java.util.Optional;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+
 public class DebugSettingsFragment extends BasePreferenceFragment {
     private static final String DUMMY = "Dummy";
+
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
@@ -35,6 +42,8 @@ public class DebugSettingsFragment extends BasePreferenceFragment {
                 requirePreference(R.string.show_error_snackbar_key);
         final Preference createErrorNotificationPreference =
                 requirePreference(R.string.create_error_notification_key);
+        final Preference repairStreamMetadataPreference =
+                requirePreference(R.string.repair_stream_metadata_key);
 
 
         final Optional<DebugSettingsBVDLeakCanaryAPI> optBVLeakCanary = getBVDLeakCanary();
@@ -79,6 +88,32 @@ public class DebugSettingsFragment extends BasePreferenceFragment {
                     new ErrorInfo(new RuntimeException(DUMMY), UserAction.UI_ERROR, DUMMY));
             return true;
         });
+
+        repairStreamMetadataPreference.setOnPreferenceClickListener(preference -> {
+            Toast.makeText(requireContext(), "Starting metadata repair...",
+                    Toast.LENGTH_SHORT).show();
+
+            disposables.add(
+                StreamMetadataRepair.repairAllCorruptedEntries(requireContext())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        repairedCount -> Toast.makeText(requireContext(),
+                            "Repaired " + repairedCount + " corrupted entries",
+                            Toast.LENGTH_LONG).show(),
+                        error -> ErrorUtil.showUiErrorSnackbar(
+                            DebugSettingsFragment.this,
+                            "Repairing stream metadata",
+                            error)
+                    )
+            );
+            return true;
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        disposables.dispose();
     }
 
     /**

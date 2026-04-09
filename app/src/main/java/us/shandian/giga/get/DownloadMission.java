@@ -134,6 +134,16 @@ public class DownloadMission extends Mission {
      */
     public MissionRecoveryInfo[] recoveryInfo;
 
+    /**
+     * Optional playlist metadata for tagging audio files
+     */
+    public transient PlaylistMetadata playlistMetadata;
+
+    /**
+     * Whether to create offline file mapping after download completes
+     */
+    public boolean createOfflineMapping = false;
+
     private transient int finishCount;
     public transient volatile boolean running;
     public boolean enqueued;
@@ -850,5 +860,49 @@ public class DownloadMission extends Mission {
 
     private static class Lock implements Serializable {
         // java.lang.Object cannot be used because is not serializable
+    }
+
+    /**
+     * Metadata for files downloaded as part of a playlist.
+     * Used to tag audio files with proper track numbers, album info, etc.
+     */
+    public static class PlaylistMetadata implements Serializable {
+        private static final long serialVersionUID = 2L;
+
+        /**
+         * Service ID (e.g., YouTube = 0)
+         */
+        public int serviceId;
+
+        /**
+         * Name of the playlist (used as album name for audio tags)
+         */
+        public String playlistName;
+
+        /**
+         * Position of this track in the playlist (1-based)
+         */
+        public int trackPosition;
+
+        /**
+         * URL of the playlist thumbnail (used as album art)
+         */
+        public String playlistThumbnailUrl;
+
+        /**
+         * Name of the uploader/channel (used as artist name)
+         */
+        public String uploaderName;
+
+        /**
+         * Title of the video (used as track title)
+         */
+        public String videoTitle;
+
+        /**
+         * Original stream URL (used for offline file mapping)
+         * This is the URL from the StreamInfoItem, not the normalized URL from StreamInfo.
+         */
+        public String streamUrl;
     }
 }

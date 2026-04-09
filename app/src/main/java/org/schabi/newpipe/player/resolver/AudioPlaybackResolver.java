@@ -53,6 +53,9 @@ public class AudioPlaybackResolver implements PlaybackResolver {
             return liveSource;
         }
 
+        // Note: Offline file check is now handled in MediaSourceManager before this resolver
+        // is called, so we don't need to check here anymore
+
         final List<AudioStream> audioStreams =
                 getFilteredAudioStreams(context, info.getAudioStreams());
         final Stream stream;

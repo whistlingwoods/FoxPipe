@@ -16,6 +16,8 @@ import org.schabi.newpipe.ktx.ViewUtils;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.DependentPreferenceHelper;
 import org.schabi.newpipe.util.Localization;
+import org.schabi.newpipe.util.OfflinePlaybackHelper;
+import org.schabi.newpipe.util.RatingHelper;
 import org.schabi.newpipe.util.image.PicassoHelper;
 import org.schabi.newpipe.util.StreamTypeUtil;
 import org.schabi.newpipe.views.AnimatedProgressBar;
@@ -28,6 +30,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
     public final TextView itemUploaderView;
     public final TextView itemDurationView;
     private final AnimatedProgressBar itemProgressView;
+    public final TextView itemRatingView;
+    public final ImageView itemOfflineIndicator;
 
     StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final int layoutId,
                              final ViewGroup parent) {
@@ -38,6 +42,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         itemUploaderView = itemView.findViewById(R.id.itemUploaderView);
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
+        itemRatingView = itemView.findViewById(R.id.itemRatingView);
+        itemOfflineIndicator = itemView.findViewById(R.id.itemOfflineIndicator);
     }
 
     public StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final ViewGroup parent) {
@@ -94,6 +100,38 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
                 itemBuilder.getOnStreamSelectedListener().selected(item);
             }
         });
+
+        // Load and display rating
+        historyRecordManager.getStreamRating(item.getServiceId(), item.getUrl())
+                .subscribe(
+                        rating -> RatingHelper.displayRating(itemRatingView, rating),
+                        throwable -> itemRatingView.setVisibility(View.GONE),
+                        () -> itemRatingView.setVisibility(View.GONE)
+                );
+
+        // Check and display offline indicator (asynchronously to avoid blocking UI)
+        if (itemOfflineIndicator != null) {
+            // Default to hidden while checking
+            itemOfflineIndicator.setVisibility(View.GONE);
+
+            OfflinePlaybackHelper.getOfflineFileUri(
+                    itemBuilder.getContext(),
+                    item.getServiceId(),
+                    item.getUrl())
+                .subscribe(
+                    fileUri -> {
+                        if (fileUri != null) {
+                            itemOfflineIndicator.setVisibility(View.VISIBLE);
+                        } else {
+                            itemOfflineIndicator.setVisibility(View.GONE);
+                        }
+                    },
+                    throwable -> {
+                        // Error checking - hide indicator
+                        itemOfflineIndicator.setVisibility(View.GONE);
+                    }
+                );
+        }
 
         switch (item.getStreamType()) {
             case AUDIO_STREAM:

@@ -32,6 +32,7 @@ import androidx.annotation.Nullable;
 import androidx.core.text.HtmlCompat;
 import androidx.preference.PreferenceManager;
 
+import org.schabi.newpipe.App;
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.Info;
@@ -235,7 +236,10 @@ public final class ExtractorHelper {
             CACHE.removeInfo(serviceId, url, cacheType);
             load = actualLoadFromNetwork;
         } else {
-            load = Maybe.concat(ExtractorHelper.loadFromCache(serviceId, url, cacheType),
+            // Try: cache → offline database → network
+            load = Maybe.concat(
+                            ExtractorHelper.loadFromCache(serviceId, url, cacheType),
+                            ExtractorHelper.loadFromOfflineDatabase(serviceId, url, cacheType),
                             actualLoadFromNetwork.toMaybe())
                     .firstElement() // Take the first valid
                     .toSingle();
@@ -271,6 +275,97 @@ public final class ExtractorHelper {
             }
 
             return Maybe.empty();
+        });
+    }
+
+    /**
+     * Loads StreamInfo from the offline database when an offline file is available.
+     * This allows playing downloaded content without internet access.
+     *
+     * @param <I>       the item type's class that extends {@link Info}
+     * @param serviceId the service ID
+     * @param url       the URL of the stream
+     * @param cacheType the {@link InfoCache.Type} of the item
+     * @return a {@link Maybe} that emits StreamInfo if offline file exists, empty otherwise
+     */
+    private static <I extends Info> Maybe<I> loadFromOfflineDatabase(
+            final int serviceId,
+            @NonNull final String url,
+            @NonNull final InfoCache.Type cacheType) {
+        // Only applicable for streams
+        if (cacheType != InfoCache.Type.STREAM) {
+            return Maybe.empty();
+        }
+
+        return Maybe.defer(() -> {
+            try {
+                // Check if an offline file exists for this stream
+                final android.content.Context context = App.getApp();
+                final Boolean hasOffline = OfflinePlaybackHelper.hasOfflineFile(context, serviceId, url)
+                    .blockingGet();
+                if (!hasOffline) {
+                    return Maybe.empty();
+                }
+
+                if (MainActivity.DEBUG) {
+                    Log.d(TAG, "loadFromOfflineDatabase() found offline file for: " + url);
+                }
+
+                // Query database for the stream entity
+                final org.schabi.newpipe.database.stream.dao.StreamDAO streamDAO =
+                        org.schabi.newpipe.NewPipeDatabase.getInstance(context).streamDAO();
+
+                final java.util.List<org.schabi.newpipe.database.stream.model.StreamEntity>
+                        entities = streamDAO.getStream(serviceId, url).blockingFirst();
+
+                if (entities.isEmpty()) {
+                    if (MainActivity.DEBUG) {
+                        Log.d(TAG, "loadFromOfflineDatabase() no entity found in database");
+                    }
+                    return Maybe.empty();
+                }
+
+                final org.schabi.newpipe.database.stream.model.StreamEntity entity =
+                        entities.get(0);
+
+                // Log what's actually in the database
+                if (MainActivity.DEBUG) {
+                    Log.d(TAG, "loadFromOfflineDatabase() entity data - "
+                            + "title: '" + entity.getTitle() + "', "
+                            + "uploader: '" + entity.getUploader() + "', "
+                            + "url: '" + entity.getUrl() + "', "
+                            + "uploaderUrl: '" + entity.getUploaderUrl() + "'");
+                }
+
+                // Convert StreamEntity to StreamInfo
+                final org.schabi.newpipe.extractor.stream.StreamInfo streamInfo =
+                        new org.schabi.newpipe.extractor.stream.StreamInfo(
+                                entity.getServiceId(),
+                                entity.getUrl(),
+                                entity.getTitle(),
+                                entity.getStreamType(),
+                                entity.getUploader(),
+                                entity.getUploaderUrl() != null ? entity.getUploaderUrl() : "",
+                                (int) entity.getDuration()
+                        );
+
+                // Set thumbnails from database
+                streamInfo.setThumbnails(
+                        org.schabi.newpipe.util.image.ImageStrategy.dbUrlToImageList(
+                                entity.getThumbnailUrl()));
+
+                if (MainActivity.DEBUG) {
+                    Log.d(TAG, "loadFromOfflineDatabase() created StreamInfo from database: "
+                            + streamInfo.getName());
+                }
+
+                //noinspection unchecked
+                return Maybe.just((I) streamInfo);
+
+            } catch (final Exception e) {
+                Log.w(TAG, "loadFromOfflineDatabase() error: " + e.getMessage(), e);
+                return Maybe.empty();
+            }
         });
     }
 

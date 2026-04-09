@@ -250,4 +250,42 @@
             app:singleLineTitle="false"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/settings_category_header_layout"
+        android:title="@string/settings_category_shuffle_title"
+        app:singleLineTitle="false"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="@string/use_weighted_shuffle_key"
+            android:summary="@string/use_weighted_shuffle_summary"
+            android:title="@string/use_weighted_shuffle_title"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            android:defaultValue="10"
+            android:entries="@array/weighted_shuffle_unrated_weight_description"
+            android:entryValues="@array/weighted_shuffle_unrated_weight_values"
+            android:key="@string/weighted_shuffle_unrated_weight_key"
+            android:title="@string/weighted_shuffle_unrated_weight_title"
+            android:summary="@string/weighted_shuffle_unrated_weight_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="10"
+            android:entries="@array/weighted_shuffle_curve_exponent_description"
+            android:entryValues="@array/weighted_shuffle_curve_exponent_values"
+            android:key="@string/weighted_shuffle_curve_exponent_key"
+            android:title="@string/weighted_shuffle_curve_exponent_title"
+            android:summary="@string/weighted_shuffle_curve_exponent_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -30,6 +30,8 @@ public abstract class Postprocessing implements Serializable {
     public transient static final String ALGORITHM_MP4_FROM_DASH_MUXER = "mp4D-mp4";
     public transient static final String ALGORITHM_M4A_NO_DASH = "mp4D-m4a";
     public transient static final String ALGORITHM_OGG_FROM_WEBM_DEMUXER = "webm-ogg-d";
+    public transient static final String ALGORITHM_AUDIO_METADATA_TAGGING = "audio-metadata";
+    public transient static final String ALGORITHM_COMPOSITE = "composite";
 
     public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args,
                                               StreamInfo streamInfo) {
@@ -50,6 +52,12 @@ public abstract class Postprocessing implements Serializable {
                 break;
             case ALGORITHM_OGG_FROM_WEBM_DEMUXER:
                 instance = new OggFromWebmDemuxer();
+                break;
+            case ALGORITHM_AUDIO_METADATA_TAGGING:
+                instance = new AudioMetadataTagging();
+                break;
+            case ALGORITHM_COMPOSITE:
+                instance = new CompositePostprocessing();
                 break;
             /*case "example-algorithm":
                 instance = new ExampleAlgorithm();*/
@@ -78,7 +86,7 @@ public abstract class Postprocessing implements Serializable {
      */
     private final String name;
 
-    private String[] args;
+    protected String[] args;
     protected StreamInfo streamInfo;
 
     private transient DownloadMission mission;

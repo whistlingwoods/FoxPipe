@@ -33,6 +33,7 @@ import org.schabi.newpipe.database.history.dao.StreamHistoryDAO;
 import org.schabi.newpipe.database.history.model.SearchHistoryEntry;
 import org.schabi.newpipe.database.history.model.StreamHistoryEntity;
 import org.schabi.newpipe.database.history.model.StreamHistoryEntry;
+import org.schabi.newpipe.database.playback.dao.PlaybackStatisticsDAO;
 import org.schabi.newpipe.database.playlist.PlaylistStreamEntry;
 import org.schabi.newpipe.database.playlist.model.PlaylistStreamEntity;
 import org.schabi.newpipe.database.stream.StreamStatisticsEntry;
@@ -64,6 +65,7 @@ public class HistoryRecordManager {
     private final StreamHistoryDAO streamHistoryTable;
     private final SearchHistoryDAO searchHistoryTable;
     private final StreamStateDAO streamStateTable;
+    private final PlaybackStatisticsDAO playbackStatisticsTable;
     private final SharedPreferences sharedPreferences;
     private final String searchHistoryKey;
     private final String streamHistoryKey;
@@ -74,6 +76,7 @@ public class HistoryRecordManager {
         streamHistoryTable = database.streamHistoryDAO();
         searchHistoryTable = database.searchHistoryDAO();
         streamStateTable = database.streamStateDAO();
+        playbackStatisticsTable = database.playbackStatisticsDAO();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         searchHistoryKey = context.getString(R.string.enable_search_history_key);
         streamHistoryKey = context.getString(R.string.enable_watch_history_key);
@@ -305,6 +308,166 @@ public class HistoryRecordManager {
             }
             return result;
         }).subscribeOn(Schedulers.io());
+    }
+
+    ///////////////////////////////////////////////////////
+    // Stream Rating
+    ///////////////////////////////////////////////////////
+
+    /**
+     * Saves a user rating (1-10) for a stream. Use null to remove rating.
+     *
+     * @param info the stream to rate
+     * @param rating the rating value (1-10) or null to clear
+     * @return a Completable that completes when rating is saved
+     */
+    public Completable saveStreamRating(@NonNull final StreamInfo info,
+                                         final Integer rating) {
+        if (rating != null && (rating < 1 || rating > 10)) {
+            return Completable.error(new IllegalArgumentException(
+                    "Rating must be between 1 and 10"));
+        }
+
+        return Completable.fromAction(() -> database.runInTransaction(() -> {
+            final long streamId = streamTable.upsert(new StreamEntity(info));
+            streamTable.updateRating(streamId, rating);
+        })).subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Gets the user's rating for a stream.
+     *
+     * @param serviceId the service ID
+     * @param url the stream URL
+     * @return a Maybe containing the rating (1-10) if rated, or empty if unrated
+     */
+    public Maybe<Integer> getStreamRating(final int serviceId, @NonNull final String url) {
+        return Maybe.fromCallable(() -> {
+            final List<StreamEntity> entities = streamTable
+                    .getStream(serviceId, url).blockingFirst();
+            if (entities.isEmpty()) {
+                return null;
+            }
+            return entities.get(0).getUserRating();
+        })
+        .filter(rating -> rating != null)
+        .subscribeOn(Schedulers.io());
+    }
+
+    ///////////////////////////////////////////////////////
+    // Playback Statistics
+    ///////////////////////////////////////////////////////
+
+    /**
+     * Adds playtime to a stream's playback statistics.
+     *
+     * @param streamId the database ID of the stream
+     * @param playTimeMillis the amount of playtime to add in milliseconds
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable addPlayTime(final long streamId, final long playTimeMillis) {
+        if (playTimeMillis <= 0) {
+            return Completable.complete();
+        }
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.addPlayTime(streamId, playTimeMillis))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a skip event for a stream (user skipped before completion).
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordSkip(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordSkip(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a completion event for a stream (played >90% of duration).
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordCompletion(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordCompletion(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a restart event for a stream (user seeked back to beginning).
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordRestart(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordRestart(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a volume change event for a stream.
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordVolumeChange(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordVolumeChange(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a pause event for a stream.
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordPause(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordPause(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a play/resume event for a stream.
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordPlay(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordPlay(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Records a seek event for a stream.
+     *
+     * @param streamId the database ID of the stream
+     * @return a Completable that completes when the operation is done
+     */
+    public Completable recordSeek(final long streamId) {
+        return Completable.fromAction(() ->
+                playbackStatisticsTable.recordSeek(streamId))
+                .subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Gets the database stream ID for a given stream info.
+     * Upserts the stream if necessary.
+     *
+     * @param info the stream info
+     * @return a Single containing the stream ID
+     */
+    public Single<Long> getOrCreateStreamId(final StreamInfo info) {
+        return Single.fromCallable(() -> streamTable.upsert(new StreamEntity(info)))
+                .subscribeOn(Schedulers.io());
     }
 
     ///////////////////////////////////////////////////////

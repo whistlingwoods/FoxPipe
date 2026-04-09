@@ -129,7 +129,7 @@
     <string name="external_player_unsupported_link_type">A külső lejátszó nem támogatja az ilyen típusú hivatkozásokat</string>
     <string name="video_streams_empty">Nem található videófolyam</string>
     <string name="audio_streams_empty">Nem található hangfolyam</string>
-    <string name="info_labels">Mi:\\nKérés:\\nTartalom nyelve:\\nTartalom származási országa:\\nAlkalmazás nyelve:\\nSzolgáltatás:\\nGMT idő:\\nCsomag:\\nVerzió:\\nOperációs rendszer verzió:</string>
+    <string name="info_labels">Mi:\nKérés:\nTartalom nyelve:\nTartalom származási országa:\nAlkalmazás nyelve:\nSzolgáltatás:\nGMT idő:\nCsomag:\nVerzió:\nOperációs rendszer verzió:</string>
     <string name="search_no_results">Nincs találat</string>
     <string name="controls_download_desc">Közvetítési fájl letöltése</string>
     <string name="controls_add_to_playlist_title">Hozzáadás ehhez</string>
@@ -584,7 +584,7 @@
     <string name="feed_processing_message">Hírfolyam feldolgozása…</string>
     <string name="feed_use_dedicated_fetch_method_summary">Egyes szolgáltatásoknál érhető el, általában sokkal gyorsabb, és korlátozott számú elemet adhat vissza, gyakran hiányos információkkal (például nincs hossz, elemtípus, vagy élő videó állapot)</string>
     <string name="account_terminated">Fiók eltávolítva</string>
-    <string name="mark_as_watched">Megjelölés megnézettként</string>
+    <string name="mark_as_watched">Megjelölés megtekintettként</string>
     <string name="no_dir_yet">Még nincs letöltési mappa beállítva, válassza ki az alapértelmezett letöltési mappát most</string>
     <string name="seekbar_preview_thumbnail_title">Tekerősáv bélyegkép-előnézete</string>
     <string name="high_quality_larger">Magas minőségű (nagyobb)</string>
@@ -620,8 +620,8 @@
     <string name="metadata_tags">Címkék</string>
     <string name="metadata_privacy">Adatvédelem</string>
     <string name="feed_use_dedicated_fetch_method_disable_button">Gyors mód letiltása</string>
-    <string name="remove_watched_popup_partially_watched_streams">Igen, és távolítsa el a részben megnézett videókat is</string>
-    <string name="remove_watched_popup_warning">A videók, melyeket már megnézett miután a lejátszási listához adta őket, el lesznek távolítva. \nBiztos benne? Ez nem vonható vissza!</string>
+    <string name="remove_watched_popup_partially_watched_streams">Távolítsa el a részben megtekintett közvetítéseket</string>
+    <string name="remove_watched_popup_warning">A lejátszási listához való hozzáadás előtt és után megtekintett közvetítések el lesznek távolítva.\nBiztos benne?</string>
     <string name="show_original_time_ago_summary">A szolgáltatásokból származó eredeti szövegek láthatók lesznek a közvetítési elemeken</string>
     <string name="crash_the_player">Lejátszó összeomlasztása</string>
     <string name="show_image_indicators_title">Képjelölők megjelenítése</string>
@@ -630,8 +630,8 @@
     <string name="unhook_checkbox">Hangmagasság megtartása (torzítást okozhat)</string>
     <string name="check_for_updates">Frissítések keresése</string>
     <string name="dont_show">Ne jelenítse meg</string>
-    <string name="remove_watched">Megnézettek eltávolítása</string>
-    <string name="remove_watched_popup_title">Eltávolítja a megnézett videókat?</string>
+    <string name="remove_watched">Megtekintettek eltávolítása</string>
+    <string name="remove_watched_popup_title">Eltávolítja a megtekintett közvetítéseket?</string>
     <plurals name="deleted_downloads_toast">
         <item quantity="one">%1$s letöltés törölve</item>
         <item quantity="other">%1$s letöltés törölve</item>
