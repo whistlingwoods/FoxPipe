@@ -3,6 +3,7 @@ package org.schabi.newpipe.player.ui;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
 import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import static org.schabi.newpipe.MainActivity.DEBUG;
+import androidx.preference.PreferenceManager;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
 import static org.schabi.newpipe.player.Player.RENDERER_UNAVAILABLE;
@@ -31,6 +32,7 @@ import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -148,6 +150,24 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private final SeekbarPreviewThumbnailHolder seekbarPreviewThumbnailHolder =
             new SeekbarPreviewThumbnailHolder();
 
+    private boolean showRemainingTime = false; // New field for time remaining toggle
+    private boolean showRemainingTimeRight = false; // New field for time remaining toggle on right
+    private boolean screenLocked = false; // Screen lock state
+    private View.OnTouchListener originalTouchListener; // To save/restore touch listener
+    private Handler unlockButtonHandler = new Handler(Looper.getMainLooper()); // Handler for unlock button auto-hide
+    private Runnable hideUnlockButtonRunnable; // Runnable to hide unlock button after delay
+    private static final long UNLOCK_BUTTON_HIDE_DELAY = 2000; // 2 seconds
+
+    {
+        // Initialize the runnable to hide unlock button
+        hideUnlockButtonRunnable = () -> {
+            final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+            if (screenUnlockOverlayButton != null && screenLocked) {
+                screenUnlockOverlayButton.setVisibility(View.GONE);
+            }
+        };
+    }
+
 
     /*//////////////////////////////////////////////////////////////////////////
     // Constructor, setup, destroy
@@ -173,6 +193,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.resizeTextView
                 .setText(PlayerHelper.resizeTypeOf(context, binding.surfaceView.getResizeMode()));
 
+        // CHANGE: Replaced Color.RED with Nord 6th accent color (#5E81AC)
         binding.playbackSeekBar.getThumb()
                 .setColorFilter(new PorterDuffColorFilter(Color.RED, PorterDuff.Mode.SRC_IN));
         binding.playbackSeekBar.getProgressDrawable()
@@ -208,10 +229,23 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.captionTextView.setOnClickListener(makeOnClickListener(this::onCaptionClicked));
         binding.resizeTextView.setOnClickListener(makeOnClickListener(this::onResizeClicked));
         binding.playbackLiveSync.setOnClickListener(makeOnClickListener(player::seekToDefault));
+        // New listener for playbackCurrentTime to toggle remaining time display
+        binding.playbackCurrentTime.setOnClickListener(v -> {
+            showRemainingTime = !showRemainingTime;
+            updatePlayBackElementsCurrentDuration((int) player.getExoPlayer().getCurrentPosition(), (int) player.getExoPlayer().getDuration());
+        });
+        // New listener for playbackEndTime to toggle remaining time display
+        binding.playbackEndTime.setOnClickListener(v -> {
+            showRemainingTimeRight = !showRemainingTimeRight;
+            updatePlayBackElementsCurrentDuration((int) player.getExoPlayer().getCurrentPosition(), (int) player.getExoPlayer().getDuration());
+        });
 
         playerGestureListener = buildGestureListener();
         gestureDetector = new GestureDetector(context, playerGestureListener);
-        binding.getRoot().setOnTouchListener(playerGestureListener);
+        // Save the original touch listener
+        originalTouchListener = playerGestureListener;
+        // Set up touch listener that checks screen lock state
+        binding.getRoot().setOnTouchListener(originalTouchListener);
 
         binding.repeatButton.setOnClickListener(v -> onRepeatClicked());
         binding.shuffleButton.setOnClickListener(v -> onShuffleClicked());
@@ -245,6 +279,17 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                 context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_HIDE_MAIN_PLAYER)
                         .setPackage(App.PACKAGE_NAME))
         ));
+        // Set up screen lock button in secondaryControls
+        final View screenLockButton = binding.getRoot().findViewById(R.id.screenLockButton);
+        if (screenLockButton != null) {
+            screenLockButton.setOnClickListener(v -> onScreenLockClicked());
+        }
+
+        // Set up unlock overlay button
+        final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+        if (screenUnlockOverlayButton != null) {
+            screenUnlockOverlayButton.setOnClickListener(v -> onScreenLockClicked());
+        }
         binding.switchMute.setOnClickListener(makeOnClickListener(player::toggleMute));
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.itemsListPanel, (view, windowInsets) -> {
@@ -284,6 +329,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.captionTextView.setOnClickListener(null);
         binding.resizeTextView.setOnClickListener(null);
         binding.playbackLiveSync.setOnClickListener(null);
+        binding.playbackCurrentTime.setOnClickListener(null); // Remove listener
+        binding.playbackEndTime.setOnClickListener(null); // Remove listener
 
         binding.getRoot().setOnTouchListener(null);
         playerGestureListener = null;
@@ -521,7 +568,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             setVideoDurationToControls(duration);
         }
         if (player.getCurrentState() != STATE_PAUSED) {
-            updatePlayBackElementsCurrentDuration(currentProgress);
+            updatePlayBackElementsCurrentDuration(currentProgress, duration); // Pass duration
         }
         if (player.isLoading() || bufferPercent > 90) {
             binding.playbackSeekBar.setSecondaryProgress(
@@ -540,13 +587,29 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * Sets the current duration into the corresponding elements.
      *
      * @param currentProgress the current progress, in milliseconds
+     * @param duration the total duration, in milliseconds
      */
-    private void updatePlayBackElementsCurrentDuration(final int currentProgress) {
+    private void updatePlayBackElementsCurrentDuration(final int currentProgress, final int duration) {
         // Don't set seekbar progress while user is seeking
         if (player.getCurrentState() != STATE_PAUSED_SEEK) {
             binding.playbackSeekBar.setProgress(currentProgress);
         }
+        
+        // Get current playback speed
+        final float playbackSpeed = player.getPlaybackSpeed();
+
+        // Timestamp
         binding.playbackCurrentTime.setText(getTimeString(currentProgress));
+        
+        // Toggle between total duration and remaining time on the right
+        if (showRemainingTimeRight) {
+            // Calculate remaining time adjusted for playback speed
+            final long remainingTimeMs = duration - currentProgress;
+            final long adjustedRemainingTimeMs = (long) (remainingTimeMs / playbackSpeed);
+            binding.playbackEndTime.setText("- " + getTimeString((int) adjustedRemainingTimeMs));
+        } else {
+            binding.playbackEndTime.setText(getTimeString(duration));
+        }
     }
 
     /**
@@ -555,8 +618,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
      * @param duration the video duration, in milliseconds
      */
     private void setVideoDurationToControls(final int duration) {
-        binding.playbackEndTime.setText(getTimeString(duration));
-
+        // The duration is now updated in updatePlayBackElementsCurrentDuration
         binding.playbackSeekBar.setMax(duration);
         // This is important for Android TVs otherwise it would apply the default from
         // setMax/Min methods which is (max - min) / 20
@@ -652,7 +714,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             player.getExoPlayer().play();
         }
 
-        binding.playbackCurrentTime.setText(getTimeString(seekBar.getProgress()));
+        // Update the current time display after seeking
+        updatePlayBackElementsCurrentDuration(seekBar.getProgress(), (int) player.getExoPlayer().getDuration());
         animate(binding.currentDisplaySeek, false, 200, AnimationType.SCALE_AND_ALPHA);
         animate(binding.currentSeekbarPreviewThumbnail, false, 200, AnimationType.SCALE_AND_ALPHA);
 
@@ -682,6 +745,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             Log.d(TAG, "showControlsThenHide() called");
         }
 
+        // Don't show controls if screen is locked
+        if (screenLocked) {
+            return;
+        }
+
         showOrHideButtons();
         showSystemUIPartially();
 
@@ -697,6 +765,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     public void showControls(final long duration) {
         if (DEBUG) {
             Log.d(TAG, "showControls() called");
+        }
+        // Don't show controls if screen is locked
+        if (screenLocked) {
+            return;
         }
         showOrHideButtons();
         showSystemUIPartially();
@@ -894,7 +966,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.getRoot().setKeepScreenOn(false);
 
         // When a (short) video ends the elements have to display the correct values - see #6180
-        updatePlayBackElementsCurrentDuration(binding.playbackSeekBar.getMax());
+        updatePlayBackElementsCurrentDuration(binding.playbackSeekBar.getMax(), (int) player.getExoPlayer().getDuration()); // Pass duration
 
         showControls(500);
         animate(binding.currentDisplaySeek, false, 200, AnimationType.SCALE_AND_ALPHA);
@@ -1074,7 +1146,12 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
             }
 
             buildPlaybackSpeedMenu();
-            binding.playbackSpeed.setVisibility(View.VISIBLE);
+            // Get the preference value using the existing 'context' variable
+            final boolean showSpeedControls = PreferenceManager.getDefaultSharedPreferences(context)
+                    .getBoolean(context.getString(R.string.show_playback_speed_controls_key), true);
+
+            // Set visibility based on the toggle
+            binding.playbackSpeed.setVisibility(showSpeedControls ? View.VISIBLE : View.GONE);
         });
     }
     //endregion
@@ -1454,7 +1531,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                                     // Hide controls in fullscreen immediately
                                     || (v == binding.screenRotationButton && isFullscreen())) {
                                 hideControls(0, 0);
-                            } else {
+                            }
+                            else {
                                 hideControls(DEFAULT_CONTROLS_DURATION, DEFAULT_CONTROLS_HIDE_TIME);
                             }
                         }
@@ -1527,6 +1605,98 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         if (player.getCurrentMetadata() != null) {
             player.pause();
             KoreUtils.playWithKore(context, Uri.parse(player.getVideoUrl()));
+        }
+    }
+
+    private void onScreenLockClicked() {
+        screenLocked = !screenLocked;
+        updateScreenLockButton();
+
+        if (screenLocked) {
+            // Show overlay unlock button in top-right corner and start auto-hide timer
+            showUnlockButtonWithAutoHide();
+            // Disable touch events on the root view to prevent gestures, but allow showing unlock button on tap
+            binding.getRoot().setOnTouchListener((v, event) -> {
+                if (screenLocked) {
+                    // Show unlock button and restart auto-hide timer
+                    showUnlockButtonWithAutoHide();
+                    // Consume the touch event to prevent gestures
+                    return true;
+                }
+                // When unlocked, delegate to gesture listener
+                return playerGestureListener.onTouch(v, event);
+            });
+            // Hide controls immediately when locking
+            hideControlsForLock(0, 0);
+        } else {
+            // Cancel auto-hide timer
+            unlockButtonHandler.removeCallbacks(hideUnlockButtonRunnable);
+            // Hide overlay unlock button
+            final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+            if (screenUnlockOverlayButton != null) {
+                screenUnlockOverlayButton.setVisibility(View.GONE);
+            }
+            // Restore normal touch listener
+            binding.getRoot().setOnTouchListener(originalTouchListener);
+            // Restore all controls and show briefly when unlocking
+            restoreControlsAfterUnlock();
+            showControlsThenHide();
+        }
+    }
+
+    private void showUnlockButtonWithAutoHide() {
+        // Cancel any existing timer
+        unlockButtonHandler.removeCallbacks(hideUnlockButtonRunnable);
+
+        // Show the unlock button
+        final View screenUnlockOverlayButton = binding.getRoot().findViewById(R.id.screenUnlockOverlayButton);
+        if (screenUnlockOverlayButton != null) {
+            screenUnlockOverlayButton.setVisibility(View.VISIBLE);
+        }
+
+        // Start timer to hide it after 5 seconds
+        unlockButtonHandler.postDelayed(hideUnlockButtonRunnable, UNLOCK_BUTTON_HIDE_DELAY);
+    }
+
+    private void hideControlsForLock(final long duration, final long delay) {
+        if (DEBUG) {
+            Log.d(TAG, "hideControlsForLock() called with: duration = [" + duration
+                    + "], delay = [" + delay + "]");
+        }
+
+        // Hide ALL controls when locked
+        animate(binding.playbackControlRoot, false, duration, AnimationType.ALPHA, 0, null);
+
+        controlsVisibilityHandler.removeCallbacksAndMessages(null);
+        controlsVisibilityHandler.postDelayed(() -> {
+            showHideShadow(false, duration);
+            binding.playbackControlRoot.setVisibility(View.GONE);
+            hideSystemUIIfNeeded();
+        }, delay);
+    }
+
+    private void restoreControlsAfterUnlock() {
+        if (DEBUG) {
+            Log.d(TAG, "restoreControlsAfterUnlock() called");
+        }
+
+        // Restore all controls that were hidden by hideControlsForLock
+        binding.primaryControls.setVisibility(View.VISIBLE);
+        binding.bottomSeekbarPreviewLayout.setVisibility(View.VISIBLE);
+        binding.bottomControls.setVisibility(View.VISIBLE);
+
+        // Animate them back in
+        animate(binding.primaryControls, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        animate(binding.bottomSeekbarPreviewLayout, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        animate(binding.bottomControls, true, DEFAULT_CONTROLS_DURATION, AnimationType.ALPHA, 0, null);
+        showHideShadow(true, DEFAULT_CONTROLS_DURATION);
+    }
+
+    private void updateScreenLockButton() {
+        final View screenLockButton = binding.getRoot().findViewById(R.id.screenLockButton);
+        if (screenLockButton instanceof AppCompatImageButton) {
+            ((AppCompatImageButton) screenLockButton).setImageResource(screenLocked ? R.drawable.ic_lock : R.drawable.ic_lock_open);
+            screenLockButton.setContentDescription(context.getString(screenLocked ? R.string.screen_lock : R.string.screen_lock));
         }
     }
 

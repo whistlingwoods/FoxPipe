@@ -413,9 +413,20 @@ public abstract class PlayQueue implements Serializable {
      */
     public synchronized void setRecovery(final int index, final long position) {
         if (index < 0 || index >= streams.size()) {
+            android.util.Log.w("PlayQueue", "setRecovery: Invalid index " + index
+                    + ", queue size: " + streams.size() + " - NOT setting recovery position!");
             return;
         }
 
+        // Log with stack trace when position is 0 or RECOVERY_UNSET to find the culprit
+        if (position == 0 || position == PlayQueueItem.RECOVERY_UNSET) {
+            android.util.Log.w("PlayQueue", "setRecovery: Setting recovery at index " + index
+                    + " to position " + position + "ms - SUSPICIOUS! Stack trace:",
+                    new Exception("Stack trace"));
+        } else {
+            android.util.Log.d("PlayQueue", "setRecovery: Setting recovery at index " + index
+                    + " to position " + position + "ms");
+        }
         streams.get(index).setRecoveryPosition(position);
         broadcast(new RecoveryEvent(index, position));
     }

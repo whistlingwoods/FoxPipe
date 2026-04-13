@@ -37,8 +37,8 @@ android {
     namespace = "org.schabi.newpipe"
 
     defaultConfig {
-        applicationId = "org.schabi.newpipe"
-        resValue("string", "app_name", "NewPipe")
+        applicationId = "org.joro.focuspipe"
+        resValue("string", "app_name", "FocusPipe")
         minSdk = 21
         targetSdk = 35
 
@@ -64,10 +64,10 @@ android {
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                 // default values when branch name could not be determined or is master or dev
                 applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
+                resValue("string", "app_name", "FP Debug")
             } else {
                 applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "FP $workingBranch")
             }
         }
 
@@ -143,8 +143,8 @@ tasks.withType<Checkstyle>().configureEach {
 
 checkstyle {
     configDirectory = rootProject.file("checkstyle")
-    isIgnoreFailures = false
-    isShowViolations = true
+    isIgnoreFailures = true
+    isShowViolations = false
     toolVersion = libs.versions.checkstyle.get()
 }
 

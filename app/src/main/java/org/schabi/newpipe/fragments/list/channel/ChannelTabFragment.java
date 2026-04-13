@@ -24,13 +24,21 @@ import org.schabi.newpipe.extractor.linkhandler.ReadyChannelTabListLinkHandler;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
 import org.schabi.newpipe.fragments.list.playlist.PlaylistControlViewHolder;
+import org.schabi.newpipe.local.blockedchannel.BlockedChannelManager;
 import org.schabi.newpipe.player.playqueue.ChannelTabPlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.util.ChannelTabHelper;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.PlayButtonHelper;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -44,17 +52,23 @@ public class ChannelTabFragment extends BaseListInfoFragment<InfoItem, ChannelTa
     protected ListLinkHandler tabHandler;
     @State
     protected String channelName;
+    @State
+    protected String channelUrl;
 
     private PlaylistControlBinding playlistControlBinding;
+    private List<org.schabi.newpipe.database.blockedchannel.BlockedChannelEntity> blockedChannelsCache = new ArrayList<>();
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     @NonNull
     public static ChannelTabFragment getInstance(final int serviceId,
                                                  final ListLinkHandler tabHandler,
-                                                 final String channelName) {
+                                                 final String channelName,
+                                                 final String channelUrl) {
         final ChannelTabFragment instance = new ChannelTabFragment();
         instance.serviceId = serviceId;
         instance.tabHandler = tabHandler;
         instance.channelName = channelName;
+        instance.channelUrl = channelUrl;
         return instance;
     }
 
@@ -62,9 +76,29 @@ public class ChannelTabFragment extends BaseListInfoFragment<InfoItem, ChannelTa
         super(UserAction.REQUESTED_CHANNEL);
     }
 
+    private void loadBlockedChannelsCache() {
+        if (getContext() != null) {
+            disposables.add(new BlockedChannelManager(getContext()).blockedChannels()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(channels -> blockedChannelsCache = new ArrayList<>(channels)));
+        }
+    }
+
+    private boolean isChannelBlockedCached(final int serviceId, final String url) {
+        return blockedChannelsCache.stream()
+                .anyMatch(channel -> channel.getServiceId() == serviceId && url != null && url.equals(channel.getUrl()));
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
     // LifeCycle
     //////////////////////////////////////////////////////////////////////////*/
+
+    @Override
+    public void onAttach(@NonNull final android.content.Context context) {
+        super.onAttach(context);
+        loadBlockedChannelsCache();
+    }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -83,6 +117,12 @@ public class ChannelTabFragment extends BaseListInfoFragment<InfoItem, ChannelTa
     public void onDestroyView() {
         super.onDestroyView();
         playlistControlBinding = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        disposables.clear();
     }
 
     @Override
@@ -118,6 +158,13 @@ public class ChannelTabFragment extends BaseListInfoFragment<InfoItem, ChannelTa
     @Override
     public void handleResult(@NonNull final ChannelTabInfo result) {
         super.handleResult(result);
+
+        // Check if channel is blocked using cached data and clear items if blocked
+        if (channelUrl != null && !channelUrl.isEmpty() && isChannelBlockedCached(serviceId, channelUrl)) {
+            // Channel is blocked - clear all items from adapter to show empty channel
+            infoListAdapter.clearStreamItemList();
+            showEmptyState();
+        }
 
         // FIXME this is a really hacky workaround, to avoid storing useless data in the fragment
         //  state. The problem is, `ReadyChannelTabListLinkHandler` might contain raw JSON data that

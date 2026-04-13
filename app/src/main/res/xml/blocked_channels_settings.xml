@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:key="blocked_channels_preferences"
+    android:title="@string/blocked_channels_title">
+
+    <PreferenceCategory
+        android:layout="@layout/settings_category_header_layout"
+        android:title="@string/blocked_channels_list"
+        app:singleLineTitle="false"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:key="@string/manage_blocked_channels_key"
+            android:title="@string/manage_blocked_channels"
+            android:summary="@string/manage_blocked_channels_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

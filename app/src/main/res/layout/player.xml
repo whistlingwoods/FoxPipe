@@ -215,6 +215,7 @@
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:padding="@dimen/player_main_buttons_padding"
+                        android:visibility="gone"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
                         tools:ignore="RtlHardcoded,RtlSymmetry"
@@ -363,6 +364,21 @@
                         android:padding="@dimen/player_main_buttons_padding"
                         android:scaleType="fitXY"
                         android:src="@drawable/ic_share"
+                        app:tint="@color/white"
+                        tools:ignore="RtlHardcoded" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/screenLockButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="37dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:contentDescription="@string/screen_lock"
+                        android:focusable="true"
+                        android:padding="@dimen/player_main_buttons_padding"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_lock_open"
                         app:tint="@color/white"
                         tools:ignore="RtlHardcoded" />
 
@@ -573,6 +589,26 @@
         </LinearLayout>
 
     </RelativeLayout>
+
+    <!-- Unlock overlay button - only visible when screen is locked -->
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/screenUnlockOverlayButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/background_oval_black_transparent"
+        android:clickable="true"
+        android:contentDescription="@string/screen_lock"
+        android:focusable="true"
+        android:padding="14dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_lock"
+        android:visibility="gone"
+        app:tint="@color/white"
+        tools:visibility="visible" />
 
     <RelativeLayout
         android:id="@+id/itemsListPanel"

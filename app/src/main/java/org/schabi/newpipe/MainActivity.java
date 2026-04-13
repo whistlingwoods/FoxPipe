@@ -392,7 +392,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupDrawerHeader() {
-        drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(view -> toggleServices());
+        //drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(view -> toggleServices());
 
         // If the current app name is bigger than the default "NewPipe" (7 chars),
         // let the text view grow a little more as well.

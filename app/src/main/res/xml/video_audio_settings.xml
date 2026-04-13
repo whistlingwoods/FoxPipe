@@ -34,7 +34,7 @@
         app:useSimpleSummaryProvider="true" />
 
     <SwitchPreferenceCompat
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="@string/show_higher_resolutions_key"
         android:summary="@string/show_higher_resolutions_summary"
         android:title="@string/show_higher_resolutions_title"
@@ -66,6 +66,14 @@
         android:key="@string/prefer_original_audio_key"
         android:summary="@string/prefer_original_audio_summary"
         android:title="@string/prefer_original_audio_title"
+        app:singleLineTitle="false"
+        app:iconSpaceReserved="false"/>
+
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="@string/show_playback_speed_controls_key"
+        android:title="@string/show_playback_speed_controls_title"
+        android:summary="@string/show_playback_speed_controls_summary"
         app:singleLineTitle="false"
         app:iconSpaceReserved="false"/>
 
@@ -163,7 +171,7 @@
             app:iconSpaceReserved="false" />
 
         <ListPreference
-            android:defaultValue="@string/autoplay_value"
+            android:defaultValue="@string/autoplay_never_key"
             android:entries="@array/autoplay_type_description"
             android:entryValues="@array/autoplay_type_key"
             android:key="@string/autoplay_key"
@@ -249,5 +257,31 @@
             android:title="@string/ignore_hardware_media_buttons_title"
             app:singleLineTitle="false"
             app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:layout="@layout/settings_category_header_layout"
+        android:title="@string/sponsorblock_enable_title"
+        app:singleLineTitle="false"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/sponsorblock_enable_key"
+            android:summary="@string/sponsorblock_enable_summary"
+            android:title="@string/sponsorblock_enable_title"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
+        <MultiSelectListPreference
+            android:dependency="@string/sponsorblock_enable_key"
+            android:key="@string/sponsorblock_categories_key"
+            android:title="@string/sponsorblock_categories_title"
+            android:entries="@array/sponsorblock_categories_descriptions"
+            android:entryValues="@array/sponsorblock_categories_values"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 </PreferenceScreen>

@@ -276,7 +276,7 @@ public class StatisticsPlaylistFragment
 
         PlayButtonHelper.initPlaylistControlClickListener(activity, playlistControlBinding, this);
 
-        headerBinding.sortButton.setOnClickListener(view -> toggleSortMode());
+        headerBinding.sortButton.setVisibility(View.GONE);
 
         hideLoading();
     }
@@ -296,22 +296,6 @@ public class StatisticsPlaylistFragment
     /*//////////////////////////////////////////////////////////////////////////
     // Utils
     //////////////////////////////////////////////////////////////////////////*/
-
-    private void toggleSortMode() {
-        if (sortMode == StatisticSortMode.LAST_PLAYED) {
-            sortMode = StatisticSortMode.MOST_PLAYED;
-            setTitle(getString(R.string.title_most_played));
-            headerBinding.sortButtonIcon.setImageResource(R.drawable.ic_history);
-            headerBinding.sortButtonText.setText(R.string.title_last_played);
-        } else {
-            sortMode = StatisticSortMode.LAST_PLAYED;
-            setTitle(getString(R.string.title_last_played));
-            headerBinding.sortButtonIcon.setImageResource(
-                R.drawable.ic_filter_list);
-            headerBinding.sortButtonText.setText(R.string.title_most_played);
-        }
-        startLoading(true);
-    }
 
     private PlayQueue getPlayQueueStartingAt(final StreamStatisticsEntry infoItem) {
         return getPlayQueue(Math.max(itemListAdapter.getItemsList().indexOf(infoItem), 0));
@@ -389,4 +373,3 @@ public class StatisticsPlaylistFragment
         MOST_PLAYED,
     }
 }
-
