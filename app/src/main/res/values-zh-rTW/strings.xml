@@ -82,9 +82,6 @@
     <string name="video">影片</string>
     <string name="audio">音訊</string>
     <string name="retry">重試</string>
-    <string name="short_thousand">千</string>
-    <string name="short_million">百萬</string>
-    <string name="short_billion">十億</string>
     <string name="start">開始</string>
     <string name="pause">暫停</string>
     <string name="delete">刪除</string>
@@ -602,7 +599,6 @@
     <string name="description_select_enable">啟用選取描述中的文字</string>
     <string name="description_select_note">您現在可以選取描述中的文字了。請注意，在選取模式下，頁面可能會閃爍，連結也可能無法點擊。</string>
     <string name="open_website_license">開啟網站</string>
-    <string name="service_provides_reason">%s 提供了這個理由：</string>
     <string name="account_terminated">帳號已終止</string>
     <string name="feed_load_error_fast_unknown">快速 feed 模式不會提供更多資訊。</string>
     <string name="feed_load_error_terminated">作者的帳號已被終止。
@@ -623,8 +619,6 @@
     <string name="seekbar_preview_thumbnail_title">拖動列縮圖預覽</string>
     <string name="detail_heart_img_view_description">被創作者加心號</string>
     <string name="mark_as_watched">標記為已看</string>
-    <string name="show_image_indicators_summary">在圖片頂部顯示畢卡索彩色絲帶，指示其來源：紅色代表網路、藍色代表磁碟、綠色代表記憶體</string>
-    <string name="show_image_indicators_title">顯示圖片指示器</string>
     <string name="remote_search_suggestions">遠端搜尋建議</string>
     <string name="local_search_suggestions">本機搜尋建議</string>
     <plurals name="deleted_downloads_toast">

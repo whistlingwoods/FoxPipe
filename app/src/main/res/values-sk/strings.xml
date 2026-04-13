@@ -82,9 +82,6 @@
     <string name="title_activity_recaptcha">Výzva reCAPTCHA</string>
     <string name="black_theme_title">Čierna</string>
     <string name="all">Všetko</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">B</string>
     <string name="recaptcha_request_toast">Požiadavka reCAPTCHA</string>
     <string name="open_in_popup_mode">Otvoriť vo vyskakovacom okne</string>
     <string name="msg_popup_permission">Tieto práva sú potrebné pre
@@ -621,7 +618,6 @@
     <string name="description_select_enable">Povolenie výberu textu v popise</string>
     <string name="description_select_note">Teraz môžete vybrať text vo vnútri popisu. Upozorňujeme, že stránka môže blikať a odkazy nemusia byť klikateľné, keď je v režime výberu.</string>
     <string name="open_website_license">Otvoriť webstránku</string>
-    <string name="service_provides_reason">%s uvádza tento dôvod:</string>
     <string name="account_terminated">Účet bol zrušený</string>
     <string name="feed_load_error_fast_unknown">Tento rýchly režim neposkytuje viac informácií.</string>
     <string name="feed_load_error_terminated">Účet autora bol zrušený.
@@ -651,8 +647,6 @@
     <string name="low_quality_smaller">Nízka kvalita (menšie)</string>
     <string name="high_quality_larger">Vysoká kvalita (väčšie)</string>
     <string name="seekbar_preview_thumbnail_title">Náhľad miniatúry pri vyhľadávaní</string>
-    <string name="show_image_indicators_summary">Zobrazí farebné pásiky Picasso na obrázkoch podľa ich zdroja: červený pre sieť, modrý pre disk a zelený pre pamäť</string>
-    <string name="show_image_indicators_title">Zobraziť indikátory obrázka</string>
     <string name="main_page_content_swipe_remove">Potiahnutím vymazať</string>
     <string name="comments_are_disabled">Komentáre sú zakázané</string>
     <string name="start_main_player_fullscreen_summary">Ak je automatické otáčanie zablokované, nespustí videá v miniprehrávači, ale prepne sa do celoobrazovkového režimu. Do miniprehrávača sa dostanete po ukončení režimu celej obrazovky</string>

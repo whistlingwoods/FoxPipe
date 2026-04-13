@@ -90,9 +90,6 @@
     <string name="popup_playing_toast">Reproduzindo em modo Popup</string>
     <string name="all">Todos</string>
     <string name="disabled">Desativado</string>
-    <string name="short_thousand">mil</string>
-    <string name="short_million">mi</string>
-    <string name="short_billion">bi</string>
     <string name="msg_popup_permission">Essa permissão é necessária
 \npara abrir em modo Popup</string>
     <string name="clear">Limpar</string>
@@ -622,7 +619,6 @@
     <string name="description_select_enable">Ativar seleção de texto na descrição</string>
     <string name="description_select_note">Agora você pode selecionar o texto dentro da descrição. Note que a página pode piscar e os URL podem não ser clicáveis no modo de seleção.</string>
     <string name="open_website_license">Abrir site</string>
-    <string name="service_provides_reason">%s fornece este motivo:</string>
     <string name="account_terminated">Conta encerrada</string>
     <string name="feed_load_error_fast_unknown">O modo feed rápido não fornece mais informações sobre isso.</string>
     <string name="feed_load_error_terminated">A conta do autor foi encerrada.
@@ -643,7 +639,6 @@
     <string name="comments_are_disabled">Os comentários estão desabilitados</string>
     <string name="mark_as_watched">Marcar como assistido</string>
     <string name="detail_heart_img_view_description">Curtido pelo criador</string>
-    <string name="show_image_indicators_summary">Exibir fitas coloridas no topo das imagens indicando sua fonte: vermelho para rede, azul para disco e verde para memória</string>
     <plurals name="deleted_downloads_toast">
         <item quantity="one">%1$s download excluído</item>
         <item quantity="many">%1$s downloads excluídos</item>
@@ -654,7 +649,6 @@
         <item quantity="many">%s downloads concluídos</item>
         <item quantity="other">%s downloads concluídos</item>
     </plurals>
-    <string name="show_image_indicators_title">Mostrar indicadores de imagem</string>
     <string name="enqueued_next">Adicionado na próxima posição da fila</string>
     <string name="enqueue_next_stream">Enfileira a próxima</string>
     <string name="main_page_content_swipe_remove">Deslize os itens para remove-los</string>

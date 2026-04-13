@@ -159,9 +159,6 @@
     <string name="video">Відэа</string>
     <string name="audio">Аўдыя</string>
     <string name="retry">Паспрабаваць зноў</string>
-    <string name="short_thousand">тыс.</string>
-    <string name="short_million">млн</string>
-    <string name="short_billion">млрд</string>
     <string name="no_subscribers">Няма падпісчыкаў</string>
     <plurals name="subscribers">
         <item quantity="one">%s падпісчык</item>
@@ -707,7 +704,6 @@
     <string name="private_content">Гэта змесціва з\'яўляецца прыватным, таму NewPipe не можа яго трансляваць або спампоўваць.</string>
     <string name="youtube_music_premium_content">Гэта відэа даступна толькі для падпісчыкаў YouTube Music Premium, таму NewPipe не можа яго трансляваць або спампоўваць.</string>
     <string name="account_terminated">Уліковы запіс спынены</string>
-    <string name="service_provides_reason">%s дае наступную прычыну:</string>
     <string name="featured">Вартае ўвагі</string>
     <string name="metadata_privacy_internal">Унутраная</string>
     <string name="feed_show_watched">Прагледжаныя цалкам</string>

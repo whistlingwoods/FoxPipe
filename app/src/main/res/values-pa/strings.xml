@@ -153,9 +153,6 @@
     <string name="video">ਵੀਡੀਓ</string>
     <string name="audio">ਆਡੀਓ</string>
     <string name="retry">ਦੋਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ</string>
-    <string name="short_thousand">ਹਜ਼ਾਰ</string>
-    <string name="short_million">ਮਿਲੀਅਨ</string>
-    <string name="short_billion">ਅਰਬ</string>
     <string name="no_subscribers">ਕੋਈ ਸਬਸਕ੍ਰਾਈਬਰ ਨਹੀਂ</string>
     <plurals name="subscribers">
         <item quantity="one">%s ਸਬਸਕ੍ਰਾਈਬਰ</item>
@@ -458,7 +455,6 @@
     <string name="radio">ਰੇਡੀਓ</string>
     <string name="featured">ਫੀਚਰਡ</string>
     <string name="paid_content">ਇਹ ਸਮੱਗਰੀ ਸਿਰਫ਼ ਉਹਨਾਂ ਵਰਤੋਂਕਾਰਾਂ ਲਈ ਉਪਲਬਧ ਹੈ ਜਿੰਨ੍ਹਾਂ ਨੇ ਇਸਦੇ ਲਈ ਕੀਮਤ ਦਿੱਤੀ ਹੈ, ਇਸ ਕਰਕੇ ਨਿਊ-ਪਾਈਪ ਦੁਆਰਾ ਚਲਾਈ ਜਾਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕਦੀ।</string>
-    <string name="service_provides_reason">%s ਇਸਦਾ ਕਾਰਨ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ:</string>
     <string name="account_terminated">ਖਾਤਾ ਬੰਦ ਕੀਤਾ ਗਿਆ</string>
     <string name="youtube_music_premium_content">ਇਹ ਵੀਡੀਓ ਸਿਰਫ਼ ਯੂਟਿਊਬ ਮਿਊਜ਼ਿਕ ਦੇ ਪ੍ਰੀਮੀਅਮ ਮੈਂਬਰਾਂ ਲਈ ਉਪਲਬਧ ਹੈ, ਇਸ ਕਰਕੇ ਨਿਊ-ਪਾਈਪ ਦੁਆਰਾ ਚਲਾਈ ਜਾਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕਦੀ।</string>
     <string name="private_content">ਇਹ ਸਮੱਗਰੀ ਨਿੱਜੀ (ਪ੍ਰਾਈਵੇਟ) ਹੈ, ਇਸ ਕਰਕੇ ਨਿਊ-ਪਾਈਪ ਦੁਆਰਾ ਚਲਾਈ ਜਾਂ ਡਾਊਨਲੋਡ ਨਹੀਂ ਕੀਤੀ ਜਾ ਸਕਦੀ।</string>
@@ -625,8 +621,6 @@
     <string name="error_report_notification_title">ਨਿਊਪਾਈਪ ਖਾਮੀ ਤੋਂ ਪ੍ਰਭਾਵਤ ਹੋਈ ਹੈ, ਇੱਥੇ ਨੱਪ ਕੇ ਰਿਪੋਰਟ ਕਰੋ</string>
     <string name="error_report_notification_toast">ਇੱਕ ਖਾਮੀ ਪ੍ਰਭਾਵੀ ਹੋਈ ਹੈ, ਨੋਟੀਫੀਕੇਸ਼ਨ ਵੇਖੋ</string>
     <string name="main_page_content_swipe_remove">ਆਈਟਮਾਂ ਨੂੰ ਇੱਕ ਪਾਸੇ ਖਿੱਚ ਕੇ ਹਟਾਓ</string>
-    <string name="show_image_indicators_title">ਦ੍ਰਿਸ਼ ਸੂਚਕ ਵਿਖਾਓ</string>
-    <string name="show_image_indicators_summary">ਦ੍ਰਿਸ਼ਾਂ ਦੇ ਉੱਪਰ ਉਹਨਾਂ ਦੀ ਸਰੋਤ-ਪਛਾਣ ਲਈ ਪਿਕਾਸੋ ਦੇ ਰੰਗਦਾਰ ਰਿਬਨ ਵਿਖਾਓ : ਨੈੱਟਵਰਕ ਲਈ ਲਾਲ, ਡਿਸਕ ਲਈ ਨੀਲੇ ਤੇ ਮੈਮਰੀ ਲਈ ਹਰੇ</string>
     <string name="enable_streams_notifications_title">ਨਵੀਂ ਸਟ੍ਰੀਮ ਦੇ ਨੋਟੀਫਿਕੇਸ਼ਨ</string>
     <string name="detail_pinned_comment_view_description">ਪਿੰਨ ਕੀਤੀ ਟਿੱਪਣੀ</string>
     <string name="checking_updates_toast">ਅੱਪਡੇਟ ਦੀ ਉਪਲੱਬਧਤਾ ਪਰਖੀ ਜਾ ਰਹੀ…</string>

@@ -341,7 +341,6 @@
     <string name="show_original_time_ago_summary">ସେବାଗୁଡିକରୁ ମୂଳ ଲେଖା ଷ୍ଟ୍ରିମ୍ ଆଇଟମ୍ ଗୁଡିକରେ ଦୃଶ୍ୟମାନ ହେବ</string>
     <string name="disable_media_tunneling_title">ମିଡିଆ ଟନେଲିଂକୁ ଅକ୍ଷମ କରନ୍ତୁ</string>
     <string name="disable_media_tunneling_summary">ଯଦି ଆପଣ ଏକ କଳା ପରଦା ଅନୁଭବ କରନ୍ତି କିମ୍ବା ଭିଡିଓ ପ୍ଲେବେକ୍ ଉପରେ ଝୁଣ୍ଟି ପଡ଼ନ୍ତି ତେବେ ମିଡିଆ ଟନେଲିଂକୁ ଅକ୍ଷମ କରନ୍ତୁ ।</string>
-    <string name="show_image_indicators_summary">ଚିତ୍ରଗୁଡ଼ିକର ଉପରେ ପିକାସୋ ରଙ୍ଗୀନ ଫିତା ଦେଖାନ୍ତୁ: ସେମାନଙ୍କର ଉତ୍ସକୁ ସୂଚାଇଥାଏ: ନେଟୱାର୍କ ପାଇଁ ନାଲି, ଡିସ୍କ ପାଇଁ ନୀଳ ଏବଂ ସ୍ମୃତି ପାଇଁ ସବୁଜ</string>
     <string name="import_title">ଆମଦାନି କରନ୍ତୁ</string>
     <string name="import_from">ଠାରୁ ଆମଦାନୀ କରନ୍ତୁ</string>
     <string name="import_ongoing">ଆମଦାନି…</string>
@@ -438,7 +437,6 @@
     <string name="detail_dislikes_img_view_description">ନାପସନ୍ଦ</string>
     <string name="comments_tab_description">ମନ୍ତବ୍ୟ ଗୁଡିକ</string>
     <string name="description_tab_description">ବର୍ଣ୍ଣନା</string>
-    <string name="short_million">ନିୟୁତ</string>
     <string name="recaptcha_solve">ସମାଧାନ</string>
     <string name="playback_speed_control">ପ୍ଲେବେକ୍ ସ୍ପିଡ୍ ନିୟନ୍ତ୍ରଣ</string>
     <string name="playback_tempo">ଟେମ୍ପୋ</string>
@@ -487,7 +485,6 @@
     <string name="feed_group_dialog_select_subscriptions">ସଦସ୍ୟତା ଚୟନ କରନ୍ତୁ</string>
     <string name="feed_group_dialog_empty_selection">କୌଣସି ସଦସ୍ୟତା ଚୟନ ହୋଇନାହିଁ</string>
     <string name="feed_use_dedicated_fetch_method_enable_button">ଦ୍ରୁତ ମୋଡ୍ ସକ୍ଷମ କରନ୍ତୁ</string>
-    <string name="service_provides_reason">%s ଏହି କାରଣ ପ୍ରଦାନ କରେ:</string>
     <string name="detail_sub_channel_thumbnail_view_description">ଚ୍ୟାନେଲର ଅବତାର ଥମ୍ୱନେଲ୍</string>
     <string name="featured">ବୈଶିଷ୍ଟ୍ୟ</string>
     <string name="radio">ରେଡିଓ</string>
@@ -528,7 +525,6 @@
     <string name="related_items_tab_description">ସମ୍ବନ୍ଧୀୟ ଆଇଟମ୍ ଗୁଡ଼ିକ</string>
     <string name="detail_drag_description">ପୁନଃ ସଯାଇବାକୁ ଡ୍ରାଗ୍ କରନ୍ତୁ</string>
     <string name="pause">ବିରାମ</string>
-    <string name="short_billion">ଵୃନ୍ଦ</string>
     <string name="no_subscribers">କୌଣସି ଗ୍ରାହକ ନାହାଁନ୍ତି</string>
     <string name="create">ସୃଷ୍ଟି କରନ୍ତୁ</string>
     <string name="msg_running_detail">ବିବରଣୀ ପାଇଁ ଟ୍ୟାପ୍ କରନ୍ତୁ</string>
@@ -609,7 +605,6 @@
     <string name="select_quality_external_players">ବହିଃ-ଚାଳକ ପାଇଁ ଗୁଣବତ୍ତା ଚୟନ କରନ୍ତୁ</string>
     <string name="detail_pinned_comment_view_description">ପିନ୍ ହୋଇଥିବା ମନ୍ତବ୍ୟ</string>
     <string name="open_website_license">ୱେବସାଇଟ୍ ଖୋଲନ୍ତୁ</string>
-    <string name="short_thousand">ହଜାର</string>
     <string name="preferred_player_fetcher_notification_title">ସୂଚନା ପାଇବା…</string>
     <plurals name="subscribers">
         <item quantity="one">%s ଗ୍ରାହକ</item>
@@ -656,7 +651,6 @@
     <string name="playlist_no_uploader">ଅଟୋ-ଜେନେରେଟ୍ (କୌଣସି ଅପଲୋଡର୍ ମିଳିଲା ନାହିଁ)</string>
     <string name="resize_fill">ପୁରଣ କରନ୍ତୁ</string>
     <string name="caption_setting_title">କ୍ୟାପସନ୍</string>
-    <string name="show_image_indicators_title">ପ୍ରତିଛବି ସୂଚକ ଦେଖାନ୍ତୁ</string>
     <string name="show_crash_the_player_summary">ପ୍ଲେୟାର ବ୍ୟବହାର କରିବା ସମୟରେ ଏକ କ୍ରାସ୍ ବିକଳ୍ପ ଦେଖାଏ</string>
     <string name="check_new_streams">ନୂତନ ଷ୍ଟ୍ରିମ୍ ପାଇଁ ଯାଞ୍ଚ ଚଲାନ୍ତୁ</string>
     <string name="crash_the_app">ଆପ୍ କ୍ରାସ୍ କରନ୍ତୁ</string>

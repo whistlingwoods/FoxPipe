@@ -82,9 +82,6 @@
     <string name="title_activity_recaptcha">Risoluzione reCAPTCHA</string>
     <string name="black_theme_title">Nero</string>
     <string name="all">Tutto</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">Mrd</string>
     <string name="recaptcha_request_toast">È richiesta la risoluzione del reCAPTCHA</string>
     <string name="open_in_popup_mode">Apri in modalità popup</string>
     <string name="popup_playing_toast">Riproduzione in modalità popup</string>
@@ -622,7 +619,6 @@
     <string name="description_select_enable">Attiva la selezione del testo nella descrizione</string>
     <string name="description_select_note">È possibile selezionare il testo all\'interno della descrizione. In modalità selezione la pagina potrebbe sfarfallare e i collegamenti potrebbero non essere cliccabili.</string>
     <string name="open_website_license">Visita il sito</string>
-    <string name="service_provides_reason">%s fornisce questa motivazione:</string>
     <string name="account_terminated">Account chiuso</string>
     <string name="feed_load_error_fast_unknown">Il recupero veloce dei feed non fornisce ulteriori informazioni al riguardo.</string>
     <string name="feed_load_error_terminated">L\'account dell\'autore è stato chiuso.
@@ -643,8 +639,6 @@
     <string name="comments_are_disabled">Commenti disattivati</string>
     <string name="detail_heart_img_view_description">Apprezzato dall\'autore</string>
     <string name="mark_as_watched">Segna come visto</string>
-    <string name="show_image_indicators_summary">Mostra gli indicatori colorati Picasso sopra le immagini, per indicare la loro fonte: rosso per la rete, blu per il disco e verde per la memoria</string>
-    <string name="show_image_indicators_title">Mostra indicatori immagine</string>
     <string name="remote_search_suggestions">Suggerimenti di ricerca remoti</string>
     <string name="local_search_suggestions">Suggerimenti di ricerca locali</string>
     <plurals name="deleted_downloads_toast">

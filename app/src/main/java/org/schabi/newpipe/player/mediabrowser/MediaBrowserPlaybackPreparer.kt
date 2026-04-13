@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.ResultReceiver
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector.PlaybackPreparer
@@ -17,6 +16,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.MainActivity
 import org.schabi.newpipe.NewPipeDatabase
 import org.schabi.newpipe.R
+import org.schabi.newpipe.error.ErrorInfo
 import org.schabi.newpipe.extractor.InfoItem.InfoType
 import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler
@@ -28,6 +28,7 @@ import org.schabi.newpipe.player.playqueue.PlaylistPlayQueue
 import org.schabi.newpipe.player.playqueue.SinglePlayQueue
 import org.schabi.newpipe.util.ChannelTabHelper
 import org.schabi.newpipe.util.ExtractorHelper
+import org.schabi.newpipe.util.Localization
 import org.schabi.newpipe.util.NavigationHelper
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -84,7 +85,7 @@ class MediaBrowserPlaybackPreparer(
                 },
                 { throwable ->
                     Log.e(TAG, "Failed to start playback of media ID [$mediaId]", throwable)
-                    onPrepareError()
+                    onPrepareError(throwable)
                 }
             )
     }
@@ -110,14 +111,14 @@ class MediaBrowserPlaybackPreparer(
     //region Errors
     private fun onUnsupportedError() {
         setMediaSessionError.accept(
-            ContextCompat.getString(context, R.string.content_not_supported),
+            Localization.compatGetString(context, R.string.content_not_supported),
             PlaybackStateCompat.ERROR_CODE_NOT_SUPPORTED
         )
     }
 
-    private fun onPrepareError() {
+    private fun onPrepareError(throwable: Throwable) {
         setMediaSessionError.accept(
-            ContextCompat.getString(context, R.string.error_snackbar_message),
+            ErrorInfo.getMessage(throwable, null, null).getString(context),
             PlaybackStateCompat.ERROR_CODE_APP_ERROR
         )
     }

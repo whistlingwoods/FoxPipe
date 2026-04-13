@@ -166,9 +166,6 @@
     <string name="no_streams_available_download">Nincs letölthető adatfolyam</string>
     <string name="empty_list_subtitle">Nincs itt semmi pár tücskön kívül</string>
     <string name="detail_drag_description">Húzza az átrendezéshez</string>
-    <string name="short_thousand">e</string>
-    <string name="short_million">m</string>
-    <string name="short_billion">M</string>
     <string name="no_subscribers">Nincs feliratkozó</string>
     <plurals name="subscribers">
         <item quantity="one">%s feliratkozó</item>
@@ -540,7 +537,6 @@
     <string name="related_items_tab_description">Kapcsolódó elemek</string>
     <string name="error_report_open_github_notice">Ellenőrizze, hogy létezik-e már olyan jegy, amely az összeomlásával foglalkozik. Ha duplikált jegyet ad fel, akkor olyan időt vesz el tőlünk, amelyet a hiba javítására tudnánk fordítani.</string>
     <string name="minimize_on_exit_title">Minimalizálás alkalmazásváltáskor</string>
-    <string name="service_provides_reason">A(z) %s ezt az okot adta meg:</string>
     <string name="local_search_suggestions">Helyi keresési javaslatok</string>
     <string name="remote_search_suggestions">Távoli keresési javaslatok</string>
     <string name="start_main_player_fullscreen_title">A fő lejátszó teljes képernyős indítása</string>
@@ -554,7 +550,6 @@
     <string name="enable_disposed_exceptions_summary">Az eltávolítás utáni, fragment vagy activity életcikluson kívüli, nem kézbesíthető Rx kivételek jelentésének kényszerítése</string>
     <string name="show_original_time_ago_title">Eredeti „ennyi ideje” megjelenítése az elemeken</string>
     <string name="disable_media_tunneling_summary">Tiltsa le a médiacsatornázást, ha fekete képernyőt vagy akadozást tapasztal videólejátszáskor.</string>
-    <string name="show_image_indicators_summary">Picasso színes szalagok megjelenítése a képek fölött, megjelölve a forrásukat: piros a hálózathoz, kék a lemezhez, zöld a memóriához</string>
     <string name="downloads_storage_ask_summary_no_saf_notice">Minden letöltésnél meg fogja kérdezni, hogy hova mentse el</string>
     <string name="choose_instance_prompt">Válasszon egy példányt</string>
     <string name="feed_oldest_subscription_update">Hírfolyam utoljára frissítve: %s</string>

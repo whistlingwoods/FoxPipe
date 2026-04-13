@@ -83,9 +83,7 @@
     <string name="no_available_dir">Určete prosím složku pro stahování později v nastavení</string>
     <string name="info_labels">Co:\\nŽádost:\\nJazyk obsahu:\\nZemě obsahu:\\nJazyk aplikace:\\nSlužba:\\nČas GMT:\\nBalíček:\\nVerze:\\nVerze OS:</string>
     <string name="all">Vše</string>
-    <string name="short_thousand">tis.</string>
     <string name="open_in_popup_mode">Otevřít ve vyskakovacím okně</string>
-    <string name="short_million">mil.</string>
     <string name="msg_popup_permission">Toto oprávnění je vyžadováno
 \npro otevření ve vyskakovacím okně</string>
     <string name="use_external_video_player_summary">Odstraňuje zvuk v některých rozlišeních</string>
@@ -124,7 +122,6 @@
     <string name="notification_channel_description">Oznámení pro NewPipe přehrávač</string>
     <string name="search_no_results">Žádné výsledky</string>
     <string name="empty_list_subtitle">Je tu sranda jak v márnici</string>
-    <string name="short_billion">mld.</string>
     <string name="no_subscribers">Žádní odběratelé</string>
     <plurals name="subscribers">
         <item quantity="one">%s odběratel</item>
@@ -622,7 +619,6 @@
     <string name="description_select_disable">Vypnout výběr textu v popisu</string>
     <string name="description_select_enable">Zapnout výběr textu v popisu</string>
     <string name="description_select_note">Nyní můžete vybrat v popisu text. Pamatujte, že v režimu výběru může stránka blikat a odkazy nemusí reagovat na kliknutí.</string>
-    <string name="service_provides_reason">%s udává teno důvod:</string>
     <string name="account_terminated">Účet uzavřen</string>
     <string name="feed_load_error_fast_unknown">Režim rychlého feedu o tom neposkytuje více informací.</string>
     <string name="feed_load_error_terminated">Autorův účet byl uzavřen.
@@ -653,8 +649,6 @@
         <item quantity="few">%s stahování dokončena</item>
         <item quantity="other">%s stahováních dokončeno</item>
     </plurals>
-    <string name="show_image_indicators_summary">Zobrazit barevné pásky Picasso na obrázcích označujících jejich zdroj: červená pro síť, modrá pro disk a zelená pro paměť</string>
-    <string name="show_image_indicators_title">Zobrazit indikátory obrázků</string>
     <string name="remote_search_suggestions">Vzdálené návrhy vyhledávání</string>
     <string name="local_search_suggestions">Lokální návrhy vyhledávání</string>
     <string name="start_main_player_fullscreen_summary">Pokud je vypnuté automatické otáčení, nespouštět video v mini přehrávači, ale přepnout se přímo do režimu celé obrazovky. Do mini přehrávače se lze i nadále dostat ukončením režimu celé obrazovky</string>

@@ -82,9 +82,6 @@
     <string name="recaptcha_request_toast">Meminta kode reCAPTCHA</string>
     <string name="black_theme_title">Hitam</string>
     <string name="all">Semua</string>
-    <string name="short_thousand">r</string>
-    <string name="short_million">J</string>
-    <string name="short_billion">T</string>
     <string name="open_in_popup_mode">Buka pada mode sembulan</string>
     <string name="msg_popup_permission">Izin ini dibutuhkan untuk
 \nmembuka di mode sembul</string>
@@ -602,7 +599,6 @@
     <string name="description_select_enable">Aktifkan dapat memilih teks pada deskripsi</string>
     <string name="description_select_note">Anda sekarang dapat memilih teks di dalam deskripsi. Perhatikan bahwa halaman mungkin berkedip dan tautan tidak dapat diklik saat dalam mode pemilihan.</string>
     <string name="open_website_license">Buka situs web</string>
-    <string name="service_provides_reason">%s menyediakan alasan ini:</string>
     <string name="account_terminated">Akun dinonaktifkan</string>
     <string name="feed_load_error_fast_unknown">Mode langganan cepat tidak menyediakan lebih banyak info tentang ini.</string>
     <string name="feed_load_error_terminated">Akun kreator telah dinonaktifkan.
@@ -630,13 +626,11 @@
     <string name="detail_heart_img_view_description">Disukai oleh kreator</string>
     <string name="local_search_suggestions">Saran pencarian lokal</string>
     <string name="remote_search_suggestions">Saran pencarian remote</string>
-    <string name="show_image_indicators_title">Tampilkan indikator gambar</string>
     <plurals name="deleted_downloads_toast">
         <item quantity="other">Menghapus %1$s unduhan</item>
     </plurals>
     <string name="enqueue_next_stream">tambahkan ke selanjutnya</string>
     <string name="enqueued_next">telah ditambahkan ke selanjutnya</string>
-    <string name="show_image_indicators_summary">Tampilkan Ribon bewarna Picasso di atas gambar yang mengindikasikan asalnya: merah untuk jaringan, biru untuk disk dan hijau untuk memori</string>
     <string name="start_main_player_fullscreen_summary">Jangan memulai memutar video di mini player, tapi nyalakan langsung di mode layar penuh, jika rotasi otomatis terkunci. Anda tetap dapat mengakses mini player dengan keluar dari layar penuh</string>
     <string name="processing_may_take_a_moment">Memproses… Mungkin butuh waktu sebentar</string>
     <string name="check_for_updates">Periksa Pembaruan</string>

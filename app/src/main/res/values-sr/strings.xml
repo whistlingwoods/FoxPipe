@@ -83,9 +83,6 @@
     <string name="recaptcha_request_toast">Решите „reCAPTCHA“ задатак</string>
     <string name="black_theme_title">Црна</string>
     <string name="all">Све</string>
-    <string name="short_thousand">хиљ.</string>
-    <string name="short_million">мил.</string>
-    <string name="short_billion">млрд.</string>
     <string name="open_in_popup_mode">Отвори у искачућем облику</string>
     <string name="msg_popup_permission">Ова дозвола је потребна за
 \nотварање у искачућем режиму</string>
@@ -622,7 +619,6 @@
     <string name="description_select_enable">Омогући бирање текста унутар описа</string>
     <string name="description_select_disable">Онемогући бирање текста унутар описа</string>
     <string name="description_select_note">Сада можете изабрати текст унутар описа. Имајте на уму да страница може треперети и да се на линкове можда неће моћи кликнути док сте у режиму избора.</string>
-    <string name="service_provides_reason">%s даје овај разлог:</string>
     <string name="account_terminated">Налог укинут</string>
     <string name="feed_load_error_fast_unknown">Режим брзог фида не пружа више информација о овоме.</string>
     <string name="feed_load_error_terminated">Налог аутора је укинут.
@@ -643,7 +639,6 @@
     <string name="mark_as_watched">Означи као одгледано</string>
     <string name="comments_are_disabled">Коментари су онемогућени</string>
     <string name="processing_may_take_a_moment">Обрађивање… Може потрајати пар тренутака</string>
-    <string name="show_image_indicators_title">Прикажи индикаторе слике</string>
     <string name="start_main_player_fullscreen_summary">Не покрећите видео снимке у мини-плејеру, већ директно пређите на режим целог екрана, ако је аутоматска ротација закључана. И даље можете приступити мини-плејеру тако што ћете изаћи из целог екрана</string>
     <string name="start_main_player_fullscreen_title">Покрени главни плејер преко целог екрана</string>
     <string name="crash_the_player">Срушите плејер</string>
@@ -739,7 +734,6 @@
     <string name="error_report_channel_description">Обавештења за пријаву грешака</string>
     <string name="import_subscriptions_hint">Увезите или извезите праћења из менија са 3 тачке</string>
     <string name="audio_track">Аудио снимак</string>
-    <string name="show_image_indicators_summary">Прикажите Picasso обојене траке на врху слика које указују на њихов извор: црвена за мрежу, плава за диск и зелена за меморију</string>
     <string name="create_error_notification">Направите обавештење о грешци</string>
     <string name="percent">Проценат</string>
     <string name="app_update_unavailable_toast">Користите најновију верзију NewPipe-а</string>

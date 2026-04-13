@@ -87,8 +87,6 @@
     <string name="all">全部嘢</string>
     <string name="app_ui_crash">App/界面閃退</string>
     <string name="info_labels">經過：\\n請求：\\n內容語言：\\n內容國家：\\nApp 語言：\\n服務：\\nGMT 時間：\\n封裝：\\n版本：\\nOS 版本：</string>
-    <string name="short_thousand">千</string>
-    <string name="short_million">百萬</string>
     <string name="title_activity_recaptcha">reCAPTCHA 考驗</string>
     <string name="msg_popup_permission">以浮面模式開啟
 \n有呢個權限至得</string>
@@ -103,7 +101,6 @@
     <string name="disabled">不適用</string>
     <string name="clear">抹走</string>
     <string name="best_resolution">最佳解像度</string>
-    <string name="short_billion">十億</string>
     <string name="title_activity_about">關於 NewPipe</string>
     <string name="title_licenses">第三方版權協議</string>
     <string name="copyright" formatted="true">© %1$s %2$s 版權所有，根據 %3$s 嘅條款授權</string>
@@ -489,7 +486,6 @@
     <string name="content_not_supported">NewPipe 仲未支援到呢樣。
 \n
 \n希望未來會喺日後嘅版本支援啦。</string>
-    <string name="service_provides_reason">%s 話理由如下：</string>
     <string name="no_appropriate_file_manager_message">搵唔到合適嘅檔案總管進行呢個動作。
 \n請安裝一個檔案管理程式，又或者試下喺下載設定度停用「%s」</string>
     <string name="no_appropriate_file_manager_message_android_10">搵唔到合適嘅檔案總管進行呢個動作。
@@ -667,9 +663,7 @@
     <string name="feed_create_new_group_button_title">新</string>
     <string name="feed_group_dialog_delete_message">你係咪要刪除呢個谷？</string>
     <string name="feed_group_show_only_ungrouped_subscriptions">淨係顯示未成谷嘅訂閱</string>
-    <string name="show_image_indicators_summary">啲圖都要騷 Picasso 三色碼顯示源頭：紅碼係網絡上高落嚟，藍碼係儲存喺磁碟本地，綠碼係潛伏喺記憶體中</string>
     <string name="show_original_time_ago_summary">服務原本嘅字會騷返喺串流項目上面</string>
-    <string name="show_image_indicators_title">影像要推三色碼</string>
     <string name="disable_media_tunneling_summary">若果播片嘅時候窒下窒下或者黑畫面，就停用多媒體隧道啦。</string>
     <string name="import_youtube_instructions">點樣用 Google 匯出嚟匯入 YouTube 訂閱：
 \n

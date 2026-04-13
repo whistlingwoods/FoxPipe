@@ -88,9 +88,6 @@
     <string name="disabled">Devre dışı</string>
     <string name="your_comment">Yorumunuz (İngilizce):</string>
     <string name="error_details_headline">Ayrıntılar:</string>
-    <string name="short_thousand">b</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">M</string>
     <string name="msg_popup_permission">Bu izin, açılır pencere kipinde
 \naçmak için gereklidir</string>
     <string name="title_activity_recaptcha">reCAPTCHA formu</string>
@@ -611,7 +608,6 @@
     <string name="description_select_enable">Açıklamadaki metni seçmeyi etkinleştir</string>
     <string name="description_select_note">Artık, açıklamadaki metni seçebilirsiniz. Seçim kipindeyken sayfanın titreyebileceğini ve bağlantıların tıklanamayacağını unutmayın.</string>
     <string name="open_website_license">Web sitesini aç</string>
-    <string name="service_provides_reason">%s şu nedeni sağlıyor:</string>
     <string name="account_terminated">Hesap sonlandırıldı</string>
     <string name="feed_load_error_fast_unknown">Hızlı besleme kipi bununla ilgili daha çok bilgi sağlamıyor.</string>
     <string name="feed_load_error_terminated">Yazarın hesabı sonlandırılmış.
@@ -632,8 +628,6 @@
     <string name="comments_are_disabled">Yorumlar devre dışı</string>
     <string name="detail_heart_img_view_description">Yaratıcısınca kalplendi</string>
     <string name="mark_as_watched">İzlendi olarak işaretle</string>
-    <string name="show_image_indicators_summary">Resimlerin üzerinde kaynaklarını gösteren Picasso renkli şeritler göster: ağ için kırmızı, disk için mavi ve bellek için yeşil</string>
-    <string name="show_image_indicators_title">Resim göstergelerini göster</string>
     <string name="remote_search_suggestions">Uzak arama önerileri</string>
     <string name="local_search_suggestions">Yerel arama önerileri</string>
     <plurals name="deleted_downloads_toast">

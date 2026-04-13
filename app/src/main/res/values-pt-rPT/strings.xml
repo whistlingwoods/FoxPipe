@@ -229,7 +229,6 @@
     <string name="ok">OK</string>
     <string name="subscription_update_failed">Não foi possível atualizar a subscrição</string>
     <string name="remove_watched_popup_yes_and_partially_watched_videos">Sim e também os vídeos parcialmente vistos</string>
-    <string name="short_million">M</string>
     <string name="no_playlist_bookmarked_yet">Ainda não há listas de reprodução favoritas</string>
     <plurals name="listening">
         <item quantity="one">%s ouvinte</item>
@@ -423,8 +422,6 @@
     <string name="import_complete_toast">Importado</string>
     <string name="auto">Automático</string>
     <string name="import_data_summary">Substitui o seu histórico, subscrições, listas de reprodução e (opcionalmente) definições</string>
-    <string name="short_thousand">k</string>
-    <string name="short_billion">MM</string>
     <string name="unbookmark_playlist">Remover marcador</string>
     <string name="pause_downloads_on_mobile_desc">Útil ao trocar para dados móveis, mas algumas transferências não podem ser suspensas</string>
     <string name="hold_to_append">Toque longo para colocar na fila</string>
@@ -626,7 +623,6 @@
     <string name="description_select_disable">Desativar seleção de texto na descrição</string>
     <string name="description_select_enable">Ativar seleção de texto na descrição</string>
     <string name="description_select_note">Agora pode selecionar o texto na descrição. Note que a página pode cintilar e as ligações podem não ser clicáveis enquanto estiver no modo de seleção.</string>
-    <string name="service_provides_reason">%s fornece este motivo:</string>
     <string name="account_terminated">Conta encerrada</string>
     <string name="feed_load_error_fast_unknown">O modo de feed rápido não fornece mais informações sobre isto.</string>
     <string name="feed_load_error_terminated">A conta do autor foi encerrada.
@@ -643,8 +639,6 @@
     <string name="no_dir_yet">Ainda não foi definida uma pasta de descarregamento, escolha agora a pasta de descarregamento padrão</string>
     <string name="comments_are_disabled">Comentários estão desativados</string>
     <string name="mark_as_watched">Marcar como visto</string>
-    <string name="show_image_indicators_summary">Mostrar fitas coloridas de Picasso em cima das imagens que indicam a sua fonte: vermelho para rede, azul para disco e verde para memória</string>
-    <string name="show_image_indicators_title">Mostrar indicadores de imagem</string>
     <string name="remote_search_suggestions">Sugestões de pesquisa remotas</string>
     <string name="local_search_suggestions">Sugestões de pesquisa locais</string>
     <plurals name="deleted_downloads_toast">

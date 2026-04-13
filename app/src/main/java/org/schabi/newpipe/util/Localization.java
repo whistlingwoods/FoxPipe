@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 import androidx.core.math.MathUtils;
 import androidx.core.os.LocaleListCompat;
 import androidx.preference.PreferenceManager;
@@ -70,6 +71,46 @@ public final class Localization {
     private static PrettyTime prettyTime;
 
     private Localization() { }
+
+    /**
+     * Gets a string like you would normally do with {@link Context#getString}, except that when
+     * Context is not an AppCompatActivity the correct locale is still used. The latter step uses
+     * {@link ContextCompat#getString}, which might fail if the Locale system service is not
+     * available (e.g. inside of Compose previews). In that case this method falls back to plain old
+     * {@link Context#getString}.
+     * <p>This method also supports format args (see {@link #compatGetString(Context, int,
+     * Object...)}, unlike {@link ContextCompat#getString}.</p>
+     *
+     * @param context any Android context, even the App context
+     * @param resId the string resource to resolve
+     * @return the resolved string
+     */
+    public static String compatGetString(final Context context, @StringRes final int resId) {
+        try {
+            return ContextCompat.getString(context, resId);
+        } catch (final Throwable e) {
+            return context.getString(resId);
+        }
+    }
+
+    /**
+     * @see #compatGetString(Context, int)
+     * @param context any Android context, even the App context
+     * @param resId the string resource to resolve
+     * @param formatArgs the formatting arguments
+     * @return the resolved string
+     */
+    public static String compatGetString(final Context context,
+                                         @StringRes final int resId,
+                                         final Object... formatArgs) {
+        try {
+            // ContextCompat.getString() with formatArgs does not exist, so we just
+            // replicate its source code but with formatArgs
+            return ContextCompat.getContextForLanguage(context).getString(resId, formatArgs);
+        } catch (final Throwable e) {
+            return context.getString(resId, formatArgs);
+        }
+    }
 
     @NonNull
     public static String concatenateStrings(final String... strings) {
@@ -190,14 +231,20 @@ public final class Localization {
 
         final double value = (double) count;
         if (count >= 1000000000) {
-            return localizeNumber(round(value / 1000000000))
-                    + context.getString(R.string.short_billion);
+            final double shortenedValue = value / 1000000000;
+            final int scale = shortenedValue >= 100 ? 0 : 1;
+            return context.getString(R.string.short_billion,
+                    localizeNumber(round(shortenedValue, scale)));
         } else if (count >= 1000000) {
-            return localizeNumber(round(value / 1000000))
-                    + context.getString(R.string.short_million);
+            final double shortenedValue = value / 1000000;
+            final int scale = shortenedValue >= 100 ? 0 : 1;
+            return context.getString(R.string.short_million,
+                    localizeNumber(round(shortenedValue, scale)));
         } else if (count >= 1000) {
-            return localizeNumber(round(value / 1000))
-                    + context.getString(R.string.short_thousand);
+            final double shortenedValue = value / 1000;
+            final int scale = shortenedValue >= 100 ? 0 : 1;
+            return context.getString(R.string.short_thousand,
+                    localizeNumber(round(shortenedValue, scale)));
         } else {
             return localizeNumber(value);
         }
@@ -234,11 +281,6 @@ public final class Localization {
                                               final int deletedCount) {
         return getQuantity(context, R.plurals.deleted_downloads_toast, 0,
                 deletedCount, shortCount(context, deletedCount));
-    }
-
-    public static String replyCount(@NonNull final Context context, final int replyCount) {
-        return getQuantity(context, R.plurals.replies, 0, replyCount,
-                String.valueOf(replyCount));
     }
 
     /**
@@ -416,8 +458,8 @@ public final class Localization {
         }
     }
 
-    private static double round(final double value) {
-        return new BigDecimal(value).setScale(1, RoundingMode.HALF_UP).doubleValue();
+    private static double round(final double value, final int scale) {
+        return new BigDecimal(value).setScale(scale, RoundingMode.HALF_UP).doubleValue();
     }
 
     private static String getQuantity(@NonNull final Context context,

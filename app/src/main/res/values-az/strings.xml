@@ -297,9 +297,6 @@
     <string name="detail_likes_img_view_description">Bəyən</string>
     <string name="detail_dislikes_img_view_description">Bəyənmə</string>
     <string name="detail_drag_description">Yenidən sıralamaq üçün sürüklə</string>
-    <string name="short_thousand">min</string>
-    <string name="short_million">Mln</string>
-    <string name="short_billion">Mlrd</string>
     <string name="drawer_header_description">Xidməti dəyiş, hazırda seçilmiş:</string>
     <string name="no_subscribers">Abunəçi yoxdur</string>
     <string name="no_views">Baxış yoxdur</string>
@@ -494,8 +491,6 @@
     <string name="preferred_player_fetcher_notification_title">Məlumat əldə edilir…</string>
     <string name="show_original_time_ago_title">Elementlərdə orijinal, əvvəlki vaxtı göstər</string>
     <string name="enable_disposed_exceptions_title">Yaşam dövrəsi xaricindəki xətaları bildir</string>
-    <string name="show_image_indicators_title">Şəkil göstəricilərini göstər</string>
-    <string name="show_image_indicators_summary">Şəkillərin üzərində mənbəsini göstərən Picasso rəngli lentləri göstər: şəbəkə üçün qırmızı, disk üçün mavi və yaddaş üçün yaşıl</string>
     <string name="pause_downloads_on_mobile_desc">Bəzi endirmələri dayandırmaq mümkün olmasa da, mobil dataya keçərkən faydalıdır</string>
     <string name="close">Bağla</string>
     <string name="error_progress_lost">Fayl silindiyi üçün irəliləyiş itirildi</string>
@@ -504,7 +499,6 @@
     <string name="enable_queue_limit">Endirmə növbəsini məhdudlaşdır</string>
     <string name="enable_queue_limit_desc">Eyni vaxtda ancaq bir endirmə həyata keçiriləcək</string>
     <string name="account_terminated">Hesab ləğv edildi</string>
-    <string name="service_provides_reason">%s bu səbəbi təmin edir:</string>
     <string name="download_has_started">Yükləmə başladı</string>
     <string name="description_select_disable">Açıqlamadakı mətni seçməyi qeyri-aktiv et</string>
     <string name="metadata_category">Kateqoriya</string>

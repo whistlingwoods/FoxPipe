@@ -242,9 +242,6 @@
     </plurals>
     <string name="no_subscribers">Dad rukuntay ma jiraan</string>
     <string name="drawer_header_description">Furo adeega, hada waxaa dooran:</string>
-    <string name="short_billion">B</string>
-    <string name="short_thousand">K</string>
-    <string name="short_million">M</string>
     <string name="retry">ku celi</string>
     <string name="audio">Dhagaysi</string>
     <string name="video">Muuqaal</string>
@@ -611,7 +608,6 @@
     <string name="description_select_disable">Xidh caalamadinta qoraalka</string>
     <string name="description_select_enable">Fur caalamadinta qoraalka</string>
     <string name="description_select_note">Hadda waad dooran kartaa qoraalka ku dhexjira faahfaahinta. Ogow markaad caalamdinayso qoraalka boggu wuu boodboodi karaa tixraacyadana waxay noqon karaan kuwo aan lagu dhufan karin.</string>
-    <string name="service_provides_reason">%s wuxuu sheegayaa sababtan:</string>
     <string name="account_terminated">Akoonka waa lajoojiyay</string>
     <string name="feed_load_error_fast_unknown">Nidaamka dagdaga ah faahfaahin dheeraad ah uma hayo shaygan.</string>
     <string name="feed_load_error_terminated">Akoonka soosaaraha waa la joojiyay.
@@ -632,8 +628,6 @@
     <string name="comments_are_disabled">Fallooyinka waa laxidhay</string>
     <string name="detail_heart_img_view_description">Kahelay soosaaraha</string>
     <string name="mark_as_watched">Waan daawaday</string>
-    <string name="show_image_indicators_summary">Soo bandhig shaambado midabka Picasso leh sawirrada dushooda oo tilmaamaya isha laga keenay: guduud waa khadka, buluug waa kaydka gudaha, cagaar waa kaydka K/G</string>
-    <string name="show_image_indicators_title">Tus tilmaamayaasha sawirka</string>
     <string name="remote_search_suggestions">Soojeedinada raadinta banaanka</string>
     <string name="local_search_suggestions">Soojeedinada raadinta gudaha</string>
     <string name="progressive_load_interval_title">Cabirka soodaarida udhexeeya</string>

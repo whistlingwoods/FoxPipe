@@ -183,9 +183,6 @@
     </plurals>
     <string name="no_subscribers">സബ്ക്രൈബേഴ്സ് ഇല്ല</string>
     <string name="drawer_header_description">സേവനം മാറ്റുക, ഇപ്പോൾ തിരഞ്ഞെടുത്തത്:</string>
-    <string name="short_billion">B</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
     <string name="retry">വീണ്ടും ശ്രമിക്കുക</string>
     <string name="audio">ഓഡിയോ</string>
     <string name="video">വീഡിയോ</string>
@@ -594,7 +591,6 @@
     <string name="notification_action_1_title">രണ്ടാം പ്രവർത്തന ബട്ടൺ</string>
     <string name="notification_action_0_title">ആദ്യ പ്രവർത്തന ബട്ടൺ</string>
     <string name="disable_media_tunneling_summary">വീഡിയോ കാണുമ്പോൾ കറുത്ത സ്ക്രീൻ, അവ്യക്തത അനുഭവിക്കുന്നു എങ്കിൽ മീഡിയ ട്യൂൺലിങ് പ്രവർത്തനരഹിതമാക്കുക</string>
-    <string name="show_image_indicators_summary">ഉറവിടം തിരിച്ചറിയാൻ പിക്കാസോ കളർഡ് റിബൺ ചിത്രങ്ങളുടെ മുകളിൽ കാണിക്കുക: നെറ്റ്‌വർക്കിന് ചുവപ്പ്, ഡിസ്കിനു നീല, മെമ്മറിയിക്ക് പച്ച</string>
     <string name="seekbar_preview_thumbnail_title">സീക്ബാർ ചെറുചിത്രം പ്രദർശനം</string>
     <string name="detail_heart_img_view_description">സ്നേഹത്തോടെ സൃഷ്ടാവ്</string>
     <string name="description_select_disable">ഡിസ്ക്രിപ്ഷനിലെ ടെക്സ്റ്റ്‌ സെലക്ട്‌ ചെയ്യുവാൻ അനുവദിക്കാതെ ഇരിക്കുക</string>
@@ -616,7 +612,6 @@
     <string name="metadata_tags">ടാഗുക്കൾ</string>
     <string name="metadata_category">വിഭാഗം</string>
     <string name="description_select_note">താക്കൾക് ഇപ്പോൾ ഡിസ്ക്രിപ്ഷൻ ബോക്സിലെ ടെക്സ്റ്റ്‌ തിരഞ്ഞെടുക്കാൻ സാധിക്കും. ശ്രെദ്ധിക്കുക സെലെക്ഷൻ മോഡിൽ പേജ് ചിലപ്പോൾ മിന്നുകയും ലിങ്കുകൾ ക്ലിക്ക് ചെയ്യാനാകാതെയും വന്നേക്കാം.</string>
-    <string name="service_provides_reason">ഇതിന്റെ കാരണം %s നൽകും:</string>
     <string name="account_terminated">അക്കൗണ്ട് ഇല്ലാതായിരിക്കുന്നു</string>
     <string name="feed_load_error_fast_unknown">ഫാസ്റ്റ് ഫീഡ് മോഡ് കൂടുതൽ വിവരങ്ങൾ നൽകില്ല.</string>
     <string name="feed_load_error_terminated">സൃഷ്ടാവിന്റെ അക്കൗണ്ട് ഇല്ലാതായിരിക്കുന്നു.
@@ -629,7 +624,6 @@
     <string name="dont_show">കാണിക്കരുത്</string>
     <string name="low_quality_smaller">കുറഞ്ഞ നിലവാരം (ചെറുത് )</string>
     <string name="high_quality_larger">ഉയർന്ന നിലവാരം (വലിയത് )</string>
-    <string name="show_image_indicators_title">ഇമേജ് ഇൻഡിക്കേറ്ററുകൾ കാണിക്കുക</string>
     <string name="disable_media_tunneling_title">മീഡിയ ട്യൂൺലിങ് പ്രവർത്തനരഹിതമാക്കുക</string>
     <string name="no_dir_yet">ഡൌൺലോഡ് ഫോൾഡർ ഇത് വരെയും സെറ്റ് ചെയ്തിട്ടില്ല, സ്ഥിര ഡൌൺലോഡ് ഫോൾഡർ ഇപ്പോൾ തിരഞ്ഞെക്കുക</string>
     <string name="comments_are_disabled">അഭിപ്രായങ്ങൾ പ്രവർത്തനരഹിതമായിരിക്കുന്നു</string>

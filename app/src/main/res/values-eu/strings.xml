@@ -84,9 +84,6 @@
     <string name="video">Bideoa</string>
     <string name="audio">Audioa</string>
     <string name="retry">Saiatu berriro</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">MM</string>
     <string name="start">Hasi</string>
     <string name="pause">Pausatu</string>
     <string name="delete">Ezabatu</string>
@@ -618,7 +615,6 @@
     <string name="downloads_storage_ask_summary_no_saf_notice">Non gorde galdetuko zaizu deskarga bakoitzean</string>
     <string name="no_dir_yet">Ez da deskargatzeko karpetarik ezarri oraindik, aukeratu lehenetsitako deskargatzeko karpeta orain</string>
     <string name="metadata_privacy">Pribatutasuna</string>
-    <string name="service_provides_reason">%s arrazoi hau ematen du:</string>
     <string name="account_terminated">Kontua ezabatu da</string>
     <string name="feed_load_error_fast_unknown">Jario azkarrak ez du honi buruz informazio gehiagorik ematen.</string>
     <string name="metadata_age_limit">Adin muga</string>
@@ -640,8 +636,6 @@
         <item quantity="one">Deskarga amaituta</item>
         <item quantity="other">%s Deskarga amaituta</item>
     </plurals>
-    <string name="show_image_indicators_summary">Irudien gainean Picasso koloretako zintak erakutsi, jatorria adieraziz: gorria sarerako, urdina diskorako eta berdea memoriarako</string>
-    <string name="show_image_indicators_title">Erakutsi irudi-adierazleak</string>
     <string name="remote_search_suggestions">Urruneko bilaketaren iradokizunak</string>
     <string name="local_search_suggestions">Tokiko bilaketa-iradokizunak</string>
     <string name="mark_as_watched">Ikusi gisa markatu</string>

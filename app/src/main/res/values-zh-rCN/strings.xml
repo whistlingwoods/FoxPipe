@@ -71,8 +71,6 @@
     <plurals name="views">
         <item quantity="other">%s 次观看</item>
     </plurals>
-    <string name="short_thousand">千</string>
-    <string name="short_million">百万</string>
     <string name="start">开始</string>
     <string name="pause">暂停</string>
     <string name="delete">删除</string>
@@ -153,7 +151,6 @@
     <string name="error_details_headline">详细信息：</string>
     <string name="detail_thumbnail_view_description">播放视频，时长：</string>
     <string name="detail_uploader_thumbnail_view_description">视频上传者的头像缩略图</string>
-    <string name="short_billion">十亿</string>
     <string name="msg_running">NewPipe 正在下载</string>
     <string name="no_available_dir">请稍后在设置中设定下载目录</string>
     <string name="msg_popup_permission">使用悬浮窗模式
@@ -602,7 +599,6 @@
     <string name="description_select_enable">启用简介中的文本选择功能</string>
     <string name="description_select_note">你现在可以选择简介中的文本，注意，在选择模式下，页面可能会闪烁，链接可能无法点击。</string>
     <string name="open_website_license">打开网站</string>
-    <string name="service_provides_reason">%s 提供这个原因：</string>
     <string name="account_terminated">账号被终止</string>
     <string name="feed_load_error_fast_unknown">快速 Feed 模式不提供关于这个的更多信息。</string>
     <string name="feed_load_error_terminated">作者账号已被终止。
@@ -623,8 +619,6 @@
     <string name="high_quality_larger">高品质（较大）</string>
     <string name="detail_heart_img_view_description">被创作者喜爱</string>
     <string name="mark_as_watched">标记为已观看</string>
-    <string name="show_image_indicators_summary">在图像顶部显示毕加索彩带，指示其来源：红色代表网络，蓝色代表磁盘，绿色代表内存</string>
-    <string name="show_image_indicators_title">显示图像指示器</string>
     <string name="remote_search_suggestions">远程搜索建议</string>
     <string name="local_search_suggestions">本地搜索建议</string>
     <plurals name="deleted_downloads_toast">
