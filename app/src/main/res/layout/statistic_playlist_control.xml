@@ -5,73 +5,37 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:id="@+id/sortButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true">
 
-        <RelativeLayout
-            android:id="@+id/sortButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
+        <ImageView
+            android:id="@+id/sortButtonIcon"
+            android:layout_width="48dp"
+            android:layout_height="28dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="12dp"
+            android:layout_marginRight="12dp"
+            android:src="@drawable/ic_filter_list"
+            tools:ignore="ContentDescription,RtlHardcoded" />
 
-            <ImageView
-                android:id="@+id/sortButtonIcon"
-                android:layout_width="48dp"
-                android:layout_height="28dp"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:src="@drawable/ic_filter_list"
-                tools:ignore="ContentDescription" />
-
-            <org.schabi.newpipe.views.NewPipeTextView
-                android:id="@+id/sortButtonText"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_toEndOf="@id/sortButtonIcon"
-                android:gravity="start|center_vertical"
-                android:text="@string/title_most_played"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/fullyWatchedFilterButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true">
-
-            <CheckBox
-                android:id="@+id/fullyWatchedFilterButtonCheckBox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:checked="true"/>
-
-            <org.schabi.newpipe.views.NewPipeTextView
-                android:id="@+id/fullyWatchedFilterButtonText"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:layout_toEndOf="@id/fullyWatchedFilterButtonCheckBox"
-                android:gravity="start|center_vertical"
-                android:text="@string/title_fully_watched"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
-
-    </LinearLayout>
+        <org.schabi.newpipe.views.NewPipeTextView
+            android:id="@+id/sortButtonText"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_toRightOf="@id/sortButtonIcon"
+            android:gravity="left|center"
+            android:text="@string/title_most_played"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:ignore="RtlHardcoded" />
+    </RelativeLayout>
 
     <include
         android:id="@+id/playlist_control"
