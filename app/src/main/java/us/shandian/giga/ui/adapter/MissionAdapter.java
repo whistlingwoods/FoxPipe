@@ -2,6 +2,7 @@ package us.shandian.giga.ui.adapter;
 
 import static android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
+import static android.content.Intent.createChooser;
 import static us.shandian.giga.get.DownloadMission.ERROR_CONNECT_HOST;
 import static us.shandian.giga.get.DownloadMission.ERROR_FILE_CREATION;
 import static us.shandian.giga.get.DownloadMission.ERROR_HTTP_NO_CONTENT;
@@ -83,6 +84,7 @@ import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
 import us.shandian.giga.get.MissionRecoveryInfo;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.ui.common.Deleter;
@@ -148,6 +150,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         switch (viewType) {
             case DownloadManager.SPECIAL_PENDING:
             case DownloadManager.SPECIAL_FINISHED:
+            case DownloadManager.SPECIAL_QUEUED:
                 return new ViewHolderHeader(mInflater.inflate(R.layout.missions_header, parent, false));
         }
 
@@ -183,6 +186,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             int str;
             if (item.special == DownloadManager.SPECIAL_PENDING) {
                 str = R.string.missions_header_pending;
+            } else if (item.special == DownloadManager.SPECIAL_QUEUED) {
+                str = R.string.missions_header_queued;
             } else {
                 str = R.string.missions_header_finished;
                 if (mClear != null) mClear.setVisible(true);
@@ -194,6 +199,37 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
         ViewHolderItem h = (ViewHolderItem) view;
         h.item = item;
+
+        // Handle QueuedMission specially (no storage yet)
+        if (h.item.mission instanceof QueuedMission) {
+            QueuedMission qm = (QueuedMission) h.item.mission;
+            h.icon.setImageResource(R.drawable.ic_file_download);
+            h.name.setText(qm.title != null ? qm.title : "Unknown");
+            h.progress.setMarquee(qm.isProcessing());
+            h.progress.setProgress(0f);
+
+            // Show status based on queue state
+            switch (qm.status) {
+                case WAITING:
+                    h.status.setText(R.string.queued_status_waiting);
+                    break;
+                case EXTRACTING:
+                    h.status.setText(R.string.queued_status_extracting);
+                    break;
+                case PREPARING:
+                    h.status.setText(R.string.queued_status_preparing);
+                    break;
+                case FAILED:
+                    h.status.setText(R.string.queued_status_failed);
+                    break;
+                default:
+                    h.status.setText("");
+            }
+
+            h.size.setText(qm.targetQuality != null ? qm.targetQuality : "");
+            h.date.setText("");
+            return;
+        }
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
 
@@ -349,11 +385,15 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (BuildConfig.DEBUG)
             Log.v(TAG, "Mime: " + mimeType + " package: " + BuildConfig.APPLICATION_ID + ".provider");
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(resolveShareableUri(mission), mimeType);
-        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
-        ShareUtils.openIntentInApp(mContext, intent);
+        Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+        viewIntent.setDataAndType(resolveShareableUri(mission), mimeType);
+        viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+        viewIntent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
+
+        Intent chooserIntent = createChooser(viewIntent, null);
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | FLAG_GRANT_READ_URI_PERMISSION);
+
+        ShareUtils.openIntentInApp(mContext, chooserIntent);
     }
 
     private void shareFile(Mission mission) {
@@ -364,8 +404,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         shareIntent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
         shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
 
-        final Intent intent = new Intent(Intent.ACTION_CHOOSER);
-        intent.putExtra(Intent.EXTRA_INTENT, shareIntent);
+        final Intent intent = createChooser(shareIntent, null);
         // unneeded to set a title to the chooser on Android P and higher because the system
         // ignores this title on these versions
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
@@ -563,16 +602,16 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
         request.append("]");
 
-        String service;
+        Integer service;
         try {
-            service = NewPipe.getServiceByUrl(mission.source).getServiceInfo().getName();
+            service = NewPipe.getServiceByUrl(mission.source).getServiceId();
         } catch (Exception e) {
-            service = ErrorInfo.SERVICE_NONE;
+            service = null;
         }
 
         ErrorUtil.createNotification(mContext,
                 new ErrorInfo(ErrorInfo.Companion.throwableToStringList(mission.errObject), action,
-                        service, request.toString(), reason));
+                        request.toString(), service, reason));
     }
 
     public void clearFinishedDownloads(boolean delete) {
@@ -614,7 +653,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         while (i.hasNext()) {
             Mission mission = i.next();
             if (mission != null) {
-                mDownloadManager.deleteMission(mission);
+                mDownloadManager.deleteMission(mission, true);
                 mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, mission.storage.getUri()));
             }
             i.remove();
@@ -667,7 +706,14 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 shareFile(h.item.mission);
                 return true;
             case R.id.delete:
-                mDeleter.append(h.item.mission);
+                // delete the entry and the file
+                mDeleter.append(h.item.mission, true);
+                applyChanges();
+                checkMasterButtonsVisibility();
+                return true;
+            case R.id.delete_entry:
+                // just delete the entry
+                mDeleter.append(h.item.mission, false);
                 applyChanges();
                 checkMasterButtonsVisibility();
                 return true;
@@ -676,7 +722,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 final StoredFileHelper storage = h.item.mission.storage;
                 if (!storage.existsAsFile()) {
                     Toast.makeText(mContext, R.string.missing_file, Toast.LENGTH_SHORT).show();
-                    mDeleter.append(h.item.mission);
+                    mDeleter.append(h.item.mission, true);
                     applyChanges();
                     return true;
                 }
