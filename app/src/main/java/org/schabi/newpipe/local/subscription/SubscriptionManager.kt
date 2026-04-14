@@ -27,11 +27,6 @@ class SubscriptionManager(context: Context) {
 
     fun subscriptionTable(): SubscriptionDAO = subscriptionTable
     fun subscriptions() = subscriptionTable.getAll()
-    fun getSubscriptionUrls(): io.reactivex.rxjava3.core.Single<List<String>> {
-        return subscriptionTable.getAll()
-            .firstOrError()
-            .map { list -> list.mapNotNull { it.url } }
-    }
 
     fun getSubscriptions(
         currentGroupId: Long = FeedGroupEntity.GROUP_ALL_ID,

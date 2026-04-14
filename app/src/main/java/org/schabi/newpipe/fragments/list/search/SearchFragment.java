@@ -153,9 +153,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     private SuggestionListAdapter suggestionListAdapter;
     private HistoryRecordManager historyRecordManager;
-    private org.schabi.newpipe.local.subscription.SubscriptionManager subscriptionManager;
-    // Cache for subscription URLs to avoid repeated DB queries
-    private List<String> cachedSubscriptionUrls = null;
+
     /*//////////////////////////////////////////////////////////////////////////
     // Views
     //////////////////////////////////////////////////////////////////////////*/
@@ -208,8 +206,6 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
         suggestionListAdapter = new SuggestionListAdapter();
         historyRecordManager = new HistoryRecordManager(context);
-        subscriptionManager =
-                new org.schabi.newpipe.local.subscription.SubscriptionManager(context);
     }
 
     @Override
@@ -442,6 +438,43 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             supportActionBar.setDisplayShowTitleEnabled(false);
             supportActionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+        int itemId = 0;
+        boolean isFirstItem = true;
+        final Context c = getContext();
+
+        if (service == null) {
+            Log.w(TAG, "onCreateOptionsMenu() called with null service");
+            updateService();
+        }
+
+        for (final String filter : service.getSearchQHFactory().getAvailableContentFilter()) {
+            if (filter.equals(YoutubeSearchQueryHandlerFactory.MUSIC_SONGS)) {
+                final MenuItem musicItem = menu.add(2,
+                        itemId++,
+                        0,
+                        "YouTube Music");
+                musicItem.setEnabled(false);
+            } else if (filter.equals(PeertubeSearchQueryHandlerFactory.SEPIA_VIDEOS)) {
+                final MenuItem sepiaItem = menu.add(2,
+                        itemId++,
+                        0,
+                        "Sepia Search");
+                sepiaItem.setEnabled(false);
+            }
+            menuItemToFilterName.put(itemId, filter);
+            final MenuItem item = menu.add(1,
+                    itemId++,
+                    0,
+                    ServiceHelper.getTranslatedFilterString(filter, c));
+            if (isFirstItem) {
+                item.setChecked(true);
+                isFirstItem = false;
+            }
+        }
+        menu.setGroupCheckable(1, true, true);
+
+        restoreFilterChecked(menu, filterItemCheckedId);
     }
 
     @Override
@@ -829,19 +862,6 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
                 searchBinding.searchMetaInfoSeparator, disposables);
         hideKeyboardSearch();
 
-        // Show toast indicating subscription-only search
-        android.widget.Toast.makeText(getContext(),
-                getString(R.string.searching_subscriptions_only),
-                android.widget.Toast.LENGTH_SHORT).show();
-        // Cache subscription URLs for this search session
-        disposables.add(subscriptionManager.getSubscriptionUrls()
-                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
-                .subscribe(
-                        urls -> cachedSubscriptionUrls = urls,
-                        throwable -> Log.e(TAG, "Failed to cache subscription URLs", throwable)
-                ));
-
         // store search query if search history is enabled
         disposables.add(historyRecordManager.onSearched(serviceId, theSearchString)
                 .observeOn(AndroidSchedulers.mainThread())
@@ -978,36 +998,6 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         return isBlank(getSearchEditString());
     }
 
-    private List<InfoItem> filterBySubscriptions(final List<? extends InfoItem> items) {
-        // Use cached URLs if available, otherwise fetch from DB
-        final List<String> subscribedUrls;
-        if (cachedSubscriptionUrls != null) {
-            subscribedUrls = cachedSubscriptionUrls;
-        } else {
-            subscribedUrls = subscriptionManager.getSubscriptionUrls().blockingGet();
-            cachedSubscriptionUrls = subscribedUrls; // Cache for next call
-        }
-        final List<InfoItem> filteredItems = new ArrayList<>();
-        for (final InfoItem item : items) {
-            if (item instanceof org.schabi.newpipe.extractor.stream.StreamInfoItem) {
-                final String uploaderUrl =
-                        ((org.schabi.newpipe.extractor.stream.StreamInfoItem) item)
-                        .getUploaderUrl();
-                if (uploaderUrl != null && subscribedUrls.contains(uploaderUrl)) {
-                    filteredItems.add(item);
-                }
-            } else if (item instanceof org.schabi.newpipe.extractor.channel.ChannelInfoItem) {
-                if (subscribedUrls.contains(item.getUrl())) {
-                    filteredItems.add(item);
-                }
-            }
-        }
-
-        Log.d(TAG, "Filtered " + items.size()
-                + " items to " + filteredItems.size() + " subscribed items");
-        return filteredItems;
-    }
-
     /*//////////////////////////////////////////////////////////////////////////
     // Suggestion Results
     //////////////////////////////////////////////////////////////////////////*/
@@ -1067,39 +1057,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
         if (infoListAdapter.getItemsList().isEmpty()) {
             if (!result.getRelatedItems().isEmpty()) {
-                // Filter items based on subscriptions
-                final List<InfoItem> filteredItems =
-                        filterBySubscriptions(result.getRelatedItems());
-                if (!filteredItems.isEmpty()) {
-                    infoListAdapter.addInfoItemList(filteredItems);
-
-                    // Auto-load more pages if we have too few results
-                    // Target: at least 10 items, max 3 auto-loads
-                    if (filteredItems.size() < 10 && Page.isValid(nextPage) && !isLoading.get()) {
-                        Log.d(TAG, "Only "
-                                + filteredItems.size() + " filtered items, auto-loading more...");
-                        loadMoreItems();
-                    }
-                } else {
-                    // No filtered items, but there's a next page - try loading it
-                    if (Page.isValid(nextPage) && !isLoading.get()) {
-                        Log.d(TAG, "No filtered items in first page,"
-                                + " auto-loading next page...");
-                        loadMoreItems();
-                    } else {
-                        // Show custom message for no subscription results
-                        infoListAdapter.clearStreamItemList();
-                        showEmptyState();
-                        // Override empty state text
-                        if (emptyStateView != null && emptyStateView.
-                           findViewById(R.id.empty_state_message) != null) {
-                            ((android.widget.TextView) emptyStateView.
-                              findViewById(R.id.empty_state_message))
-                              .setText(R.string.no_subscription_results);
-                        }
-                        return;
-                    }
-                }
+                infoListAdapter.addInfoItemList(result.getRelatedItems());
             } else {
                 infoListAdapter.clearStreamItemList();
                 showEmptyState();
@@ -1144,23 +1102,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     @Override
     public void handleNextItems(final ListExtractor.InfoItemsPage<?> result) {
         showListFooter(false);
-
-        // Filter items based on subscriptions
-        final List<InfoItem> filteredItems = filterBySubscriptions(result.getItems());
-        infoListAdapter.addInfoItemList(filteredItems);
-        // Auto-load more if we still don't have enough items
-        // Target: at least 10 total items
-        if (infoListAdapter.getItemsList().size() < 10 && Page.isValid(result.getNextPage())
-                && !isLoading.get()) {
-            Log.d(TAG, "Only " + infoListAdapter.getItemsList().size()
-                    + " total items after pagination, auto-loading more...");
-            // Small delay to avoid overwhelming the server
-            itemsList.postDelayed(() -> {
-                if (!isLoading.get()) {
-                    loadMoreItems();
-                }
-            }, 500);
-        }
+        infoListAdapter.addInfoItemList(result.getItems());
 
         if (!result.getErrors().isEmpty()) {
             // nextPage should be non-null at this point, because it refers to the page
