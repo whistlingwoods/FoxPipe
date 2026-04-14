@@ -14,10 +14,8 @@ import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
 import static com.google.android.exoplayer2.util.Util.castNonNull;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getAndroidUserAgent;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getIosUserAgent;
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getTvHtml5UserAgent;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isAndroidStreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isIosStreamingUrl;
-import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isTvHtml5StreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isWebStreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isWebEmbeddedPlayerStreamingUrl;
 import static java.lang.Math.min;
@@ -47,6 +45,8 @@ import com.google.common.collect.Sets;
 import com.google.common.net.HttpHeaders;
 
 import org.schabi.newpipe.DownloaderImpl;
+
+import org.schabi.newpipe.util.DnsHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -661,10 +661,7 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
             }
         }
 
-        final boolean isTvHtml5StreamingUrl = isTvHtml5StreamingUrl(requestUrl);
-
         if (isWebStreamingUrl(requestUrl)
-                || isTvHtml5StreamingUrl
                 || isWebEmbeddedPlayerStreamingUrl(requestUrl)) {
             httpURLConnection.setRequestProperty(HttpHeaders.ORIGIN, YOUTUBE_BASE_URL);
             httpURLConnection.setRequestProperty(HttpHeaders.REFERER, YOUTUBE_BASE_URL);
@@ -685,9 +682,6 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
         } else if (isIosStreamingUrl) {
             httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT,
                     getIosUserAgent(null));
-        } else if (isTvHtml5StreamingUrl) {
-            httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT,
-                    getTvHtml5UserAgent());
         } else {
             // non-mobile user agent
             httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT, DownloaderImpl.USER_AGENT);
@@ -711,12 +705,14 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
 
     /**
      * Creates an {@link HttpURLConnection} that is connected with the {@code url}.
+     * Uses DNS-over-HTTPS (via {@link DnsHelper}) to resolve the hostname,
+     * bypassing any system-level Private DNS blocking.
      *
      * @param url the {@link URL} to create an {@link HttpURLConnection}
      * @return an {@link HttpURLConnection} created with the {@code url}
      */
     private HttpURLConnection openConnection(@NonNull final URL url) throws IOException {
-        return (HttpURLConnection) url.openConnection();
+        return DnsHelper.openConnectionWithDoH(url);
     }
 
     /**
@@ -950,6 +946,7 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
         }
         return rangeParameter.toString();
     }
+
 
     private static final class NullFilteringHeadersMap
             extends ForwardingMap<String, List<String>> {

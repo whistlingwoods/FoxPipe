@@ -40,5 +40,19 @@
         android:layout_height="4dp"
         android:layout_alignParentTop="true"
         android:background="?attr/toolbar_shadow" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/fab_add_channel"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_alignParentEnd="true"
+    android:layout_alignParentBottom="true"
+    android:layout_margin="24dp"
+    android:clickable="true"
+    android:contentDescription="Add Channel"
+    android:focusable="true"
+    android:src="@drawable/ic_add"
+    app:backgroundTint="#CD201F"
+    app:borderWidth="0dp"
+    app:tint="@android:color/white" />
 
 </RelativeLayout>

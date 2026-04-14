@@ -58,20 +58,10 @@ import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.StreamingService.LinkType;
 import org.schabi.newpipe.extractor.channel.ChannelInfo;
-import org.schabi.newpipe.extractor.exceptions.AgeRestrictedContentException;
-import org.schabi.newpipe.extractor.exceptions.ContentNotAvailableException;
-import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-import org.schabi.newpipe.extractor.exceptions.GeographicRestrictionException;
-import org.schabi.newpipe.extractor.exceptions.PaidContentException;
-import org.schabi.newpipe.extractor.exceptions.PrivateContentException;
-import org.schabi.newpipe.extractor.exceptions.ReCaptchaException;
-import org.schabi.newpipe.extractor.exceptions.SoundCloudGoPlusContentException;
-import org.schabi.newpipe.extractor.exceptions.YoutubeMusicPremiumContentException;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
-import org.schabi.newpipe.ktx.ExceptionUtils;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.player.PlayerType;
 import org.schabi.newpipe.player.helper.PlayerHelper;
@@ -98,7 +88,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
+import org.schabi.newpipe.download.PlaylistDownloadDialog;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -125,7 +117,9 @@ public class RouterActivity extends AppCompatActivity {
     private boolean selectionIsAddToPlaylist = false;
     private AlertDialog alertDialogChoice = null;
     private FragmentManager.FragmentLifecycleCallbacks dismissListener = null;
-
+    private void openPlaylistDownloadDialog() {
+        getPersistFragment().openPlaylistDownloadDialog(currentServiceId, currentUrl);
+    }
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         ThemeHelper.setDayNightMode(this);
@@ -260,7 +254,8 @@ public class RouterActivity extends AppCompatActivity {
                         showUnsupportedUrlDialog(url);
                     }
                 }, throwable -> handleError(this, new ErrorInfo(throwable,
-                        UserAction.SHARE_TO_NEWPIPE, "Getting service from url: " + url))));
+                        UserAction.SHARE_TO_NEWPIPE, "Getting service from url: " + url,
+                        null, url))));
     }
 
     /**
@@ -269,40 +264,19 @@ public class RouterActivity extends AppCompatActivity {
      * @param errorInfo the error information
      */
     private static void handleError(final Context context, final ErrorInfo errorInfo) {
-        if (errorInfo.getThrowable() != null) {
-            errorInfo.getThrowable().printStackTrace();
-        }
-
-        if (errorInfo.getThrowable() instanceof ReCaptchaException) {
+        if (errorInfo.getRecaptchaUrl() != null) {
             Toast.makeText(context, R.string.recaptcha_request_toast, Toast.LENGTH_LONG).show();
             // Starting ReCaptcha Challenge Activity
             final Intent intent = new Intent(context, ReCaptchaActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(ReCaptchaActivity.RECAPTCHA_URL_EXTRA, errorInfo.getRecaptchaUrl());
             context.startActivity(intent);
-        } else if (errorInfo.getThrowable() != null
-                && ExceptionUtils.isNetworkRelated(errorInfo.getThrowable())) {
-            Toast.makeText(context, R.string.network_error, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof AgeRestrictedContentException) {
-            Toast.makeText(context, R.string.restricted_video_no_stream,
-                    Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof GeographicRestrictionException) {
-            Toast.makeText(context, R.string.georestricted_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof PaidContentException) {
-            Toast.makeText(context, R.string.paid_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof PrivateContentException) {
-            Toast.makeText(context, R.string.private_content, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof SoundCloudGoPlusContentException) {
-            Toast.makeText(context, R.string.soundcloud_go_plus_content,
-                    Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof YoutubeMusicPremiumContentException) {
-            Toast.makeText(context, R.string.youtube_music_premium_content,
-                    Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof ContentNotAvailableException) {
-            Toast.makeText(context, R.string.content_not_available, Toast.LENGTH_LONG).show();
-        } else if (errorInfo.getThrowable() instanceof ContentNotSupportedException) {
-            Toast.makeText(context, R.string.content_not_supported, Toast.LENGTH_LONG).show();
-        } else {
+        } else if (errorInfo.isReportable()) {
             ErrorUtil.createNotification(context, errorInfo);
+        } else {
+            // this exception does not usually indicate a problem that should be reported,
+            // so just show a toast instead of the notification
+            Toast.makeText(context, errorInfo.getMessage(context), Toast.LENGTH_LONG).show();
         }
 
         if (context instanceof RouterActivity) {
@@ -346,7 +320,8 @@ public class RouterActivity extends AppCompatActivity {
         if (choiceChecker.isAvailableAndSelected(
                 R.string.video_player_key,
                 R.string.background_player_key,
-                R.string.popup_player_key)) {
+                R.string.popup_player_key,
+                R.string.enqueue_key)) {
 
             final String selectedChoice = choiceChecker.getSelectedChoiceKey();
 
@@ -359,6 +334,8 @@ public class RouterActivity extends AppCompatActivity {
                             || selectedChoice.equals(getString(R.string.popup_player_key));
             final boolean isAudioPlayerSelected =
                     selectedChoice.equals(getString(R.string.background_player_key));
+            final boolean isEnqueueSelected =
+                    selectedChoice.equals(getString(R.string.enqueue_key));
 
             if (currentLinkType != LinkType.STREAM
                     && ((isExtAudioEnabled && isAudioPlayerSelected)
@@ -370,12 +347,14 @@ public class RouterActivity extends AppCompatActivity {
                 return;
             }
 
-            final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+            final Set<StreamingService.ServiceInfo.MediaCapability> capabilities =
                     currentService.getServiceInfo().getMediaCapabilities();
 
             // Check if the service supports the choice
             if ((isVideoPlayerSelected && capabilities.contains(VIDEO))
-                    || (isAudioPlayerSelected && capabilities.contains(AUDIO))) {
+                    || (isAudioPlayerSelected && capabilities.contains(AUDIO))
+                    || (isEnqueueSelected && (capabilities.contains(VIDEO)
+                    || capabilities.contains(AUDIO)))) {
                 handleChoice(selectedChoice);
             } else {
                 handleChoice(getString(R.string.show_info_key));
@@ -553,10 +532,10 @@ public class RouterActivity extends AppCompatActivity {
         final List<AdapterChoiceItem> returnedItems = new ArrayList<>();
         returnedItems.add(showInfo); // Always present
 
-        final List<StreamingService.ServiceInfo.MediaCapability> capabilities =
+        final Set<StreamingService.ServiceInfo.MediaCapability> capabilities =
                 service.getServiceInfo().getMediaCapabilities();
 
-        if (linkType == LinkType.STREAM) {
+        if (linkType == LinkType.STREAM || linkType == LinkType.PLAYLIST) {
             if (capabilities.contains(VIDEO)) {
                 returnedItems.add(videoPlayer);
                 returnedItems.add(popupPlayer);
@@ -564,17 +543,27 @@ public class RouterActivity extends AppCompatActivity {
             if (capabilities.contains(AUDIO)) {
                 returnedItems.add(backgroundPlayer);
             }
-            // download is redundant for linkType CHANNEL AND PLAYLIST (till playlist downloading is
-            // not supported )
-            returnedItems.add(new AdapterChoiceItem(getString(R.string.download_key),
-                    getString(R.string.download),
-                    R.drawable.ic_file_download));
 
-            // Add to playlist is not necessary for CHANNEL and PLAYLIST linkType since those can
-            // not be added to a playlist
-            returnedItems.add(new AdapterChoiceItem(getString(R.string.add_to_playlist_key),
-                    getString(R.string.add_to_playlist),
-                    R.drawable.ic_add));
+            // Enqueue is only shown if the current queue is not empty.
+            // However, if the playqueue or the player is cleared after this item was chosen and
+            // while the item is extracted, it will automatically fall back to background player.
+            if (PlayerHolder.getInstance().getQueueSize() > 0) {
+                returnedItems.add(new AdapterChoiceItem(getString(R.string.enqueue_key),
+                        getString(R.string.enqueue_stream), R.drawable.ic_add));
+            }
+
+            if (linkType == LinkType.STREAM || linkType == LinkType.PLAYLIST) {
+                returnedItems.add(new AdapterChoiceItem(getString(R.string.download_key),
+                        getString(R.string.download),
+                        R.drawable.ic_file_download));
+            }
+
+            if (linkType == LinkType.STREAM) {
+                // Add to playlist logic remains for streams only
+                returnedItems.add(new AdapterChoiceItem(getString(R.string.add_to_playlist_key),
+                        getString(R.string.add_to_playlist),
+                        R.drawable.ic_playlist_add));
+            }
         } else {
             // LinkType.NONE is never present because it's filtered out before
             // channels and playlist can be played as they contain a list of videos
@@ -642,7 +631,12 @@ public class RouterActivity extends AppCompatActivity {
             if (PermissionHelper.checkStoragePermissions(this,
                     PermissionHelper.DOWNLOAD_DIALOG_REQUEST_CODE)) {
                 selectionIsDownload = true;
-                openDownloadDialog();
+
+                if (currentLinkType == LinkType.PLAYLIST) {
+                    openPlaylistDownloadDialog();
+                } else {
+                    openDownloadDialog();
+                }
             }
             return;
         }
@@ -665,7 +659,8 @@ public class RouterActivity extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     }, throwable -> handleError(this, new ErrorInfo(throwable,
-                            UserAction.SHARE_TO_NEWPIPE, "Starting info activity: " + currentUrl)))
+                            UserAction.SHARE_TO_NEWPIPE, "Starting info activity: " + currentUrl,
+                            null, currentUrl)))
             );
             return;
         }
@@ -719,6 +714,37 @@ public class RouterActivity extends AppCompatActivity {
                 }
             }
         }
+
+        /**
+     * Opens the playlist download dialog after fetching the necessary metadata.
+     *
+     * @param currentServiceId The service ID of the current content.
+     * @param currentUrl       The URL of the current content.
+     */
+    @SuppressLint("CheckResult")
+    private void openPlaylistDownloadDialog(final int currentServiceId, final String currentUrl) {
+        inFlight(true);
+        final LoadingDialog loadingDialog = new LoadingDialog(R.string.loading_metadata_title);
+        loadingDialog.show(getParentFragmentManager(), "loadingDialog");
+
+        disposables.add(ExtractorHelper.getPlaylistInfo(currentServiceId, currentUrl, false)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this::pleaseWait)
+                .subscribe(result -> runOnVisible(ctx -> {
+                    loadingDialog.dismiss();
+                    final FragmentManager fm = ctx.getSupportFragmentManager();
+
+                    final PlaylistDownloadDialog playlistDialog =
+                            PlaylistDownloadDialog.newInstance(result.getRelatedItems());
+                    playlistDialog.show(fm, "playlistDownloadDialog");
+                }), throwable -> runOnVisible(ctx -> {
+                    loadingDialog.dismiss();
+                    if (ctx instanceof RouterActivity) {
+                        ((RouterActivity) ctx).showUnsupportedUrlDialog(currentUrl);
+                    }
+                })));
+    }
 
         @Override
         public void onAttach(@NonNull final Context activityContext) {
@@ -852,10 +878,10 @@ public class RouterActivity extends AppCompatActivity {
                                             })
                                     )),
                             throwable -> runOnVisible(ctx -> handleError(ctx, new ErrorInfo(
-                                    throwable,
-                                    UserAction.REQUESTED_STREAM,
+                                    throwable, UserAction.REQUESTED_STREAM,
                                     "Tried to add " + currentUrl + " to a playlist",
-                                    ((RouterActivity) ctx).currentService.getServiceId())
+                                    ((RouterActivity) ctx).currentService.getServiceId(),
+                                    currentUrl)
                             ))
                     )
             );
@@ -995,7 +1021,7 @@ public class RouterActivity extends AppCompatActivity {
                             }
                         }, throwable -> handleError(this, new ErrorInfo(throwable, finalUserAction,
                                 choice.url + " opened with " + choice.playerChoice,
-                                choice.serviceId)));
+                                choice.serviceId, choice.url)));
             }
         }
 
@@ -1045,6 +1071,8 @@ public class RouterActivity extends AppCompatActivity {
                     NavigationHelper.playOnBackgroundPlayer(this, playQueue, true);
                 } else if (choice.playerChoice.equals(popupPlayerKey)) {
                     NavigationHelper.playOnPopupPlayer(this, playQueue, true);
+                } else if (choice.playerChoice.equals(getString(R.string.enqueue_key))) {
+                    NavigationHelper.enqueueOnPlayer(this, playQueue);
                 }
             };
         }

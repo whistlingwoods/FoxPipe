@@ -1,18 +1,35 @@
 package org.schabi.newpipe.streams;
 
+import static org.schabi.newpipe.MainActivity.DEBUG;
+
+import android.util.Base64;
+import android.util.Log;
+import android.util.Pair;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.WebMReader.Cluster;
 import org.schabi.newpipe.streams.WebMReader.Segment;
 import org.schabi.newpipe.streams.WebMReader.SimpleBlock;
 import org.schabi.newpipe.streams.WebMReader.WebMTrack;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
 
 /**
  * @author kapodamy
@@ -52,8 +69,12 @@ public class OggFromWebMWriter implements Closeable {
     private long segmentTableNextTimestamp = TIME_SCALE_NS;
 
     private final int[] crc32Table = new int[256];
+    private final StreamInfo streamInfo;
 
-    public OggFromWebMWriter(@NonNull final SharpStream source, @NonNull final SharpStream target) {
+    private File coverArtFile;
+
+    public OggFromWebMWriter(@NonNull final SharpStream source, @NonNull final SharpStream target,
+                             @Nullable final StreamInfo streamInfo) {
         if (!source.canRead() || !source.canRewind()) {
             throw new IllegalArgumentException("source stream must be readable and allows seeking");
         }
@@ -63,10 +84,15 @@ public class OggFromWebMWriter implements Closeable {
 
         this.source = source;
         this.output = target;
+        this.streamInfo = streamInfo;
 
         this.streamId = (int) System.currentTimeMillis();
 
         populateCrc32Table();
+    }
+    // --- إضافة: دالة لاستقبال ملف الغلاف ---
+    public void setCover(final File cover) {
+        this.coverArtFile = cover;
     }
 
     public boolean isDone() {
@@ -269,25 +295,174 @@ public class OggFromWebMWriter implements Closeable {
         return checksumCrc32;
     }
 
+    /**
+     * Generates the metadata for the audio track, including standard tags and cover art.
+     * Supported codecs: Opus (A_OPUS) and Vorbis (A_VORBIS).
+     *
+     * @return A byte array containing the formatted metadata header, or null if unsupported.
+     */
     @Nullable
     private byte[] makeMetadata() {
+        if (DEBUG) {
+            Log.d("OggFromWebMWriter", "Downloading media with codec ID " + webmTrack.codecId);
+        }
+
         if ("A_OPUS".equals(webmTrack.codecId)) {
-            return new byte[]{
-                    0x4F, 0x70, 0x75, 0x73, 0x54, 0x61, 0x67, 0x73, // "OpusTags" binary string
-                    0x00, 0x00, 0x00, 0x00, // writing application string size (not present)
-                    0x00, 0x00, 0x00, 0x00 // additional tags count (zero means no tags)
-            };
+            final List<Pair<String, String>> metadata = new ArrayList<>();
+            if (streamInfo != null) {
+                metadata.add(Pair.create("COMMENT", streamInfo.getUrl()));
+                metadata.add(Pair.create("GENRE", streamInfo.getCategory()));
+                metadata.add(Pair.create("ARTIST", streamInfo.getUploaderName()));
+                metadata.add(Pair.create("TITLE", streamInfo.getName()));
+                metadata.add(Pair.create("DATE", streamInfo
+                        .getUploadDate()
+                        .getLocalDateTime()
+                        .format(DateTimeFormatter.ISO_DATE)));
+            }
+
+            // Add: include cover art
+            if (coverArtFile != null && coverArtFile.exists()) {
+                try {
+                    final String picBlock = createFlacPictureBlock(coverArtFile);
+                    if (picBlock != null) {
+                        metadata.add(Pair.create("METADATA_BLOCK_PICTURE", picBlock));
+                    }
+                } catch (final Exception e) {
+                    if (DEBUG) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if (DEBUG) {
+                Log.d("OggFromWebMWriter", "Creating metadata header with this data:");
+                metadata.forEach(p -> {
+                    Log.d("OggFromWebMWriter", p.first + "=" + p.second);
+                });
+            }
+
+            return makeOpusTagsHeader(metadata);
         } else if ("A_VORBIS".equals(webmTrack.codecId)) {
             return new byte[]{
-                    0x03, // ¿¿¿???
+                    0x03, // Header type
                     0x76, 0x6f, 0x72, 0x62, 0x69, 0x73, // "vorbis" binary string
                     0x00, 0x00, 0x00, 0x00, // writing application string size (not present)
                     0x00, 0x00, 0x00, 0x00 // additional tags count (zero means no tags)
             };
         }
 
-        // not implemented for the desired codec
+        // Not implemented for the desired codec
         return null;
+    }
+
+    /**
+     * Helper function to create a FLAC METADATA_BLOCK_PICTURE.
+     * This follows the FLAC specification for picture blocks.
+     *
+     * @param file The image file to include.
+     * @return The Base64 encoded picture block string.
+     * @throws IOException If an I/O error occurs reading the file.
+     */
+    private String createFlacPictureBlock(final File file) throws IOException {
+        final byte[] data = new byte[(int) file.length()];
+        try (FileInputStream fis = new FileInputStream(file)) {
+            final int read = fis.read(data);
+            if (read != data.length) {
+                throw new IOException("Could not read entire file: " + file.getName());
+            }
+        }
+
+        // Determine simple MIME type
+        String mimeType = "image/jpeg";
+        if (file.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".png")) {
+            mimeType = "image/png";
+        }
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final DataOutputStream dos = new DataOutputStream(baos);
+
+        dos.writeInt(3); // Picture Type: 3 = Cover (front)
+
+        final byte[] mimeBytes = mimeType.getBytes("UTF-8");
+        dos.writeInt(mimeBytes.length); // MIME length
+        dos.write(mimeBytes);           // MIME string
+
+        final String desc = "";
+        final byte[] descBytes = desc.getBytes("UTF-8");
+        dos.writeInt(descBytes.length); // Description length
+        dos.write(descBytes);           // Description string
+
+        // Width, Height, Depth, Colors
+        // Set to 0 to avoid complexity with image libraries
+        dos.writeInt(0);
+        dos.writeInt(0);
+        dos.writeInt(0);
+        dos.writeInt(0);
+
+        dos.writeInt(data.length); // Image Data length
+        dos.write(data);           // Image Data
+
+        dos.flush();
+        final byte[] blockBytes = baos.toByteArray();
+
+        // Encode result in Base64
+        return Base64.encodeToString(blockBytes, Base64.NO_WRAP);
+    }
+
+    /**
+     * This creates a single metadata tag for use in opus metadata headers. It contains the four
+     * byte string length field and includes the string as-is. This cannot be used independently,
+     * but must follow a proper "OpusTags" header.
+     *
+     * @param pair A key-value pair in the format "KEY=some value".
+     * @return The binary data of the encoded metadata tag.
+     */
+    private static byte[] makeOpusMetadataTag(final Pair<String, String> pair) {
+        // Construct KEY=VALUE string
+        // Note: METADATA_BLOCK_PICTURE requires specific casing which is preserved here
+        final String keyValue = pair.first + "=" + pair.second;
+
+        final byte[] bytes = keyValue.getBytes();
+        final ByteBuffer buf = ByteBuffer.allocate(4 + bytes.length);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        buf.putInt(bytes.length);
+        buf.put(bytes);
+        return buf.array();
+    }
+
+    /**
+     * This returns a complete "OpusTags" header, created from the provided metadata tags.
+     * <p>
+     * You probably want to use makeMetadata(), which uses this function to create
+     * a header with sensible metadata filled in.
+     * </p>
+     *
+     * @param keyValueLines A list of pairs of the tags. This can also be thought of as a mapping
+     *                      from one key to multiple values.
+     * @return The binary header.
+     */
+    private static byte[] makeOpusTagsHeader(final List<Pair<String, String>> keyValueLines) {
+        final List<byte[]> tags = keyValueLines
+                .stream()
+                .filter(p -> !p.second.isBlank())
+                .map(OggFromWebMWriter::makeOpusMetadataTag)
+                .collect(Collectors.toList());
+
+        final int tagsBytes = tags.stream().collect(Collectors.summingInt(arr -> arr.length));
+
+        // Fixed header fields (16 bytes) + dynamic fields
+        final int byteCount = 16 + tagsBytes;
+
+        final ByteBuffer head = ByteBuffer.allocate(byteCount);
+        head.order(ByteOrder.LITTLE_ENDIAN);
+        head.put(new byte[]{
+                0x4F, 0x70, 0x75, 0x73, 0x54, 0x61, 0x67, 0x73, // "OpusTags" binary string
+                0x00, 0x00, 0x00, 0x00, // vendor (aka. Encoder) string of length 0
+        });
+        head.putInt(tags.size()); // 4 bytes for tag count
+        tags.forEach(head::put); // dynamic amount of tag bytes
+
+        return head.array();
     }
 
     private void write(final ByteBuffer buffer) throws IOException {

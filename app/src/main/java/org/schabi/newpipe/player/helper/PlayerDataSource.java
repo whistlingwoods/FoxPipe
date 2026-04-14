@@ -18,7 +18,7 @@ import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSource;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
@@ -86,12 +86,13 @@ public class PlayerDataSource {
         // make sure the static cache was created: needed by CacheFactories below
         instantiateCacheIfNeeded(context);
 
-        // generic data source factories use DefaultHttpDataSource.Factory
+        // generic data source factories use OkHttpDataSource.Factory
+        final okhttp3.Call.Factory callFactory = DownloaderImpl.getInstance().getClient();
         cachelessDataSourceFactory = new DefaultDataSource.Factory(context,
-                new DefaultHttpDataSource.Factory().setUserAgent(DownloaderImpl.USER_AGENT))
+                new OkHttpDataSource.Factory(callFactory).setUserAgent(DownloaderImpl.USER_AGENT))
                 .setTransferListener(transferListener);
         cacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
-                new DefaultHttpDataSource.Factory().setUserAgent(DownloaderImpl.USER_AGENT));
+                new OkHttpDataSource.Factory(callFactory).setUserAgent(DownloaderImpl.USER_AGENT));
 
         // YouTube-specific data source factories use getYoutubeHttpDataSourceFactory()
         ytHlsCacheDataSourceFactory = new CacheFactory(context, transferListener, cache,

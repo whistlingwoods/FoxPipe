@@ -9,6 +9,7 @@ import android.view.View
 import androidx.core.os.postDelayed
 import org.schabi.newpipe.databinding.PlayerBinding
 import org.schabi.newpipe.player.Player
+import org.schabi.newpipe.player.helper.PlayerHelper
 import org.schabi.newpipe.player.ui.VideoPlayerUi
 
 /**
@@ -24,10 +25,36 @@ abstract class BasePlayerGestureListener(
     protected val player: Player = playerUi.player
     protected val binding: PlayerBinding = playerUi.binding
 
+    // Hold-to-speed state
+    private var originalSpeed: Float = -1f
+    var isSpeedingUp = false
+        private set
+
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         playerUi.gestureDetector.onTouchEvent(event)
+        if (event.action == MotionEvent.ACTION_UP && isSpeedingUp) {
+            player.setPlaybackSpeed(originalSpeed)
+            isSpeedingUp = false
+            originalSpeed = -1f
+            onSpeedUpEnded()
+        }
         return false
     }
+
+    override fun onLongPress(e: MotionEvent) {
+        if (PlayerHelper.isHoldToSpeedEnabled(player.context) &&
+            player.currentState == Player.STATE_PLAYING &&
+            !isSpeedingUp
+        ) {
+            originalSpeed = player.playbackSpeed
+            player.setPlaybackSpeed(2.0f)
+            isSpeedingUp = true
+            onSpeedUpStarted()
+        }
+    }
+
+    open fun onSpeedUpStarted() {}
+    open fun onSpeedUpEnded() {}
 
     private fun onDoubleTap(
         event: MotionEvent,

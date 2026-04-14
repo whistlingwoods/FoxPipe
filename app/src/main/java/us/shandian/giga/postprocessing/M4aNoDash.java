@@ -4,6 +4,7 @@ import org.schabi.newpipe.streams.Mp4DashReader;
 import org.schabi.newpipe.streams.Mp4FromDashWriter;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.File;
 import java.io.IOException;
 
 class M4aNoDash extends Postprocessing {
@@ -30,7 +31,17 @@ class M4aNoDash extends Postprocessing {
 
     @Override
     int process(SharpStream out, SharpStream... sources) throws IOException {
+        // 1. download cover art
+        File cover = downloadCoverArt();
+
         Mp4FromDashWriter muxer = new Mp4FromDashWriter(sources[0]);
+        
+        // 2. pass cover art to muxer (make sure Mp4FromDashWriter has a setCover method)
+        if (cover != null && cover.exists()) {
+             // if this fails, you need to add a setCover(File) method to Mp4FromDashWriter
+             muxer.setCover(cover);
+        }
+
         muxer.setMainBrand(0x4D344120);// binary string "M4A "
         muxer.parseSources();
         muxer.selectTracks(0);

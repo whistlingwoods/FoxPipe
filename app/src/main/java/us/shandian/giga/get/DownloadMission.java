@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.schabi.newpipe.DownloaderImpl;
+import org.schabi.newpipe.util.DnsHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -147,6 +148,8 @@ public class DownloadMission extends Mission {
     private transient long writingToFileNext;
     private transient volatile boolean writingToFile;
 
+    public String thumbnailUrl; // thumbnail url
+
     final Object LOCK = new Lock();
 
     @NonNull
@@ -219,7 +222,7 @@ public class DownloadMission extends Mission {
     }
 
     HttpURLConnection openConnection(String url, boolean headRequest, long rangeStart, long rangeEnd) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection conn = DnsHelper.openConnectionWithDoH(new URL(url));
         conn.setInstanceFollowRedirects(true);
         conn.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT);
         conn.setRequestProperty("Accept", "*/*");
@@ -661,7 +664,8 @@ public class DownloadMission extends Mission {
      * @return {@code true}, if storage is invalid and cannot be used
      */
     public boolean hasInvalidStorage() {
-        return errCode == ERROR_PROGRESS_LOST || storage == null || !storage.existsAsFile();
+        // Don't consider ERROR_PROGRESS_LOST as invalid storage - it can be recovered
+        return storage == null || !storage.existsAsFile();
     }
 
     /**

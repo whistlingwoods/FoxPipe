@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import java.io.File;
+import java.io.FileInputStream;
+
 /**
  * @author kapodamy
  */
@@ -28,6 +31,8 @@ public class Mp4FromDashWriter {
     private static final int THRESHOLD_MOOV_LENGTH = (256 * 1024) + (2048 * 1024);
 
     private final long time;
+
+    private File coverArtFile;
 
     private ByteBuffer auxBuffer;
     private SharpStream outStream;
@@ -65,6 +70,10 @@ public class Mp4FromDashWriter {
         compatibleBrands.add(0x6D703431); // mp41
         compatibleBrands.add(0x69736F6D); // isom
         compatibleBrands.add(0x69736F32); // iso2
+    }
+
+    public void setCover(final File cover) {
+        this.coverArtFile = cover;
     }
 
     public Mp4Track[] getTracksFromSource(final int sourceIndex) throws IllegalStateException {
@@ -719,7 +728,7 @@ public class Mp4FromDashWriter {
             }
             makeTrak(i, durations[i], defaultMediaTime[i], tablesInfo[i], is64);
         }
-
+        makeUdta();
         return lengthFor(start);
     }
 
@@ -898,6 +907,124 @@ public class Mp4FromDashWriter {
         return buffer.array();
     }
 
+    /**
+     * Writes the User Data (udta) atom.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    private void makeUdta() throws IOException {
+        if (coverArtFile == null || !coverArtFile.exists()) {
+            return;
+        }
+
+        final int start = auxOffset();
+        // udta atom
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x75, 0x64, 0x74, 0x61});
+        makeMeta();
+        lengthFor(start);
+    }
+
+    /**
+     * Writes the Metadata (meta) atom and the Handler Reference (hdlr) atom.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    private void makeMeta() throws IOException {
+        final int start = auxOffset();
+        // meta box (FullBox): size(4) + type(4) + version(1) + flags(3)
+        auxWrite(new byte[]{
+            0x00, 0x00, 0x00, 0x00,
+            0x6D, 0x65, 0x74, 0x61, // "meta"
+            0x00, 0x00, 0x00, 0x00  // Version + Flags
+        });
+
+        // hdlr atom for metadata
+        final int hdlrSize = 33;
+        final ByteBuffer hdlr = ByteBuffer.allocate(hdlrSize);
+        hdlr.putInt(hdlrSize);
+        hdlr.putInt(0x68646C72); // "hdlr"
+        hdlr.putInt(0);          // Version/Flags
+        hdlr.putInt(0);          // Pre-defined
+        hdlr.putInt(0x6D646972); // "mdir"
+        hdlr.putInt(0x6170706C); // "appl"
+        hdlr.putInt(0);          // Reserved
+        hdlr.putInt(0);          // Reserved
+        hdlr.put(new byte[]{0}); // Name (empty, null-terminated)
+        auxWrite(hdlr.array());
+
+        makeIlst();
+        lengthFor(start);
+    }
+
+    /**
+     * Writes the Item List (ilst) atom.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    private void makeIlst() throws IOException {
+        final int start = auxOffset();
+        // ilst atom
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x69, 0x6C, 0x73, 0x74});
+        makeCovr();
+        lengthFor(start);
+    }
+
+    /**
+     * Writes the Cover Art (covr) atom.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    private void makeCovr() throws IOException {
+        final int start = auxOffset();
+        // covr atom
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x63, 0x6F, 0x76, 0x72});
+        makeData();
+        lengthFor(start);
+    }
+
+    /**
+     * Writes the Data (data) atom containing the actual cover art image.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    private void makeData() throws IOException {
+        final int start = auxOffset();
+        final int typeJpeg = 13;
+        final int typePng = 14;
+        final int bufferSize = 4096;
+
+        // Determine image type
+        final int typeFlag;
+        if (coverArtFile.getName().toLowerCase(java.util.Locale.ROOT).endsWith(".png")) {
+            typeFlag = typePng;
+        } else {
+            typeFlag = typeJpeg;
+        }
+
+        // data atom
+        auxWrite(new byte[]{0x00, 0x00, 0x00, 0x00, 0x64, 0x61, 0x74, 0x61});
+        auxWrite(typeFlag); // type
+        auxWrite(0);        // locale
+
+        // Write image data
+        if (moovSimulation) {
+            writeOffset += coverArtFile.length();
+        } else {
+            try (FileInputStream fis = new FileInputStream(coverArtFile)) {
+                final byte[] buffer = new byte[bufferSize];
+                int n;
+                while ((n = fis.read(buffer)) != -1) {
+                    if (auxBuffer == null) {
+                        outWrite(buffer, n);
+                    } else {
+                        auxBuffer.put(buffer, 0, n);
+                    }
+                }
+            }
+        }
+
+        lengthFor(start);
+    }
     static class TablesInfo {
         int stts;
         int stsc;

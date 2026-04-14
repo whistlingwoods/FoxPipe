@@ -4,11 +4,17 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.io.SharpStream;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.net.URL;
+import java.net.URLConnection;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.io.ChunkFileInputStream;
@@ -30,7 +36,8 @@ public abstract class Postprocessing implements Serializable {
     public transient static final String ALGORITHM_M4A_NO_DASH = "mp4D-m4a";
     public transient static final String ALGORITHM_OGG_FROM_WEBM_DEMUXER = "webm-ogg-d";
 
-    public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args) {
+    public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args,
+                                              StreamInfo streamInfo) {
         Postprocessing instance;
 
         switch (algorithmName) {
@@ -56,6 +63,7 @@ public abstract class Postprocessing implements Serializable {
         }
 
         instance.args = args;
+        instance.streamInfo = streamInfo;
         return instance;
     }
 
@@ -75,12 +83,13 @@ public abstract class Postprocessing implements Serializable {
      */
     private final String name;
 
-
     private String[] args;
+    protected StreamInfo streamInfo;
 
     private transient DownloadMission mission;
 
     private transient File tempFile;
+    protected transient File tempCover; 
 
     Postprocessing(boolean reserveSpace, boolean worksOnSameFile, String algorithmName) {
         this.reserveSpace = reserveSpace;
@@ -102,8 +111,73 @@ public abstract class Postprocessing implements Serializable {
                 // nothing to do
             }
         }
+        
+     if (tempCover != null && tempCover.exists()) {
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                tempCover.delete();
+            } catch (final Exception e) {
+                // Ignore exceptions during cleanup
+            }
+            tempCover = null;
+        }
     }
 
+    /**
+     * Downloads the cover art to a temporary file for later use (e.g., in FFmpeg).
+     *
+     * @return The File object of the downloaded cover, or null if failed.
+     */
+    protected File downloadCoverArt() {
+        final int timeout = 10000;
+        final int bufferSize = 1024;
+        String thumbnailUrl = null;
+
+        // Safely retrieve the URL from the list
+        if (streamInfo != null
+                && streamInfo.getThumbnails() != null
+                && !streamInfo.getThumbnails().isEmpty()) {
+            // Take the first image
+            thumbnailUrl = streamInfo.getThumbnails().get(0).getUrl();
+        }
+
+        if (thumbnailUrl == null || thumbnailUrl.isEmpty()) {
+            return null;
+        }
+
+        // If no temporary folder is defined, we cannot save
+        if (tempFile == null || tempFile.getParentFile() == null) {
+            return null;
+        }
+
+        try {
+            final java.net.URL url = new java.net.URL(thumbnailUrl);
+            // Create a file for the image in the same temporary folder
+            tempCover = new java.io.File(tempFile.getParentFile(),
+                    "cover_" + System.nanoTime() + ".jpg");
+
+            final java.net.URLConnection connection =
+                    org.schabi.newpipe.util.DnsHelper.openConnectionWithDoH(url);
+            connection.setConnectTimeout(timeout);
+            connection.setReadTimeout(timeout);
+
+            try (java.io.InputStream input = new java.io.BufferedInputStream(
+                    connection.getInputStream());
+                 java.io.FileOutputStream output = new java.io.FileOutputStream(tempCover)) {
+
+                final byte[] buffer = new byte[bufferSize];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, bytesRead);
+                }
+            }
+
+            return tempCover;
+        } catch (final Exception e) {
+            android.util.Log.e(getClass().getSimpleName(), "Failed to download cover art", e);
+            return null;
+        }
+    }
 
     public void run(DownloadMission target) throws IOException {
         this.mission = target;

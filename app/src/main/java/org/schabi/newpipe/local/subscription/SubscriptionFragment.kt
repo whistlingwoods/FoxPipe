@@ -6,6 +6,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -14,6 +15,7 @@ import android.view.SubMenu
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.MimeTypeMap
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
@@ -266,6 +268,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         }
 
         setupInitialLayout()
+        binding.fabAddChannel.setOnClickListener { showAddChannelDialog() }
     }
 
     private fun setupInitialLayout() {
@@ -463,5 +466,28 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
     companion object {
         val JSON_MIME_TYPE = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension("json") ?: "application/octet-stream"
+    }
+
+    private fun showAddChannelDialog() {
+        val context = context ?: return
+        val input = EditText(context)
+        input.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+        input.hint = "https://www.youtube.com/channel/..."
+
+        AlertDialog.Builder(context)
+            .setTitle("إضافة قناة عبر الرابط")
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val url = input.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    try {
+                        NavigationHelper.openSearch(context, ServiceList.YouTube.serviceId, url)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

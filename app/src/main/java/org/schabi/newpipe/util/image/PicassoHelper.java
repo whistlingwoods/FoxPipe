@@ -26,10 +26,14 @@ import org.schabi.newpipe.extractor.Image;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public final class PicassoHelper {
     private static final String TAG = PicassoHelper.class.getSimpleName();
@@ -49,12 +53,30 @@ public final class PicassoHelper {
 
     public static void init(final Context context) {
         picassoCache = new LruCache(10 * 1024 * 1024);
-        picassoDownloaderClient = new OkHttpClient.Builder()
+
+        final OkHttpClient bootstrapClient = new OkHttpClient.Builder().build();
+        DnsOverHttps dns = null;
+        try {
+            dns = new DnsOverHttps.Builder().client(bootstrapClient)
+                .url(HttpUrl.get("https://cloudflare-dns.com/dns-query"))
+                .bootstrapDnsHosts(InetAddress.getByName("1.1.1.1"),
+                InetAddress.getByName("1.0.0.1"))
+                .build();
+        } catch (final UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        final OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder()
                 .cache(new okhttp3.Cache(new File(context.getExternalCacheDir(), "picasso"),
                         50L * 1024L * 1024L))
                 // this should already be the default timeout in OkHttp3, but just to be sure...
-                .callTimeout(15, TimeUnit.SECONDS)
-                .build();
+                .callTimeout(15, TimeUnit.SECONDS);
+
+        if (dns != null) {
+            clientBuilder.dns(dns);
+        }
+
+        picassoDownloaderClient = clientBuilder.build();
 
         picassoInstance = new Picasso.Builder(context)
                 .memoryCache(picassoCache) // memory cache

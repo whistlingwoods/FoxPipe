@@ -3,6 +3,7 @@ package us.shandian.giga.get;
 import androidx.annotation.NonNull;
 
 public class FinishedMission extends Mission {
+    public String thumbnailUrl; // thumbnail url
 
     public FinishedMission() {
     }
@@ -13,6 +14,7 @@ public class FinishedMission extends Mission {
         timestamp = mission.timestamp;
         kind = mission.kind;
         storage = mission.storage;
+        thumbnailUrl = mission.thumbnailUrl; // thumbnail url
     }
 
 }

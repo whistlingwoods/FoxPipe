@@ -18,12 +18,15 @@ import java.util.List;
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.get.sqlite.FinishedMissionStore;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
 import us.shandian.giga.util.Utility;
 
 import static org.schabi.newpipe.BuildConfig.DEBUG;
+import static us.shandian.giga.get.DownloadMission.ERROR_NOTHING;
+import static us.shandian.giga.get.DownloadMission.ERROR_PROGRESS_LOST;
 
 public class DownloadManager {
     private static final String TAG = DownloadManager.class.getSimpleName();
@@ -33,6 +36,7 @@ public class DownloadManager {
     public static final int SPECIAL_NOTHING = 0;
     public static final int SPECIAL_PENDING = 1;
     public static final int SPECIAL_FINISHED = 2;
+    public static final int SPECIAL_QUEUED = 3;  // For queued downloads (waiting to be processed)
 
     public static final String TAG_AUDIO = "audio";
     public static final String TAG_VIDEO = "video";
@@ -42,6 +46,7 @@ public class DownloadManager {
 
     private final ArrayList<DownloadMission> mMissionsPending = new ArrayList<>();
     private final ArrayList<FinishedMission> mMissionsFinished;
+    private final ArrayList<QueuedMission> mMissionsQueued = new ArrayList<>();  // Queued downloads
 
     private final Handler mHandler;
     private final File mPendingMissionsDir;
@@ -149,10 +154,29 @@ public class DownloadManager {
             if (sub.getName().equals(".tmp")) continue;
 
             DownloadMission mis = Utility.readFromFile(sub);
-            if (mis == null || mis.isFinished() || mis.hasInvalidStorage()) {
+            if (mis == null) {
                 //noinspection ResultOfMethodCallIgnored
                 sub.delete();
                 continue;
+            }
+
+            // DON'T delete missions that are truly finished - let them be moved to finished list
+            if (mis.isFinished()) {
+                // Move to finished missions instead of deleting
+                setFinished(mis);
+                //noinspection ResultOfMethodCallIgnored
+                sub.delete();
+                continue;
+            }
+
+            // DON'T delete missions with storage issues - try to recover them
+            if (mis.hasInvalidStorage() && mis.errCode != ERROR_PROGRESS_LOST) {
+                // Only delete if it's truly unrecoverable (not just progress lost)
+                if (mis.storage == null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    sub.delete();
+                    continue;
+                }
             }
 
             mis.threads = new Thread[0];
@@ -163,16 +187,13 @@ public class DownloadManager {
                 exists = !mis.storage.isInvalid() && mis.storage.existsAsFile();
             } catch (Exception ex) {
                 Log.e(TAG, "Failed to load the file source of " + mis.storage.toString(), ex);
-                mis.storage.invalidate();
+                // Don't invalidate storage immediately - try to recover first
                 exists = false;
             }
 
             if (mis.isPsRunning()) {
                 if (mis.psAlgorithm.worksOnSameFile) {
                     // Incomplete post-processing results in a corrupted download file
-                    // because the selected algorithm works on the same file to save space.
-                    // the file will be deleted if the storage API
-                    // is Java IO (avoid showing the "Save as..." dialog)
                     if (exists && mis.storage.isDirect() && !mis.storage.delete())
                         Log.w(TAG, "Unable to delete incomplete download file: " + sub.getPath());
                 }
@@ -181,10 +202,11 @@ public class DownloadManager {
                 mis.errCode = DownloadMission.ERROR_POSTPROCESSING_STOPPED;
             } else if (!exists) {
                 tryRecover(mis);
-
-                // the progress is lost, reset mission state
-                if (mis.isInitialized())
-                    mis.resetState(true, true, DownloadMission.ERROR_PROGRESS_LOST);
+                // Keep the mission even if recovery fails - don't reset to ERROR_PROGRESS_LOST
+                // This allows user to see the failed download and potentially retry
+                if (mis.isInitialized() && mis.errCode == ERROR_NOTHING) {
+                    mis.resetState(true, true, ERROR_PROGRESS_LOST);
+                }
             }
 
             if (mis.psAlgorithm != null) {
@@ -265,7 +287,7 @@ public class DownloadManager {
         }
     }
 
-    public void deleteMission(Mission mission) {
+    public void deleteMission(Mission mission, boolean alsoDeleteFile) {
         synchronized (this) {
             if (mission instanceof DownloadMission) {
                 mMissionsPending.remove(mission);
@@ -274,7 +296,9 @@ public class DownloadManager {
                 mFinishedMissionStore.deleteMission(mission);
             }
 
-            mission.delete();
+            if (alsoDeleteFile) {
+                mission.delete();
+            }
         }
     }
 
@@ -413,6 +437,167 @@ public class DownloadManager {
     }
 
     /**
+     * Check if a mission is finished
+     *
+     * @return {@code true} if exists
+     */
+    public boolean existsFinishedMission(StoredFileHelper storage) {
+        synchronized (this) {
+            for (FinishedMission mission : mMissionsFinished) {
+                if (mission.storage != null && mission.storage.equals(storage)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ========== Queued Missions Management ==========
+
+    /**
+     * Add a new queued mission
+     * @param mission The queued mission to add
+     */
+    public void addQueuedMission(QueuedMission mission) {
+        synchronized (this) {
+            mMissionsQueued.add(mission);
+            android.util.Log.d(TAG, "✅ QueuedMission added: \"" + mission.title + "\"");
+            android.util.Log.d(TAG, "   Total queued: " + mMissionsQueued.size());
+            mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+            android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to UI");
+        }
+    }
+
+    /**
+     * Update the status of a queued mission
+     * @param index Index of the queued mission
+     * @param newStatus New status to set
+     */
+    public void updateQueuedMissionStatus(int index, QueuedMission.Status newStatus) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                mMissionsQueued.get(index).status = newStatus;
+                mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+            }
+        }
+    }
+
+    /**
+     * Get a queued mission by index
+     * @param index Index of the queued mission
+     * @return The queued mission, or null if index is invalid
+     */
+    public QueuedMission getQueuedMission(int index) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                return mMissionsQueued.get(index);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Remove a queued mission (when it starts downloading or fails permanently)
+     * @param index Index of the queued mission to remove
+     */
+    public void removeQueuedMission(int index) {
+        synchronized (this) {
+            if (index >= 0 && index < mMissionsQueued.size()) {
+                QueuedMission removed = mMissionsQueued.remove(index);
+                android.util.Log.d(TAG, "🗑️ QueuedMission removed: \"" + removed.title + "\"");
+                android.util.Log.d(TAG, "   Remaining in queue: " + mMissionsQueued.size());
+                mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to update UI");
+            }
+        }
+    }
+    
+    /**
+     * Remove a queued mission by URL (thread-safe, avoids index issues)
+     * @param videoUrl The video URL to remove
+     * @return true if removed, false if not found
+     */
+    public boolean removeQueuedMissionByUrl(String videoUrl) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return false;
+            }
+            
+            for (int i = 0; i < mMissionsQueued.size(); i++) {
+                QueuedMission mission = mMissionsQueued.get(i);
+                if (videoUrl.equals(mission.videoUrl)) {
+                    mMissionsQueued.remove(i);
+                    android.util.Log.d(TAG, "🗑️ QueuedMission removed by URL: \"" + mission.title + "\"");
+                    android.util.Log.d(TAG, "   Remaining in queue: " + mMissionsQueued.size());
+                    mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                    android.util.Log.d(TAG, "   MESSAGE_RUNNING sent to update UI");
+                    return true;
+                }
+            }
+            android.util.Log.w(TAG, "⚠️ Could not find queued mission with URL: " + videoUrl);
+            return false;
+        }
+    }
+    
+    /**
+     * Update the status of a queued mission by URL (thread-safe, avoids index issues)
+     * @param videoUrl The video URL to find
+     * @param newStatus New status to set
+     * @param errorMessage Optional error message (for FAILED status)
+     * @return true if updated, false if not found
+     */
+    public boolean updateQueuedMissionStatusByUrl(String videoUrl, QueuedMission.Status newStatus, String errorMessage) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return false;
+            }
+            
+            for (QueuedMission mission : mMissionsQueued) {
+                if (videoUrl.equals(mission.videoUrl)) {
+                    mission.status = newStatus;
+                    // 🆕 Fix #4: Always set errorMessage (allows clearing with null)
+                    mission.errorMessage = errorMessage;
+                    android.util.Log.d(TAG, "📝 QueuedMission status updated: \"" + mission.title + "\" -> " + newStatus);
+                    mHandler.sendEmptyMessage(DownloadManagerService.MESSAGE_RUNNING);
+                    return true;
+                }
+            }
+            android.util.Log.w(TAG, "⚠️ Could not find queued mission with URL for status update: " + videoUrl);
+            return false;
+        }
+    }
+    
+    /**
+     * Get a queued mission by URL (thread-safe)
+     * @param videoUrl The video URL to find
+     * @return The queued mission, or null if not found
+     */
+    public QueuedMission getQueuedMissionByUrl(String videoUrl) {
+        synchronized (this) {
+            if (videoUrl == null || videoUrl.isEmpty()) {
+                return null;
+            }
+            
+            for (QueuedMission mission : mMissionsQueued) {
+                if (videoUrl.equals(mission.videoUrl)) {
+                    return mission;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Get the count of queued missions
+     * @return Number of queued missions
+     */
+    public int getQueuedCount() {
+        synchronized (this) {
+            return mMissionsQueued.size();
+        }
+    }
+
+    /**
      * Set a pending download as finished
      *
      * @param mission the desired mission
@@ -446,7 +631,7 @@ public class DownloadManager {
                     continue;
 
                 resumeMission(mission);
-                if (mission.errCode != DownloadMission.ERROR_NOTHING) continue;
+                if (mission.errCode != ERROR_NOTHING) continue;
 
                 if (mPrefQueueLimit) return true;
                 flag = true;
@@ -510,6 +695,15 @@ public class DownloadManager {
         }
     }
 
+    public boolean canRecoverMission(DownloadMission mission) {
+        if (mission == null) return false;
+
+        // Can recover missions with progress lost or storage issues
+        return mission.errCode == ERROR_PROGRESS_LOST ||
+                mission.storage == null ||
+                !mission.storage.existsAsFile();
+    }
+
     public MissionState checkForExistingMission(StoredFileHelper storage) {
         synchronized (this) {
             DownloadMission pending = getPendingMission(storage);
@@ -563,6 +757,7 @@ public class DownloadManager {
     public class MissionIterator extends DiffUtil.Callback {
         final Object FINISHED = new Object();
         final Object PENDING = new Object();
+        final Object QUEUED = new Object();  // For queued downloads
 
         ArrayList<Object> snapshot;
         ArrayList<Object> current;
@@ -580,18 +775,34 @@ public class DownloadManager {
             synchronized (DownloadManager.this) {
                 ArrayList<Mission> pending = new ArrayList<>(mMissionsPending);
                 ArrayList<Mission> finished = new ArrayList<>(mMissionsFinished);
+                ArrayList<QueuedMission> queued = new ArrayList<>(mMissionsQueued);
                 List<Mission> remove = new ArrayList<>(hidden);
 
-                // hide missions (if required)
-                remove.removeIf(mission -> pending.remove(mission) || finished.remove(mission));
+                // Don't hide recoverable missions
+                remove.removeIf(mission -> {
+                    if (mission instanceof DownloadMission dm && canRecoverMission(dm)) {
+                        return false; // Don't remove recoverable missions
+                    }
+                    return pending.remove(mission) || finished.remove(mission);
+                });
 
                 int fakeTotal = pending.size();
                 if (fakeTotal > 0) fakeTotal++;
 
                 fakeTotal += finished.size();
                 if (finished.size() > 0) fakeTotal++;
+                
+                fakeTotal += queued.size();
+                if (queued.size() > 0) fakeTotal++;
 
                 ArrayList<Object> list = new ArrayList<>(fakeTotal);
+                
+                // Add queued first
+                if (queued.size() > 0) {
+                    list.add(QUEUED);
+                    list.addAll(queued);
+                }
+                
                 if (pending.size() > 0) {
                     list.add(PENDING);
                     list.addAll(pending);
@@ -612,6 +823,7 @@ public class DownloadManager {
 
             if (object == PENDING) return new MissionItem(SPECIAL_PENDING);
             if (object == FINISHED) return new MissionItem(SPECIAL_FINISHED);
+            if (object == QUEUED) return new MissionItem(SPECIAL_QUEUED);
 
             return new MissionItem(SPECIAL_NOTHING, (Mission) object);
         }
@@ -621,8 +833,20 @@ public class DownloadManager {
 
             if (object == PENDING) return SPECIAL_PENDING;
             if (object == FINISHED) return SPECIAL_FINISHED;
+            if (object == QUEUED) return SPECIAL_QUEUED;
 
             return SPECIAL_NOTHING;
+        }
+        
+        /**
+         * Get the index of a queued mission in mMissionsQueued list
+         * @param mission The queued mission to find
+         * @return Index in mMissionsQueued, or -1 if not found
+         */
+        public int getQueuedMissionIndex(QueuedMission mission) {
+            synchronized (DownloadManager.this) {
+                return mMissionsQueued.indexOf(mission);
+            }
         }
 
 
@@ -691,14 +915,33 @@ public class DownloadManager {
 
         @Override
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            Object x = snapshot.get(oldItemPosition);
-            Object y = current.get(newItemPosition);
+            Object oldItem = snapshot.get(oldItemPosition);
+            Object newItem = current.get(newItemPosition);
 
-            if (x instanceof Mission && y instanceof Mission) {
-                return ((Mission) x).storage.equals(((Mission) y).storage);
+            if (oldItem == PENDING || oldItem == FINISHED || oldItem == QUEUED) return oldItem == newItem;
+
+            // Handle QueuedMission (no storage yet)
+            if (oldItem instanceof QueuedMission && newItem instanceof QueuedMission) {
+                QueuedMission oldQueued = (QueuedMission) oldItem;
+                QueuedMission newQueued = (QueuedMission) newItem;
+                
+                // 🆕 Fix #6: Compare status AND errorMessage for proper UI updates
+                return java.util.Objects.equals(oldQueued.videoUrl, newQueued.videoUrl) 
+                    && java.util.Objects.equals(oldQueued.title, newQueued.title)
+                    && oldQueued.status == newQueued.status
+                    && java.util.Objects.equals(oldQueued.errorMessage, newQueued.errorMessage);
             }
 
-            return false;
+            // Handle DownloadMission and FinishedMission (have storage)
+            Mission oldMission = (Mission) oldItem;
+            Mission newMission = (Mission) newItem;
+            
+            // Null check for storage (QueuedMission doesn't have storage)
+            if (oldMission.storage == null || newMission.storage == null) {
+                return false; // Different if either has null storage
+            }
+
+            return oldMission.storage.equals(newMission.storage) && oldMission.timestamp == newMission.timestamp;
         }
     }
 

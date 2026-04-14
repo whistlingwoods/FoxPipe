@@ -27,7 +27,7 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
     // TODO: use NewPipeSQLiteHelper ('s constants) when playlist branch is merged (?)
     private static final String DATABASE_NAME = "downloads.db";
 
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5; // Upgraded to support thumbnail_url column
 
     /**
      * The table name of download missions (old)
@@ -57,6 +57,11 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
     private static final String KEY_PATH = "path";
 
     /**
+     * The key to the thumbnail URL of a mission
+     */
+    private static final String KEY_THUMBNAIL_URL = "thumbnail_url";
+
+    /**
      * The statement to create the table
      */
     private static final String MISSIONS_CREATE_TABLE =
@@ -66,6 +71,7 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
                     KEY_DONE + " INTEGER NOT NULL, " +
                     KEY_TIMESTAMP + " INTEGER NOT NULL, " +
                     KEY_KIND + " TEXT NOT NULL, " +
+                    KEY_THUMBNAIL_URL + " TEXT, " +
                     " UNIQUE(" + KEY_TIMESTAMP + ", " + KEY_PATH + "));";
 
 
@@ -122,6 +128,13 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
             cursor.close();
             db.execSQL("DROP TABLE " + MISSIONS_TABLE_NAME_v2);
         }
+
+        // Migration from v4 to v5: Add thumbnail_url column
+        if (oldVersion == 4) {
+            db.execSQL("ALTER TABLE " + FINISHED_TABLE_NAME + 
+                       " ADD COLUMN " + KEY_THUMBNAIL_URL + " TEXT;");
+            // The new column will have NULL for all existing rows, which is acceptable
+        }
     }
 
     /**
@@ -137,6 +150,13 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
         values.put(KEY_DONE, downloadMission.length);
         values.put(KEY_TIMESTAMP, downloadMission.timestamp);
         values.put(KEY_KIND, String.valueOf(downloadMission.kind));
+        // Save thumbnail URL if available (works for both DownloadMission and FinishedMission)
+        if (downloadMission instanceof DownloadMission) {
+            values.put(KEY_THUMBNAIL_URL, ((DownloadMission) downloadMission).thumbnailUrl);
+        } else if (downloadMission instanceof FinishedMission) {
+            values.put(KEY_THUMBNAIL_URL, ((FinishedMission) downloadMission).thumbnailUrl);
+        }
+        
         return values;
     }
 
@@ -152,6 +172,11 @@ public class FinishedMissionStore extends SQLiteOpenHelper {
         mission.length = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_DONE));
         mission.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(KEY_TIMESTAMP));
         mission.kind = kind.charAt(0);
+        // Load thumbnail URL if column exists (for backward compatibility)
+        int thumbnailColumnIndex = cursor.getColumnIndex(KEY_THUMBNAIL_URL);
+        if (thumbnailColumnIndex != -1) {
+            mission.thumbnailUrl = cursor.getString(thumbnailColumnIndex);
+        }
 
         try {
             mission.storage = new StoredFileHelper(context,null, Uri.parse(path), "");

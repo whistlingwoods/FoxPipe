@@ -2,6 +2,7 @@ package us.shandian.giga.ui.adapter;
 
 import static android.content.Intent.FLAG_GRANT_PREFIX_URI_PERMISSION;
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
+import static android.content.Intent.createChooser;
 import static us.shandian.giga.get.DownloadMission.ERROR_CONNECT_HOST;
 import static us.shandian.giga.get.DownloadMission.ERROR_FILE_CREATION;
 import static us.shandian.giga.get.DownloadMission.ERROR_HTTP_NO_CONTENT;
@@ -71,9 +72,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Date;
 import java.util.Locale;
 import java.text.DateFormat;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -82,12 +85,16 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
 import us.shandian.giga.get.Mission;
+import us.shandian.giga.get.QueuedMission;
 import us.shandian.giga.get.MissionRecoveryInfo;
 import us.shandian.giga.service.DownloadManager;
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.ui.common.Deleter;
 import us.shandian.giga.ui.common.ProgressDrawable;
 import us.shandian.giga.util.Utility;
+
+import org.schabi.newpipe.util.image.PicassoHelper;
+import android.util.TypedValue; // To get the theme color
 
 public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callback {
     private static final String TAG = "MissionAdapter";
@@ -118,6 +125,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     private Snackbar mSnackbar;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private final AtomicBoolean isApplyingChanges = new AtomicBoolean(false);
+    private final AtomicBoolean pendingApplyChanges = new AtomicBoolean(false);
 
     public MissionAdapter(Context context, @NonNull DownloadManager downloadManager, View emptyMessage, View root) {
         mContext = context;
@@ -148,6 +157,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         switch (viewType) {
             case DownloadManager.SPECIAL_PENDING:
             case DownloadManager.SPECIAL_FINISHED:
+            case DownloadManager.SPECIAL_QUEUED:  // Queued downloads header
                 return new ViewHolderHeader(mInflater.inflate(R.layout.missions_header, parent, false));
         }
 
@@ -162,7 +172,9 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         ViewHolderItem h = (ViewHolderItem) view;
 
         if (h.item.mission instanceof DownloadMission) {
-            mPendingDownloadsItems.remove(h);
+            synchronized (mPendingDownloadsItems) {
+                mPendingDownloadsItems.remove(h);
+            }
             if (mPendingDownloadsItems.size() < 1) {
                 checkMasterButtonsVisibility();
             }
@@ -183,6 +195,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             int str;
             if (item.special == DownloadManager.SPECIAL_PENDING) {
                 str = R.string.missions_header_pending;
+            } else if (item.special == DownloadManager.SPECIAL_QUEUED) {  // Queued header
+                str = R.string.missions_header_queued;
             } else {
                 str = R.string.missions_header_finished;
                 if (mClear != null) mClear.setVisible(true);
@@ -194,33 +208,93 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
         ViewHolderItem h = (ViewHolderItem) view;
         h.item = item;
+        
+        // Handle QueuedMission separately
+        if (item.mission instanceof QueuedMission) {
+            bindQueuedMission(h, (QueuedMission) item.mission);
+            return;
+        }
 
         Utility.FileType type = Utility.getFileType(item.mission.kind, item.mission.storage.getName());
 
-        h.icon.setImageResource(Utility.getIconForFileType(type));
+        // Check if a thumbnail URL is stored in the Mission
+        String thumbUrl = null;
+        if (item.mission instanceof DownloadMission) {
+            thumbUrl = ((DownloadMission) item.mission).thumbnailUrl;
+        } else if (item.mission instanceof FinishedMission) {
+            thumbUrl = ((FinishedMission) item.mission).thumbnailUrl;
+        }
+
+        if (thumbUrl != null && !thumbUrl.isEmpty()) {
+            // 1. Remove color filter for the actual image
+            h.icon.clearColorFilter();
+            h.icon.setPadding(0, 0, 0, 0); // Remove padding for the image
+
+            // 2. Load image using Picasso
+            PicassoHelper.loadThumbnail(thumbUrl)
+                    .placeholder(Utility.getIconForFileType(type)) // Placeholder image
+                    .error(Utility.getIconForFileType(type)) // Error image
+                    .into(h.icon);
+        } else {
+            // 3. Revert to default icon (old NewPipe system)
+            h.icon.setImageResource(Utility.getIconForFileType(type));
+
+            // Re-apply theme color (Action Color) to icons
+            final TypedValue typedValue = new TypedValue();
+            mContext.getTheme().resolveAttribute(R.attr.actionColor, typedValue, true);
+            h.icon.setColorFilter(typedValue.data);
+
+            // Reset icon padding to look proper
+            final int padding = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    15,
+                    mContext.getResources().getDisplayMetrics()
+            );
+            h.icon.setPadding(padding, padding, padding, padding);
+        }
+
         h.name.setText(item.mission.storage.getName());
 
-        h.progress.setColors(Utility.getBackgroundForFileType(mContext, type), Utility.getForegroundForFileType(mContext, type));
+        h.progress.setColors(
+                Utility.getBackgroundForFileType(mContext, type),
+                Utility.getForegroundForFileType(mContext, type)
+        );
 
         if (h.item.mission instanceof DownloadMission) {
-            DownloadMission mission = (DownloadMission) item.mission;
+            final DownloadMission mission = (DownloadMission) item.mission;
             String length = Utility.formatBytes(mission.getLength());
-            if (mission.running && !mission.isPsRunning()) length += " --.- kB/s";
+            if (mission.running && !mission.isPsRunning()) {
+                length += " --.- kB/s";
+            }
 
             h.size.setText(length);
             h.pause.setTitle(mission.unknownLength ? R.string.stop : R.string.pause);
             updateProgress(h);
-            mPendingDownloadsItems.add(h);
+
+            // Add to pending items with synchronization to prevent concurrent modification
+            synchronized (mPendingDownloadsItems) {
+                // Remove first to avoid duplicates if rebinding the same ViewHolder
+                mPendingDownloadsItems.remove(h);
+                mPendingDownloadsItems.add(h);
+            }
 
             h.date.setText("");
         } else {
+            // Not a pending mission, ensure it's removed from the list
+            synchronized (mPendingDownloadsItems) {
+                mPendingDownloadsItems.remove(h);
+            }
+
             h.progress.setMarquee(false);
             h.status.setText("100%");
             h.progress.setProgress(1.0f);
             h.size.setText(Utility.formatBytes(item.mission.length));
 
-            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault());
-            Date date = new Date(item.mission.timestamp);
+            final DateFormat dateFormat = DateFormat.getDateInstance(
+                    DateFormat.MEDIUM,
+                    Locale.getDefault()
+            );
+            final Date date = new Date(item.mission.timestamp);
             h.date.setText(dateFormat.format(date));
         }
     }
@@ -349,32 +423,83 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         if (BuildConfig.DEBUG)
             Log.v(TAG, "Mime: " + mimeType + " package: " + BuildConfig.APPLICATION_ID + ".provider");
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(resolveShareableUri(mission), mimeType);
-        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
-        ShareUtils.openIntentInApp(mContext, intent);
+        try {
+            // For SAF URIs (content://), we need to handle them differently
+            if (!mission.storage.isDirect()) {
+                // SAF file - grant URI permission using ClipData
+                Uri uri = mission.storage.getUri();
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+                viewIntent.setDataAndType(uri, mimeType);
+                viewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                
+                // Use ClipData to properly grant URI permission to destination app
+                viewIntent.setClipData(android.content.ClipData.newRawUri("", uri));
+                
+                // Create a chooser to let user select the app
+                Intent chooser = Intent.createChooser(viewIntent, null);
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                chooser.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                
+                mContext.startActivity(chooser);
+            } else {
+                // Direct file - use FileProvider
+                Intent viewIntent = new Intent(Intent.ACTION_VIEW);
+                viewIntent.setDataAndType(resolveShareableUri(mission), mimeType);
+                viewIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+                viewIntent.addFlags(FLAG_GRANT_PREFIX_URI_PERMISSION);
+
+                Intent chooserIntent = createChooser(viewIntent, null);
+                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | FLAG_GRANT_READ_URI_PERMISSION);
+
+                ShareUtils.openIntentInApp(mContext, chooserIntent);
+            }
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException opening file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.general_error, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void shareFile(Mission mission) {
         if (checkInvalidFile(mission)) return;
 
-        final Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType(resolveMimeType(mission));
-        shareIntent.putExtra(Intent.EXTRA_STREAM, resolveShareableUri(mission));
-        shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            final Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType(resolveMimeType(mission));
+            
+            // For SAF files, use the storage URI directly with ClipData
+            Uri shareUri = mission.storage.isDirect() 
+                ? resolveShareableUri(mission) 
+                : mission.storage.getUri();
+            
+            shareIntent.putExtra(Intent.EXTRA_STREAM, shareUri);
+            shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+            
+            // Use ClipData for SAF files to grant permission to destination app
+            if (!mission.storage.isDirect()) {
+                shareIntent.setClipData(android.content.ClipData.newRawUri("", shareUri));
+            }
 
-        final Intent intent = new Intent(Intent.ACTION_CHOOSER);
-        intent.putExtra(Intent.EXTRA_INTENT, shareIntent);
-        // unneeded to set a title to the chooser on Android P and higher because the system
-        // ignores this title on these versions
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-            intent.putExtra(Intent.EXTRA_TITLE, mContext.getString(R.string.share_dialog_title));
+            final Intent intent = Intent.createChooser(shareIntent, null);
+            // unneeded to set a title to the chooser on Android P and higher because the system
+            // ignores this title on these versions
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+                intent.putExtra(Intent.EXTRA_TITLE, mContext.getString(R.string.share_dialog_title));
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
+
+            mContext.startActivity(intent);
+        } catch (SecurityException e) {
+            Log.e(TAG, "SecurityException sharing file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e(TAG, "Error sharing file: " + e.getMessage());
+            Toast.makeText(mContext, R.string.general_error, Toast.LENGTH_SHORT).show();
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(FLAG_GRANT_READ_URI_PERMISSION);
-
-        mContext.startActivity(intent);
     }
 
     /**
@@ -428,6 +553,8 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
 
     @Override
     public boolean handleMessage(@NonNull Message msg) {
+        android.util.Log.d(TAG, "📨 MissionAdapter.handleMessage: what=" + msg.what);
+        
         if (mStartButton != null && mPauseButton != null) {
             checkMasterButtonsVisibility();
         }
@@ -438,6 +565,11 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             case DownloadManagerService.MESSAGE_DELETED:
             case DownloadManagerService.MESSAGE_PAUSED:
                 break;
+            case DownloadManagerService.MESSAGE_RUNNING:
+                android.util.Log.d(TAG, "   📢 MESSAGE_RUNNING received in Adapter!");
+                android.util.Log.d(TAG, "   🔄 Calling applyChanges()...");
+                applyChanges();
+                return true;
             default:
                 return false;
         }
@@ -449,6 +581,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             case DownloadManagerService.MESSAGE_FINISHED:
             case DownloadManagerService.MESSAGE_DELETED:
                 // DownloadManager should mark the download as finished
+                android.util.Log.d(TAG, "   🔄 FINISHED/DELETED - Calling applyChanges()...");
                 applyChanges();
                 return true;
         }
@@ -563,16 +696,16 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         }
         request.append("]");
 
-        String service;
+        Integer service;
         try {
-            service = NewPipe.getServiceByUrl(mission.source).getServiceInfo().getName();
+            service = NewPipe.getServiceByUrl(mission.source).getServiceId();
         } catch (Exception e) {
-            service = ErrorInfo.SERVICE_NONE;
+            service = null;
         }
 
         ErrorUtil.createNotification(mContext,
                 new ErrorInfo(ErrorInfo.Companion.throwableToStringList(mission.errObject), action,
-                        service, request.toString(), reason));
+                        request.toString(), service, reason));
     }
 
     public void clearFinishedDownloads(boolean delete) {
@@ -614,7 +747,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
         while (i.hasNext()) {
             Mission mission = i.next();
             if (mission != null) {
-                mDownloadManager.deleteMission(mission);
+                mDownloadManager.deleteMission(mission, true);
                 mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, mission.storage.getUri()));
             }
             i.remove();
@@ -667,7 +800,14 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 shareFile(h.item.mission);
                 return true;
             case R.id.delete:
-                mDeleter.append(h.item.mission);
+                // delete the entry and the file
+                mDeleter.append(h.item.mission, true);
+                applyChanges();
+                checkMasterButtonsVisibility();
+                return true;
+            case R.id.delete_entry:
+                // just delete the entry
+                mDeleter.append(h.item.mission, false);
                 applyChanges();
                 checkMasterButtonsVisibility();
                 return true;
@@ -676,7 +816,7 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
                 final StoredFileHelper storage = h.item.mission.storage;
                 if (!storage.existsAsFile()) {
                     Toast.makeText(mContext, R.string.missing_file, Toast.LENGTH_SHORT).show();
-                    mDeleter.append(h.item.mission);
+                    mDeleter.append(h.item.mission, true);
                     applyChanges();
                     return true;
                 }
@@ -721,12 +861,33 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void applyChanges() {
-        mIterator.start();
-        DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
-        mIterator.end();
+        // Prevent concurrent calls to avoid race conditions
+        if (!isApplyingChanges.compareAndSet(false, true)) {
+            // Mark that another update is needed after current one finishes
+            pendingApplyChanges.set(true);
+            android.util.Log.d(TAG, "⏭️ applyChanges() queued - already in progress");
+            return;
+        }
+        
+        try {
+            do {
+                // Reset pending flag before applying
+                pendingApplyChanges.set(false);
+                
+                android.util.Log.d(TAG, "🔄 applyChanges() started");
+                mIterator.start();
+                DiffUtil.calculateDiff(mIterator, true).dispatchUpdatesTo(this);
+                mIterator.end();
 
-        checkEmptyMessageVisibility();
-        if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
+                checkEmptyMessageVisibility();
+                if (mClear != null) mClear.setVisible(mIterator.hasFinishedMissions());
+                android.util.Log.d(TAG, "   ✅ applyChanges() completed");
+                
+                // If another update was requested while we were processing, repeat
+            } while (pendingApplyChanges.get());
+        } finally {
+            isApplyingChanges.set(false);
+        }
     }
 
     public void forceUpdate() {
@@ -778,14 +939,28 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     public void refreshMissionItems() {
-        for (ViewHolderItem h : mPendingDownloadsItems) {
-            if (((DownloadMission) h.item.mission).running) continue;
+        // Create snapshot to avoid ConcurrentModificationException
+        final List<ViewHolderItem> snapshot;
+        synchronized (mPendingDownloadsItems) {
+            snapshot = new ArrayList<>(mPendingDownloadsItems);
+        }
+        
+        for (ViewHolderItem h : snapshot) {
+            // Safety check for recycled ViewHolders
+            if (h.item == null || !(h.item.mission instanceof DownloadMission)) {
+                continue;
+            }
+            DownloadMission mission = (DownloadMission) h.item.mission;
+            if (mission.running) continue;
             updateProgress(h);
             h.resetSpeedMeasure();
         }
     }
 
     public void onDestroy() {
+        // Clean up ALL handler callbacks to prevent memory leaks
+        mHandler.removeCallbacksAndMessages(null);
+        
         compositeDisposable.dispose();
         mDeleter.dispose();
     }
@@ -815,9 +990,20 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
     }
 
     private void updater() {
-        for (ViewHolderItem h : mPendingDownloadsItems) {
-            // check if the mission is running first
-            if (!((DownloadMission) h.item.mission).running) continue;
+        // Create snapshot to avoid ConcurrentModificationException
+        final List<ViewHolderItem> snapshot;
+        synchronized (mPendingDownloadsItems) {
+            snapshot = new ArrayList<>(mPendingDownloadsItems);
+        }
+        
+        for (ViewHolderItem h : snapshot) {
+            // Double-check validity in case mission changed while we were iterating
+            if (h.item == null || !(h.item.mission instanceof DownloadMission)) {
+                continue;
+            }
+            
+            DownloadMission mission = (DownloadMission) h.item.mission;
+            if (!mission.running) continue;
 
             updateProgress(h);
         }
@@ -977,6 +1163,156 @@ public class MissionAdapter extends Adapter<ViewHolder> implements Handler.Callb
             lastTimestamp = -1;
             lastSpeedIdx = -1;
         }
+    }
+
+    /**
+     * Bind a QueuedMission to the ViewHolder
+     * Shows title, thumbnail, and status (waiting/extracting/failed)
+     */
+    private void bindQueuedMission(ViewHolderItem h, QueuedMission mission) {
+        // Set title
+        h.name.setText(mission.title);
+        
+        // Set thumbnail
+        if (mission.thumbnailUrl != null && !mission.thumbnailUrl.isEmpty()) {
+            h.icon.clearColorFilter();
+            h.icon.setPadding(0, 0, 0, 0);
+            PicassoHelper.loadThumbnail(mission.thumbnailUrl)
+                .placeholder(R.drawable.ic_play_arrow)
+                .error(R.drawable.ic_play_arrow)
+                .into(h.icon);
+        } else {
+            // Fallback icon
+            h.icon.setImageResource(R.drawable.ic_play_arrow);
+            TypedValue typedValue = new TypedValue();
+            mContext.getTheme().resolveAttribute(R.attr.actionColor, typedValue, true);
+            h.icon.setColorFilter(typedValue.data);
+            int padding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 15, 
+                mContext.getResources().getDisplayMetrics());
+            h.icon.setPadding(padding, padding, padding, padding);
+        }
+        
+        //  Set status text based on QueuedMission status
+        String statusText;
+        switch (mission.status) {
+            case WAITING:
+                statusText = mContext.getString(R.string.queued_status_waiting);
+                break;
+            case EXTRACTING:
+                statusText = mContext.getString(R.string.queued_status_extracting);
+                break;
+            case PREPARING:
+                statusText = mContext.getString(R.string.queued_status_preparing);
+                break;
+            case FAILED:
+                String error = mission.errorMessage != null ? mission.errorMessage : "";
+                statusText = mContext.getString(R.string.queued_status_failed) + 
+                    (error.isEmpty() ? "" : ": " + error);
+                break;
+            default:
+                statusText = "";
+        }
+        h.status.setText(statusText);
+        
+        // Hide progress bar (no progress yet) - set alpha to 0
+        h.progress.setAlpha(0);
+        
+        // Size unknown
+        h.size.setText("--");
+        
+        // Hide date for queued items (will be restored in normal mission binding)
+        if (h.date != null) {
+            h.date.setText("");
+        }
+        
+        // Setup menu for QueuedMission (only if needed)
+        h.popupMenu.getMenu().clear();
+        h.popupMenu.inflate(R.menu.queued_mission_menu);
+        
+        // Store mission reference for click handler (avoid capturing mutable state)
+        final String videoUrl = mission.videoUrl;
+        final String title = mission.title;
+        final QueuedMission.Status currentStatus = mission.status;
+        // 🆕 Fix #1: Store quality from mission instead of preferences
+        final String storedQuality = mission.targetQuality;
+        
+        // Show/hide retry button based on status (only for FAILED items)
+        Menu menu = h.popupMenu.getMenu();
+        MenuItem retryItem = menu.findItem(R.id.retry_queued);
+        if (retryItem != null) {
+            retryItem.setVisible(currentStatus == QueuedMission.Status.FAILED);
+        }
+        
+        h.popupMenu.setOnMenuItemClickListener(popup -> {
+            if (popup.getItemId() == R.id.retry_queued) {
+                // Retry failed item - use ACTION_RETRY_SINGLE to process existing item
+                if (videoUrl != null) {
+                    android.util.Log.d(TAG, "🔄 Retrying failed item: " + title);
+                    
+                    // 🆕 Fix #5: Null check for mDownloadManager
+                    if (mDownloadManager == null) {
+                        android.util.Log.e(TAG, "❌ mDownloadManager is null, cannot retry");
+                        android.widget.Toast.makeText(mContext, 
+                            "Download manager not ready", 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                    
+                    // 🆕 Fix #3: Update UI FIRST before starting service (prevents race condition)
+                    // Reset status to WAITING and clear error message
+                    mDownloadManager.updateQueuedMissionStatusByUrl(videoUrl, QueuedMission.Status.WAITING, null);
+                    applyChanges(); // Update UI immediately
+                    
+                    // 🆕 Fix #1: Use stored quality from mission, fallback to preferences
+                    String quality = storedQuality;
+                    if (quality == null || quality.isEmpty()) {
+                        quality = androidx.preference.PreferenceManager
+                            .getDefaultSharedPreferences(mContext)
+                            .getString(mContext.getString(R.string.default_resolution_key), "360p");
+                    }
+                    
+                    // Start retry service
+                    android.content.Intent intent = new android.content.Intent(mContext, 
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.class);
+                    intent.setAction(org.schabi.newpipe.download.PlaylistEnqueuerService.ACTION_RETRY_SINGLE);
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_VIDEO_URL, videoUrl);
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_VIDEO_TITLE, title != null ? title : "Unknown");
+                    intent.putExtra(
+                        org.schabi.newpipe.download.PlaylistEnqueuerService.EXTRA_QUALITY, quality);
+                    
+                    mContext.startService(intent);
+                    
+                    android.widget.Toast.makeText(mContext, 
+                        R.string.download_has_started, 
+                        android.widget.Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            } else if (popup.getItemId() == R.id.cancel_queued) {
+                // Cancel processing in PlaylistEnqueuerService
+                if (videoUrl != null) {
+                    org.schabi.newpipe.download.PlaylistEnqueuerService.cancelQueuedItem(videoUrl);
+                    
+                    // Remove from queue by URL (thread-safe)
+                    boolean removed = mDownloadManager.removeQueuedMissionByUrl(videoUrl);
+                    
+                    if (removed) {
+                        // Update UI
+                        applyChanges();
+                        
+                        // Show toast
+                        android.widget.Toast.makeText(mContext, 
+                            R.string.queued_mission_cancelled, 
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    } else {
+                        android.util.Log.w(TAG, "Could not remove mission from queue: " + title);
+                    }
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     static class ViewHolderHeader extends RecyclerView.ViewHolder {
