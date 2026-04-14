@@ -37,14 +37,14 @@ android {
     namespace = "org.schabi.newpipe"
 
     defaultConfig {
-        applicationId = "org.schabi.newpipe"
-        resValue("string", "app_name", "NewPipe")
+        applicationId = "apps.palmtree.anchor"
+        resValue("string", "app_name", "Anchor")
         minSdk = 21
         targetSdk = 35
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1008
+        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1009
 
-        versionName = "0.28.1"
+        versionName = "0.28.2"
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -63,17 +63,17 @@ android {
 
                     // if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                     applicationIdSuffix = ".debug"
-                    resValue("string", "app_name", "NewPipe Debug")
+                    resValue("string", "app_name", "Anchor Debug")
                     // } else {
                     //    applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                    //    resValue("string", "app_name", "NewPipe $workingBranch")
+                    //    resValue("string", "app_name", "Anchor $workingBranch")
                     // }
         }
 
         release {
             System.getProperty("packageSuffix")?.let { suffix ->
                 applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+                resValue("string", "app_name", "Anchor $suffix")
             }
             isMinifyEnabled = true
             isShrinkResources = false // disabled to fix F-Droid"s reproducible build
