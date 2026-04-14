@@ -11,15 +11,15 @@
         android:background="@color/bluegray">
 
         <ImageView
-        android:id="@+id/item_icon"
-        android:layout_width="100dp"
-        android:layout_height="75dp"
-        android:layout_centerVertical="true"
-        android:contentDescription="Thumbnail"
-        android:gravity="center"
-        android:padding="0dp"
-        android:scaleType="centerCrop"
-        android:background="@drawable/rounded_corner_image" />
+            android:id="@+id/item_icon"
+            android:layout_width="100dp"
+            android:layout_height="75dp"
+            android:layout_centerVertical="true"
+            android:contentDescription="Thumbnail"
+            android:gravity="center"
+            android:padding="0dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/rounded_corner_image" />
 
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/item_name"

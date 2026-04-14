@@ -475,7 +475,7 @@ class SubscriptionFragment : BaseStateFragment<SubscriptionState>() {
         input.hint = "https://www.youtube.com/channel/..."
 
         AlertDialog.Builder(context)
-            .setTitle("إضافة قناة عبر الرابط")
+            .setTitle("Add a channel via the link")
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val url = input.text.toString().trim()
