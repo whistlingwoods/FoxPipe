@@ -93,7 +93,7 @@
     <string name="controls_popup_title">Flottant</string>
     <string name="default_popup_resolution_title">Définition par défaut de la fenêtre flottante</string>
     <string name="show_higher_resolutions_title">Afficher des définitions plus élevées</string>
-    <string name="show_higher_resolutions_summary">Seuls certains appareils peuvent lire des vidéos 2K/4K</string>
+    <string name="show_higher_resolutions_summary">Seuls certains appareils peuvent lire des vidéos 1440pp/4K</string>
     <string name="default_video_format_title">Format vidéo par défaut</string>
     <string name="popup_remember_size_pos_title">Mémoriser les propriétés de la fenêtre flottante</string>
     <string name="popup_remember_size_pos_summary">Mémoriser les dernières taille et position de la fenêtre flottante</string>
@@ -278,14 +278,14 @@
 \n6.Cliquez sur IMPORTER LE FICHIER en dessous et sélectionnez le fichier zip téléchargé
 \n7. [Si l\'importation à échoué] Extrayez le fichier .csv (généralement sous « YouTube and YouTube Music/subscriptions/subscriptions.csv »), cliquez sur IMPORTER LE FICHIER en dessous et sélectionnez le ficher csv extrait</string>
     <string name="import_soundcloud_instructions">Veuillez importer un profil SoundCloud en saisissant l’URL de votre profil ou votre identifiant.
-\n 
+\n
 \n1. Activez le « mode bureau » dans votre navigateur Web (le site n’est pas disponible pour les appareils mobiles).
 \n2. Suivez ce lien : %1$s.
 \n3. Connectez-vous à votre compte.
 \n4. Copiez le lien du profil vers lequel vous venez d’être redirigé.</string>
     <string name="import_soundcloud_instructions_hint">votre identifiant, soundcloud.com/votreidentifiant</string>
     <string name="import_network_expensive_warning">Cette opération peut charger énormément la connexion réseau.
-\n 
+\n
 \nVoulez-vous continuer \?</string>
     <string name="playback_speed_control">Contrôles de vitesse de lecture</string>
     <string name="playback_tempo">Cadence</string>
@@ -861,6 +861,29 @@
     <string name="player_http_403">Erreur HTTP 403 reçue du serveur pendant la lecture, probablement causée par l\'expiration de l\'URL de streaming ou une interdiction d\'IP</string>
     <string name="player_http_invalid_status">Erreur HTTP %1$s reçue du serveur pendant la lecture</string>
     <string name="youtube_player_http_403">Erreur HTTP 403 reçue du serveur pendant la lecture, probablement causée par un bannissement d\'IP ou des problèmes de désobfuscation de l\'URL de streaming</string>
-    <string name="sign_in_confirm_not_bot_error">%1$s a refusé de fournir des données et a demandé un identifiant pour confirmer que le demandeur n\'est pas un robot.\n\nVotre adresse IP a peut-être été temporairement bannie par %1$s. Vous pouvez patienter un peu ou changer d\'adresse IP (par exemple en activant/désactivant un VPN, ou en passant du Wi-Fi aux données mobiles).</string>
+    <string name="sign_in_confirm_not_bot_error">%1$s a refusé de fournir des données et a demandé un identifiant pour confirmer que l\'auteur de la requête n\'est pas un robot.\n\nVotre adresse IP a peut-être été temporairement bloquée par %1$s. Vous pouvez patienter ou essayer une autre adresse IP (par exemple, en activant/désactivant un VPN ou en passant du Wi-Fi aux données mobiles).\n\nPour plus d\'informations, veuillez consulter <a href="%2$s">cette FAQ</a>.</string>
     <string name="unsupported_content_in_country">Ce contenu n\'est pas disponible pour le pays actuellement sélectionné.\n\nModifiez votre sélection dans « Paramètres &gt; Contenu &gt; Pays par défaut ».</string>
+    <string name="kao_dialog_warning">En août 2025, Google a annoncé qu\'à compter de septembre 2026, l\'installation d\'applications nécessiterait une vérification par le développeur pour toutes les applications Android sur les appareils certifiés, y compris celles installées en dehors du Play Store. Les développeurs de NewPipe refusant cette exigence, NewPipe ne fonctionnera plus sur les appareils Android certifiés après cette date.</string>
+    <string name="kao_dialog_more_info">Détails</string>
+    <string name="kao_solution">Solution</string>
+    <plurals name="export_subscriptions">
+        <item quantity="one">Exportation de l\'abonnement %d…</item>
+        <item quantity="many">Exportation de %d abonnements…</item>
+        <item quantity="other">Exportation de %d abonnements…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">Chargement de l\'abonnement %d…</item>
+        <item quantity="many">Chargement de %d abonnements…</item>
+        <item quantity="other">Chargement de %d abonnements…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">Importation de l\'abonnement %d…</item>
+        <item quantity="many">Importation de %d abonnements…</item>
+        <item quantity="other">Importation de %d abonnements…</item>
+    </plurals>
+    <string name="import_subscriptions_title">Importer des abonnements</string>
+    <string name="export_subscriptions_title">Exporter les abonnements</string>
+    <string name="import_subscriptions_summary">Importer des abonnements à partir d\'une exportation .json précédente</string>
+    <string name="export_subscriptions_summary">Exportez vos abonnements dans un fichier .json</string>
+    <string name="import_from_previous_export">Importer à partir d\'une exportation précédente</string>
 </resources>
