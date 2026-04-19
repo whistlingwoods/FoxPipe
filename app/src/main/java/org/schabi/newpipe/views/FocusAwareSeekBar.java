@@ -20,6 +20,7 @@ package org.schabi.newpipe.views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -47,6 +48,7 @@ public final class FocusAwareSeekBar extends AppCompatSeekBar {
     private List<StreamHeatmapEntry> heatmapEntries = Collections.emptyList();
     private long heatmapTotalDurationMillis = 0;
     private final Paint heatmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path heatmapPath = new Path();
 
     public FocusAwareSeekBar(final Context context) {
         super(context);
@@ -87,22 +89,44 @@ public final class FocusAwareSeekBar extends AppCompatSeekBar {
         if (!heatmapEntries.isEmpty() && heatmapTotalDurationMillis > 0) {
             final float trackLeft = getPaddingLeft();
             final float trackWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-            final float midY = getHeight() / 2f;
-            final float maxHalfHeight = midY * 0.85f;
+            final float baseY = getHeight() / 2f;
+            // Fill the full upper half, leaving 1px gap at top edge
+            final float maxHeight = baseY - 1;
 
-            for (final StreamHeatmapEntry entry : heatmapEntries) {
-                final float startFrac =
-                        (float) entry.getStartTimeMillis() / heatmapTotalDurationMillis;
-                final float endFrac =
-                        (float) (entry.getStartTimeMillis() + entry.getDurationMillis())
-                                / heatmapTotalDurationMillis;
-                final float halfH = (float) entry.getHeatIntensity() * maxHalfHeight;
-                canvas.drawRect(
-                        trackLeft + startFrac * trackWidth,
-                        midY - halfH,
-                        trackLeft + endFrac * trackWidth,
-                        midY + halfH,
-                        heatmapPaint);
+            if (maxHeight > 0 && trackWidth > 0) {
+                final int n = heatmapEntries.size();
+                final float[] px = new float[n];
+                final float[] py = new float[n];
+                for (int i = 0; i < n; i++) {
+                    final StreamHeatmapEntry e = heatmapEntries.get(i);
+                    final float startFrac =
+                            (float) e.getStartTimeMillis() / heatmapTotalDurationMillis;
+                    final float endFrac =
+                            (float) (e.getStartTimeMillis() + e.getDurationMillis())
+                                    / heatmapTotalDurationMillis;
+                    // Center x of the segment, y grows upward from baseY
+                    px[i] = trackLeft + (startFrac + endFrac) * 0.5f * trackWidth;
+                    py[i] = baseY - (float) e.getHeatIntensity() * maxHeight;
+                }
+
+                heatmapPath.reset();
+                // Start at bottom-left corner, rise to first peak
+                heatmapPath.moveTo(px[0], baseY);
+                heatmapPath.lineTo(px[0], py[0]);
+
+                // Smooth quadratic bezier: data points are control points,
+                // midpoints between adjacent data points are on-curve points
+                for (int i = 0; i < n - 1; i++) {
+                    final float midX = (px[i] + px[i + 1]) * 0.5f;
+                    final float midPy = (py[i] + py[i + 1]) * 0.5f;
+                    heatmapPath.quadTo(px[i], py[i], midX, midPy);
+                }
+                // Last peak, then descend to bottom-right corner
+                heatmapPath.lineTo(px[n - 1], py[n - 1]);
+                heatmapPath.lineTo(px[n - 1], baseY);
+                heatmapPath.close();
+
+                canvas.drawPath(heatmapPath, heatmapPaint);
             }
         }
         super.onDraw(canvas);
