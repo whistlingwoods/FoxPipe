@@ -78,7 +78,7 @@ configure<ApplicationExtension> {
                 applicationIdSuffix = suffix
                 resValue("string", "app_name", "ZenPipe $suffix")
             }
-            isMinifyEnabled = true
+            isMinifyEnabled = false
             isShrinkResources = false // disabled to fix F-Droid"s reproducible build
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -88,9 +88,15 @@ configure<ApplicationExtension> {
     }
 
     lint {
+        checkReleaseBuilds = false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
         lintConfig = file("lint.xml")
         // Continue the debug build even when errors are found
         abortOnError = false
+        // suppress false warning ("Resource IDs will be non-final in Android Gradle Plugin version
+        // 5.0, avoid using them in switch case statements"), which affects only library projects
+        disable += "NonConstantResourceId"
     }
 
     compileOptions {
