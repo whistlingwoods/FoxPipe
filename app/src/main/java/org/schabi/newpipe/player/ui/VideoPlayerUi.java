@@ -1023,6 +1023,14 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.channelTextView.setText(info.getUploaderName());
 
         this.seekbarPreviewThumbnailHolder.resetFrom(player.getContext(), info.getPreviewFrames());
+
+        final List<org.schabi.newpipe.extractor.stream.StreamHeatmapEntry> heatmap =
+                info.getStreamHeatmap();
+        if (heatmap.isEmpty()) {
+            binding.playbackSeekBar.clearHeatmap();
+        } else {
+            binding.playbackSeekBar.setHeatmap(heatmap, info.getDuration() * 1000L);
+        }
     }
 
     private void updateStreamRelatedViews() {

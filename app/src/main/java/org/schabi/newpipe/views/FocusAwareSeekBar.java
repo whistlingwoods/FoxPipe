@@ -18,6 +18,8 @@
 package org.schabi.newpipe.views;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -26,7 +28,11 @@ import android.widget.SeekBar;
 
 import androidx.appcompat.widget.AppCompatSeekBar;
 
+import org.schabi.newpipe.extractor.stream.StreamHeatmapEntry;
 import org.schabi.newpipe.util.DeviceUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * SeekBar, adapted for directional navigation. It emulates touch-related callbacks
@@ -38,17 +44,68 @@ public final class FocusAwareSeekBar extends AppCompatSeekBar {
 
     private ViewTreeObserver treeObserver;
 
+    private List<StreamHeatmapEntry> heatmapEntries = Collections.emptyList();
+    private long heatmapTotalDurationMillis = 0;
+    private final Paint heatmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
     public FocusAwareSeekBar(final Context context) {
         super(context);
+        initHeatmapPaint();
     }
 
     public FocusAwareSeekBar(final Context context, final AttributeSet attrs) {
         super(context, attrs);
+        initHeatmapPaint();
     }
 
     public FocusAwareSeekBar(final Context context, final AttributeSet attrs,
                              final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        initHeatmapPaint();
+    }
+
+    private void initHeatmapPaint() {
+        heatmapPaint.setStyle(Paint.Style.FILL);
+        heatmapPaint.setColor(0x55FF9500); // ~33% transparent orange
+    }
+
+    public void setHeatmap(final List<StreamHeatmapEntry> entries,
+                           final long totalDurationMillis) {
+        heatmapEntries = entries != null ? entries : Collections.emptyList();
+        heatmapTotalDurationMillis = totalDurationMillis;
+        invalidate();
+    }
+
+    public void clearHeatmap() {
+        heatmapEntries = Collections.emptyList();
+        heatmapTotalDurationMillis = 0;
+        invalidate();
+    }
+
+    @Override
+    protected synchronized void onDraw(final Canvas canvas) {
+        if (!heatmapEntries.isEmpty() && heatmapTotalDurationMillis > 0) {
+            final float trackLeft = getPaddingLeft();
+            final float trackWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+            final float midY = getHeight() / 2f;
+            final float maxHalfHeight = midY * 0.85f;
+
+            for (final StreamHeatmapEntry entry : heatmapEntries) {
+                final float startFrac =
+                        (float) entry.getStartTimeMillis() / heatmapTotalDurationMillis;
+                final float endFrac =
+                        (float) (entry.getStartTimeMillis() + entry.getDurationMillis())
+                                / heatmapTotalDurationMillis;
+                final float halfH = (float) entry.getHeatIntensity() * maxHalfHeight;
+                canvas.drawRect(
+                        trackLeft + startFrac * trackWidth,
+                        midY - halfH,
+                        trackLeft + endFrac * trackWidth,
+                        midY + halfH,
+                        heatmapPaint);
+            }
+        }
+        super.onDraw(canvas);
     }
 
     @Override
