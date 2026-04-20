@@ -205,6 +205,7 @@ public final class VideoDetailFragment
     int lastStableBottomSheetState = BottomSheetBehavior.STATE_EXPANDED;
     @State
     protected boolean autoPlayEnabled = true;
+    private boolean forceFullscreen = false;
 
     @Nullable
     private StreamInfo currentInfo = null;
@@ -867,7 +868,7 @@ public final class VideoDetailFragment
                             }
                         }
 
-                        if (isAutoplayEnabled()) {
+                        if (isAutoplayEnabled() || forceFullscreen) {
                             openVideoPlayerAutoFullscreen();
                         }
                     }
@@ -1132,7 +1133,18 @@ public final class VideoDetailFragment
      * = false}, hence preventing it from going directly fullscreen.
      */
     public void openVideoPlayerAutoFullscreen() {
-        openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()));
+        openVideoPlayer(forceFullscreen
+                || PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()));
+        forceFullscreen = false;
+    }
+
+    public void setForceFullscreen(final boolean force) {
+        this.forceFullscreen = force;
+    }
+
+    @Nullable
+    public String getUrl() {
+        return url;
     }
 
     private void openNormalBackgroundPlayer(final boolean append) {
