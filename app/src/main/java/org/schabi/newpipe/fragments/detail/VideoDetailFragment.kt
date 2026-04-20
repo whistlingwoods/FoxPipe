@@ -192,6 +192,7 @@ class VideoDetailFragment :
     @State
     var bottomSheetState: Int = BottomSheetBehavior.STATE_EXPANDED
 
+    private boolean forceFullscreen = false;
     @JvmField
     @State
     var lastStableBottomSheetState: Int = BottomSheetBehavior.STATE_EXPANDED
@@ -801,7 +802,7 @@ class VideoDetailFragment :
                             }
                         }
 
-                        if (this.isAutoplayEnabled) {
+                        if (this.isAutoplayEnabled || forceFullscreen) {
                             openVideoPlayerAutoFullscreen()
                         }
                     }
@@ -1053,7 +1054,19 @@ class VideoDetailFragment :
      * = false`, hence preventing it from going directly fullscreen.
      */
     fun openVideoPlayerAutoFullscreen() {
-        openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()))
+        //openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()))
+        openVideoPlayer(forceFullscreen
+                || PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()));
+        forceFullscreen = false;
+    }
+
+    public void setForceFullscreen(final boolean force) {
+        this.forceFullscreen = force;
+    }
+
+    @Nullable
+    public String getUrl() {
+        return url;
     }
 
     private fun openNormalBackgroundPlayer(append: Boolean) {
