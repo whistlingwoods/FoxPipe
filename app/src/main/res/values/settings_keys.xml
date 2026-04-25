@@ -1486,28 +1486,4 @@
         <item>@string/image_quality_medium_key</item>
         <item>@string/image_quality_high_key</item>
     </string-array>
-
-    <!-- SponsorBlock -->
-    <string name="sponsorblock_enable_key">sponsorblock_enable_key</string>
-    <string name="sponsorblock_categories_key">sponsorblock_categories_key</string>
-    <string-array name="sponsorblock_categories_values">
-        <item>@string/sponsorblock_category_sponsor</item>
-        <item>@string/sponsorblock_category_intro</item>
-        <item>@string/sponsorblock_category_outro</item>
-        <item>@string/sponsorblock_category_selfpromo</item>
-        <item>@string/sponsorblock_category_interaction</item>
-        <item>@string/sponsorblock_category_music_offtopic</item>
-        <item>@string/sponsorblock_category_preview</item>
-        <item>@string/sponsorblock_category_filler</item>
-    </string-array>
-    <string-array name="sponsorblock_categories_descriptions">
-        <item>@string/sponsorblock_category_sponsor</item>
-        <item>@string/sponsorblock_category_intro</item>
-        <item>@string/sponsorblock_category_outro</item>
-        <item>@string/sponsorblock_category_selfpromo</item>
-        <item>@string/sponsorblock_category_interaction</item>
-        <item>@string/sponsorblock_category_music_offtopic</item>
-        <item>@string/sponsorblock_category_preview</item>
-        <item>@string/sponsorblock_category_filler</item>
-    </string-array>
 </resources>
