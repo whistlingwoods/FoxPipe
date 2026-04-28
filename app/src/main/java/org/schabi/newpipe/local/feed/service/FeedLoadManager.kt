@@ -342,13 +342,13 @@ class FeedLoadManager(private val context: Context) {
         /**
          * How many extractions will be running in parallel.
          */
-        private const val PARALLEL_EXTRACTIONS = 3
+        private const val PARALLEL_EXTRACTIONS = 6
 
         /**
          * How many YouTube extractions to perform before waiting [DELAY_BETWEEN_BATCHES_MILLIS]
          * to avoid being rate limited
          */
-        private const val BATCH_SIZE = 50
+        private const val BATCH_SIZE = 9999
 
         /**
          * Wait a random delay in this range once every [BATCH_SIZE] YouTube extractions to avoid
