@@ -174,6 +174,8 @@ public final class VideoDetailFragment
     private static final String RELATED_TAB_TAG = "NEXT VIDEO";
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
+    private static final long STREAM_INFO_REUSE_WINDOW_MILLIS =
+            TimeUnit.MINUTES.toMillis(2);
 
     // Flag to avoid infinite refresh loops on playback error
     private boolean attemptedRefreshOnError = false;
@@ -901,8 +903,12 @@ public final class VideoDetailFragment
             player.disablePreloadingOfCurrentTrack();
         }
 
-        // Ensure we don't reuse stale cached StreamInfo when user re-opens from history
-        if (newUrl != null) {
+        // Reuse very fresh stream info to avoid a full refetch on rapid reopens or poor
+        // networks, but drop older entries so playback URLs do not go stale.
+        if (newUrl != null
+                && InfoCache.getInstance().getInfoAgeMillis(
+                        newServiceId, newUrl, InfoCache.Type.STREAM)
+                > STREAM_INFO_REUSE_WINDOW_MILLIS) {
             InfoCache.getInstance().removeInfo(newServiceId, newUrl, InfoCache.Type.STREAM);
         }
         setInitialData(newServiceId, newUrl, newTitle, newQueue);

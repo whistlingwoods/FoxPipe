@@ -58,6 +58,9 @@ import java.util.stream.Collectors;
 
 public final class PlayerHelper {
     private static final FormattersProvider FORMATTERS_PROVIDER = new FormattersProvider();
+    private static final int CONSERVATIVE_QUALITY_INCREASE_BUFFER_MS = 10_000;
+    private static final float CONSERVATIVE_BANDWIDTH_FRACTION = 0.65f;
+    private static final int METERED_PROGRESSIVE_LOAD_INTERVAL_KIB = 16;
 
     @Retention(SOURCE)
     @IntDef({AUTOPLAY_TYPE_ALWAYS, AUTOPLAY_TYPE_WIFI,
@@ -289,10 +292,10 @@ public final class PlayerHelper {
     @NonNull
     public static ExoTrackSelection.Factory getQualitySelector() {
         return new AdaptiveTrackSelection.Factory(
-                1000,
+                CONSERVATIVE_QUALITY_INCREASE_BUFFER_MS,
                 AdaptiveTrackSelection.DEFAULT_MAX_DURATION_FOR_QUALITY_DECREASE_MS,
                 AdaptiveTrackSelection.DEFAULT_MIN_DURATION_TO_RETAIN_AFTER_DISCARD_MS,
-                AdaptiveTrackSelection.DEFAULT_BANDWIDTH_FRACTION);
+                CONSERVATIVE_BANDWIDTH_FRACTION);
     }
 
     @NonNull
@@ -376,6 +379,13 @@ public final class PlayerHelper {
         if (context.getString(R.string.progressive_load_interval_exoplayer_default_value)
                 .equals(preferredIntervalBytes)) {
             return ProgressiveMediaSource.DEFAULT_LOADING_CHECK_INTERVAL_BYTES;
+        }
+        if (context.getString(R.string.progressive_load_interval_default_value)
+                .equals(preferredIntervalBytes)
+                && ListHelper.isMeteredNetwork(context)) {
+            // Keep startup chunks smaller on slower/mobile networks unless the user explicitly
+            // chose a different interval.
+            return METERED_PROGRESSIVE_LOAD_INTERVAL_KIB * 1024;
         }
         // Keeping the same KiB unit used by ProgressiveMediaSource
         return Integer.parseInt(preferredIntervalBytes) * 1024;

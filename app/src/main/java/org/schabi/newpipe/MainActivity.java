@@ -1113,7 +1113,7 @@ public class MainActivity extends AppCompatActivity {
         if (prefs.getBoolean(shownKey, false)) {
             return; // dialog was already shown in the past, no need to show it again
         }
-
+        final var dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.api23_requirement_dialog_title)
                 .setCancelable(false)
                 .setMessage(R.string.api23_requirement_dialog_message)
