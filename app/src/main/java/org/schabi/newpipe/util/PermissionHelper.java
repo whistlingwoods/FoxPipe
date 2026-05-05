@@ -115,7 +115,6 @@ public final class PermissionHelper {
      * @param context {@link Context}
      * @return {@link Settings#canDrawOverlays(Context)}
      **/
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean checkSystemAlertWindowPermission(final Context context) {
         if (!Settings.canDrawOverlays(context)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -173,8 +172,7 @@ public final class PermissionHelper {
      * @return whether the popup is enabled
      */
     public static boolean isPopupEnabledElseAsk(final Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || checkSystemAlertWindowPermission(context)) {
+        if (checkSystemAlertWindowPermission(context)) {
             return true;
         } else {
             Toast.makeText(context, R.string.msg_popup_permission, Toast.LENGTH_LONG).show();

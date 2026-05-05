@@ -20,13 +20,8 @@ val gitWorkingBranch = providers.exec {
     commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
 }.standardOutput.asText.map { it.trim() }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
         // TODO: Drop annotation default target when it is stable
         freeCompilerArgs.addAll(
@@ -42,12 +37,12 @@ configure<ApplicationExtension> {
     defaultConfig {
         applicationId = "org.schabi.newpipe"
         resValue("string", "app_name", "NewPipe")
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1010
+        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1011
 
-        versionName = "0.28.5"
+        versionName = "0.28.6"
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -136,13 +131,6 @@ ksp {
 
 // Custom dependency configuration for ktlint
 val ktlint by configurations.creating
-
-// https://checkstyle.org/#JRE_and_JDK
-tasks.withType<Checkstyle>().configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
 
 checkstyle {
     configDirectory = rootProject.file("checkstyle")

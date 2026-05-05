@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: gradle/actions/wrapper-validation@v5
+      - uses: gradle/actions/wrapper-validation@v6
 
       - name: create and checkout branch
         # push events already checked out the branch
@@ -60,7 +60,7 @@ jobs:
         run: ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint
 
       - name: Upload APK
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: app
           path: app/build/outputs/apk/debug/*.apk
@@ -71,7 +71,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - api-level: 21
+          - api-level: 23
             target: default
             arch: x86
           - api-level: 35
@@ -108,7 +108,7 @@ jobs:
           script: ./gradlew connectedCheck --stacktrace
 
       - name: Upload test report when tests fail # because the printed out stacktrace (console) is too short, see also #7553
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: android-test-report-api${{ matrix.api-level }}
