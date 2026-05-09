@@ -28,6 +28,12 @@ class SubscriptionManager(context: Context) {
     fun subscriptionTable(): SubscriptionDAO = subscriptionTable
     fun subscriptions() = subscriptionTable.all
 
+    fun subscriptionsFilteredByGroup(groupId: Long): Flowable<List<SubscriptionEntity>> = when (groupId) {
+        FeedGroupEntity.GROUP_ALL_ID -> subscriptionTable.getAll()
+        FeedGroupEntity.GROUP_UNGROUPED_ID -> subscriptionTable.getSubscriptionsNotInAnyGroup()
+        else -> subscriptionTable.getSubscriptionsForGroup(groupId)
+    }
+
     fun getSubscriptions(
         currentGroupId: Long = FeedGroupEntity.GROUP_ALL_ID,
         filterQuery: String = "",
@@ -43,7 +49,9 @@ class SubscriptionManager(context: Context) {
                     subscriptionTable.getSubscriptionsFiltered(filterQuery)
                 }
             }
+
             showOnlyUngrouped -> subscriptionTable.getSubscriptionsOnlyUngrouped(currentGroupId)
+
             else -> subscriptionTable.all
         }
     }
