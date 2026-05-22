@@ -67,7 +67,7 @@ teamnewpipe-nanojson = "e9d656ddb49a412a5a0a5d5ef20ca7ef09549996"
 # the corresponding commit hash, since JitPack sometimes deletes artifacts.
 # If there’s already a git hash, just add more of it to the end (or remove a letter)
 # to cause jitpack to regenerate the artifact.
-teamnewpipe-newpipe-extractor = "e33eeee16654ee6668c2e3aa294f612b95d8717c"
+teamnewpipe-newpipe-extractor = "eeffaaa040f7d285752f9e64129c31d55cd6710e"
 webkit = "1.15.0"
 work = "2.11.2"
 
