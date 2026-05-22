@@ -212,7 +212,7 @@ dependencies {
     // the corresponding commit hash, since JitPack sometimes deletes artifacts.
     // If there’s already a git hash, just add more of it to the end (or remove a letter)
     // to cause jitpack to regenerate the artifact.
-    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:33645f1236f193bc2afe6330d1a4a73345f049c2'
+    implementation 'com.github.whistlingwoods.NewPipeExtractor:NewPipeExtractor:8a2dc5fb3de88ba471c6ece77ce980f516a99be0'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
 /** Checkstyle **/
