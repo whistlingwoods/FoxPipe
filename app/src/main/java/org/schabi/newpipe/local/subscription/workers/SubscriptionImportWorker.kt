@@ -2,6 +2,7 @@ package org.schabi.newpipe.local.subscription.workers
 
 import android.content.Context
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Parcelable
 import android.util.Log
@@ -26,7 +27,10 @@ import kotlinx.parcelize.Parcelize
 import org.schabi.newpipe.BuildConfig
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.channel.ChannelInfo
+import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo
 import org.schabi.newpipe.local.subscription.SubscriptionManager
+import org.schabi.newpipe.streams.io.StoredFileHelper
 import org.schabi.newpipe.util.ExtractorHelper
 
 class SubscriptionImportWorker(
@@ -59,25 +63,39 @@ class SubscriptionImportWorker(
         val qty = subscriptions.size
         var title =
             applicationContext.resources.getQuantityString(R.plurals.load_subscriptions, qty, qty)
+        val subscriptionManager = SubscriptionManager(applicationContext)
 
         val channelInfoList =
             try {
-                withContext(Dispatchers.IO.limitedParallelism(PARALLEL_EXTRACTIONS)) {
-                    subscriptions
-                        .map {
-                            async {
-                                val channelInfo =
-                                    ExtractorHelper.getChannelInfo(it.serviceId, it.url, true).await()
+                withContext(Dispatchers.IO) {
+                    subscriptions.forEach {
+                        var currentName = ""
+                        val res = try {
+                            val channelInfo =
+                                ExtractorHelper.getChannelInfo(it.serviceId, it.url, true).await()
+                            currentName = channelInfo.name
+//                            if (channelInfo.tabs.isEmpty()) null else (channelInfo to null)
+                            try {
                                 val channelTab =
                                     ExtractorHelper.getChannelTab(it.serviceId, channelInfo.tabs[0], true).await()
 
-                                val currentIndex = mutex.withLock { index++ }
-                                setForeground(createForegroundInfo(title, channelInfo.name, currentIndex, qty))
-
                                 channelInfo to channelTab
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error while loading subscription data", e)
+                                channelInfo to null
                             }
-                        }.awaitAll()
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error while loading subscription data", e)
+                            null
+                        }
+
+                        val currentIndex = mutex.withLock { index++ }
+                        setForeground(createForegroundInfo(title, currentName, currentIndex, qty))
+
+                        res?.let { subscriptionManager.upsertAll(listOf(res)) }
+                    }
                 }
+                listOf<Pair<ChannelInfo, ChannelTabInfo?>>()
             } catch (e: Exception) {
                 if (BuildConfig.DEBUG) {
                     Log.e(TAG, "Error while loading subscription data", e)
@@ -93,7 +111,7 @@ class SubscriptionImportWorker(
         setForeground(createForegroundInfo(title, null, 0, 0))
         index = 0
 
-        val subscriptionManager = SubscriptionManager(applicationContext)
+//        val subscriptionManager = SubscriptionManager(applicationContext)
         for (chunk in channelInfoList.chunked(BUFFER_COUNT_BEFORE_INSERT)) {
             withContext(Dispatchers.IO) {
                 subscriptionManager.upsertAll(chunk)
@@ -123,7 +141,7 @@ class SubscriptionImportWorker(
                         val contentType =
                             MimeTypeMap.getFileExtensionFromUrl(input.url).ifEmpty { DEFAULT_MIME }
                         NewPipe.getService(input.serviceId).subscriptionExtractor
-                            .fromInputStream(it, contentType)
+                            .fromInputStream(it, "text/csv")
                             .map { SubscriptionItem(it.serviceId, it.url, it.name) }
                     }
 
