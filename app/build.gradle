@@ -219,7 +219,7 @@ dependencies {
     // the corresponding commit hash, since JitPack sometimes deletes artifacts.
     // If there’s already a git hash, just add more of it to the end (or remove a letter)
     // to cause jitpack to regenerate the artifact.
-    implementation 'com.github.whistlingwoods:TubularExtractor:v0.25.0'
+    implementation 'com.github.whistlingwoods:TubularExtractor:e9f6fdd1fa32aea152829053aabc7bec7ecd2116'
     implementation 'com.github.TeamNewPipe:NoNonsense-FilePicker:5.0.0'
 
 /** Checkstyle **/
