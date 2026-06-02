@@ -148,6 +148,8 @@ class VideoDetailFragment :
     @State
     var autoPlayEnabled: Boolean = true
 
+     private var forceFullscreen: Boolean = false
+
     @JvmField
     @State
     var originalOrientation: Int = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
@@ -801,7 +803,7 @@ class VideoDetailFragment :
                             }
                         }
 
-                        if (this.isAutoplayEnabled) {
+                        if (this.isAutoplayEnabled || forceFullscreen) {
                             openVideoPlayerAutoFullscreen()
                         }
                     }
@@ -1045,15 +1047,28 @@ class VideoDetailFragment :
     }
 
     /**
-     * If the option to start directly fullscreen is enabled, calls
-     * [.openVideoPlayer] with `directlyFullscreenIfApplicable = true`, so that
-     * if the user is not already in landscape and he has screen orientation locked the activity
-     * rotates and fullscreen starts. Otherwise, if the option to start directly fullscreen is
-     * disabled, calls [.openVideoPlayer] with `directlyFullscreenIfApplicable
-     * = false`, hence preventing it from going directly fullscreen.
+     * If the option to start directly fullscreen is enabled, or if `forceFullscreen` is true
+     * (e.g. when switching from popup player to main player with a different video), calls
+     * [.openVideoPlayer] with `directlyFullscreenIfApplicable = true`, so that if the user is not
+     * already in landscape and he has screen orientation locked the activity rotates and
+     * fullscreen starts. Otherwise, if the option to start directly fullscreen is disabled and
+     * `forceFullscreen` is false, calls [.openVideoPlayer] with
+     * `directlyFullscreenIfApplicable = false`, hence preventing it from going directly
+     * fullscreen. `forceFullscreen` is reset to false after this call.
      */
     fun openVideoPlayerAutoFullscreen() {
-        openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()))
+        openVideoPlayer(
+            forceFullscreen || PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext())
+        )
+        forceFullscreen = false
+    }
+
+    fun setForceFullscreen(force: Boolean) {
+        forceFullscreen = force
+    }
+
+    fun getUrl(): String? {
+        return url
     }
 
     private fun openNormalBackgroundPlayer(append: Boolean) {

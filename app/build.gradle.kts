@@ -8,9 +8,8 @@ import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.android.legacy.kapt)
     alias(libs.plugins.jetbrains.kotlin.compose)
-    alias(libs.plugins.jetbrains.kotlin.kapt)
     alias(libs.plugins.jetbrains.kotlin.parcelize)
     alias(libs.plugins.jetbrains.kotlinx.serialization)
     alias(libs.plugins.google.ksp)
@@ -35,18 +34,26 @@ kotlin {
 }
 
 configure<ApplicationExtension> {
-    compileSdk = 36
-    namespace = "org.schabi.newpipe"
+    compileSdk {
+        version = release(NEWPIPE_VERSION_SDK_COMPILE_MAJOR) {
+            minorApiLevel = NEWPIPE_VERSION_SDK_COMPILE_MINOR
+        }
+    }
+    namespace = NEWPIPE_APPLICATION_ID_OLD
 
     defaultConfig {
-        applicationId = "org.schabi.newpipe"
+        applicationId = NEWPIPE_APPLICATION_ID_OLD
         resValue("string", "app_name", "NewPipe")
-        minSdk = 23
-        targetSdk = 35
+        minSdk {
+            version = release(NEWPIPE_VERSION_SDK_MIN)
+        }
+        targetSdk {
+            version = release(NEWPIPE_VERSION_SDK_TARGET)
+        }
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1010
+        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: NEWPIPE_VERSION_CODE
 
-        versionName = "0.28.5"
+        versionName = NEWPIPE_VERSION_NAME
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -211,18 +218,19 @@ aboutLibraries {
 }
 
 dependencies {
-    /** Desugaring **/
+    // Desugaring
     coreLibraryDesugaring(libs.android.desugar)
 
-    /** NewPipe libraries **/
+    // NewPipe libraries
     implementation(libs.newpipe.nanojson)
     implementation(libs.newpipe.extractor)
     implementation(libs.newpipe.filepicker)
 
-    /** Checkstyle **/
+    // Checkstyle
     checkstyle(libs.puppycrawl.checkstyle)
     ktlint(libs.pinterest.ktlint)
 
+    // AndroidX
     /** Kotlin **/
     implementation(libs.kotlin.stdlib)
 
@@ -283,7 +291,7 @@ dependencies {
     // Kotlinx Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    /** Third-party libraries **/
+    // Third-party libraries
     // Instance state boilerplate elimination
     implementation(libs.livefront.bridge)
     implementation(libs.evernote.statesaver.core)
@@ -334,8 +342,7 @@ dependencies {
     // Date and time formatting
     implementation(libs.ocpsoft.prettytime)
 
-    /** Debugging **/
-    // Memory leak detection
+    // Debugging and memory leak detection
     debugImplementation(libs.squareup.leakcanary.watcher)
     debugImplementation(libs.squareup.leakcanary.plumber)
     debugImplementation(libs.squareup.leakcanary.core)
@@ -346,7 +353,7 @@ dependencies {
     // Jetpack Compose
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    /** Testing **/
+    // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
 
