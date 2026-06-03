@@ -10,11 +10,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:background="?attr/colorPrimary"
-        app:tabRippleColor="@color/white"
-        app:tabIconTint="@color/white"
-        app:tabIndicatorColor="@color/white"
+        android:background="?attr/colorSurface"
         app:tabGravity="fill"
+        app:tabIconTint="@color/tab_layout_material_item_color"
+        app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="3dp"
+        app:tabRippleColor="?attr/colorControlHighlight"
+        app:tabSelectedTextColor="?attr/colorPrimary"
+        app:tabTextColor="@color/tab_layout_material_item_color"
         app:tabMinWidth="60dp" />
 
     <androidx.viewpager.widget.ViewPager
@@ -22,5 +26,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/main_tab_layout" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/main_bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/main_bottom_navigation_height"
+        android:layout_alignParentBottom="true"
+        android:background="?attr/colorSurface"
+        android:visibility="gone"
+        app:itemActiveIndicatorStyle="@style/NewPipeMaterialBottomNavigationActiveIndicator"
+        app:itemIconTint="@color/tab_layout_material_item_color"
+        app:itemPaddingBottom="@dimen/main_bottom_navigation_item_padding_bottom"
+        app:itemPaddingTop="@dimen/main_bottom_navigation_item_padding_top"
+        app:itemRippleColor="?attr/colorControlHighlight"
+        app:itemTextColor="@color/tab_layout_material_item_color"
+        app:labelVisibilityMode="selected" />
 
 </RelativeLayout>

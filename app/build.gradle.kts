@@ -11,13 +11,19 @@ plugins {
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.kotlin.parcelize)
     alias(libs.plugins.jetbrains.kotlinx.serialization)
-    alias(libs.plugins.sonarqube)
     checkstyle
 }
 
-val gitWorkingBranch = providers.exec {
-    commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
-}.standardOutput.asText.map { it.trim() }
+val releaseStoreFile = System.getenv("NEWPIPE_MATERIAL_RELEASE_STORE_FILE")
+val releaseStorePassword = System.getenv("NEWPIPE_MATERIAL_RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = System.getenv("NEWPIPE_MATERIAL_RELEASE_KEY_ALIAS")
+val releaseKeyPassword = System.getenv("NEWPIPE_MATERIAL_RELEASE_KEY_PASSWORD")
+val hasReleaseSigningConfig = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
 
 kotlin {
     jvmToolchain(21)
@@ -38,8 +44,8 @@ configure<ApplicationExtension> {
     namespace = NEWPIPE_APPLICATION_ID_OLD
 
     defaultConfig {
-        applicationId = NEWPIPE_APPLICATION_ID_OLD
-        resValue("string", "app_name", "NewPipe")
+        applicationId = NEWPIPE_MATERIAL_APPLICATION_ID
+        resValue("string", "app_name", "NewPipe Material")
         minSdk {
             version = release(NEWPIPE_VERSION_SDK_MIN)
         }
@@ -47,39 +53,52 @@ configure<ApplicationExtension> {
             version = release(NEWPIPE_VERSION_SDK_TARGET)
         }
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: NEWPIPE_VERSION_CODE
+        versionCode = System.getProperty("versionCodeOverride")?.toInt()
+            ?: NEWPIPE_MATERIAL_VERSION_CODE
 
-        versionName = NEWPIPE_VERSION_NAME
+        versionName = NEWPIPE_MATERIAL_VERSION_NAME
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
+        buildConfigField(
+            "String",
+            "NEWPIPE_MATERIAL_VERSION_NAME",
+            "\"$NEWPIPE_MATERIAL_VERSION_NAME\""
+        )
+        buildConfigField(
+            "String",
+            "UPSTREAM_NEWPIPE_VERSION_NAME",
+            "\"$NEWPIPE_VERSION_NAME\""
+        )
+        buildConfigField(
+            "int",
+            "NEWPIPE_MATERIAL_RELEASE_NUMBER",
+            "$NEWPIPE_MATERIAL_RELEASE_NUMBER"
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    if (hasReleaseSigningConfig) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(requireNotNull(releaseStoreFile))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
     }
 
     buildTypes {
         debug {
             isDebuggable = true
-
-            // suffix the app id and the app name with git branch name
-            val defaultBranches = listOf("master", "dev")
-            val workingBranch = gitWorkingBranch.getOrElse("")
-            val normalizedWorkingBranch = workingBranch
-                .replaceFirst("^[^A-Za-z]+".toRegex(), "")
-                .replace("[^0-9A-Za-z]+".toRegex(), "")
-
-            if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
-                // default values when branch name could not be determined or is master or dev
-                applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
-            } else {
-                applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
-            }
+            applicationIdSuffix = ".debug"
+            resValue("string", "app_name", "NewPipe Material Debug")
         }
 
         release {
-            System.getProperty("packageSuffix")?.let { suffix ->
-                applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
             }
             isMinifyEnabled = true
             isShrinkResources = true
@@ -195,14 +214,6 @@ afterEvaluate {
             dependsOn("formatKtlint")
         }
         dependsOn("runCheckstyle", "runKtlint", "checkDependenciesOrder")
-    }
-}
-
-sonar {
-    properties {
-        property("sonar.projectKey", "TeamNewPipe_NewPipe")
-        property("sonar.organization", "teamnewpipe")
-        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 

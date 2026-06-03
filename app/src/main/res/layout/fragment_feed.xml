@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
 
     <RelativeLayout
         android:id="@+id/refresh_root_view"
@@ -32,6 +33,7 @@
                 android:gravity="start|center_vertical"
                 android:maxLines="2"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp"
                 tools:text="@tools:sample/lorem/random" />
 
@@ -43,6 +45,7 @@
                 android:gravity="start|center_vertical"
                 android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp"
                 tools:text="@tools:sample/lorem/random" />
         </LinearLayout>
@@ -57,6 +60,7 @@
             android:layout_marginStart="6dp"
             android:layout_marginEnd="12dp"
             android:src="@drawable/ic_refresh"
+            android:tint="?attr/colorPrimary"
             tools:ignore="ContentDescription" />
 
         <View
@@ -66,7 +70,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginRight="8dp"
-            android:background="?attr/separator_color" />
+            android:background="?attr/colorSurfaceVariant" />
     </RelativeLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -108,7 +112,7 @@
 
         <ProgressBar
             android:id="@+id/loading_progress_bar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            style="@style/MaterialStateHorizontalProgressIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -123,6 +127,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="∞/∞"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textSize="16sp"
             android:visibility="gone"

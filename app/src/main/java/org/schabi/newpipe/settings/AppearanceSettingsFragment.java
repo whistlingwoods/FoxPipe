@@ -1,5 +1,6 @@
 package org.schabi.newpipe.settings;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,7 +8,10 @@ import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.util.Constants;
@@ -52,6 +56,14 @@ public class AppearanceSettingsFragment extends BasePreferenceFragment {
                         getString(R.string.auto_device_theme_title)));
             }
         }
+
+        final String themeColorKey = getString(R.string.theme_color_key);
+        final String startThemeColorKey = defaultPreferences
+                .getString(themeColorKey, getString(R.string.default_theme_color_value));
+        findPreference(themeColorKey).setOnPreferenceChangeListener((preference, newValue) -> {
+            applyThemeColorChange(startThemeColorKey, themeColorKey, preference, newValue);
+            return false;
+        });
     }
 
     @Override
@@ -65,6 +77,44 @@ public class AppearanceSettingsFragment extends BasePreferenceFragment {
         }
 
         return super.onPreferenceTreeClick(preference);
+    }
+
+    private void applyThemeColorChange(final String beginningThemeColorKey,
+                                       final String themeColorKey,
+                                       final Preference preference,
+                                       final Object newValue) {
+        final String newThemeColor = newValue.toString();
+        defaultPreferences.edit().putString(themeColorKey, newThemeColor).apply();
+        if (preference instanceof ListPreference) {
+            ((ListPreference) preference).setValue(newThemeColor);
+        }
+
+        final Activity activity = getActivity();
+        if (!newValue.equals(beginningThemeColorKey) && activity != null) {
+            new MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.theme_color_restart_dialog_title)
+                    .setMessage(R.string.theme_color_restart_dialog_message)
+                    .setPositiveButton(R.string.theme_color_restart_apply_now,
+                            (dialog, which) -> ActivityCompat.recreate(activity))
+                    .setNeutralButton(R.string.theme_color_restart_app,
+                            (dialog, which) -> restartApplication(activity))
+                    .setNegativeButton(R.string.theme_color_restart_later,
+                            (dialog, which) -> dialog.dismiss())
+                    .show();
+        }
+    }
+
+    private void restartApplication(final Activity activity) {
+        final Intent restartIntent = activity.getPackageManager()
+                .getLaunchIntentForPackage(activity.getPackageName());
+        if (restartIntent == null) {
+            ActivityCompat.recreate(activity);
+            return;
+        }
+
+        restartIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        activity.startActivity(restartIntent);
+        activity.finishAffinity();
     }
 
     private void applyThemeChange(final String beginningThemeKey,
