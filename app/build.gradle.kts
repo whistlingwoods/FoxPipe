@@ -43,7 +43,7 @@ configure<ApplicationExtension> {
 
     defaultConfig {
         applicationId = NEWPIPE_APPLICATION_ID_OLD
-        resValue("string", "app_name", "NewPipe")
+        resValue("string", "app_name", "Tubular")
         minSdk {
             version = release(NEWPIPE_VERSION_SDK_MIN)
         }
@@ -73,17 +73,17 @@ configure<ApplicationExtension> {
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                 // default values when branch name could not be determined or is master or dev
                 applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
+                resValue("string", "app_name", "Tubular Debug")
             } else {
                 applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "Tubular $workingBranch")
             }
         }
 
         release {
             System.getProperty("packageSuffix")?.let { suffix ->
                 applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+                resValue("string", "app_name", "Tubular $suffix")
             }
             isMinifyEnabled = true
             isShrinkResources = true
