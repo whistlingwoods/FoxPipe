@@ -47,8 +47,8 @@ material = "1.14.0" # TODO: update to newer version after bug is fixed. See http
 material3 = "1.11.0-alpha07"
 media = "1.8.0"
 mockitoCore = "5.23.0"
-nav3Core = "1.1.2"
 multiplatform = "1.11.0"
+nav3Core = "1.1.2"
 navigation3 = "1.1.1"
 okhttp = "5.3.2"
 paging-compose = "3.5.0"
@@ -84,21 +84,21 @@ work = "2.11.2"
 about-libraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "about-libraries" }
 acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
 android-desugar = { module = "com.android.tools:desugar_jdk_libs_nio", version.ref = "desugar" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose" }
 androidx-activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-compose-adaptive = { module = "androidx.compose.material3.adaptive:adaptive" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-test-ui-junit = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "compose" }
+androidx-compose-test-ui-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-compose-ui-text = { module = "androidx.compose.ui:ui-text" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-androidx-compose-test-ui-junit = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "compose" }
-androidx-compose-test-ui-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core" }
 androidx-documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
@@ -160,9 +160,9 @@ jetbrains-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lif
 jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { module = "junit:junit", version.ref = "junit" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test-core = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-rx3 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-rx3", version.ref = "kotlinx-coroutines-rx3" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
@@ -196,8 +196,8 @@ android-legacy-kapt = { id = "com.android.legacy-kapt", version.ref = "agp" } # 
 android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 google-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-jetbrains-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "multiplatform" }
+jetbrains-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 jetbrains-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jetbrains-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
