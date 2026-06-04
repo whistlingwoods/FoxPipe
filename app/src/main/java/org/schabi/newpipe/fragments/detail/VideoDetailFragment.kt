@@ -2568,7 +2568,7 @@ class VideoDetailFragment :
             SponsorBlockExtractorHelper.submitSponsorBlockSegment(
                 currentInfo,
                 newSegment,
-                ""
+                apiUrl
             )
         }
             .subscribeOn(Schedulers.io())
