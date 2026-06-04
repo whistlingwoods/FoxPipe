@@ -220,7 +220,7 @@ class VideoDetailFragment :
     @JvmField
     @State
     var lastStableBottomSheetState: Int = BottomSheetBehavior.STATE_EXPANDED
-    private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout?>
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
     private lateinit var bottomSheetCallback: BottomSheetCallback
     private lateinit var broadcastReceiver: BroadcastReceiver
 
@@ -2551,9 +2551,10 @@ class VideoDetailFragment :
     }
 
     @Override
-    override fun onRequestSubmitPendingSegment(newSegment: SponsorBlockSegment) {
+    override fun onRequestSubmitPendingSegment(newSegment: SponsorBlockSegment?) {
         val currentInfo = currentInfo ?: return
         val player = player ?: return
+        if (newSegment == null) return
 
         val context = requireContext()
 
