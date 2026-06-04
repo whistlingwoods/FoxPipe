@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.evernote.android.state.State
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -28,7 +29,8 @@ import org.schabi.newpipe.util.TimeUtils.millisecondsToString
 class SponsorBlockFragment :
 
     BaseFragment, CompoundButton.OnCheckedChangeListener, SponsorBlockSegmentListAdapterListener {
-    private var streamInfo: StreamInfo? = null
+    @State
+    var streamInfo: StreamInfo? = null
     var binding: FragmentSponsorBlockBinding? = null
     private var markedStartTime: Int? = null
     private var markedEndTime: Int? = null
