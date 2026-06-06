@@ -54,6 +54,8 @@ class SponsorBlockFragment :
     private var sponsorBlockDataManager: SponsorBlockDataManager? = null
     private var workerAddToWhitelisted: Disposable? = null
     private var workerRemoveFromWhitelisted: Disposable? = null
+    private var currentSponsorBlockMode: SponsorBlockMode? = null
+    private var currentIsWhitelisted: Boolean = false
 
     constructor()
 
@@ -94,44 +96,55 @@ class SponsorBlockFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        if (sponsorBlockDataManager != null) {
+        if (sponsorBlockDataManager == null) {
             sponsorBlockDataManager = SponsorBlockDataManager(requireContext())
         }
 
-        binding = FragmentSponsorBlockBinding.inflate(inflater, container, false)
+        val binding = FragmentSponsorBlockBinding.inflate(inflater, container, false)
+        this.binding = binding
 
-        binding!!.sponsorBlockControlsMarkSegmentStart.setOnClickListener {
+        binding.sponsorBlockControlsMarkSegmentStart.setOnClickListener {
             doMarkPendingSegment(
                 true
             )
         }
-        binding!!.sponsorBlockControlsMarkSegmentEnd.setOnClickListener {
+        binding.sponsorBlockControlsMarkSegmentEnd.setOnClickListener {
             doMarkPendingSegment(
                 false
             )
         }
-        binding!!.sponsorBlockControlsSegmentStart.setOnClickListener {
+        binding.sponsorBlockControlsSegmentStart.setOnClickListener {
             doPendingSegmentSeek(
                 true
             )
         }
-        binding!!.sponsorBlockControlsSegmentEnd.setOnClickListener {
+        binding.sponsorBlockControlsSegmentEnd.setOnClickListener {
             doPendingSegmentSeek(
                 false
             )
         }
-        binding!!.sponsorBlockControlsClearSegment.setOnClickListener { doClearPendingSegment() }
-        binding!!.sponsorBlockControlsSubmitSegment.setOnClickListener { doSubmitPendingSegment() }
+        binding.sponsorBlockControlsClearSegment.setOnClickListener { doClearPendingSegment() }
+        binding.sponsorBlockControlsSubmitSegment.setOnClickListener { doSubmitPendingSegment() }
 
-        binding!!.segmentList.setAdapter(segmentListAdapter)
+        binding.segmentList.setAdapter(segmentListAdapter)
 
-        binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
-        binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
+        binding.skippingIsEnabledSwitch.isChecked =
+            currentSponsorBlockMode == SponsorBlockMode.ENABLED
+
+        binding.channelIsWhitelistedSwitch.isChecked = currentIsWhitelisted
+
+        if (currentIsWhitelisted) {
+            binding.skippingIsEnabledSwitch.isChecked = false
+            binding.skippingIsEnabledSwitch.isEnabled = !currentIsWhitelisted
+        }
+
+        binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+        binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
 
         updateSponsorBlockModeUI()
         updateIsWhitelistedUI()
 
-        return binding!!.getRoot()
+        return binding.root
     }
 
     override fun onDestroyView() {
@@ -185,13 +198,33 @@ class SponsorBlockFragment :
     }
 
     fun setSponsorBlockMode(mode: SponsorBlockMode) {
-        sponsorBlockMode = mode
-        updateSponsorBlockModeUI()
+        currentSponsorBlockMode = mode
+
+        binding?.let { binding ->
+            binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
+            binding.skippingIsEnabledSwitch.isChecked = mode == SponsorBlockMode.ENABLED
+            binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+        }
     }
 
     fun setIsWhitelisted(value: Boolean) {
-        isWhitelisted = value
-        updateIsWhitelistedUI()
+        currentIsWhitelisted = value
+
+        binding?.let { binding ->
+            // Remove listener, set checked state, and reattach listener
+            binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(null)
+            binding.channelIsWhitelistedSwitch.isChecked = value
+            binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
+
+            if (value) {
+                // Handle skipping switch when whitelisted
+                binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
+                binding.skippingIsEnabledSwitch.isChecked = false
+                binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+
+                binding.skippingIsEnabledSwitch.isEnabled = !currentIsWhitelisted
+            }
+        }
     }
 
     private fun updateSponsorBlockModeUI() {
