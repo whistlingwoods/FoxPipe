@@ -1535,7 +1535,7 @@ class VideoDetailFragment :
         }
 
         // RYD override: views
-        if (rydInfo != null && isRydEnabled && overrideViewCount) {
+        if (rydInfo != null && isRydEnabled && overrideViewCount && rydInfo.viewCount > 0) {
             binding.detailViewCountView.text = Localization.localizeViewCount(activity, rydInfo.viewCount)
         }
 
