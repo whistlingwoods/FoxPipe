@@ -1854,7 +1854,9 @@ class VideoDetailFragment :
                     }
                     currentSponsorBlockMode = mode
 
-                    player?.setSponsorBlockMode(mode)
+                    player?.let { p ->
+                        p.sponsorBlockMode = currentSponsorBlockMode
+                    }
                     getSponsorBlockFragment()?.let { fragment ->
                         fragment.setSponsorBlockMode(mode)
                         fragment.setIsWhitelisted(isWhitelisted)
