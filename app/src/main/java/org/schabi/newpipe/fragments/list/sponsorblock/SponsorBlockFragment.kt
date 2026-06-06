@@ -32,16 +32,28 @@ class SponsorBlockFragment :
     @State
     var streamInfo: StreamInfo? = null
     var binding: FragmentSponsorBlockBinding? = null
-    private var markedStartTime: Int? = null
-    private var markedEndTime: Int? = null
+
+    @State
+    @JvmField
+    var sponsorBlockMode = SponsorBlockMode.ENABLED
+
+    @State
+    @JvmField
+    var isWhitelisted = false
+
+    @State
+    @JvmField
+    var markedStartTime: Int? = null
+
+    @State
+    @JvmField
+    var markedEndTime: Int? = null
     private var segmentListAdapter: SponsorBlockSegmentListAdapter? = null
     private var currentProgress = -1
     private var sponsorBlockFragmentListener: SponsorBlockFragmentListener? = null
     private var sponsorBlockDataManager: SponsorBlockDataManager? = null
-    private var workerIsWhitelisted: Disposable? = null
     private var workerAddToWhitelisted: Disposable? = null
     private var workerRemoveFromWhitelisted: Disposable? = null
-    private var sponsorBlockMode = SponsorBlockMode.ENABLED
 
     constructor()
 
@@ -69,9 +81,6 @@ class SponsorBlockFragment :
     override fun onDetach() {
         super.onDetach()
 
-        if (workerIsWhitelisted != null) {
-            workerIsWhitelisted!!.dispose()
-        }
         if (workerAddToWhitelisted != null) {
             workerAddToWhitelisted!!.dispose()
         }
@@ -116,20 +125,18 @@ class SponsorBlockFragment :
 
         binding!!.segmentList.setAdapter(segmentListAdapter)
 
-        workerIsWhitelisted =
-            sponsorBlockDataManager!!.isWhiteListed(streamInfo!!.uploaderName)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ isWhitelisted ->
-                    binding!!.channelIsWhitelistedSwitch.isChecked = isWhitelisted
-                    binding!!.skippingIsEnabledSwitch.isChecked =
-                        !isWhitelisted && sponsorBlockMode == SponsorBlockMode.ENABLED
+        binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+        binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
 
-                    binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
-                    binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
-                }, { })
+        updateSponsorBlockModeUI()
+        updateIsWhitelistedUI()
 
         return binding!!.getRoot()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding = null
     }
 
     override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
@@ -168,8 +175,8 @@ class SponsorBlockFragment :
                         }, { error -> })
             }
 
-            binding!!.skippingIsEnabledSwitch.setChecked(false)
-            binding!!.skippingIsEnabledSwitch.setEnabled(!isChecked)
+            binding?.skippingIsEnabledSwitch?.isChecked = false
+            binding?.skippingIsEnabledSwitch?.isEnabled = !isChecked
         }
     }
 
@@ -179,6 +186,28 @@ class SponsorBlockFragment :
 
     fun setSponsorBlockMode(mode: SponsorBlockMode) {
         sponsorBlockMode = mode
+        updateSponsorBlockModeUI()
+    }
+
+    fun setIsWhitelisted(value: Boolean) {
+        isWhitelisted = value
+        updateIsWhitelistedUI()
+    }
+
+    private fun updateSponsorBlockModeUI() {
+        binding?.skippingIsEnabledSwitch?.let {
+            it.setOnCheckedChangeListener(null)
+            it.isChecked = sponsorBlockMode == SponsorBlockMode.ENABLED
+            it.setOnCheckedChangeListener(this)
+        }
+    }
+
+    private fun updateIsWhitelistedUI() {
+        binding?.channelIsWhitelistedSwitch?.let {
+            it.setOnCheckedChangeListener(null)
+            it.isChecked = isWhitelisted
+            it.setOnCheckedChangeListener(this)
+        }
     }
 
     fun setCurrentProgress(progress: Int) {
@@ -190,8 +219,8 @@ class SponsorBlockFragment :
         markedStartTime = null
         markedEndTime = null
 
-        binding!!.sponsorBlockControlsSegmentStart.text = "00:00:00"
-        binding!!.sponsorBlockControlsSegmentEnd.text = "00:00:00"
+        binding?.sponsorBlockControlsSegmentStart?.text = "00:00:00"
+        binding?.sponsorBlockControlsSegmentEnd?.text = "00:00:00"
 
         if (sponsorBlockFragmentListener != null) {
             sponsorBlockFragmentListener!!.onRequestClearPendingSegment()
@@ -234,11 +263,11 @@ class SponsorBlockFragment :
         }
 
         if (markedStartTime != null) {
-            binding!!.sponsorBlockControlsSegmentStart.text = millisecondsToString(markedStartTime!!.toDouble())
+            binding?.sponsorBlockControlsSegmentStart?.text = millisecondsToString(markedStartTime!!.toDouble())
         }
 
         if (markedEndTime != null) {
-            binding!!.sponsorBlockControlsSegmentEnd.text = millisecondsToString(markedEndTime!!.toDouble())
+            binding?.sponsorBlockControlsSegmentEnd?.text = millisecondsToString(markedEndTime!!.toDouble())
         }
 
         if (markedStartTime != null && markedEndTime != null) {

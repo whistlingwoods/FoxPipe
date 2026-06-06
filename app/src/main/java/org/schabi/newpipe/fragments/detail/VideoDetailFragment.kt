@@ -160,6 +160,9 @@ class VideoDetailFragment :
     @State
     var autoPlayEnabled: Boolean = true
 
+    @State
+    var currentSponsorBlockMode: SponsorBlockMode? = null
+
     private var forceFullscreen: Boolean = false
 
     @JvmField
@@ -194,7 +197,7 @@ class VideoDetailFragment :
             onSharedPreferencesChanged(sharedPreferences, key)
         }
 
-    private var workerIsWhitelisted: Disposable? = null
+    private var workerSponsorBlockModeCheck: Disposable? = null
 
     private fun onSharedPreferencesChanged(sharedPreferences: SharedPreferences, key: String?) {
         if (getString(R.string.show_comments_key) == key) {
@@ -406,7 +409,7 @@ class VideoDetailFragment :
     override fun onDetach() {
         super.onDetach()
         submitSegmentSubscriber?.dispose()
-        workerIsWhitelisted?.dispose()
+        workerSponsorBlockModeCheck?.dispose()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -941,7 +944,25 @@ class VideoDetailFragment :
             val sponsorBlockFragment = SponsorBlockFragment(info).apply {
                 setListener(this@VideoDetailFragment)
             }
+
             pageAdapter.updateItem(SPONSOR_BLOCK_TAB_TAG, sponsorBlockFragment)
+
+            workerSponsorBlockModeCheck = sponsorBlockDataManager
+                .isWhiteListed(info.uploaderName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { isWhitelisted ->
+                    val mode = currentSponsorBlockMode ?: if (isWhitelisted) {
+                        SponsorBlockMode.DISABLED
+                    } else {
+                        SponsorBlockMode.ENABLED
+                    }
+                    currentSponsorBlockMode = mode
+                    sponsorBlockFragment.apply {
+                        setSponsorBlockMode(mode)
+                        setIsWhitelisted(isWhitelisted)
+                    }
+                }
         }
 
         binding.viewPager.visibility = View.VISIBLE
@@ -1821,13 +1842,23 @@ class VideoDetailFragment :
         )
 
         if (player != null && isSponsorBlockEnabled) {
-            workerIsWhitelisted = sponsorBlockDataManager.isWhiteListed(info.uploaderName)
+            workerSponsorBlockModeCheck = sponsorBlockDataManager
+                .isWhiteListed(info.uploaderName)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { isWhitelisted ->
-                    val mode = if (isWhitelisted) SponsorBlockMode.DISABLED else SponsorBlockMode.ENABLED
+                    val mode = currentSponsorBlockMode ?: if (isWhitelisted) {
+                        SponsorBlockMode.DISABLED
+                    } else {
+                        SponsorBlockMode.ENABLED
+                    }
+                    currentSponsorBlockMode = mode
+
                     player?.setSponsorBlockMode(mode)
-                    getSponsorBlockFragment()?.setSponsorBlockMode(mode)
+                    getSponsorBlockFragment()?.let { fragment ->
+                        fragment.setSponsorBlockMode(mode)
+                        fragment.setIsWhitelisted(isWhitelisted)
+                    }
                 }
         }
 
@@ -2503,13 +2534,17 @@ class VideoDetailFragment :
         return fragment as? SponsorBlockFragment
     }
 
-    @Override
     override fun onSkippingEnabledChanged(newValue: Boolean) {
-        val player = player ?: return
+        val p = player ?: return
 
-        player.setSponsorBlockMode(
-            if (newValue) SponsorBlockMode.ENABLED else SponsorBlockMode.DISABLED
-        )
+        val mode = if (newValue) {
+            SponsorBlockMode.ENABLED
+        } else {
+            SponsorBlockMode.DISABLED
+        }
+
+        currentSponsorBlockMode = mode
+        p.setSponsorBlockMode(mode)
     }
 
     @Override

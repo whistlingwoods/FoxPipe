@@ -978,7 +978,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
     // TODO: don’t reference internal exoplayer2 resources
     @SuppressLint("PrivateResource")
-    
     public void onUnskipClicked() {
         if (DEBUG) {
             Log.d(TAG, "onUnskipClicked() called");
