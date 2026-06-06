@@ -2611,7 +2611,11 @@ class VideoDetailFragment :
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({ response ->
-                if (response.responseCode() != 200) {
+                val responseCode = response.responseCode()
+
+                // 200 = all good
+                // 409 = all good, but the request timed out
+                if (response.responseCode() != 200 && response.responseCode() != 400) {
                     var message = response.responseMessage()
                     if (message == "") {
                         message = "Error " + response.responseCode()
