@@ -1,6 +1,7 @@
 package org.schabi.newpipe.settings.custom
 
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.TypedArray
 import android.util.AttributeSet
@@ -38,7 +39,7 @@ class ReturnYouTubeDislikeApiUrlPreference(context: Context, attrs: AttributeSet
 
         val editText = alertDialogView.findViewById<EditText>(R.id.api_url_edit)
         editText.setText(apiUrl)
-        editText.onFocusChangeListener = OnFocusChangeListener { _, _ ->
+        editText.onFocusChangeListener = OnFocusChangeListener { v, hasFocus ->
             editText.post {
                 val inputMethodManager = context
                     .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -49,7 +50,7 @@ class ReturnYouTubeDislikeApiUrlPreference(context: Context, attrs: AttributeSet
         editText.requestFocus()
 
         alertDialogView.findViewById<View>(R.id.icon_api_url_help)
-            .setOnClickListener {
+            .setOnClickListener { v: View ->
                 val privacyPolicyUri = context
                     .getString(R.string.return_youtube_dislike_security_faq_url).toUri()
                 val helpDialogView = LayoutInflater.from(context)
@@ -59,7 +60,7 @@ class ReturnYouTubeDislikeApiUrlPreference(context: Context, attrs: AttributeSet
                     )
                 val privacyPolicyButton = helpDialogView
                     .findViewById<View>(R.id.return_youtube_dislike_security_faq_button)
-                privacyPolicyButton.setOnClickListener {
+                privacyPolicyButton.setOnClickListener { v1: View ->
                     val i = Intent(Intent.ACTION_VIEW, privacyPolicyUri)
                     context.startActivity(i)
                 }
@@ -67,17 +68,17 @@ class ReturnYouTubeDislikeApiUrlPreference(context: Context, attrs: AttributeSet
                     .setView(helpDialogView)
                     .setPositiveButton(
                         "Use Official"
-                    ) { dialog, _ ->
+                    ) { dialog: DialogInterface?, which: Int ->
                         editText.setText(
                             context.getString(
                                 R.string.return_youtube_dislike_default_api_url
                             )
                         )
-                        dialog.dismiss()
+                        dialog!!.dismiss()
                     }
                     .setNeutralButton(
                         "Close"
-                    ) { dialog, _ -> dialog.dismiss() }
+                    ) { dialog: DialogInterface?, which: Int -> dialog!!.dismiss() }
                     .create()
                     .show()
             }
@@ -88,20 +89,20 @@ class ReturnYouTubeDislikeApiUrlPreference(context: Context, attrs: AttributeSet
                 .setTitle(context.getString(R.string.return_youtube_dislike_api_url_title))
                 .setPositiveButton(
                     "OK"
-                ) { dialog, _ ->
+                ) { dialog: DialogInterface?, which: Int ->
                     val newValue = editText.getText().toString()
-                    if (newValue.isNotEmpty()) {
-                        preferenceManager.sharedPreferences?.edit {
+                    if (!newValue.isEmpty()) {
+                        preferenceManager.getSharedPreferences()!!.edit {
                             putString(key, newValue)
                         }
 
                         callChangeListener(newValue)
                     }
-                    dialog.dismiss()
+                    dialog!!.dismiss()
                 }
                 .setNegativeButton(
                     "Cancel"
-                ) { dialog, _ -> dialog.cancel() }
+                ) { dialog: DialogInterface?, which: Int -> dialog!!.cancel() }
                 .create()
 
         alertDialog.show()

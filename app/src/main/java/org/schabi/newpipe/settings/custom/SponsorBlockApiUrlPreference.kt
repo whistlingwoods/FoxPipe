@@ -7,7 +7,6 @@ import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnFocusChangeListener
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
@@ -39,7 +38,7 @@ class SponsorBlockApiUrlPreference(context: Context, attrs: AttributeSet?) :
 
         val editText = alertDialogView.findViewById<EditText>(R.id.api_url_edit)
         editText.setText(apiUrl)
-        editText.onFocusChangeListener = OnFocusChangeListener { _, _ ->
+        editText.setOnFocusChangeListener { v: View, hasFocus: Boolean ->
             editText.post {
                 val inputMethodManager = context
                     .getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -50,14 +49,14 @@ class SponsorBlockApiUrlPreference(context: Context, attrs: AttributeSet?) :
         editText.requestFocus()
 
         alertDialogView.findViewById<View>(R.id.icon_api_url_help)
-            .setOnClickListener {
+            .setOnClickListener { v: View ->
                 val privacyPolicyUri = context
                     .getString(R.string.sponsor_block_privacy_policy_url).toUri()
                 val helpDialogView = LayoutInflater.from(context)
                     .inflate(R.layout.dialog_sponsor_block_api_url_help, null)
                 val privacyPolicyButton = helpDialogView
                     .findViewById<View>(R.id.sponsor_block_privacy_policy_button)
-                privacyPolicyButton.setOnClickListener {
+                privacyPolicyButton.setOnClickListener { v1: View ->
                     val i = Intent(Intent.ACTION_VIEW, privacyPolicyUri)
                     context.startActivity(i)
                 }

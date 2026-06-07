@@ -23,14 +23,13 @@ class ReturnYouTubeDislikeSettingsFragment : BasePreferenceFragment() {
 
         val rydSecurityFaqPreference =
             findPreference<Preference?>(getString(R.string.return_youtube_dislike_security_faq_key))
-        rydSecurityFaqPreference!!.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener { p: Preference ->
-                val i = Intent(
-                    Intent.ACTION_VIEW,
-                    getString(R.string.return_youtube_dislike_security_faq_url).toUri()
-                )
-                startActivity(i)
-                true
-            }
+        rydSecurityFaqPreference!!.setOnPreferenceClickListener { p: Preference ->
+            val i = Intent(
+                Intent.ACTION_VIEW,
+                getString(R.string.return_youtube_dislike_security_faq_url).toUri()
+            )
+            startActivity(i)
+            true
+        }
     }
 }

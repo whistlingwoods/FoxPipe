@@ -7,9 +7,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
@@ -19,6 +20,7 @@ import org.schabi.newpipe.R
 import org.schabi.newpipe.error.ErrorInfo
 import org.schabi.newpipe.error.ErrorUtil.Companion.showSnackbar
 import org.schabi.newpipe.error.UserAction
+import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockCategory
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockExtractorHelper
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment
@@ -30,23 +32,44 @@ import org.schabi.newpipe.util.TimeUtils.millisecondsToString
 class SponsorBlockSegmentListAdapter(
     private val context: Context?,
     private val listener: SponsorBlockSegmentListAdapterListener?
-) : ListAdapter<SponsorBlockSegment, SponsorBlockSegmentItemViewHolder>(
-    SponsorBlockSegmentDiffCallback()
-) {
+) : RecyclerView.Adapter<SponsorBlockSegmentItemViewHolder?>() {
+    private var sponsorBlockSegments = ArrayList<SponsorBlockSegment>()
+
     fun setItems(items: Array<SponsorBlockSegment?>?) {
-        val list = items?.filterNotNull()?.toMutableList() ?: mutableListOf()
+        val newSegments = if (items == null) {
+            ArrayList()
+        } else {
+            ArrayList(items.filterNotNull())
+        }
 
         // find the first "highlight" segment (if it exists) and move it to the top
-        if (list.isNotEmpty()) {
-            val highlightSegment = list.find { it.category == SponsorBlockCategory.HIGHLIGHT }
+        if (newSegments.isNotEmpty()) {
+            val highlightIndex = newSegments.indexOfFirst {
+                it.category == SponsorBlockCategory.HIGHLIGHT
+            }
 
-            if (highlightSegment != null) {
-                list.remove(highlightSegment)
-                list.add(0, highlightSegment)
+            if (highlightIndex != -1) {
+                val highlightSegment = newSegments.removeAt(highlightIndex)
+                newSegments.add(0, highlightSegment)
             }
         }
 
-        submitList(list)
+        val diffResult = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize(): Int = sponsorBlockSegments.size
+            override fun getNewListSize(): Int = newSegments.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return sponsorBlockSegments[oldItemPosition].uuid ==
+                    newSegments[newItemPosition].uuid
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return sponsorBlockSegments[oldItemPosition] == newSegments[newItemPosition]
+            }
+        })
+
+        sponsorBlockSegments = newSegments
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(
@@ -63,13 +86,17 @@ class SponsorBlockSegmentListAdapter(
         holder: SponsorBlockSegmentItemViewHolder,
         position: Int
     ) {
-        val sponsorBlockSegment = getItem(position)
+        val sponsorBlockSegment = sponsorBlockSegments[position]
         holder.updateFrom(sponsorBlockSegment)
+    }
+
+    override fun getItemCount(): Int {
+        return sponsorBlockSegments.size
     }
 
     class SponsorBlockSegmentItemViewHolder(
         itemView: View,
-        private val listener: SponsorBlockSegmentListAdapterListener?
+        listener: SponsorBlockSegmentListAdapterListener?
     ) : RecyclerView.ViewHolder(itemView) {
         private val itemSegmentColorView: View = itemView.findViewById(R.id.item_segment_color_view)
         private val itemSegmentSkipToHighlight: ImageView = itemView.findViewById(R.id.item_segment_skip_to_highlight)
@@ -157,11 +184,11 @@ class SponsorBlockSegmentListAdapter(
 
             // skip to highlight
             if (sponsorBlockSegment.category == SponsorBlockCategory.HIGHLIGHT) {
-                itemSegmentColorView.visibility = View.GONE
-                itemSegmentSkipToHighlight.setVisibility(View.VISIBLE)
+                itemSegmentColorView.isVisible = false
+                itemSegmentSkipToHighlight.isVisible = true
             } else {
-                itemSegmentColorView.visibility = View.VISIBLE
-                itemSegmentSkipToHighlight.setVisibility(View.GONE)
+                itemSegmentColorView.isVisible = true
+                itemSegmentSkipToHighlight.isVisible = false
             }
 
             // category name
@@ -181,33 +208,32 @@ class SponsorBlockSegmentListAdapter(
             itemSegmentEndTimeTextView.text = endText
 
             // Update vote button states
-            if (sponsorBlockSegment.category == SponsorBlockCategory.PENDING
-                    || sponsorBlockSegment.uuid == "TEMP"
-                    || sponsorBlockSegment.uuid.isEmpty()) {
-                itemSegmentVoteUpImageView.visibility = View.INVISIBLE
-                itemSegmentVoteDownImageView.visibility = View.INVISIBLE
+            if (sponsorBlockSegment.category == SponsorBlockCategory.PENDING ||
+                sponsorBlockSegment.uuid == "TEMP" ||
+                sponsorBlockSegment.uuid == ""
+            ) {
+                itemSegmentVoteUpImageView.isVisible = false
+                itemSegmentVoteDownImageView.isVisible = false
             } else {
-                itemSegmentVoteUpImageView.visibility = View.VISIBLE
-                itemSegmentVoteDownImageView.visibility = View.VISIBLE
+                itemSegmentVoteUpImageView.isVisible = true
+                itemSegmentVoteDownImageView.isVisible = true
 
                 // Update button states based on current vote
-                val selectedColor = context.getColor(R.color.sponsor_block_vote_button_selected)
-                val defaultColor = context.getColor(android.R.color.darker_gray)
+                val selectedColor =
+                    ContextCompat.getColor(context, R.color.sponsor_block_vote_button_selected)
+                val defaultColor =
+                    ContextCompat.getColor(context, android.R.color.darker_gray)
 
-                when {
-                    hasUpVoted -> {
-                        itemSegmentVoteUpImageView.setColorFilter(selectedColor)
-                        itemSegmentVoteDownImageView.setColorFilter(defaultColor)
-                    }
-                    hasDownVoted -> {
-                        itemSegmentVoteUpImageView.setColorFilter(defaultColor)
-                        itemSegmentVoteDownImageView.setColorFilter(selectedColor)
-                    }
-                    else -> {
-                        // Reset to default colors when no vote
-                        itemSegmentVoteUpImageView.setColorFilter(defaultColor)
-                        itemSegmentVoteDownImageView.setColorFilter(defaultColor)
-                    }
+                if (hasUpVoted) {
+                    itemSegmentVoteUpImageView.setColorFilter(selectedColor)
+                    itemSegmentVoteDownImageView.setColorFilter(defaultColor)
+                } else if (hasDownVoted) {
+                    itemSegmentVoteUpImageView.setColorFilter(defaultColor)
+                    itemSegmentVoteDownImageView.setColorFilter(selectedColor)
+                } else {
+                    // Reset to default colors when no vote
+                    itemSegmentVoteUpImageView.setColorFilter(defaultColor)
+                    itemSegmentVoteDownImageView.setColorFilter(defaultColor)
                 }
             }
         }
@@ -261,9 +287,9 @@ class SponsorBlockSegmentListAdapter(
             }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ response ->
+                .subscribe({ response: Response ->
                     isVoting = false
-                    var toastMessage: String
+                    var toastMessage: String? = null
                     if (response.responseCode() != 200) {
                         toastMessage = response.responseMessage()
                         if (toastMessage == "") {
@@ -290,45 +316,32 @@ class SponsorBlockSegmentListAdapter(
                         toastMessage = context.getString(
                             R.string.sponsor_block_segment_reset_vote_toast
                         )
-                    } else {
-                        return@subscribe
                     }
-                    Toast.makeText(
-                        context,
-                        toastMessage,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }, { throwable ->
-                    if (throwable is NullPointerException) {
-                        return@subscribe
+
+                    toastMessage?.let {
+                        Toast.makeText(
+                            context,
+                            it,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                    showSnackbar(
-                        context,
-                        ErrorInfo(
-                            throwable,
-                            UserAction.SUBSCRIPTION_UPDATE,
-                            "Submit vote for SponsorBlock segment"
+
+                    // Update button states after voting
+                    if (currentSponsorBlockSegment != null) {
+                        updateFrom(currentSponsorBlockSegment!!)
+                    }
+                }) { throwable ->
+                    if (throwable !is NullPointerException) {
+                        showSnackbar(
+                            context,
+                            ErrorInfo(
+                                throwable,
+                                UserAction.SUBSCRIPTION_UPDATE,
+                                "Submit vote for SponsorBlock segment"
+                            )
                         )
-                    )
-                })
+                    }
+                }
         }
-    }
-}
-
-private class SponsorBlockSegmentDiffCallback : DiffUtil.ItemCallback<SponsorBlockSegment>() {
-    override fun areItemsTheSame(
-        oldItem: SponsorBlockSegment,
-        newItem: SponsorBlockSegment
-    ): Boolean {
-        return oldItem.uuid == newItem.uuid
-    }
-
-    override fun areContentsTheSame(
-        oldItem: SponsorBlockSegment,
-        newItem: SponsorBlockSegment
-    ): Boolean {
-        return oldItem.category == newItem.category &&
-            oldItem.startTime == newItem.startTime &&
-            oldItem.endTime == newItem.endTime
     }
 }

@@ -60,10 +60,8 @@ open class MarkableSeekBar : AppCompatSeekBar {
 
         var layerDrawable = originalProgressDrawable as LayerDrawable?
 
-        val markerDrawables = ArrayList<Drawable>()
-        if (layerDrawable != null) {
-            markerDrawables.add(layerDrawable)
-        }
+        val markerDrawables = ArrayList<Drawable?>()
+        markerDrawables.add(layerDrawable)
 
         for (seekBarMarker in seekBarMarkers) {
             @SuppressLint("PrivateResource")
@@ -82,7 +80,7 @@ open class MarkableSeekBar : AppCompatSeekBar {
             markerDrawables.add(markerDrawable)
         }
 
-        layerDrawable = LayerDrawable(markerDrawables.toTypedArray())
+        layerDrawable = LayerDrawable(markerDrawables.toTypedArray<Drawable?>())
 
         for (i in 1..<layerDrawable.numberOfLayers) {
             val seekBarMarker = seekBarMarkers[i - 1]

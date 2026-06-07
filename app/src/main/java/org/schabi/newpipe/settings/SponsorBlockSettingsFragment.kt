@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.preference.Preference
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
+import io.reactivex.rxjava3.functions.Consumer
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.R
 import org.schabi.newpipe.local.sponsorblock.SponsorBlockDataManager
@@ -36,56 +37,53 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
         val sponsorBlockWebsitePreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_home_page_key))
         )
-        sponsorBlockWebsitePreference.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener { p: Preference ->
-                val i = Intent(
-                    Intent.ACTION_VIEW,
-                    getString(R.string.sponsor_block_homepage_url).toUri()
-                )
-                startActivity(i)
-                true
-            }
+        sponsorBlockWebsitePreference.setOnPreferenceClickListener { p: Preference ->
+            val i = Intent(
+                Intent.ACTION_VIEW,
+                getString(R.string.sponsor_block_homepage_url).toUri()
+            )
+            startActivity(i)
+            true
+        }
 
         val sponsorBlockPrivacyPreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_privacy_key))
         )
-        sponsorBlockPrivacyPreference.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener { p: Preference ->
-                val i = Intent(
-                    Intent.ACTION_VIEW,
-                    getString(R.string.sponsor_block_privacy_policy_url).toUri()
-                )
-                startActivity(i)
-                true
-            }
+        sponsorBlockPrivacyPreference.setOnPreferenceClickListener { p: Preference ->
+            val i = Intent(
+                Intent.ACTION_VIEW,
+                getString(R.string.sponsor_block_privacy_policy_url).toUri()
+            )
+            startActivity(i)
+            true
+        }
 
         val sponsorBlockClearWhitelistPreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_clear_whitelist_key))
         )
-        sponsorBlockClearWhitelistPreference.onPreferenceClickListener =
-            Preference.OnPreferenceClickListener { p: Preference ->
-                AlertDialog.Builder(p.context)
-                    .setMessage(R.string.sponsor_block_confirm_clear_whitelist)
-                    .setPositiveButton(
-                        R.string.yes
-                    ) { dialog: DialogInterface?, which: Int ->
-                        workerClearWhitelist =
-                            sponsorBlockDataManager!!.clearWhitelist()
-                                .subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe({
-                                    Toast.makeText(
-                                        p.context,
-                                        R.string.sponsor_block_whitelist_cleared_toast,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }, { error: Throwable -> })
-                    }
-                    .setNegativeButton(
-                        R.string.cancel
-                    ) { dialog: DialogInterface?, which: Int -> dialog!!.dismiss() }
-                    .show()
-                true
-            }
+        sponsorBlockClearWhitelistPreference.setOnPreferenceClickListener { p: Preference ->
+            AlertDialog.Builder(p.context)
+                .setMessage(R.string.sponsor_block_confirm_clear_whitelist)
+                .setPositiveButton(
+                    R.string.yes
+                ) { dialog: DialogInterface?, which: Int ->
+                    workerClearWhitelist =
+                        sponsorBlockDataManager!!.clearWhitelist()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                Toast.makeText(
+                                    p.context,
+                                    R.string.sponsor_block_whitelist_cleared_toast,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }, Consumer { error: Throwable? -> })
+                }
+                .setNegativeButton(
+                    R.string.cancel
+                ) { dialog: DialogInterface?, which: Int -> dialog!!.dismiss() }
+                .show()
+            true
+        }
     }
 }

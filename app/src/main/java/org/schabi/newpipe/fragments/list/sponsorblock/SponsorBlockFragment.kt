@@ -10,7 +10,6 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import com.evernote.android.state.State
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -29,25 +28,10 @@ import org.schabi.newpipe.util.TimeUtils.millisecondsToString
 class SponsorBlockFragment :
 
     BaseFragment, CompoundButton.OnCheckedChangeListener, SponsorBlockSegmentListAdapterListener {
-    @State
     var streamInfo: StreamInfo? = null
     var binding: FragmentSponsorBlockBinding? = null
-
-    @State
-    @JvmField
-    var sponsorBlockMode = SponsorBlockMode.ENABLED
-
-    @State
-    @JvmField
-    var isWhitelisted = false
-
-    @State
-    @JvmField
-    var markedStartTime: Int? = null
-
-    @State
-    @JvmField
-    var markedEndTime: Int? = null
+    private var markedStartTime: Int? = null
+    private var markedEndTime: Int? = null
     private var segmentListAdapter: SponsorBlockSegmentListAdapter? = null
     private var currentProgress = -1
     private var sponsorBlockFragmentListener: SponsorBlockFragmentListener? = null
@@ -55,7 +39,7 @@ class SponsorBlockFragment :
     private var workerAddToWhitelisted: Disposable? = null
     private var workerRemoveFromWhitelisted: Disposable? = null
     private var currentSponsorBlockMode: SponsorBlockMode? = null
-    private var currentIsWhitelisted: Boolean = false
+    private var currentIsWhitelisted = false
 
     constructor()
 
@@ -96,60 +80,36 @@ class SponsorBlockFragment :
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        if (sponsorBlockDataManager == null) {
+        if (sponsorBlockDataManager != null) {
             sponsorBlockDataManager = SponsorBlockDataManager(requireContext())
         }
 
-        val binding = FragmentSponsorBlockBinding.inflate(inflater, container, false)
-        this.binding = binding
+        binding = FragmentSponsorBlockBinding.inflate(inflater, container, false)
 
-        binding.sponsorBlockControlsMarkSegmentStart.setOnClickListener {
-            doMarkPendingSegment(
-                true
-            )
-        }
-        binding.sponsorBlockControlsMarkSegmentEnd.setOnClickListener {
-            doMarkPendingSegment(
-                false
-            )
-        }
-        binding.sponsorBlockControlsSegmentStart.setOnClickListener {
-            doPendingSegmentSeek(
-                true
-            )
-        }
-        binding.sponsorBlockControlsSegmentEnd.setOnClickListener {
-            doPendingSegmentSeek(
-                false
-            )
-        }
-        binding.sponsorBlockControlsClearSegment.setOnClickListener { doClearPendingSegment() }
-        binding.sponsorBlockControlsSubmitSegment.setOnClickListener { doSubmitPendingSegment() }
+        binding!!.sponsorBlockControlsMarkSegmentStart.setOnClickListener { doMarkPendingSegment(true) }
+        binding!!.sponsorBlockControlsMarkSegmentEnd.setOnClickListener { doMarkPendingSegment(false) }
+        binding!!.sponsorBlockControlsSegmentStart.setOnClickListener { doPendingSegmentSeek(true) }
+        binding!!.sponsorBlockControlsSegmentEnd.setOnClickListener { doPendingSegmentSeek(false) }
+        binding!!.sponsorBlockControlsClearSegment.setOnClickListener { doClearPendingSegment() }
+        binding!!.sponsorBlockControlsSubmitSegment.setOnClickListener { doSubmitPendingSegment() }
 
-        binding.segmentList.setAdapter(segmentListAdapter)
+        binding!!.segmentList.setAdapter(segmentListAdapter)
 
-        binding.skippingIsEnabledSwitch.isChecked =
+        binding!!.skippingIsEnabledSwitch.setChecked(
             currentSponsorBlockMode == SponsorBlockMode.ENABLED
+        )
 
-        binding.channelIsWhitelistedSwitch.isChecked = currentIsWhitelisted
+        binding!!.channelIsWhitelistedSwitch.setChecked(currentIsWhitelisted)
 
         if (currentIsWhitelisted) {
-            binding.skippingIsEnabledSwitch.isChecked = false
-            binding.skippingIsEnabledSwitch.isEnabled = !currentIsWhitelisted
+            binding!!.skippingIsEnabledSwitch.setChecked(false)
+            binding!!.skippingIsEnabledSwitch.setEnabled(!currentIsWhitelisted)
         }
 
-        binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
-        binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
+        binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+        binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
 
-        updateSponsorBlockModeUI()
-        updateIsWhitelistedUI()
-
-        return binding.root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
+        return binding!!.getRoot()
     }
 
     override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
@@ -188,8 +148,8 @@ class SponsorBlockFragment :
                         }, { error -> })
             }
 
-            binding?.skippingIsEnabledSwitch?.isChecked = false
-            binding?.skippingIsEnabledSwitch?.isEnabled = !isChecked
+            binding!!.skippingIsEnabledSwitch.setChecked(false)
+            binding!!.skippingIsEnabledSwitch.setEnabled(!isChecked)
         }
     }
 
@@ -200,46 +160,32 @@ class SponsorBlockFragment :
     fun setSponsorBlockMode(mode: SponsorBlockMode) {
         currentSponsorBlockMode = mode
 
-        binding?.let { binding ->
-            binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
-            binding.skippingIsEnabledSwitch.isChecked = mode == SponsorBlockMode.ENABLED
-            binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+        if (binding == null) {
+            return
         }
+
+        binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
+        binding!!.skippingIsEnabledSwitch.setChecked(mode == SponsorBlockMode.ENABLED)
+        binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
     }
 
     fun setIsWhitelisted(value: Boolean) {
         currentIsWhitelisted = value
 
-        binding?.let { binding ->
-            // Remove listener, set checked state, and reattach listener
-            binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(null)
-            binding.channelIsWhitelistedSwitch.isChecked = value
-            binding.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
-
-            if (value) {
-                // Handle skipping switch when whitelisted
-                binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
-                binding.skippingIsEnabledSwitch.isChecked = false
-                binding.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
-
-                binding.skippingIsEnabledSwitch.isEnabled = !currentIsWhitelisted
-            }
+        if (binding == null) {
+            return
         }
-    }
 
-    private fun updateSponsorBlockModeUI() {
-        binding?.skippingIsEnabledSwitch?.let {
-            it.setOnCheckedChangeListener(null)
-            it.isChecked = sponsorBlockMode == SponsorBlockMode.ENABLED
-            it.setOnCheckedChangeListener(this)
-        }
-    }
+        binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(null)
+        binding!!.channelIsWhitelistedSwitch.setChecked(value)
+        binding!!.channelIsWhitelistedSwitch.setOnCheckedChangeListener(this)
 
-    private fun updateIsWhitelistedUI() {
-        binding?.channelIsWhitelistedSwitch?.let {
-            it.setOnCheckedChangeListener(null)
-            it.isChecked = isWhitelisted
-            it.setOnCheckedChangeListener(this)
+        if (value) {
+            binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(null)
+            binding!!.skippingIsEnabledSwitch.setChecked(false)
+            binding!!.skippingIsEnabledSwitch.setOnCheckedChangeListener(this)
+
+            binding!!.skippingIsEnabledSwitch.setEnabled(!currentIsWhitelisted)
         }
     }
 
@@ -252,8 +198,8 @@ class SponsorBlockFragment :
         markedStartTime = null
         markedEndTime = null
 
-        binding?.sponsorBlockControlsSegmentStart?.text = "00:00:00"
-        binding?.sponsorBlockControlsSegmentEnd?.text = "00:00:00"
+        binding!!.sponsorBlockControlsSegmentStart.text = "00:00:00"
+        binding!!.sponsorBlockControlsSegmentEnd.text = "00:00:00"
 
         if (sponsorBlockFragmentListener != null) {
             sponsorBlockFragmentListener!!.onRequestClearPendingSegment()
@@ -276,7 +222,7 @@ class SponsorBlockFragment :
         if (isStart) {
             if (markedEndTime != null && currentProgress > markedEndTime!!) {
                 Toast.makeText(
-                    context,
+                    requireContext(),
                     getString(R.string.sponsor_block_invalid_start_toast),
                     Toast.LENGTH_SHORT
                 ).show()
@@ -286,7 +232,7 @@ class SponsorBlockFragment :
         } else {
             if (markedStartTime != null && currentProgress < markedStartTime!!) {
                 Toast.makeText(
-                    context,
+                    requireContext(),
                     getString(R.string.sponsor_block_invalid_end_toast),
                     Toast.LENGTH_SHORT
                 ).show()
@@ -296,11 +242,11 @@ class SponsorBlockFragment :
         }
 
         if (markedStartTime != null) {
-            binding?.sponsorBlockControlsSegmentStart?.text = millisecondsToString(markedStartTime!!.toDouble())
+            binding!!.sponsorBlockControlsSegmentStart.text = millisecondsToString(markedStartTime!!.toDouble())
         }
 
         if (markedEndTime != null) {
-            binding?.sponsorBlockControlsSegmentEnd?.text = millisecondsToString(markedEndTime!!.toDouble())
+            binding!!.sponsorBlockControlsSegmentEnd.text = millisecondsToString(markedEndTime!!.toDouble())
         }
 
         if (markedStartTime != null && markedEndTime != null) {
@@ -318,7 +264,7 @@ class SponsorBlockFragment :
             getString(R.string.sponsor_block_marked_end_toast)
         }
         Toast.makeText(
-            context,
+            requireContext(),
             message,
             Toast.LENGTH_SHORT
         ).show()

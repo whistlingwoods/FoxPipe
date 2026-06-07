@@ -22,7 +22,6 @@ import org.schabi.newpipe.player.helper.PlayerSemitoneHelper
 import org.schabi.newpipe.player.ui.MainPlayerUi
 import org.schabi.newpipe.util.SliderStrategy
 import org.schabi.newpipe.util.ThemeHelper.getAndroidDimenPx
-import kotlin.math.roundToInt
 
 /**
  * GestureListener for the player
@@ -38,9 +37,14 @@ class MainPlayerGestureListener(
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         super.onTouch(v, event)
-        if (event.action == MotionEvent.ACTION_UP && isMoving) {
-            isMoving = false
-            onScrollEnd(event)
+        if (event.action == MotionEvent.ACTION_UP) {
+            v.parent?.requestDisallowInterceptTouchEvent(false)
+            if (isMoving) {
+                isMoving = false
+                onScrollEnd(event)
+            } else {
+                v.performClick()
+            }
         }
         return when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
@@ -48,10 +52,7 @@ class MainPlayerGestureListener(
                 true
             }
 
-            MotionEvent.ACTION_UP -> {
-                v.parent?.requestDisallowInterceptTouchEvent(false)
-                false
-            }
+            MotionEvent.ACTION_UP -> true
 
             else -> true
         }
@@ -169,7 +170,7 @@ class MainPlayerGestureListener(
 
         val quadraticStrategy: SliderStrategy = SliderStrategy.Quadratic(
             PlaybackParameterDialog.getMinPitchOrSpeed().toDouble(),
-            PlaybackParameterDialog.getMaxPitchOrSpeed().toDouble(),
+            PlaybackParameterDialog.getMaxPitchOrSpeed(player.context).toDouble(),
             1.0,
             bar.max
         )
@@ -267,46 +268,52 @@ class MainPlayerGestureListener(
             displayPortion = getDisplayPortion(initialEvent)
         } else {
             displayPortion = getDisplayHalfPortion(initialEvent)
-            if (displayPortion == DisplayPortion.LEFT_HALF) {
-                displayPortion = DisplayPortion.LEFT
+            displayPortion = if (displayPortion == DisplayPortion.LEFT_HALF) {
+                DisplayPortion.LEFT
             } else {
-                displayPortion = DisplayPortion.RIGHT
+                DisplayPortion.RIGHT
             }
         }
 
         // -- Brightness Volume and Tempo control --
-        if (displayPortion == DisplayPortion.RIGHT) {
-            when (PlayerHelper.getActionForRightGestureSide(player.context)) {
-                player.context.getString(R.string.volume_control_key) ->
-                    onScrollVolume(distanceY)
+        when (displayPortion) {
+            DisplayPortion.RIGHT -> {
+                when (PlayerHelper.getActionForRightGestureSide(player.context)) {
+                    player.context.getString(R.string.volume_control_key) ->
+                        onScrollVolume(distanceY)
 
-                player.context.getString(R.string.brightness_control_key) ->
-                    onScrollBrightness(distanceY)
+                    player.context.getString(R.string.brightness_control_key) ->
+                        onScrollBrightness(distanceY)
 
-                player.context.getString(R.string.playback_speed_control_key) ->
-                    onScrollPlaybackSpeed(distanceY)
+                    player.context.getString(R.string.playback_speed_control_key) ->
+                        onScrollPlaybackSpeed(distanceY)
+                }
             }
-        } else if (displayPortion == DisplayPortion.LEFT) {
-            when (PlayerHelper.getActionForLeftGestureSide(player.context)) {
-                player.context.getString(R.string.volume_control_key) ->
-                    onScrollVolume(distanceY)
 
-                player.context.getString(R.string.brightness_control_key) ->
-                    onScrollBrightness(distanceY)
+            DisplayPortion.LEFT -> {
+                when (PlayerHelper.getActionForLeftGestureSide(player.context)) {
+                    player.context.getString(R.string.volume_control_key) ->
+                        onScrollVolume(distanceY)
 
-                player.context.getString(R.string.playback_speed_control_key) ->
-                    onScrollPlaybackSpeed(distanceY)
+                    player.context.getString(R.string.brightness_control_key) ->
+                        onScrollBrightness(distanceY)
+
+                    player.context.getString(R.string.playback_speed_control_key) ->
+                        onScrollPlaybackSpeed(distanceY)
+                }
             }
-        } else {
-            when (PlayerHelper.getActionForMiddleGestureSide(player.context)) {
-                player.context.getString(R.string.volume_control_key) ->
-                    onScrollVolume(distanceY)
 
-                player.context.getString(R.string.brightness_control_key) ->
-                    onScrollBrightness(distanceY)
+            else -> {
+                when (PlayerHelper.getActionForMiddleGestureSide(player.context)) {
+                    player.context.getString(R.string.volume_control_key) ->
+                        onScrollVolume(distanceY)
 
-                player.context.getString(R.string.playback_speed_control_key) ->
-                    onScrollPlaybackSpeed(distanceY)
+                    player.context.getString(R.string.brightness_control_key) ->
+                        onScrollBrightness(distanceY)
+
+                    player.context.getString(R.string.playback_speed_control_key) ->
+                        onScrollPlaybackSpeed(distanceY)
+                }
             }
         }
         return true
