@@ -26,6 +26,9 @@ import androidx.preference.PreferenceManager;
 
 import com.jakewharton.processphoenix.ProcessPhoenix;
 
+import net.newpipe.app.extensions.ContextKt;
+import net.newpipe.app.navigation.Destination;
+
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.NewPipeDatabase;
 import org.schabi.newpipe.R;
@@ -638,8 +641,7 @@ public final class NavigationHelper {
     }
 
     public static void openAbout(final Context context) {
-        final Intent intent = ComposeActivity.Companion.aboutIntent(context);
-        context.startActivity(intent);
+        ContextKt.navigateTo(context, Destination.About.INSTANCE);
     }
 
     public static void openSettings(final Context context) {

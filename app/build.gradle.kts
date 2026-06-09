@@ -5,6 +5,8 @@
 import com.mikepenz.aboutlibraries.plugin.DuplicateMode
 
 import com.android.build.api.dsl.ApplicationExtension
+import com.mikepenz.aboutlibraries.plugin.DuplicateMode
+import java.util.regex.Pattern
 
 plugins {
     alias(libs.plugins.android.application)
@@ -233,6 +235,7 @@ dependencies {
     coreLibraryDesugaring(libs.android.desugar)
 
     // NewPipe libraries
+    implementation(projects.shared)
     implementation(libs.newpipe.nanojson)
     implementation(libs.newpipe.extractor)
     implementation(libs.newpipe.filepicker)
@@ -375,4 +378,21 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+aboutLibraries {
+    collect {
+        configPath = file("../config/aboutlibraries")
+    }
+    export {
+        outputFile = file("../shared/src/androidMain/assets/aboutlibraries.json")
+        prettyPrint = true
+        excludeFields.addAll("organization", "scm", "funding")
+    }
+    library {
+        exclusionPatterns = listOf(
+            Pattern.compile("^com\\.github\\.TeamNewPipe:NewPipeExtractor$"),
+            Pattern.compile("^com\\.evernote:android-state$")
+        )
+    }
 }
