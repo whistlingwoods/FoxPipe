@@ -919,11 +919,12 @@ public final class VideoDetailFragment
                                                         final boolean scrollToTop,
                                                         final long delay) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (activity == null) {
+            final FragmentVideoDetailBinding viewBinding = binding;
+            if (activity == null || viewBinding == null) {
                 return;
             }
             // Data can already be drawn, don't spend time twice
-            if (info.getName().equals(binding.detailVideoTitleView.getText().toString())) {
+            if (info.getName().equals(viewBinding.detailVideoTitleView.getText().toString())) {
                 return;
             }
             prepareAndHandleInfo(info, scrollToTop);
@@ -1145,22 +1146,23 @@ public final class VideoDetailFragment
 
     public void updateTabLayoutVisibility() {
 
-        if (binding == null) {
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
             //If binding is null we do not need to and should not do anything with its object(s)
             return;
         }
 
-        if (pageAdapter.getCount() < 2 || binding.viewPager.getVisibility() != View.VISIBLE) {
+        if (pageAdapter.getCount() < 2 || viewBinding.viewPager.getVisibility() != View.VISIBLE) {
             // hide tab layout if there is only one tab or if the view pager is also hidden
-            binding.tabLayout.setVisibility(View.GONE);
+            viewBinding.tabLayout.setVisibility(View.GONE);
         } else {
             // call `post()` to be sure `viewPager.getHitRect()`
             // is up to date and not being currently recomputed
-            binding.tabLayout.post(() -> {
+            viewBinding.tabLayout.post(() -> {
                 final var activity = getActivity();
-                if (activity != null) {
+                if (activity != null && binding == viewBinding) {
                     final Rect pagerHitRect = new Rect();
-                    binding.viewPager.getHitRect(pagerHitRect);
+                    viewBinding.viewPager.getHitRect(pagerHitRect);
 
                     final int height = DeviceUtils.getWindowHeight(activity.getWindowManager());
                     final int viewPagerVisibleHeight = height - pagerHitRect.top;
@@ -1170,12 +1172,12 @@ public final class VideoDetailFragment
 
                     if (viewPagerVisibleHeight > tabLayoutHeight * 2) {
                         // no translation at all when viewPagerVisibleHeight > tabLayout.height * 3
-                        binding.tabLayout.setTranslationY(
+                        viewBinding.tabLayout.setTranslationY(
                                 Math.max(0, tabLayoutHeight * 3 - viewPagerVisibleHeight));
-                        binding.tabLayout.setVisibility(View.VISIBLE);
+                        viewBinding.tabLayout.setVisibility(View.VISIBLE);
                     } else {
                         // view pager is not visible enough
-                        binding.tabLayout.setVisibility(View.GONE);
+                        viewBinding.tabLayout.setVisibility(View.GONE);
                     }
                 }
             });
@@ -1183,7 +1185,12 @@ public final class VideoDetailFragment
     }
 
     public void scrollToTop() {
-        binding.appBarLayout.setExpanded(true, true);
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
+            return;
+        }
+
+        viewBinding.appBarLayout.setExpanded(true, true);
         // notify tab layout of scrolling
         updateTabLayoutVisibility();
     }
@@ -1193,7 +1200,16 @@ public final class VideoDetailFragment
             return;
         }
 
-        binding.appBarLayout.post(() -> binding.appBarLayout.setExpanded(false, false));
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
+            return;
+        }
+
+        viewBinding.appBarLayout.post(() -> {
+            if (binding == viewBinding) {
+                viewBinding.appBarLayout.setExpanded(false, false);
+            }
+        });
     }
 
     public void scrollToComment(final CommentsInfoItem comment) {
@@ -1342,6 +1358,10 @@ public final class VideoDetailFragment
     }
 
     private void openMainPlayer() {
+        if (activity == null || !isAdded()) {
+            return;
+        }
+
         if (!isPlayerServiceAvailable()) {
             playerHolder.startService(autoPlayEnabled, this);
             return;
@@ -2825,7 +2845,11 @@ public final class VideoDetailFragment
                     playQueue = setupPlayQueueForIntent(false);
                     autoPlayEnabled = true;
                     // Small delay to let network stabilize after transport switch
-                    new Handler(Looper.getMainLooper()).postDelayed(this::openMainPlayer, 150);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (binding != null) {
+                            openMainPlayer();
+                        }
+                    }, 150);
                 }, throwable -> {
                     // If refresh failed, fall back to default handling
                     showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,
