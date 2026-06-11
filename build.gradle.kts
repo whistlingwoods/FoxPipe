@@ -25,5 +25,4 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.about.libraries) apply false
     alias(libs.plugins.koin) apply false
-    alias(libs.plugins.about.libraries) apply false
 }

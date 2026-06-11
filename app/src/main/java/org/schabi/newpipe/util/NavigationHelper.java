@@ -1,5 +1,6 @@
 package org.schabi.newpipe.util;
 
+import static org.schabi.newpipe.ktx.ContextKt.findFragmentActivity;
 import static android.text.TextUtils.isEmpty;
 import android.text.TextUtils;
 import static org.schabi.newpipe.util.ListHelper.getUrlAndNonTorrentStreams;
@@ -52,7 +53,6 @@ import org.schabi.newpipe.fragments.list.channel.ChannelFragment;
 import org.schabi.newpipe.fragments.list.kiosk.KioskFragment;
 import org.schabi.newpipe.fragments.list.playlist.PlaylistFragment;
 import org.schabi.newpipe.fragments.list.search.SearchFragment;
-import org.schabi.newpipe.ktx.ContextKt;
 import org.schabi.newpipe.local.bookmark.BookmarkFragment;
 import org.schabi.newpipe.local.feed.FeedFragment;
 import org.schabi.newpipe.local.history.StatisticsPlaylistFragment;
@@ -499,7 +499,7 @@ public final class NavigationHelper {
             return;
         }
         try {
-            final var activity = ContextKt.findFragmentActivity(context);
+            final var activity = findFragmentActivity(context);
             openChannelFragment(activity.getSupportFragmentManager(), comment.getServiceId(),
                     comment.getUploaderUrl(), comment.getUploaderName());
         } catch (final Exception e) {
