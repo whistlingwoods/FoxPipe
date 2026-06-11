@@ -174,6 +174,8 @@ public final class VideoDetailFragment
     private static final String RELATED_TAB_TAG = "NEXT VIDEO";
     private static final String DESCRIPTION_TAB_TAG = "DESCRIPTION TAB";
     private static final String EMPTY_TAB_TAG = "EMPTY TAB";
+    private static final long STREAM_INFO_REUSE_WINDOW_MILLIS =
+            TimeUnit.MINUTES.toMillis(2);
 
     // Flag to avoid infinite refresh loops on playback error
     private boolean attemptedRefreshOnError = false;
@@ -223,6 +225,7 @@ public final class VideoDetailFragment
     int lastStableBottomSheetState = BottomSheetBehavior.STATE_EXPANDED;
     @State
     protected boolean autoPlayEnabled = true;
+    private boolean forceFullscreen = false;
 
     @Nullable
     private StreamInfo currentInfo = null;
@@ -900,8 +903,12 @@ public final class VideoDetailFragment
             player.disablePreloadingOfCurrentTrack();
         }
 
-        // Ensure we don't reuse stale cached StreamInfo when user re-opens from history
-        if (newUrl != null) {
+        // Reuse very fresh stream info to avoid a full refetch on rapid reopens or poor
+        // networks, but drop older entries so playback URLs do not go stale.
+        if (newUrl != null
+                && InfoCache.getInstance().getInfoAgeMillis(
+                        newServiceId, newUrl, InfoCache.Type.STREAM)
+                > STREAM_INFO_REUSE_WINDOW_MILLIS) {
             InfoCache.getInstance().removeInfo(newServiceId, newUrl, InfoCache.Type.STREAM);
         }
         setInitialData(newServiceId, newUrl, newTitle, newQueue);
@@ -912,11 +919,12 @@ public final class VideoDetailFragment
                                                         final boolean scrollToTop,
                                                         final long delay) {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (activity == null) {
+            final FragmentVideoDetailBinding viewBinding = binding;
+            if (activity == null || viewBinding == null) {
                 return;
             }
             // Data can already be drawn, don't spend time twice
-            if (info.getName().equals(binding.detailVideoTitleView.getText().toString())) {
+            if (info.getName().equals(viewBinding.detailVideoTitleView.getText().toString())) {
                 return;
             }
             prepareAndHandleInfo(info, scrollToTop);
@@ -995,7 +1003,7 @@ public final class VideoDetailFragment
                             }
                         }
 
-                        if (isAutoplayEnabled()) {
+                        if (isAutoplayEnabled() || forceFullscreen) {
                             openVideoPlayerAutoFullscreen();
                         }
                     }
@@ -1138,22 +1146,23 @@ public final class VideoDetailFragment
 
     public void updateTabLayoutVisibility() {
 
-        if (binding == null) {
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
             //If binding is null we do not need to and should not do anything with its object(s)
             return;
         }
 
-        if (pageAdapter.getCount() < 2 || binding.viewPager.getVisibility() != View.VISIBLE) {
+        if (pageAdapter.getCount() < 2 || viewBinding.viewPager.getVisibility() != View.VISIBLE) {
             // hide tab layout if there is only one tab or if the view pager is also hidden
-            binding.tabLayout.setVisibility(View.GONE);
+            viewBinding.tabLayout.setVisibility(View.GONE);
         } else {
             // call `post()` to be sure `viewPager.getHitRect()`
             // is up to date and not being currently recomputed
-            binding.tabLayout.post(() -> {
+            viewBinding.tabLayout.post(() -> {
                 final var activity = getActivity();
-                if (activity != null) {
+                if (activity != null && binding == viewBinding) {
                     final Rect pagerHitRect = new Rect();
-                    binding.viewPager.getHitRect(pagerHitRect);
+                    viewBinding.viewPager.getHitRect(pagerHitRect);
 
                     final int height = DeviceUtils.getWindowHeight(activity.getWindowManager());
                     final int viewPagerVisibleHeight = height - pagerHitRect.top;
@@ -1163,12 +1172,12 @@ public final class VideoDetailFragment
 
                     if (viewPagerVisibleHeight > tabLayoutHeight * 2) {
                         // no translation at all when viewPagerVisibleHeight > tabLayout.height * 3
-                        binding.tabLayout.setTranslationY(
+                        viewBinding.tabLayout.setTranslationY(
                                 Math.max(0, tabLayoutHeight * 3 - viewPagerVisibleHeight));
-                        binding.tabLayout.setVisibility(View.VISIBLE);
+                        viewBinding.tabLayout.setVisibility(View.VISIBLE);
                     } else {
                         // view pager is not visible enough
-                        binding.tabLayout.setVisibility(View.GONE);
+                        viewBinding.tabLayout.setVisibility(View.GONE);
                     }
                 }
             });
@@ -1176,7 +1185,12 @@ public final class VideoDetailFragment
     }
 
     public void scrollToTop() {
-        binding.appBarLayout.setExpanded(true, true);
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
+            return;
+        }
+
+        viewBinding.appBarLayout.setExpanded(true, true);
         // notify tab layout of scrolling
         updateTabLayoutVisibility();
     }
@@ -1186,7 +1200,16 @@ public final class VideoDetailFragment
             return;
         }
 
-        binding.appBarLayout.post(() -> binding.appBarLayout.setExpanded(false, false));
+        final FragmentVideoDetailBinding viewBinding = binding;
+        if (viewBinding == null) {
+            return;
+        }
+
+        viewBinding.appBarLayout.post(() -> {
+            if (binding == viewBinding) {
+                viewBinding.appBarLayout.setExpanded(false, false);
+            }
+        });
     }
 
     public void scrollToComment(final CommentsInfoItem comment) {
@@ -1294,15 +1317,29 @@ public final class VideoDetailFragment
     }
 
     /**
-     * If the option to start directly fullscreen is enabled, calls
-     * {@link #openVideoPlayer(boolean)} with {@code directlyFullscreenIfApplicable = true}, so that
-     * if the user is not already in landscape and he has screen orientation locked the activity
-     * rotates and fullscreen starts. Otherwise, if the option to start directly fullscreen is
-     * disabled, calls {@link #openVideoPlayer(boolean)} with {@code directlyFullscreenIfApplicable
-     * = false}, hence preventing it from going directly fullscreen.
+     * If the option to start directly fullscreen is enabled, or if {@code forceFullscreen} is
+     * {@code true} (e.g. when switching from popup player to main player with a different video),
+     * calls {@link #openVideoPlayer(boolean)} with {@code directlyFullscreenIfApplicable = true},
+     * so that if the user is not already in landscape and he has screen orientation locked the
+     * activity rotates and fullscreen starts. Otherwise, if the option to start directly fullscreen
+     * is disabled and {@code forceFullscreen} is {@code false}, calls
+     * {@link #openVideoPlayer(boolean)} with {@code directlyFullscreenIfApplicable = false},
+     * hence preventing it from going directly fullscreen.
+     * {@code forceFullscreen} is reset to {@code false} after this call.
      */
     public void openVideoPlayerAutoFullscreen() {
-        openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()));
+        openVideoPlayer(forceFullscreen
+                || PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()));
+        forceFullscreen = false;
+    }
+
+    public void setForceFullscreen(final boolean force) {
+        this.forceFullscreen = force;
+    }
+
+    @Nullable
+    public String getUrl() {
+        return url;
     }
 
     private void openNormalBackgroundPlayer(final boolean append) {
@@ -1321,6 +1358,10 @@ public final class VideoDetailFragment
     }
 
     private void openMainPlayer() {
+        if (activity == null || !isAdded()) {
+            return;
+        }
+
         if (!isPlayerServiceAvailable()) {
             playerHolder.startService(autoPlayEnabled, this);
             return;
@@ -2804,7 +2845,11 @@ public final class VideoDetailFragment
                     playQueue = setupPlayQueueForIntent(false);
                     autoPlayEnabled = true;
                     // Small delay to let network stabilize after transport switch
-                    new Handler(Looper.getMainLooper()).postDelayed(this::openMainPlayer, 150);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (binding != null) {
+                            openMainPlayer();
+                        }
+                    }, 150);
                 }, throwable -> {
                     // If refresh failed, fall back to default handling
                     showError(new ErrorInfo(throwable, UserAction.REQUESTED_STREAM,

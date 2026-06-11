@@ -255,6 +255,7 @@ YoutubeParsingHelper {
             Pattern.compile("&c=TVHTML5_SIMPLY_EMBEDDED_PLAYER");
     private static final Pattern C_ANDROID_PATTERN = Pattern.compile("&c=ANDROID");
     private static final Pattern C_IOS_PATTERN = Pattern.compile("&c=IOS");
+    private static final Pattern C_VISIONOS_PATTERN = Pattern.compile("&c=VISIONOS");
 
     private static final Set<String> GOOGLE_URLS = Set.of("google.", "m.google.", "www.google.");
     private static final Set<String> INVIDIOUS_URLS = Set.of("invidio.us", "dev.invidio.us",
@@ -1614,6 +1615,24 @@ YoutubeParsingHelper {
                 + ")";
     }
 
+    /**
+     * Get the user-agent string used as the user-agent for InnerTube requests with the visionOS
+     * client.
+     *
+     * <p>
+     * This local extractor fork does not expose dedicated visionOS client constants yet. Reuse the
+     * iOS user-agent shape so app-side YouTube streaming requests added upstream can compile and
+     * still send a mobile YouTube user-agent for {@code VISIONOS} streaming URLs.
+     * </p>
+     *
+     * @param localization the {@link Localization} to set in the user-agent
+     * @return the visionOS user-agent used for InnerTube requests with the visionOS client
+     */
+    @Nonnull
+    public static String getVisionOsUserAgent(@Nullable final Localization localization) {
+        return getIosUserAgent(localization);
+    }
+
 
     /**
      * Add the <code>X-YouTube-Client-Name</code>, <code>X-YouTube-Client-Version</code>,
@@ -2190,6 +2209,16 @@ YoutubeParsingHelper {
      */
     public static boolean isIosStreamingUrl(@Nonnull final String url) {
         return Parser.isMatch(C_IOS_PATTERN, url);
+    }
+
+    /**
+     * Check if the streaming URL is a URL from the YouTube {@code VISIONOS} client.
+     *
+     * @param url the streaming URL on which check if it's a {@code VISIONOS} streaming URL.
+     * @return true if it's a {@code VISIONOS} streaming URL, false otherwise
+     */
+    public static boolean isVisionOsStreamingUrl(@Nonnull final String url) {
+        return Parser.isMatch(C_VISIONOS_PATTERN, url);
     }
 
     /**

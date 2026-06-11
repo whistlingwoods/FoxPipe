@@ -160,12 +160,31 @@ public final class InfoCache {
         }
     }
 
+    public long getInfoAgeMillis(final int serviceId,
+                                 @NonNull final String url,
+                                 @NonNull final Type cacheType) {
+        synchronized (LRU_CACHE) {
+            final String key = keyOf(serviceId, url, cacheType);
+            final CacheData data = LRU_CACHE.get(key);
+            if (data == null) {
+                return Long.MAX_VALUE;
+            }
+            if (data.isExpired()) {
+                LRU_CACHE.remove(key);
+                return Long.MAX_VALUE;
+            }
+            return System.currentTimeMillis() - data.createdTimestamp;
+        }
+    }
+
     private static final class CacheData {
+        private final long createdTimestamp;
         private final long expireTimestamp;
         private final Info info;
 
         private CacheData(@NonNull final Info info, final long timeoutMillis) {
-            this.expireTimestamp = System.currentTimeMillis() + timeoutMillis;
+            this.createdTimestamp = System.currentTimeMillis();
+            this.expireTimestamp = createdTimestamp + timeoutMillis;
             this.info = info;
         }
 

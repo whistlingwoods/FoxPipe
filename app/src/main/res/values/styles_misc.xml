@@ -92,6 +92,16 @@
     <style name="TextAppearance.NewPipe.TitleMedium"
         parent="TextAppearance.Material3.TitleMedium" />
 
+    <style name="TextAppearance.NewPipe.Toolbar.Title"
+        parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.NewPipe.Toolbar.Subtitle"
+        parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
     <style name="ThemeOverlay.NewPipe.Player" parent="">
         <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryContainer">#42FFFFFF</item>
@@ -351,9 +361,13 @@
 
     <style name="ToolbarTheme" parent="">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
+        <item name="titleTextAppearance">@style/TextAppearance.NewPipe.Toolbar.Title</item>
+        <item name="subtitleTextAppearance">@style/TextAppearance.NewPipe.Toolbar.Subtitle</item>
+        <item name="titleTextColor">?attr/colorOnSurface</item>
+        <item name="subtitleTextColor">?attr/colorOnSurfaceVariant</item>
+        <item name="navigationIconTint">?attr/colorOnSurface</item>
         <item name="android:textColorPrimary">?attr/colorOnSurface</item>
         <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
-        <item name="colorOnSurface">?attr/colorOnSurface</item>
         <item name="tint">?attr/colorOnSurface</item>
         <item name="iconTint">?attr/colorOnSurface</item>
     </style>

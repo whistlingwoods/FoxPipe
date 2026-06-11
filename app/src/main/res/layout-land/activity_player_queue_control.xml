@@ -25,6 +25,9 @@
             android:background="?attr/colorSurfaceContainer"
             android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+            app:titleTextColor="?attr/colorOnSurface"
             app:title="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
