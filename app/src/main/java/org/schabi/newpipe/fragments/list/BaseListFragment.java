@@ -373,7 +373,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         }
     }
 
-    private void onStreamSelected(final StreamInfoItem selectedItem) {
+    protected void onStreamSelected(final StreamInfoItem selectedItem) {
         onItemSelected(selectedItem);
         NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
                 selectedItem.getServiceId(), selectedItem.getUrl(), selectedItem.getName(),

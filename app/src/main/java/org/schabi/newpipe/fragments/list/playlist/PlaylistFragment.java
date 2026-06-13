@@ -144,6 +144,14 @@ public class PlaylistFragment extends BaseListInfoFragment<StreamInfoItem, Playl
         infoListAdapter.setUseMiniVariant(true);
     }
 
+    @Override
+    protected void onStreamSelected(final StreamInfoItem selectedItem) {
+        onItemSelected(selectedItem);
+        NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
+                selectedItem.getServiceId(), selectedItem.getUrl(), selectedItem.getName(),
+                getPlayQueueStartingAt(selectedItem), false);
+    }
+
     private PlayQueue getPlayQueueStartingAt(final StreamInfoItem infoItem) {
         return getPlayQueue(Math.max(infoListAdapter.getItemsList().indexOf(infoItem), 0));
     }
