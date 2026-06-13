@@ -60,6 +60,7 @@ import org.schabi.newpipe.extractor.search.SearchExtractor;
 import org.schabi.newpipe.extractor.search.SearchInfo;
 import org.schabi.newpipe.extractor.services.peertube.linkHandler.PeertubeSearchQueryHandlerFactory;
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeSearchQueryHandlerFactory;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.BackPressable;
 import org.schabi.newpipe.fragments.list.BaseListFragment;
 import org.schabi.newpipe.ktx.AnimationType;
@@ -136,6 +137,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     String searchSuggestion;
 
     @State
+    String uploaderUrl;
+
+    @State
+    String uploaderOriginalUrl;
+
+    @State
+    String uploaderName;
+
+    @State
     boolean isCorrectedSearch;
 
     @State
@@ -188,6 +198,25 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             searchFragment.setSearchOnResume();
         }
 
+        return searchFragment;
+    }
+
+    public static SearchFragment getInstance(final int serviceId,
+                                             final String searchString,
+                                             @Nullable final String uploaderUrl,
+                                             @Nullable final String uploaderName) {
+        return getInstance(serviceId, searchString, uploaderUrl, null, uploaderName);
+    }
+
+    public static SearchFragment getInstance(final int serviceId,
+                                             final String searchString,
+                                             @Nullable final String uploaderUrl,
+                                             @Nullable final String uploaderOriginalUrl,
+                                             @Nullable final String uploaderName) {
+        final SearchFragment searchFragment = getInstance(serviceId, searchString);
+        searchFragment.uploaderUrl = uploaderUrl;
+        searchFragment.uploaderOriginalUrl = uploaderOriginalUrl;
+        searchFragment.uploaderName = uploaderName;
         return searchFragment;
     }
 
@@ -246,9 +275,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         // Add the service name to search string hint
         // to make it more obvious which platform is being searched.
         if (service != null) {
-            searchEditText.setHint(
-                    getString(R.string.search_with_service_name,
-                            service.getServiceInfo().getName()));
+            updateSearchHint(null);
         }
         showSearchOnStart();
         initSearchListeners();
@@ -944,7 +971,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.searchFor(serviceId,
-                searchString,
+                getSearchRequestString(),
                 effectiveContentFilter,
                 sortFilter)
                 .subscribeOn(Schedulers.io())
@@ -971,7 +998,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         final List<String> effectiveContentFilter = getEffectiveContentFilter();
         searchDisposable = ExtractorHelper.getMoreSearchItems(
                 serviceId,
-                searchString,
+                getSearchRequestString(),
                 effectiveContentFilter,
                 sortFilter,
                 nextPage)
@@ -1013,7 +1040,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             return null;
         }
         try {
-            return service.getSearchQHFactory().getUrl(searchString,
+            return service.getSearchQHFactory().getUrl(getSearchRequestString(),
                     getEffectiveContentFilter(), sortFilter);
         } catch (final NullPointerException | ParsingException ignored) {
             return null;
@@ -1028,21 +1055,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         filterItemCheckedId = item.getItemId();
         item.setChecked(true);
 
-        if (service != null) {
-            final boolean isNotFiltered = theContentFilter.isEmpty()
-                    || "all".equals(theContentFilter.get(0));
-            if (isNotFiltered) {
-                searchEditText.setHint(
-                        getString(R.string.search_with_service_name,
-                                service.getServiceInfo().getName()));
-            } else {
-                searchEditText.setHint(getString(R.string.search_with_service_name_and_filter,
-                        service.getServiceInfo().getName(),
-                        item.getTitle()));
-            }
-        }
-
         contentFilter = theContentFilter.toArray(new String[0]);
+        updateSearchHint(item);
 
         if (!TextUtils.isEmpty(searchString)) {
             search(searchString, contentFilter, sortFilter);
@@ -1086,6 +1100,71 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
 
         return Collections.singletonList(iterator.next());
+    }
+
+    private boolean hasUploaderFilter() {
+        return !TextUtils.isEmpty(uploaderUrl)
+                || !TextUtils.isEmpty(uploaderOriginalUrl)
+                || !TextUtils.isEmpty(uploaderName);
+    }
+
+    private String getSearchRequestString() {
+        if (TextUtils.isEmpty(uploaderName) || TextUtils.isEmpty(searchString)) {
+            return searchString;
+        }
+
+        return uploaderName + " " + searchString;
+    }
+
+    private void updateSearchHint(@Nullable final MenuItem filterItem) {
+        if (service == null || searchEditText == null) {
+            return;
+        }
+
+        final String serviceName = service.getServiceInfo().getName();
+        if (!TextUtils.isEmpty(uploaderName)) {
+            searchEditText.setHint(getString(R.string.search_with_service_name_and_filter,
+                    serviceName, uploaderName));
+            return;
+        }
+
+        if (filterItem != null
+                && contentFilter.length > 0
+                && !"all".equals(contentFilter[0])) {
+            searchEditText.setHint(getString(R.string.search_with_service_name_and_filter,
+                    serviceName, filterItem.getTitle()));
+        } else {
+            searchEditText.setHint(getString(R.string.search_with_service_name, serviceName));
+        }
+    }
+
+    private List<? extends InfoItem> filterByUploader(
+            @NonNull final List<? extends InfoItem> items) {
+        if (!hasUploaderFilter()) {
+            return items;
+        }
+
+        final List<InfoItem> filteredItems = new ArrayList<>();
+        for (final InfoItem item : items) {
+            if (item instanceof StreamInfoItem && isFromSelectedUploader((StreamInfoItem) item)) {
+                filteredItems.add(item);
+            }
+        }
+        return filteredItems;
+    }
+
+    private boolean isFromSelectedUploader(@NonNull final StreamInfoItem item) {
+        if (!TextUtils.isEmpty(uploaderUrl)
+                && TextUtils.equals(uploaderUrl, item.getUploaderUrl())) {
+            return true;
+        }
+        if (!TextUtils.isEmpty(uploaderOriginalUrl)
+                && TextUtils.equals(uploaderOriginalUrl, item.getUploaderUrl())) {
+            return true;
+        }
+
+        return !TextUtils.isEmpty(uploaderName)
+                && TextUtils.equals(uploaderName, item.getUploaderName());
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1149,8 +1228,10 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         nextPage = result.getNextPage();
 
         if (infoListAdapter.getItemsList().isEmpty()) {
-            if (!result.getRelatedItems().isEmpty()) {
-                infoListAdapter.addInfoItemList(result.getRelatedItems());
+            final List<? extends InfoItem> filteredItems = filterByUploader(
+                    result.getRelatedItems());
+            if (!filteredItems.isEmpty()) {
+                infoListAdapter.addInfoItemList(filteredItems);
             } else {
                 infoListAdapter.clearStreamItemList();
                 showEmptyState();
@@ -1164,7 +1245,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     }
 
     private void handleSearchSuggestion() {
-        if (TextUtils.isEmpty(searchSuggestion)) {
+        if (hasUploaderFilter() || TextUtils.isEmpty(searchSuggestion)) {
             searchBinding.correctSuggestion.setVisibility(View.GONE);
         } else {
             final String helperText = getString(isCorrectedSearch
@@ -1197,7 +1278,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     @Override
     public void handleNextItems(final ListExtractor.InfoItemsPage<?> result) {
         showListFooter(false);
-        infoListAdapter.addInfoItemList(result.getItems());
+        infoListAdapter.addInfoItemList(filterByUploader(result.getItems()));
 
         if (!result.getErrors().isEmpty()) {
             // nextPage should be non-null at this point, because it refers to the page
