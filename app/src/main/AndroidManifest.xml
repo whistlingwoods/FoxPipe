@@ -31,7 +31,7 @@
     <application
         android:name=".App"
         android:allowBackup="true"
-        android:banner="@mipmap/newpipe_tv_banner"
+        android:banner="@mipmap/tubular_tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:logo="@mipmap/ic_launcher"
@@ -81,6 +81,10 @@
         </service>
 
         <activity
+            android:name=".ComposeActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".player.PlayQueueActivity"
             android:exported="false"
             android:label="@string/title_activity_play_queue"
@@ -90,16 +94,6 @@
             android:name=".settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings" />
-
-        <activity
-            android:name=".settings.SettingsV2Activity"
-            android:exported="true"
-            android:label="@string/settings" />
-
-        <activity
-            android:name=".about.AboutActivity"
-            android:exported="false"
-            android:label="@string/title_activity_about" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
@@ -128,10 +122,6 @@
             android:exported="false"
             android:label="@string/general_error"
             android:theme="@android:style/Theme.NoDisplay" />
-
-        <activity
-            android:name=".error.ErrorActivity"
-            android:exported="false" />
 
         <!-- giga get related -->
         <activity
@@ -298,6 +288,7 @@
                 <data android:host="invidious.zee.li" />
                 <data android:host="vid.puffyan.us" />
                 <data android:host="ytprivate.com" />
+                <data android:host="inv.nadeko.net" />
                 <data android:host="invidious.namazso.eu" />
                 <data android:host="invidious.silkky.cloud" />
                 <data android:host="invidious.exonip.de" />

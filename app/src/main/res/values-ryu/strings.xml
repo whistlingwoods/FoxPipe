@@ -69,7 +69,7 @@
     <string name="msg_name">ファイルめい</string>
     <string name="msg_threads">どうじらしみーちずくすん</string>
     <string name="msg_error">エラー</string>
-    <string name="msg_running">ダウンロードちゅう（NewPipe）</string>
+    <string name="msg_running">ダウンロードちゅう（Tubular）</string>
     <string name="msg_running_detail">タップししーょうさいをひょうじ</string>
     <string name="msg_wait">うまちくぃみそーれー…</string>
     <string name="msg_copied">クリップボードんかいコピーさびたん</string>
@@ -815,5 +815,5 @@
     <string name="reset_all_settings">まじりぬしっていリセットしーねー、ゆーいるしんしっていぬまじりはちされい、アプリぬさいきちゃーさびーん。
 \n
 \nずっこうさびーが？</string>
-    <string name="import_settings_vulnerable_format">インポートさりとーるエクスポートぬしってえー、NewPipe 0.27.0いこおーふぃするいしょうでぃあったけいしきしーようさびーん。 インポートさりとーるエクスポートーしんらいないるじょうほうぎんからでぃあり、しょうらいていちがーNewPipe 0.27.0がくりやかみーさるバージョンからいらりーるエクスポートぬみゆーいるしんししようさびーん。 くぬぜいじゃくやるけいしきっししっていインポートするたみぬたいおおーちゃーきかんじんにさくじょされい、みーさるバージョンからエクスポートぬしっていインポートすしぇーなやびらん。</string>
+    <string name="import_settings_vulnerable_format">インポートさりとーるエクスポートぬしってえー、Tubular 0.27.0いこおーふぃするいしょうでぃあったけいしきしーようさびーん。 インポートさりとーるエクスポートーしんらいないるじょうほうぎんからでぃあり、しょうらいていちがーNewPipe 0.27.0がくりやかみーさるバージョンからいらりーるエクスポートぬみゆーいるしんししようさびーん。 くぬぜいじゃくやるけいしきっししっていインポートするたみぬたいおおーちゃーきかんじんにさくじょされい、みーさるバージョンからエクスポートぬしっていインポートすしぇーなやびらん。</string>
 </resources>

@@ -837,7 +837,7 @@
     <string name="migration_info_6_7_title">साउंडक्लाउड टॉप 50 पेज हटा दिया गया</string>
     <string name="migration_info_6_7_message">साउंडक्लाउड ने ओरिजिनल टॉप 50 चार्ट बंद कर दिए हैं। इससे जुड़ा टैब आपके मेन पेज से हटा दिया गया है।</string>
     <string name="migration_info_7_8_title">YouTube कंबाइंड ट्रेंडिंग हटा दी गई</string>
-    <string name="migration_info_7_8_message">YouTube ने 21 जुलाई 2025 से कंबाइंड ट्रेंडिंग पेज बंद कर दिया है। NewPipe ने डिफ़ॉल्ट ट्रेंडिंग पेज को ट्रेंडिंग लाइवस्ट्रीम से बदल दिया है।\n\nआप \"सेटिंग्स &gt; कंटेंट &gt; मेन पेज कंटेंट\" में अलग-अलग ट्रेंडिंग पेज भी चुन सकते हैं।</string>
+    <string name="migration_info_7_8_message">YouTube ने 21 जुलाई 2025 से कंबाइंड ट्रेंडिंग पेज बंद कर दिया है। Tubular ने डिफ़ॉल्ट ट्रेंडिंग पेज को ट्रेंडिंग लाइवस्ट्रीम से बदल दिया है।\n\nआप \"सेटिंग्स &gt; कंटेंट &gt; मेन पेज कंटेंट\" में अलग-अलग ट्रेंडिंग पेज भी चुन सकते हैं।</string>
     <string name="trending_gaming">गेमिंग ट्रेंडस</string>
     <string name="trending_podcasts">ट्रेंडिंग पॉडकास्ट</string>
     <string name="trending_movies">ट्रेंडिंग फिल्में और शो</string>
@@ -847,7 +847,24 @@
     <string name="youtube_player_http_403">पले करते समय सर्वर से HTTP error 403 मिला, जो शायद IP बैन या स्ट्रीमिंग URL डीओबफस्केशन की दिक्कतों की वजह से हुआ है</string>
     <string name="sign_in_confirm_not_bot_error">%1$s ने डेटा देने से मना कर दिया, और यह कन्फर्म करने के लिए लॉगिन मांगा कि रिक्वेस्ट करने वाला बोट नहीं है।\n\nहो सकता है कि %1$s ने आपके IP को कुछ समय के लिए बैन कर दिया हो, आप कुछ समय इंतज़ार कर सकते हैं या किसी दूसरे IP पर स्विच कर सकते हैं (जैसे VPN ऑन/ऑफ करके, या WiFi से मोबाइल डेटा पर स्विच करके)।\n\nअधिक जानकारी के लिए कृपया <a href="%2$s">यह FAQ एंट्री</a> देखें।</string>
     <string name="unsupported_content_in_country">यह कंटेंट अभी चुने गए देश के कंटेंट के लिए उपलब्ध नहीं है।\n\n\"सेटिंग्स &gt; कंटेंट &gt; डिफ़ॉल्ट कंटेंट देश\" से अपना चुनाव बदलें।</string>
-    <string name="kao_dialog_warning">अगस्त 2025 में, Google ने घोषणा की कि सितंबर 2026 से, सर्टिफाइड डिवाइस पर सभी Android ऐप्स जिनमें Play Store के बाहर से इंस्टॉल किए गए ऐप्स भी शामिल हैं, को इंस्टॉल करने के लिए डेवलपर वेरिफिकेशन ज़रूरी होगा। चूंकि NewPipe के डेवलपर्स इस शर्त से सहमत नहीं हैं, इसलिए उस समय के बाद NewPipe सर्टिफाइड Android डिवाइस पर काम नहीं करेगा।</string>
+    <string name="kao_dialog_warning">अगस्त 2025 में, Google ने घोषणा की कि सितंबर 2026 से, सर्टिफाइड डिवाइस पर सभी Android ऐप्स जिनमें Play Store के बाहर से इंस्टॉल किए गए ऐप्स भी शामिल हैं, को इंस्टॉल करने के लिए डेवलपर वेरिफिकेशन ज़रूरी होगा। चूंकि Tubular के डेवलपर्स इस शर्त से सहमत नहीं हैं, इसलिए उस समय के बाद Tubular सर्टिफाइड Android डिवाइस पर काम नहीं करेगा।</string>
     <string name="kao_dialog_more_info">विवरण</string>
     <string name="kao_solution">समाधान</string>
+    <plurals name="export_subscriptions">
+        <item quantity="one">%d सब्सक्रिप्शन एक्सपोर्ट किया जा रहा है…</item>
+        <item quantity="other">%d सब्सक्रिप्शन एक्सपोर्ट किए जा रहे हैं…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">%d सब्सक्रिप्शन लोड हो रहा है…</item>
+        <item quantity="other">%d सब्सक्रिप्शन लोड हो रहे हैं…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">%d सब्सक्रिप्शन इंपोर्ट किया जा रहा है…</item>
+        <item quantity="other">%d सब्सक्रिप्शन इंपोर्ट किए जा रहे हैं…</item>
+    </plurals>
+    <string name="import_subscriptions_title">सब्सक्रिप्शन इंपोर्ट करें</string>
+    <string name="export_subscriptions_title">सब्सक्रिप्शन एक्सपोर्ट करें</string>
+    <string name="import_subscriptions_summary">पिछले .json एक्सपोर्ट से सब्सक्रिप्शन इंपोर्ट करें</string>
+    <string name="export_subscriptions_summary">अपनी सब्सक्रिप्शन को एक .json फ़ाइल में एक्सपोर्ट करें।</string>
+    <string name="import_from_previous_export">पिछले एक्सपोर्ट से इंपोर्ट करें</string>
 </resources>

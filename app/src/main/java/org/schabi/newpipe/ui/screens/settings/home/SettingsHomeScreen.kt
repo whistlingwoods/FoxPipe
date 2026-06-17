@@ -107,7 +107,7 @@ fun SettingsHomeScreen(
                 item {
                     TextPreference(
                         title = stringResource(R.string.settings_category_updates_title),
-                        icon = R.drawable.ic_newpipe_update,
+                        icon = R.drawable.ic_tubular_update,
                         onClick = { onNavigate(Screen.Settings.Updates) }
                     )
                 }

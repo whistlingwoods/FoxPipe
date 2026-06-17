@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -199,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
         // We want every release build (nightly, nightly-refactor) to show the popup
         if (!DEBUG) {
             showKeepAndroidDialog();
+            showApi23RequirementDialog();
         }
 
         MigrationManager.showUserInfoIfPresent(this);
@@ -289,15 +291,18 @@ public class MainActivity extends AppCompatActivity {
         //Kiosks
         final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
         final StreamingService service = NewPipe.getService(currentServiceId);
+        final boolean showKiosks = sharedPreferences.getBoolean(
+                getString(R.string.show_kiosks_key), true);
 
-        int kioskMenuItemId = 0;
-
-        for (final String ks : service.getKioskList().getAvailableKiosks()) {
-            drawerLayoutBinding.navigation.getMenu()
-                    .add(R.id.menu_kiosks_group, kioskMenuItemId, 0, KioskTranslator
-                            .getTranslatedKioskName(ks, this))
-                    .setIcon(KioskTranslator.getKioskIcon(ks));
-            kioskMenuItemId++;
+        if (showKiosks) {
+            int kioskMenuItemId = 0;
+            for (final String ks : service.getKioskList().getAvailableKiosks()) {
+                drawerLayoutBinding.navigation.getMenu()
+                        .add(R.id.menu_kiosks_group, kioskMenuItemId, 0, KioskTranslator
+                                .getTranslatedKioskName(ks, this))
+                        .setIcon(KioskTranslator.getKioskIcon(ks));
+                kioskMenuItemId++;
+            }
         }
 
         //Settings and About
@@ -395,9 +400,9 @@ public class MainActivity extends AppCompatActivity {
     private void setupDrawerHeader() {
         drawerHeaderBinding.drawerHeaderActionButton.setOnClickListener(view -> toggleServices());
 
-        // If the current app name is bigger than the default "NewPipe" (7 chars),
+        // If the current app name is bigger than the default "Tubular" (7 chars),
         // let the text view grow a little more as well.
-        if (getString(R.string.app_name).length() > "NewPipe".length()) {
+        if (getString(R.string.app_name).length() > "Tubular".length()) {
             final ViewGroup.LayoutParams layoutParams =
                     drawerHeaderBinding.drawerHeaderNewpipeTitle.getLayoutParams();
             layoutParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -546,6 +551,19 @@ public class MainActivity extends AppCompatActivity {
             }
             sharedPrefEditor.putBoolean(Constants.KEY_MAIN_PAGE_CHANGE, false).apply();
             NavigationHelper.openMainActivity(this);
+        }
+
+        if (sharedPreferences.getBoolean(Constants.KEY_DRAWER_CHANGE, false)) {
+            if (DEBUG) {
+                Log.d(TAG, "Drawer settings have changed, recreating drawer menu...");
+            }
+            sharedPreferences.edit().putBoolean(Constants.KEY_DRAWER_CHANGE, false).apply();
+            try {
+                drawerLayoutBinding.navigation.getMenu().clear();
+                addDrawerMenuForCurrentService();
+            } catch (final Exception e) {
+                ErrorUtil.showUiErrorSnackbar(this, "Rebuilding drawer menu", e);
+            }
         }
 
         final boolean isHistoryEnabled = sharedPreferences.getBoolean(
@@ -900,55 +918,76 @@ public class MainActivity extends AppCompatActivity {
 
     private void showKeepAndroidDialog() {
         final var prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
+        final var lastCheckKey = getString(R.string.kao_last_checked_key);
+        final var lastCheck = Instant.ofEpochMilli(prefs.getLong(lastCheckKey, 0));
         final var now = Instant.now();
-        final var kaoLastCheck = Instant.ofEpochMilli(prefs.getLong(
-                getString(R.string.kao_last_checked_key),
-                0
-        ));
 
-        final var supportedLannguages = List.of("fr", "de", "ca", "es", "id", "it", "pl",
-                "pt", "cs", "sk", "fa", "ar", "tr", "el", "th", "ru", "uk", "ko", "zh", "ja");
-        final var locale = Localization.getAppLocale();
-        final String kaoBaseUrl = "https://keepandroidopen.org/";
-        final String kaoURI;
-        if (supportedLannguages.contains(locale.getLanguage())) {
-            if ("zh".equals(locale.getLanguage())) {
-                kaoURI = kaoBaseUrl + ("TW".equals(locale.getCountry()) ? "zh-TW" : "zh-CN");
-            } else {
-                kaoURI = kaoBaseUrl + locale.getLanguage();
-            }
-        } else {
-            kaoURI = kaoBaseUrl;
-        }
-        final var solutionURI =
-                "https://github.com/woheller69/FreeDroidWarn?tab=readme-ov-file#solutions";
+        if (lastCheck.plus(30, ChronoUnit.DAYS).isBefore(now)) {
+            final String detailsUrl = getKeepAndroidOpenDetailsUrl();
+            final var solutionUrl = "https://github.com/woheller69/FreeDroidWarn#solutions";
 
-        if (kaoLastCheck.plus(30, ChronoUnit.DAYS).isBefore(now)) {
             final var dialog = new AlertDialog.Builder(this)
                     .setTitle("Keep Android Open")
                     .setCancelable(false)
-                    .setMessage(this.getString(R.string.kao_dialog_warning))
-                    .setPositiveButton(this.getString(android.R.string.ok), (d, w) -> {
-                        prefs.edit()
-                                .putLong(
-                                        getString(R.string.kao_last_checked_key),
-                                        now.toEpochMilli()
-                                )
-                                .apply();
-                    })
-                    .setNeutralButton(this.getString(R.string.kao_solution), null)
-                    .setNegativeButton(this.getString(R.string.kao_dialog_more_info), null)
+                    .setMessage(R.string.kao_dialog_warning)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> prefs.edit()
+                            .putLong(lastCheckKey, now.toEpochMilli())
+                            .apply())
+                    .setNeutralButton(R.string.kao_solution, null)
+                    .setNegativeButton(R.string.kao_dialog_more_info, null)
                     .show();
 
-            // If we use setNeutralButton and etc. dialog will close after pressing the buttons,
-            // but we want it to close only when positive button is pressed
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v ->
-                    ShareUtils.openUrlInBrowser(this, kaoURI)
-            );
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
-                    ShareUtils.openUrlInBrowser(this, solutionURI)
-            );
+            // If we use setNeutralButton/setNegativeButton, dialog will close after pressing the
+            // buttons, but we want it to close only when positive button is pressed
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                    .setOnClickListener(v -> ShareUtils.openUrlInBrowser(this, detailsUrl));
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+                    .setOnClickListener(v -> ShareUtils.openUrlInBrowser(this, solutionUrl));
         }
+    }
+
+    @NonNull
+    private static String getKeepAndroidOpenDetailsUrl() {
+        final var supportedLanguages = List.of("fr", "de", "ca", "es", "id", "it", "pl",
+                "pt", "cs", "sk", "fa", "ar", "tr", "el", "th", "ru", "uk", "ko", "zh", "ja");
+        final String kaoBaseUrl = "https://keepandroidopen.org/";
+        final var locale = Localization.getAppLocale();
+        if (supportedLanguages.contains(locale.getLanguage())) {
+            if ("zh".equals(locale.getLanguage())) {
+                return kaoBaseUrl + ("TW".equals(locale.getCountry()) ? "zh-TW" : "zh-CN");
+            } else {
+                return kaoBaseUrl + locale.getLanguage();
+            }
+        } else {
+            return kaoBaseUrl;
+        }
+    }
+
+    private void showApi23RequirementDialog() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return; // only show dialog on the devices that will stop being supported
+        }
+
+        final var prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        final var shownKey = getString(R.string.api23_requirement_dialog_shown_key);
+        if (prefs.getBoolean(shownKey, false)) {
+            return; // dialog was already shown in the past, no need to show it again
+        }
+
+        final var dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.api23_requirement_dialog_title)
+                .setCancelable(false)
+                .setMessage(R.string.api23_requirement_dialog_message)
+                .setPositiveButton(android.R.string.ok, (d, w) -> prefs.edit()
+                        .putBoolean(shownKey, true)
+                        .apply())
+                .setNegativeButton(R.string.api23_requirement_dialog_blogpost, null)
+                .show();
+
+        // If we use setNegativeButton, dialog will close after pressing the button,
+        // but we want it to close only when positive button is pressed
+        final var blogpostUrl = "https://newpipe.net/blog/pinned/announcement/drop-android-5/";
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                .setOnClickListener(v -> ShareUtils.openUrlInBrowser(this, blogpostUrl));
     }
 }

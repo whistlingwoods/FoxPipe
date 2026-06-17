@@ -26,6 +26,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import androidx.core.content.ContextCompat;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -69,7 +70,7 @@ public final class FocusOverlayView extends Drawable implements
     public FocusOverlayView(final Context context) {
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setStrokeWidth(2);
-        rectPaint.setColor(context.getResources().getColor(R.color.white));
+        rectPaint.setColor(ContextCompat.getColor(context, R.color.white));
     }
 
     @Override

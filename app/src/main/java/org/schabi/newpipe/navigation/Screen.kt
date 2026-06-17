@@ -11,6 +11,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface Screen : NavKey {
 
+    @Serializable
+    data object About : Screen
+
+    @Serializable
+    data object Error : Screen
+
     sealed interface Settings : Screen {
         @Serializable
         data object Home : Settings

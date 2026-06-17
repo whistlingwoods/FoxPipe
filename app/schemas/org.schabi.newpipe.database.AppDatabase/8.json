@@ -726,6 +726,26 @@
             ]
           }
         ]
+      },
+      {
+        "tableName": "sponsorblock_whitelist",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uploader` TEXT NOT NULL, PRIMARY KEY(`uploader`))",
+        "fields": [
+          {
+            "fieldPath": "uploader",
+            "columnName": "uploader",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uploader"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],

@@ -1,7 +1,8 @@
 .gradle/
 local.properties
 .DS_Store
-build/
+**/build/
+!src/**/build/
 captures/
 .idea/
 *.iml
@@ -23,3 +24,15 @@ bin/
 
 # logs
 *.log
+
+# xcode files
+xcuserdata
+.externalNativeBuild
+.cxx
+node_modules/
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings

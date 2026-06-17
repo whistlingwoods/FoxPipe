@@ -25,6 +25,8 @@ import org.schabi.newpipe.database.playlist.dao.PlaylistStreamDAO
 import org.schabi.newpipe.database.playlist.model.PlaylistEntity
 import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity
 import org.schabi.newpipe.database.playlist.model.PlaylistStreamEntity
+import org.schabi.newpipe.database.sponsorblock.dao.SponsorBlockWhitelistDAO
+import org.schabi.newpipe.database.sponsorblock.dao.SponsorBlockWhitelistEntry
 import org.schabi.newpipe.database.stream.dao.StreamDAO
 import org.schabi.newpipe.database.stream.dao.StreamStateDAO
 import org.schabi.newpipe.database.stream.model.StreamEntity
@@ -47,7 +49,8 @@ import org.schabi.newpipe.database.subscription.SubscriptionEntity
         FeedEntity::class,
         FeedGroupEntity::class,
         FeedGroupSubscriptionEntity::class,
-        FeedLastUpdatedEntity::class
+        FeedLastUpdatedEntity::class,
+        SponsorBlockWhitelistEntry::class
     ]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -61,6 +64,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun streamHistoryDAO(): StreamHistoryDAO
     abstract fun streamStateDAO(): StreamStateDAO
     abstract fun subscriptionDAO(): SubscriptionDAO
+    abstract fun sponsorBlockWhitelistDAO(): SponsorBlockWhitelistDAO
 
     companion object {
         const val DATABASE_NAME: String = "newpipe.db"
