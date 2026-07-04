@@ -21,8 +21,6 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import kotlin.runCatching
-import kotlin.to
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.asFlow
@@ -162,20 +160,6 @@ class SubscriptionImportWorker(
         }
     }
 
-    private fun getInputStreamContentType(fileHelper: StoredFileHelper): String {
-        val contentType = fileHelper.getType()
-        if (!contentType.isNullOrEmpty() && contentType != DEFAULT_MIME) {
-            return contentType
-        }
-
-        val fileName = fileHelper.getName() ?: return DEFAULT_MIME
-        val pointIndex = fileName.lastIndexOf('.')
-        return when {
-            pointIndex == -1 || pointIndex >= fileName.length - 1 -> DEFAULT_MIME
-            else -> fileName.substring(pointIndex + 1)
-        }
-    }
-
     private fun createForegroundInfo(
         title: String,
         text: String? = null,
@@ -223,6 +207,20 @@ class SubscriptionImportWorker(
         private const val BUFFER_COUNT_BEFORE_INSERT = 50
 
         const val WORK_NAME = "SubscriptionImportWorker"
+
+        internal fun getInputStreamContentType(fileHelper: StoredFileHelper): String {
+            val contentType = fileHelper.getType()
+            if (!contentType.isNullOrEmpty() && contentType != DEFAULT_MIME) {
+                return contentType
+            }
+
+            val fileName = fileHelper.getName() ?: return DEFAULT_MIME
+            val pointIndex = fileName.lastIndexOf('.')
+            return when {
+                pointIndex == -1 || pointIndex >= fileName.length - 1 -> DEFAULT_MIME
+                else -> fileName.substring(pointIndex + 1)
+            }
+        }
     }
 }
 
@@ -252,8 +250,7 @@ sealed class SubscriptionImportInput : Parcelable {
         private const val PREVIOUS_EXPORT_MODE = 2
 
         fun fromData(data: Data): SubscriptionImportInput {
-            val mode = data.getInt("mode", PREVIOUS_EXPORT_MODE)
-            when (mode) {
+            when (val mode = data.getInt("mode", PREVIOUS_EXPORT_MODE)) {
                 CHANNEL_URL_MODE -> {
                     val serviceId = data.getInt("service_id", -1)
                     if (serviceId == -1) {
