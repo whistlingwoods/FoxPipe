@@ -647,6 +647,7 @@ public final class NavigationHelper {
                 .getBoolean(Localization.compatGetString(context,
                                 R.string.settings_layout_redesign_key), false);
 
+        // TODO: Replace with "ContextKt.navigateTo(context, Destination.Settings.INSTANCE);" later
         final Intent intent = useCompose
                 ? ComposeActivity.Companion.settingsIntent(context)
                 : new Intent(context, SettingsActivity.class);
