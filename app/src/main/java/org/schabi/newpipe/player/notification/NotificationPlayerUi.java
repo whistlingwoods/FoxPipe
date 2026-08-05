@@ -88,6 +88,12 @@ public final class NotificationPlayerUi extends PlayerUi {
     }
 
     @Override
+    public void onStopAfterCurrentStreamChanged(final boolean stopAfterCurrentStream) {
+        super.onStopAfterCurrentStreamChanged(stopAfterCurrentStream);
+        notificationUtil.createNotificationIfNeededAndUpdate(false);
+    }
+
+    @Override
     public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
         super.onShuffleModeEnabledChanged(shuffleModeEnabled);
         notificationUtil.createNotificationIfNeededAndUpdate(false);
