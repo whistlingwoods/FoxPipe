@@ -94,6 +94,8 @@ public final class Localization {
     }
 
     /**
+     * Resolves a string resource with format arguments using compatibility layer.
+     *
      * @see #compatGetString(Context, int)
      * @param context any Android context, even the App context
      * @param resId the string resource to resolve
@@ -284,6 +286,8 @@ public final class Localization {
     }
 
     /**
+     * Formats the like count as a short human-readable string.
+     *
      * @param context the Android context
      * @param likeCount the like count, possibly negative if unknown
      * @return if {@code likeCount} is smaller than {@code 0}, the string {@code "-"}, otherwise
@@ -420,6 +424,8 @@ public final class Localization {
     }
 
     /**
+     * Returns relative or textual time string depending on parsing success and debug mode.
+     *
      * @param context the Android context; if {@code null} then even if in debug mode and the
      *                setting is enabled, {@code textual} will not be shown next to {@code parsed}
      * @param parsed  the textual date or time ago parsed by NewPipeExtractor, or {@code null} if

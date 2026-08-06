@@ -73,6 +73,8 @@ public class ExpandableSurfaceView extends SurfaceView {
     }
 
     /**
+     * Sets base and maximum heights for the surface view and requests layout if changed.
+     *
      * @param base The height that will be used in every resize mode as a minimum height
      * @param max  The max height for vertical videos in non-FIT resize modes
      */

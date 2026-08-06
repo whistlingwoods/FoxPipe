@@ -278,6 +278,8 @@ public final class Player implements PlaybackListener, Listener {
     //region Constructor
 
     /**
+     * Creates a new Player instance.
+     *
      * @param service the service this player resides in
      * @param mediaSession used to build the {@link MediaSessionPlayerUi}, lives in the service and
      *                     could possibly be reused with multiple player instances
@@ -2465,6 +2467,8 @@ public final class Player implements PlaybackListener, Listener {
     }
 
     /**
+     * Returns the user interfaces connected with the player.
+     *
      * @return the user interfaces connected with the player
      */
     @SuppressWarnings("MethodName") // keep the unusual method name
@@ -2502,6 +2506,8 @@ public final class Player implements PlaybackListener, Listener {
     //endregion
 
     /**
+     * Returns whether the device screen is turned on.
+     *
      * @return whether the device screen is turned on.
      */
     public boolean isScreenOn() {

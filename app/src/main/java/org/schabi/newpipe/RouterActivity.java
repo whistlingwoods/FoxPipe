@@ -255,6 +255,8 @@ public class RouterActivity extends AppCompatActivity {
     }
 
     /**
+     * Handles routing errors and displays toasts or challenges if applicable.
+     *
      * @param context the context. It will be {@code finish()}ed at the end of the handling if it is
      *                an instance of {@link RouterActivity}.
      * @param errorInfo the error information
@@ -725,6 +727,8 @@ public class RouterActivity extends AppCompatActivity {
         }
 
         /**
+         * Returns the activity context if available and not finishing.
+         *
          * @return the activity context, if there is one and the activity is not finishing
          */
         private Optional<AppCompatActivity> getActivityContext() {

@@ -331,6 +331,8 @@ public final class PlayerHelper {
     }
 
     /**
+     * Gets the screen brightness to use based on preferences and elapsed time.
+     *
      * @param context the Android context
      * @return the screen brightness to use. A value less than 0 (the default) means to use the
      * preferred screen brightness

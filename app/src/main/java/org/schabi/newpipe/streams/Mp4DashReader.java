@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 /**
+ * Reader for MP4 DASH format streams.
+ *
  * @author kapodamy
  */
 public class Mp4DashReader {

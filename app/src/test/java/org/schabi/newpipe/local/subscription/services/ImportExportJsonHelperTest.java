@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
+ * Tests for {@link ImportExportJsonHelper}.
+ *
  * @see ImportExportJsonHelper
  */
 public class ImportExportJsonHelperTest {

@@ -29,6 +29,8 @@ public abstract class PlayerUi {
     @NonNull protected final Player player;
 
     /**
+     * Initializes the player UI with the specified player instance.
+     *
      * @param player the player instance that will be usable throughout the lifetime of this UI; its
      *               context should already have been initialized
      */
@@ -38,6 +40,8 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Returns the player instance this UI was constructed with.
+     *
      * @return the player instance this UI was constructed with
      */
     @NonNull
@@ -155,6 +159,8 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Called when the text tracks change.
+     *
      * @see com.google.android.exoplayer2.Player.Listener#onTracksChanged(Tracks)
      * @param currentTracks the available tracks information
      */
@@ -162,6 +168,8 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Called when the playback parameters change.
+     *
      * @see com.google.android.exoplayer2.Player.Listener#onPlaybackParametersChanged
      * @param playbackParameters the new playback parameters
      */
@@ -169,12 +177,16 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Called when the first frame is rendered.
+     *
      * @see com.google.android.exoplayer2.Player.Listener#onRenderedFirstFrame
      */
     public void onRenderedFirstFrame() {
     }
 
     /**
+     * Called when text cues are received.
+     *
      * @see com.google.android.exoplayer2.text.TextOutput#onCues
      * @param cues the cues to pass to the subtitle view
      */
@@ -204,6 +216,8 @@ public abstract class PlayerUi {
     }
 
     /**
+     * Called when the video size changes.
+     *
      * @param videoSize the new video size, useful to set the surface aspect ratio
      * @see com.google.android.exoplayer2.Player.Listener#onVideoSizeChanged
      */

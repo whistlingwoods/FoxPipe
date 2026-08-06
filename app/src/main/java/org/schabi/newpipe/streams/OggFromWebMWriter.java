@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * Writer for generating Ogg audio files from WebM streams.
+ *
  * @author kapodamy
  */
 public class OggFromWebMWriter implements Closeable {

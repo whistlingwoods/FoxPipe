@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * Helper class for reading binary stream data.
+ *
  * @author kapodamy
  */
 public class DataReader {

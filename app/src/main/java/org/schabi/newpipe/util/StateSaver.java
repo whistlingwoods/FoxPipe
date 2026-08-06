@@ -73,6 +73,8 @@ public final class StateSaver {
     }
 
     /**
+     * Tries to restore saved state from bundle.
+     *
      * @param outState
      * @param writeRead
      * @return the saved state
@@ -146,6 +148,8 @@ public final class StateSaver {
     }
 
     /**
+     * Tries to save state into bundle.
+     *
      * @param isChangingConfig
      * @param savedState
      * @param outState
