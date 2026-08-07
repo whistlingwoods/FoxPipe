@@ -46,6 +46,7 @@ import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
+import org.schabi.newpipe.extractor.returnyoutubedislike.ReturnYouTubeDislikeApiSettings;
 import org.schabi.newpipe.extractor.search.SearchInfo;
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockApiSettings;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
@@ -120,7 +121,7 @@ public final class ExtractorHelper {
                 Single.fromCallable(() -> StreamInfo.getInfo(
                         url,
                         buildSponsorBlockApiSettings(context),
-                        null)));
+                        buildReturnYouTubeDislikeApiSettings(context))));
     }
 
     public static Single<ChannelInfo> getChannelInfo(final int serviceId, final String url,
@@ -376,6 +377,23 @@ public final class ExtractorHelper {
                 prefs.getBoolean(context
                         .getString(R.string.sponsor_block_category_filler_key), false);
 
+        return result;
+    }
+
+    private static @Nullable ReturnYouTubeDislikeApiSettings buildReturnYouTubeDislikeApiSettings(
+            final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        final boolean isRydEnabled = prefs.getBoolean(context
+                .getString(R.string.return_youtube_dislike_enable_key), false);
+
+        if (!isRydEnabled) {
+            return null;
+        }
+
+        final ReturnYouTubeDislikeApiSettings result = new ReturnYouTubeDislikeApiSettings();
+        result.apiUrl = prefs.getString(
+                context.getString(R.string.return_youtube_dislike_api_url_key), null);
         return result;
     }
 }

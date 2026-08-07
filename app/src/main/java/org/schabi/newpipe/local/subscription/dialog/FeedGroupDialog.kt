@@ -10,6 +10,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
@@ -497,10 +499,9 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
 
     private fun showKeyboardSearch() {
         if (searchLayoutBinding.toolbarSearchEditText.requestFocus()) {
-            inputMethodManager.showSoftInput(
-                searchLayoutBinding.toolbarSearchEditText,
-                InputMethodManager.SHOW_IMPLICIT
-            )
+            dialog?.window?.let { window ->
+                WindowCompat.getInsetsController(window, searchLayoutBinding.toolbarSearchEditText).show(WindowInsetsCompat.Type.ime())
+            }
         }
     }
 
@@ -514,10 +515,9 @@ class FeedGroupDialog : DialogFragment(), BackPressable {
 
     private fun showKeyboard() {
         if (feedGroupCreateBinding.groupNameInput.requestFocus()) {
-            inputMethodManager.showSoftInput(
-                feedGroupCreateBinding.groupNameInput,
-                InputMethodManager.SHOW_IMPLICIT
-            )
+            dialog?.window?.let { window ->
+                WindowCompat.getInsetsController(window, feedGroupCreateBinding.groupNameInput).show(WindowInsetsCompat.Type.ime())
+            }
         }
     }
 
