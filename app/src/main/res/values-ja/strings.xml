@@ -264,8 +264,7 @@
     <string name="give_back">支援する</string>
     <string name="privacy_policy_encouragement">NewPipeプロジェクトは、ユーザーのプライバシーを非常に重視しています。そのため、このアプリがユーザーの同意なくデータを収集することはありません。\nNewPipeのプライバシーポリシーでは、クラッシュレポートを送信した際に、どのようなデータが送信および保存されるかを詳しく説明しています。</string>
     <string name="app_license">NewPipeは、コピーレフトの自由ソフトウェアです。自由に使用、研究、共有、改良できます。具体的には、フリーソフトウェア財団が公開しているGNU General Public Licenseのバージョン3、またはそれ以降の任意のバージョンの条件に従って、再配布や改変を行えます。</string>
-    <string name="title_last_played">最終再生日時</string>
-    <string name="title_most_played">最も再生された動画</string>
+
     <string name="resize_zoom">拡大</string>
     <string name="controls_add_to_playlist_title">プレイリスト</string>
     <string name="show_hold_to_append_title">「長押しでキューに追加」のヒントを表示</string>

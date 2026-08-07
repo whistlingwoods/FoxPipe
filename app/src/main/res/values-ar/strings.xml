@@ -283,8 +283,7 @@
     <string name="no_streams_available_download">لا يوجد بث متاح للتنزيل</string>
     <string name="one_item_deleted">تم حذف عنصر واحد.</string>
     <string name="app_license">NewPipe هو برنامج مفتوح المصدر مرخص بموجب حقوق النشر: يمكنك استخدامه ودراسته ومشاركته وتحسينه كما تشاء. وبالتحديد، يمكنك إعادة توزيعه و/أو تعديله وفقًا لشروط رخصة GNU العمومية العامة كما نشرتها مؤسسة البرمجيات الحرة، سواء الإصدار 3 من الرخصة، أو (حسب اختيارك) أي إصدار لاحق.</string>
-    <string name="title_last_played">آخر ما تم تشغيله</string>
-    <string name="title_most_played">الأكثر تشغيلا</string>
+
     <string name="override_current_data">هذا سوف يُزيل إعداداتك الحالية.</string>
     <string name="preferred_open_action_settings_title">طريقة \'التشغيل\' المفضلة</string>
     <string name="preferred_open_action_settings_summary">الإجراء الافتراضي عند فتح المحتوى — %s</string>

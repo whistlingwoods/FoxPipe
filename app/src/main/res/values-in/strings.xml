@@ -187,8 +187,7 @@
     <string name="website_title">Situs web</string>
     <string name="website_encouragement">Kunjungi Situs Web NewPipe untuk info dan berita lainnya.</string>
     <string name="delete_item_search_history">Apakah ingin hapus butir ini dari riwayat pencarian?</string>
-    <string name="title_last_played">Terakhir Diputar</string>
-    <string name="title_most_played">Sering Diputar</string>
+
     <string name="main_page_content">Konten halaman utama</string>
     <string name="blank_page_summary">Halaman kosong</string>
     <string name="kiosk_page_summary">Halaman kiosk</string>
