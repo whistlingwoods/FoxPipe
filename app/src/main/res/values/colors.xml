@@ -9,6 +9,19 @@
     <color name="placeholder_background">#999999</color>
     <color name="placeholder_foreground">#6C6C6C</color>
 
+    <!-- M3 Switch Colors matching Compose Theme -->
+    <color name="m3_primary_light">#904A45</color>
+    <color name="m3_on_primary_light">#FFFFFF</color>
+    <color name="m3_outline_light">#857371</color>
+    <color name="m3_surface_variant_light">#F5DDDB</color>
+
+    <color name="m3_primary_dark">#FFB3AC</color>
+    <color name="m3_on_primary_dark">#571E1B</color>
+    <color name="m3_outline_dark">#A08C8A</color>
+    <color name="m3_surface_variant_dark">#534342</color>
+
+    <color name="m3_surface_variant_black">#332322</color>
+
     <!-- Light Theme -->
     <color name="light_background_color">#FFFFF8F7</color>
     <color name="light_dialog_background_color">#FFFFF8F7</color>
@@ -83,5 +96,20 @@
     <color name="gray">#616161</color>
 
     <color name="black">#000</color>
+
+    <!-- default SponsorBlock segment colors -->
+    <color name="sponsor_segment">#00d400</color>
+    <color name="intro_segment">#00ffff</color>
+    <color name="outro_segment">#0202ed</color>
+    <color name="interaction_segment">#cc00ff</color>
+    <color name="highlight_segment">#ff1983</color>
+    <color name="self_promo_segment">#ffff00</color>
+    <color name="non_music_segment">#ff9900</color>
+    <color name="preview_segment">#008fd6</color>
+    <color name="filler_segment">#7300ff</color>
+    <color name="pending_segment">#ffffff</color>
+    
+    <!-- Vote button colors -->
+    <color name="sponsor_block_vote_button_selected">#CD201F</color>
 
 </resources>

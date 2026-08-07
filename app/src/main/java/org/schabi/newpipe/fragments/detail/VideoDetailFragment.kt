@@ -53,6 +53,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -76,6 +77,10 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockAction
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockCategory
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockExtractorHelper
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment
 import org.schabi.newpipe.extractor.stream.Stream
 import org.schabi.newpipe.extractor.stream.StreamExtractor
 import org.schabi.newpipe.extractor.stream.StreamInfo
@@ -85,6 +90,8 @@ import org.schabi.newpipe.fragments.BaseStateFragment
 import org.schabi.newpipe.fragments.EmptyFragment
 import org.schabi.newpipe.fragments.MainFragment
 import org.schabi.newpipe.fragments.list.comments.CommentsFragment.Companion.getInstance
+import org.schabi.newpipe.fragments.list.sponsorblock.SponsorBlockFragment
+import org.schabi.newpipe.fragments.list.sponsorblock.SponsorBlockFragmentListener
 import org.schabi.newpipe.fragments.list.videos.RelatedItemsFragment.Companion.getInstance
 import org.schabi.newpipe.ktx.AnimationType
 import org.schabi.newpipe.ktx.animate
@@ -92,6 +99,7 @@ import org.schabi.newpipe.ktx.animateRotation
 import org.schabi.newpipe.local.dialog.PlaylistDialog
 import org.schabi.newpipe.local.history.HistoryRecordManager
 import org.schabi.newpipe.local.playlist.LocalPlaylistFragment
+import org.schabi.newpipe.local.sponsorblock.SponsorBlockDataManager
 import org.schabi.newpipe.player.Player
 import org.schabi.newpipe.player.PlayerIntentType
 import org.schabi.newpipe.player.PlayerService
@@ -115,6 +123,7 @@ import org.schabi.newpipe.util.NavigationHelper
 import org.schabi.newpipe.util.PermissionHelper
 import org.schabi.newpipe.util.PermissionHelper.checkStoragePermissions
 import org.schabi.newpipe.util.PlayButtonHelper
+import org.schabi.newpipe.util.SponsorBlockMode
 import org.schabi.newpipe.util.StreamTypeUtil
 import org.schabi.newpipe.util.ThemeHelper
 import org.schabi.newpipe.util.external_communication.KoreUtils
@@ -125,7 +134,8 @@ class VideoDetailFragment :
     BaseStateFragment<StreamInfo>(),
     BackPressable,
     PlayerServiceExtendedEventListener,
-    OnKeyDownListener {
+    OnKeyDownListener,
+    SponsorBlockFragmentListener {
 
     // stream info
     @JvmField
@@ -166,6 +176,7 @@ class VideoDetailFragment :
     private var showComments = false
     private var showRelatedItems = false
     private var showDescription = false
+    private var showSponsorBlock = false
     private lateinit var selectedTabTag: String
 
     @AttrRes val tabIcons = ArrayList<Int>()
@@ -173,6 +184,10 @@ class VideoDetailFragment :
     @StringRes val tabContentDescriptions = ArrayList<Int>()
     private var tabSettingsChanged = false
     private var lastAppBarVerticalOffset = Int.Companion.MAX_VALUE // prevents useless updates
+
+    private var workerSponsorBlockModeCheck: Disposable? = null
+    private var submitSegmentSubscriber: Disposable? = null
+    private lateinit var sponsorBlockDataManager: SponsorBlockDataManager
 
     private val preferenceChangeListener =
         OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -185,8 +200,14 @@ class VideoDetailFragment :
             } else if (getString(R.string.show_description_key) == key) {
                 showDescription = sharedPreferences.getBoolean(key, true)
                 tabSettingsChanged = true
+            } else if (getString(R.string.sponsor_block_enable_key) == key) {
+                showSponsorBlock = sharedPreferences.getBoolean(key, false)
+                tabSettingsChanged = true
             }
         }
+
+    @State
+    var currentSponsorBlockMode: SponsorBlockMode? = null
 
     // bottom sheet
     @JvmField
@@ -265,6 +286,7 @@ class VideoDetailFragment :
         showComments = prefs.getBoolean(getString(R.string.show_comments_key), true)
         showRelatedItems = prefs.getBoolean(getString(R.string.show_next_video_key), true)
         showDescription = prefs.getBoolean(getString(R.string.show_description_key), true)
+        showSponsorBlock = prefs.getBoolean(getString(R.string.sponsor_block_enable_key), false)
         selectedTabTag = prefs.getString(
             getString(R.string.stream_info_selected_tab_key),
             COMMENTS_TAB_TAG
@@ -285,6 +307,7 @@ class VideoDetailFragment :
             false,
             settingsContentObserver!!
         )
+        sponsorBlockDataManager = SponsorBlockDataManager(requireContext())
     }
 
     override fun onCreateView(
@@ -374,6 +397,12 @@ class VideoDetailFragment :
     override fun onDestroyView() {
         super.onDestroyView()
         nullableBinding = null
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        submitSegmentSubscriber?.dispose()
+        workerSponsorBlockModeCheck?.dispose()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -779,7 +808,7 @@ class VideoDetailFragment :
 
     private fun runWorker(forceLoad: Boolean, addToBackStack: Boolean) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad)
+        currentWorker = ExtractorHelper.getStreamInfo(requireContext(), serviceId, url, forceLoad)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -846,6 +875,13 @@ class VideoDetailFragment :
             tabContentDescriptions.add(R.string.description_tab_description)
         }
 
+        if (showSponsorBlock) {
+            // temp empty fragment. will be updated in handleResult
+            pageAdapter.addFragment(EmptyFragment.newInstance(false), SPONSOR_BLOCK_TAB_TAG)
+            tabIcons.add(R.drawable.ic_sponsor_block_enable)
+            tabContentDescriptions.add(R.string.sponsor_block_tab_description)
+        }
+
         if (pageAdapter.count == 0) {
             pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG)
         }
@@ -895,6 +931,23 @@ class VideoDetailFragment :
 
         if (showDescription) {
             pageAdapter.updateItem(DESCRIPTION_TAB_TAG, DescriptionFragment(info))
+        }
+
+        if (showSponsorBlock) {
+            val sponsorBlockFragment = SponsorBlockFragment(info)
+            sponsorBlockFragment.setListener(this)
+            pageAdapter.updateItem(SPONSOR_BLOCK_TAB_TAG, sponsorBlockFragment)
+
+            workerSponsorBlockModeCheck = sponsorBlockDataManager.isWhiteListed(info.uploaderName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { isWhitelisted ->
+                    if (currentSponsorBlockMode == null) {
+                        currentSponsorBlockMode = if (isWhitelisted) SponsorBlockMode.DISABLED else SponsorBlockMode.ENABLED
+                    }
+                    sponsorBlockFragment.setSponsorBlockMode(currentSponsorBlockMode!!)
+                    sponsorBlockFragment.setIsWhitelisted(isWhitelisted)
+                }
         }
 
         binding.viewPager.visibility = View.VISIBLE
@@ -1202,6 +1255,7 @@ class VideoDetailFragment :
                     playerUi.removeViewFromParent()
                     b.playerPlaceholder.addView(playerUi.getBinding().getRoot())
                     playerUi.setupVideoSurfaceIfNeeded()
+                    currentInfo?.let { playerUi.onMarkSeekbarRequested(it) }
                 }
             }
         }
@@ -1717,12 +1771,34 @@ class VideoDetailFragment :
     ) {
         // Progress updates are received every second even if media is paused. It's useless until
         // playing, hence the `player?.isPlaying == true` check.
-        if (player?.isPlaying == true && player?.playQueue?.item?.url?.equals(url) == true) {
-            updatePlaybackProgress(currentProgress.toLong(), duration.toLong())
+        if (player?.isPlaying == true) {
+            getSponsorBlockFragment()?.setCurrentProgress(currentProgress)
+            if (player?.playQueue?.item?.url?.equals(url) == true) {
+                updatePlaybackProgress(currentProgress.toLong(), duration.toLong())
+            }
         }
     }
 
     override fun onMetadataUpdate(info: StreamInfo, queue: PlayQueue) {
+        val context = requireContext()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val isSponsorBlockEnabled = prefs.getBoolean(getString(R.string.sponsor_block_enable_key), false)
+
+        if (player != null && isSponsorBlockEnabled) {
+            workerSponsorBlockModeCheck = sponsorBlockDataManager.isWhiteListed(info.uploaderName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { isWhitelisted ->
+                    if (currentSponsorBlockMode == null) {
+                        currentSponsorBlockMode = if (isWhitelisted) SponsorBlockMode.DISABLED else SponsorBlockMode.ENABLED
+                    }
+                    player?.sponsorBlockMode = currentSponsorBlockMode
+                    getSponsorBlockFragment()?.let { fragment ->
+                        fragment.setSponsorBlockMode(currentSponsorBlockMode!!)
+                        fragment.setIsWhitelisted(isWhitelisted)
+                    }
+                }
+        }
         findQueueInStack(queue)?.let { item ->
             // When PlayQueue can have multiple streams (PlaylistPlayQueue or ChannelPlayQueue)
             // every new played stream gives new title and url.
@@ -2329,6 +2405,107 @@ class VideoDetailFragment :
         }
     }
 
+    private fun getSponsorBlockFragment(): SponsorBlockFragment? {
+        val sponsorBlockTabPos = pageAdapter.getItemPositionByTitle(SPONSOR_BLOCK_TAB_TAG)
+        if (sponsorBlockTabPos < 0) {
+            return null
+        }
+        return pageAdapter.getItem(sponsorBlockTabPos) as? SponsorBlockFragment
+    }
+
+    override fun onSkippingEnabledChanged(newValue: Boolean) {
+        currentSponsorBlockMode = if (newValue) SponsorBlockMode.ENABLED else SponsorBlockMode.DISABLED
+        player?.sponsorBlockMode = currentSponsorBlockMode
+    }
+
+    override fun onRequestNewPendingSegment(startTime: Int, endTime: Int) {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+
+        info.removeSponsorBlockSegment("TEMP")
+        val segment = SponsorBlockSegment(
+            "TEMP",
+            startTime.toDouble(),
+            endTime.toDouble(),
+            SponsorBlockCategory.PENDING,
+            SponsorBlockAction.SKIP
+        )
+        info.addSponsorBlockSegment(segment)
+
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
+            playerUi.onMarkSeekbarRequested(info)
+        }
+        getSponsorBlockFragment()?.refreshSponsorBlockSegments()
+    }
+
+    override fun onRequestClearPendingSegment() {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+
+        info.removeSponsorBlockSegment("TEMP")
+
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
+            playerUi.onMarkSeekbarRequested(info)
+        }
+        getSponsorBlockFragment()?.refreshSponsorBlockSegments()
+    }
+
+    override fun onRequestSubmitPendingSegment(newSegment: SponsorBlockSegment) {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+        val context = requireContext()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val apiUrl = prefs.getString(getString(R.string.sponsor_block_api_url_key), null)
+        if (apiUrl.isNullOrEmpty()) {
+            return
+        }
+
+        submitSegmentSubscriber = Single.fromCallable {
+            SponsorBlockExtractorHelper.submitSponsorBlockSegment(info, newSegment, apiUrl)
+        }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ response ->
+                val responseCode = response.responseCode()
+
+                // 200 = all good
+                // 409 = all good, but the request timed out
+                if (responseCode != 200 && responseCode != 409) {
+                    var message: String? = response.responseMessage()
+                    if (message.isNullOrEmpty()) {
+                        message = "Error $responseCode"
+                    }
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    return@subscribe
+                }
+
+                info.removeSponsorBlockSegment("TEMP")
+                info.addSponsorBlockSegment(newSegment)
+
+                currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
+                    playerUi.onMarkSeekbarRequested(info)
+                }
+                getSponsorBlockFragment()?.clearPendingSegment()
+
+                AlertDialog.Builder(context)
+                    .setMessage(R.string.sponsor_block_upload_success_message)
+                    .setPositiveButton(R.string.ok) { d, _ -> d.dismiss() }
+                    .show()
+            }, { throwable ->
+                if (throwable is NullPointerException) {
+                    return@subscribe
+                }
+                showSnackbar(
+                    context,
+                    ErrorInfo(throwable, UserAction.USER_REPORT, "Submit SponsorBlock segment")
+                )
+            })
+    }
+
+    override fun onSeekToRequested(positionMillis: Long) {
+        player?.seekTo(positionMillis)
+    }
+
     companion object {
         const val KEY_SWITCHING_PLAYERS: String = "switching_players"
 
@@ -2349,6 +2526,7 @@ class VideoDetailFragment :
         private const val COMMENTS_TAB_TAG = "COMMENTS"
         private const val RELATED_TAB_TAG = "NEXT VIDEO"
         private const val DESCRIPTION_TAB_TAG = "DESCRIPTION TAB"
+        private const val SPONSOR_BLOCK_TAB_TAG = "SPONSOR_BLOCK TAB"
         private const val EMPTY_TAB_TAG = "EMPTY TAB"
 
         /*//////////////////////////////////////////////////////////////////////// */

@@ -131,6 +131,9 @@ public abstract class PlayerUi {
     public void onPrepared() {
     }
 
+    public void onMarkSeekbarRequested(@NonNull final StreamInfo streamInfo) {
+    }
+
     public void onBlocked() {
     }
 
@@ -222,5 +225,29 @@ public abstract class PlayerUi {
      * @see com.google.android.exoplayer2.Player.Listener#onVideoSizeChanged
      */
     public void onVideoSizeChanged(@NonNull final VideoSize videoSize) {
+    }
+
+    /**
+     * Show SponsorBlock segment un-skip button.
+     */
+    public void showAutoUnskip() {
+    }
+
+    /**
+     * Hide SponsorBlock segment un-skip button.
+     */
+    public void hideAutoUnskip() {
+    }
+
+    /**
+     * Show SponsorBlock segment skip button.
+     */
+    public void showAutoSkip() {
+    }
+
+    /**
+     * Hide SponsorBlock segment skip button.
+     */
+    public void hideAutoSkip() {
     }
 }
