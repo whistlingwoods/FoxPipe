@@ -952,7 +952,7 @@
     <string name="sponsor_block_user_stats_title">User Stats</string>
     <string name="sponsor_block_user_stats_loading">Loading…</string>
     <string name="sponsor_block_user_stats_error">Failed to load stats</string>
-    <string name="sponsor_block_user_stats_result">Username: %1$s\nSegments: %2$d</string>
+    <string name="sponsor_block_user_stats_result">Username: %1$s\nSubmissions: %2$d</string>
 
     <string name="sponsor_block_notifications_title">Notify when sponsors are skipped</string>
     <string name="sponsor_block_notifications_summary">Show a toast notification when a sponsor is automatically skipped.</string>
@@ -1081,6 +1081,12 @@
     <string name="dearrow_enable_title">Enable DeArrow</string>
     <string name="dearrow_enable_summary">Replace thumbnails and titles with crowdsourced ones from DeArrow</string>
     
+    <string name="dearrow_user_stats_key" translatable="false">dearrow_user_stats</string>
+    <string name="dearrow_user_stats_title">User stats</string>
+    <string name="dearrow_user_stats_loading">Loading…</string>
+    <string name="dearrow_user_stats_result">Username: %1$s\nTitles: %2$d  •  Thumbnails: %3$d</string>
+    <string name="dearrow_user_stats_error">Error loading user stats</string>
+
     <string name="dearrow_replace_titles_key">dearrow_replace_titles</string>
     <string name="dearrow_replace_titles_title">Replace Titles</string>
     <string name="dearrow_replace_thumbnails_key">dearrow_replace_thumbnails</string>

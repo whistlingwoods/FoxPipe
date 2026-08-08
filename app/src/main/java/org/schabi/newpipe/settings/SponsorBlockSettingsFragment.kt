@@ -153,15 +153,17 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
                         if (obj.has("userName") && obj.has("segmentCount")) {
                             val userName = obj.getString("userName")
                             val segmentCount = obj.getInt("segmentCount")
-                            return@fromCallable Pair(userName, segmentCount)
+                            val ignoredSegmentCount = if (obj.has("ignoredSegmentCount")) obj.getInt("ignoredSegmentCount") else 0
+                            val submissions = segmentCount + ignoredSegmentCount
+                            return@fromCallable Pair(userName, submissions)
                         }
                     }
                     throw Exception("Invalid response")
                 }
             }
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ (userName, segmentCount) ->
-                preference.summary = getString(R.string.sponsor_block_user_stats_result, userName, segmentCount)
+            .subscribe({ (userName, submissions) ->
+                preference.summary = getString(R.string.sponsor_block_user_stats_result, userName, submissions)
             }, { error ->
                 preference.summary = getString(R.string.sponsor_block_user_stats_error) + " (" + error.javaClass.simpleName + ": " + error.message + ")"
             })

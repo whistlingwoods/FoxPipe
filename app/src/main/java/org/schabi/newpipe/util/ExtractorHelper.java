@@ -429,6 +429,8 @@ public final class ExtractorHelper {
         result.thumbnailUrl = prefs.getString(
                 context.getString(R.string.dearrow_thumbnail_url_key),
                 context.getString(R.string.dearrow_default_thumbnail_url));
+        result.localUserId = prefs.getString(
+                context.getString(R.string.sponsor_block_local_user_id_key), null);
         Log.v(TAG, "DeArrow is enabled. Using API URL: " + result.apiUrl
                 + " and Thumbnail URL: " + result.thumbnailUrl);
         return result;

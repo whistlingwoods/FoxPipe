@@ -17,6 +17,7 @@ import org.schabi.newpipe.extractor.utils.Utils
 
 class DeArrowSettingsFragment : BasePreferenceFragment() {
     private var licenseCheckDisposable: Disposable? = null
+    private var userStatsDisposable: Disposable? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         addPreferencesFromResourceRegistry()
@@ -60,6 +61,12 @@ class DeArrowSettingsFragment : BasePreferenceFragment() {
                 checkLicenseKey(newValue as String, preference)
                 true
             }
+
+        val userStatsPreference: Preference? = findPreference(getString(R.string.dearrow_user_stats_key))
+        if (userStatsPreference != null) {
+            val localUserId = prefs.getString(getString(R.string.sponsor_block_local_user_id_key), "")
+            checkUserStats(localUserId, userStatsPreference)
+        }
     }
 
     private fun checkLicenseKey(key: String?, preference: Preference) {
@@ -99,8 +106,62 @@ class DeArrowSettingsFragment : BasePreferenceFragment() {
             })
     }
 
+    private fun checkUserStats(localUserId: String?, preference: Preference) {
+        if (localUserId.isNullOrEmpty()) {
+            preference.summary = getString(R.string.dearrow_user_stats_error)
+            return
+        }
+        preference.summary = getString(R.string.dearrow_user_stats_loading)
+
+        userStatsDisposable?.dispose()
+        userStatsDisposable = Single.fromCallable {
+            val trimmedId = localUserId.trim()
+            if (trimmedId.length == 64 && trimmedId.matches(Regex("[0-9a-fA-F]+"))) {
+                return@fromCallable trimmedId
+            }
+
+            var hashHex = trimmedId
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            for (i in 0 until 5000) {
+                val hashBuffer = md.digest(hashHex.toByteArray(Charsets.UTF_8))
+                hashHex = hashBuffer.joinToString("") { "%02x".format(it) }
+            }
+            hashHex
+        }
+            .subscribeOn(Schedulers.computation())
+            .observeOn(Schedulers.io())
+            .flatMap { publicUserId ->
+                Single.fromCallable {
+                    val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext())
+                    val apiUrlPref = prefs.getString(getString(R.string.dearrow_api_url_key), null)
+                    val apiUrl = if (apiUrlPref.isNullOrEmpty()) getString(R.string.dearrow_default_api_url) else apiUrlPref
+
+                    val url = "${if (apiUrl.endsWith("/")) apiUrl else "$apiUrl/"}api/userInfo?publicUserID=$publicUserId&values=%5B%22userName%22%2C%22titleSubmissionCount%22%2C%22thumbnailSubmissionCount%22%5D"
+                    val response = org.schabi.newpipe.extractor.NewPipe.getDownloader().get(url)
+                    val responseBody = response.responseBody()
+                    if (responseBody != null) {
+                        val obj = com.grack.nanojson.JsonParser.`object`().from(responseBody)
+                        if (obj.has("userName") && (obj.has("titleSubmissionCount") || obj.has("thumbnailSubmissionCount"))) {
+                            val userName = obj.getString("userName")
+                            val titleCount = if (obj.has("titleSubmissionCount")) obj.getInt("titleSubmissionCount") else 0
+                            val thumbnailCount = if (obj.has("thumbnailSubmissionCount")) obj.getInt("thumbnailSubmissionCount") else 0
+                            return@fromCallable Triple(userName, titleCount, thumbnailCount)
+                        }
+                    }
+                    throw Exception("Invalid response")
+                }
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ (userName, titleCount, thumbnailCount) ->
+                preference.summary = getString(R.string.dearrow_user_stats_result, userName, titleCount, thumbnailCount)
+            }, { error ->
+                preference.summary = getString(R.string.dearrow_user_stats_error) + " (" + error.javaClass.simpleName + ": " + error.message + ")"
+            })
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         licenseCheckDisposable?.dispose()
+        userStatsDisposable?.dispose()
     }
 }

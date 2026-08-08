@@ -2219,6 +2219,9 @@ class VideoDetailFragment :
                 disposables.add(
                     io.reactivex.rxjava3.core.Completable.fromAction {
                         val settings = org.schabi.newpipe.util.ExtractorHelper.getDeArrowApiSettings(requireContext())
+                        if (settings?.localUserId != null && settings.localUserId.trim().length == 64 && settings.localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
+                            throw IllegalStateException("Cannot submit using a Public User ID. Please use your Private User ID.")
+                        }
                         org.schabi.newpipe.extractor.dearrow.DeArrowExtractorHelper.submitBranding(
                             currentInfo?.id,
                             submitTitle,
@@ -2235,7 +2238,8 @@ class VideoDetailFragment :
                             },
                             { error ->
                                 android.util.Log.e("DeArrow", "Failed to submit branding", error)
-                                android.widget.Toast.makeText(requireContext(), R.string.dearrow_submit_failure, android.widget.Toast.LENGTH_SHORT).show()
+                                val msg = if (error is IllegalStateException) error.message else getString(R.string.dearrow_submit_failure)
+                                android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_LONG).show()
                             }
                         )
                 )
@@ -2612,7 +2616,11 @@ class VideoDetailFragment :
         }
 
         submitSegmentSubscriber = Single.fromCallable {
-            SponsorBlockExtractorHelper.submitSponsorBlockSegment(info, newSegment, apiUrl)
+            val localUserId = prefs.getString(getString(R.string.sponsor_block_local_user_id_key), null)
+            if (localUserId != null && localUserId.trim().length == 64 && localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
+                throw IllegalStateException("Cannot submit using a Public User ID. Please use your Private User ID.")
+            }
+            SponsorBlockExtractorHelper.submitSponsorBlockSegment(info, newSegment, apiUrl, localUserId)
         }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())

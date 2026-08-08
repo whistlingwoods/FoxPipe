@@ -285,10 +285,16 @@ class SponsorBlockSegmentListAdapter(
             voteSubscriber = Single.fromCallable<Response>(
                 Callable {
                     isVoting = true
+                    val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+                    val localUserId = prefs.getString(context.getString(R.string.sponsor_block_local_user_id_key), null)
+                    if (localUserId != null && localUserId.trim().length == 64 && localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
+                        throw IllegalStateException("Cannot vote using a Public User ID. Please use your Private User ID.")
+                    }
                     SponsorBlockExtractorHelper.submitSponsorBlockSegmentVote(
                         segmentUuid,
                         apiUrl,
-                        value
+                        value,
+                        localUserId
                     )
                 }
             )
