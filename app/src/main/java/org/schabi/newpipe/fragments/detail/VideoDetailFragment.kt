@@ -127,6 +127,7 @@ import org.schabi.newpipe.util.PlayButtonHelper
 import org.schabi.newpipe.util.SponsorBlockMode
 import org.schabi.newpipe.util.StreamTypeUtil
 import org.schabi.newpipe.util.ThemeHelper
+import org.schabi.newpipe.util.dearrow.DeArrowHelper
 import org.schabi.newpipe.util.external_communication.KoreUtils
 import org.schabi.newpipe.util.external_communication.ShareUtils
 import org.schabi.newpipe.util.image.CoilHelper
@@ -149,7 +150,11 @@ class VideoDetailFragment :
 
     @State
     var url: String? = null
+
+    private var isPlaying = false
+
     private var currentInfo: StreamInfo? = null
+    private var deArrowThumbnailUrl: String? = null
 
     // player objects
     private var playQueue: PlayQueue? = null
@@ -480,6 +485,10 @@ class VideoDetailFragment :
                 openDownloadDialog()
             }
         }
+        binding.detailControlsDearrow?.setOnClickListener {
+            showDeArrowSubmissionDialog()
+        }
+
         binding.detailControlsShare.setOnClickListener(
             makeOnClickListener { info ->
                 ShareUtils.shareText(requireContext(), info.name, info.url, info.thumbnails)
@@ -1483,7 +1492,20 @@ class VideoDetailFragment :
             prefs.getBoolean(getString(R.string.return_youtube_dislike_override_view_count_key), true)
 
         currentInfo = info
-        setInitialData(info.serviceId, info.originalUrl, info.name, playQueue)
+
+        var displayTitle = info.name
+        DeArrowHelper.getFormattedTitle(requireContext(), info)?.let {
+            Log.v("DeArrow", "VideoDetailFragment: Using DeArrow title: $it")
+            displayTitle = it
+        }
+
+        deArrowThumbnailUrl = DeArrowHelper.getThumbnailUrl(requireContext(), info)
+        if (info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType)) {
+            deArrowThumbnailUrl = null // Use avatar instead of DeArrow fallback
+        }
+        Log.v("DeArrow", "VideoDetailFragment: Using DeArrow thumbnail URL: $deArrowThumbnailUrl")
+
+        setInitialData(info.serviceId, info.originalUrl, displayTitle, playQueue)
 
         updateTabs(info)
 
@@ -1596,7 +1618,18 @@ class VideoDetailFragment :
         binding.detailSecondaryControlPanel.visibility = View.GONE
 
         checkUpdateProgressInfo(info)
-        CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.thumbnails)
+
+        if (deArrowThumbnailUrl != null) {
+            CoilHelper.loadImageDefault(binding.detailThumbnailImageView, deArrowThumbnailUrl, R.drawable.placeholder_thumbnail_video, false)
+        } else {
+            val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
+            if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars != null && info.uploaderAvatars.isNotEmpty()) {
+                CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.uploaderAvatars)
+            } else {
+                CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.thumbnails)
+            }
+        }
+
         ExtractorHelper.showMetaInfoInTextView(
             info.metaInfo,
             binding.detailMetaInfoTextView,
@@ -1605,7 +1638,13 @@ class VideoDetailFragment :
         )
 
         if (playerIsStopped) {
-            updateOverlayData(info.name, info.uploaderName, info.thumbnails)
+            val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
+            val backgroundThumbnail = if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars != null && info.uploaderAvatars.isNotEmpty()) {
+                info.uploaderAvatars
+            } else {
+                info.thumbnails
+            }
+            updateOverlayData(title, info.uploaderName, backgroundThumbnail, deArrowThumbnailUrl)
         }
 
         if (!info.errors.isEmpty()) {
@@ -1626,6 +1665,9 @@ class VideoDetailFragment :
 
         val hasAudioStreams = info.videoStreams.isNotEmpty() || info.audioStreams.isNotEmpty()
         binding.detailControlsBackground.isVisible = hasAudioStreams
+
+        // DeArrow is currently only supported for YouTube
+        binding.detailControlsDearrow?.isVisible = info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId
 
         val hasVideoStreams = info.videoStreams.isNotEmpty() || info.videoOnlyStreams.isNotEmpty()
         binding.detailControlsPopup.isVisible = hasVideoStreams
@@ -2080,6 +2122,7 @@ class VideoDetailFragment :
             binding.detailControlsBackground.setBackgroundColor(transparent)
             binding.detailControlsPopup.setBackgroundColor(transparent)
             binding.detailControlsDownload.setBackgroundColor(transparent)
+            binding.detailControlsDearrow?.setBackgroundColor(transparent)
             binding.detailControlsShare.setBackgroundColor(transparent)
             binding.detailControlsOpenInBrowser.setBackgroundColor(transparent)
             binding.detailControlsPlayWithKodi.setBackgroundColor(transparent)
@@ -2137,6 +2180,67 @@ class VideoDetailFragment :
                 onAllow.run()
                 dialog?.dismiss()
             }
+            .show()
+    }
+
+    private fun showDeArrowSubmissionDialog() {
+        if (currentInfo == null) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_dearrow_submit, null)
+        val titleEdit = dialogView.findViewById<android.widget.EditText>(R.id.dearrow_submit_title_edit)
+        val timestampCheckbox = dialogView.findViewById<android.widget.CheckBox>(R.id.dearrow_submit_timestamp_checkbox)
+        val originalCheckbox = dialogView.findViewById<android.widget.CheckBox>(R.id.dearrow_submit_original_checkbox)
+
+        // Pre-fill the original title
+        titleEdit?.setText(currentInfo?.name)
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.dearrow_settings_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val newTitle = titleEdit?.text?.toString()?.trim() ?: ""
+                val submitTitle = if (newTitle.isEmpty() || newTitle == currentInfo?.name) null else newTitle
+
+                // Get timestamp in seconds
+                val timestamp = if (timestampCheckbox?.isChecked == true && player?.exoPlayer != null) {
+                    player!!.exoPlayer!!.currentPosition / 1000.0
+                } else {
+                    0.0
+                }
+
+                val original = originalCheckbox?.isChecked == true
+
+                if (submitTitle == null && timestampCheckbox?.isChecked != true && originalCheckbox?.isChecked != true) {
+                    // Nothing to submit
+                    return@setPositiveButton
+                }
+
+                // Submit in background
+                disposables.add(
+                    io.reactivex.rxjava3.core.Completable.fromAction {
+                        val settings = org.schabi.newpipe.util.ExtractorHelper.getDeArrowApiSettings(requireContext())
+                        org.schabi.newpipe.extractor.dearrow.DeArrowExtractorHelper.submitBranding(
+                            currentInfo?.id,
+                            submitTitle,
+                            timestamp,
+                            original,
+                            settings
+                        )
+                    }
+                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                        .subscribe(
+                            {
+                                android.widget.Toast.makeText(requireContext(), R.string.dearrow_submit_success, android.widget.Toast.LENGTH_SHORT).show()
+                            },
+                            { error ->
+                                android.util.Log.e("DeArrow", "Failed to submit branding", error)
+                                android.widget.Toast.makeText(requireContext(), R.string.dearrow_submit_failure, android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                )
+            }
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -2391,14 +2495,19 @@ class VideoDetailFragment :
     }
 
     private fun updateOverlayData(
-        overlayTitle: String?,
-        uploader: String?,
-        thumbnails: List<Image>
+        title: String?,
+        uploaderName: String?,
+        thumbnails: List<Image>,
+        customThumbnailUrl: String? = null
     ) {
-        binding.overlayTitleTextView.text = overlayTitle ?: ""
-        binding.overlayChannelTextView.text = uploader ?: ""
+        binding.overlayTitleTextView.text = title ?: ""
+        binding.overlayChannelTextView.text = uploaderName ?: ""
         binding.overlayThumbnail.setImageDrawable(null)
-        CoilHelper.loadDetailsThumbnail(binding.overlayThumbnail, thumbnails)
+        if (customThumbnailUrl != null) {
+            CoilHelper.loadImageDefault(binding.overlayThumbnail, customThumbnailUrl, R.drawable.placeholder_thumbnail_video, false)
+        } else {
+            CoilHelper.loadDetailsThumbnail(binding.overlayThumbnail, thumbnails)
+        }
     }
 
     private fun setOverlayPlayPauseImage(playerIsPlaying: Boolean) {

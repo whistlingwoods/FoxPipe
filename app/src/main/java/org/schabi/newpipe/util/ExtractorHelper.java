@@ -47,6 +47,7 @@ import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
 import org.schabi.newpipe.extractor.returnyoutubedislike.ReturnYouTubeDislikeApiSettings;
+import org.schabi.newpipe.extractor.dearrow.DeArrowApiSettings;
 import org.schabi.newpipe.extractor.search.SearchInfo;
 import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockApiSettings;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
@@ -121,7 +122,8 @@ public final class ExtractorHelper {
                 Single.fromCallable(() -> StreamInfo.getInfo(
                         url,
                         buildSponsorBlockApiSettings(context),
-                        buildReturnYouTubeDislikeApiSettings(context))));
+                        buildReturnYouTubeDislikeApiSettings(context),
+                        getDeArrowApiSettings(context))));
     }
 
     public static Single<ChannelInfo> getChannelInfo(final int serviceId, final String url,
@@ -394,6 +396,30 @@ public final class ExtractorHelper {
         final ReturnYouTubeDislikeApiSettings result = new ReturnYouTubeDislikeApiSettings();
         result.apiUrl = prefs.getString(
                 context.getString(R.string.return_youtube_dislike_api_url_key), null);
+        return result;
+    }
+
+    @Nullable
+    public static DeArrowApiSettings getDeArrowApiSettings(final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        final boolean isDeArrowEnabled = prefs.getBoolean(context
+                .getString(R.string.dearrow_enable_key), false);
+
+        if (!isDeArrowEnabled) {
+            Log.v(TAG, "DeArrow is disabled in preferences; skipping DeArrowApiSettings.");
+            return null;
+        }
+
+        final DeArrowApiSettings result = new DeArrowApiSettings();
+        result.apiUrl = prefs.getString(
+                context.getString(R.string.dearrow_api_url_key),
+                context.getString(R.string.dearrow_default_api_url));
+        result.thumbnailUrl = prefs.getString(
+                context.getString(R.string.dearrow_thumbnail_url_key),
+                context.getString(R.string.dearrow_default_thumbnail_url));
+        Log.v(TAG, "DeArrow is enabled. Using API URL: " + result.apiUrl
+                + " and Thumbnail URL: " + result.thumbnailUrl);
         return result;
     }
 }

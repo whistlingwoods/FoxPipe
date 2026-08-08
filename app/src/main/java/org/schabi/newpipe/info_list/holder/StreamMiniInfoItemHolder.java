@@ -21,6 +21,11 @@ import org.schabi.newpipe.util.image.CoilHelper;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
 import java.util.concurrent.TimeUnit;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.schabi.newpipe.util.dearrow.DeArrowHelper;
+import org.schabi.newpipe.util.ExtractorHelper;
 
 public class StreamMiniInfoItemHolder extends InfoItemHolder {
     public final ImageView itemThumbnailView;
@@ -28,6 +33,8 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
     public final TextView itemUploaderView;
     public final TextView itemDurationView;
     private final AnimatedProgressBar itemProgressView;
+    private Disposable deArrowDisposable;
+    private String boundUrl;
 
     StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final int layoutId,
                              final ViewGroup parent) {
@@ -85,8 +92,76 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
             itemProgressView.setVisibility(View.GONE);
         }
 
-        // Default thumbnail is shown on error, while loading and if the url is empty
-        CoilHelper.INSTANCE.loadThumbnail(itemThumbnailView, item.getThumbnails());
+        // For YouTube livestreams, show the channel avatar as the thumbnail
+        // ONLY if DeArrow thumbnail replacement is enabled
+        final boolean replaceThumbnails = android.preference.PreferenceManager
+                .getDefaultSharedPreferences(itemBuilder.getContext())
+                .getBoolean(itemBuilder.getContext().getString(
+                        R.string.dearrow_replace_thumbnails_key), true);
+
+        if (replaceThumbnails
+                && item.getServiceId() == org.schabi.newpipe.extractor
+                        .ServiceList.YouTube.getServiceId()
+                && StreamTypeUtil.isLiveStream(item.getStreamType())
+                && item.getUploaderAvatars() != null
+                && !item.getUploaderAvatars().isEmpty()) {
+            CoilHelper.INSTANCE.loadThumbnail(itemThumbnailView, item.getUploaderAvatars());
+        } else {
+            // Default thumbnail is shown on error, while loading and if the url is empty
+            CoilHelper.INSTANCE.loadThumbnail(itemThumbnailView, item.getThumbnails());
+        }
+
+        if (deArrowDisposable != null) {
+            deArrowDisposable.dispose();
+            deArrowDisposable = null;
+        }
+        boundUrl = item.getUrl();
+
+        if (ExtractorHelper.getDeArrowApiSettings(itemBuilder.getContext()) != null) {
+            String videoId = null;
+            try {
+                videoId = org.schabi.newpipe.extractor.NewPipe.getService(item.getServiceId())
+                        .getStreamLHFactory().getId(item.getUrl());
+            } catch (final Exception e) {
+                // Ignore
+            }
+            if (videoId != null && !videoId.isEmpty()) {
+                final String finalVideoId = videoId;
+                deArrowDisposable = DeArrowHelper
+                        .fetchDeArrowInfoAsync(itemBuilder.getContext(), finalVideoId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(deArrowInfo -> {
+                            // Check if we are still bound to the same item
+                            if (!item.getUrl().equals(boundUrl)) {
+                                return;
+                            }
+
+                            final String formattedTitle = DeArrowHelper.getFormattedTitle(
+                                    itemBuilder.getContext(), finalVideoId, deArrowInfo);
+                            if (formattedTitle != null) {
+                                itemVideoTitleView.setText(formattedTitle);
+                            }
+
+                            // Do not override the thumbnail for YouTube livestreams (use avatar)
+                            final boolean isYouTubeLive = item.getServiceId()
+                                    == org.schabi.newpipe.extractor.ServiceList
+                                            .YouTube.getServiceId()
+                                    && StreamTypeUtil.isLiveStream(item.getStreamType());
+
+                            if (!isYouTubeLive) {
+                                final String thumbnailUrl = DeArrowHelper.getThumbnailUrl(
+                                        itemBuilder.getContext(), finalVideoId, deArrowInfo);
+                                if (thumbnailUrl != null) {
+                                    CoilHelper.INSTANCE.loadThumbnail(
+                                            itemThumbnailView, thumbnailUrl);
+                                }
+                            }
+                        }, throwable -> {
+                            // Ignore errors (e.g. no data found)
+                        });
+            }
+        }
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnStreamSelectedListener() != null) {

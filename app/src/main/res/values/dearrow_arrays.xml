@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="dearrow_title_format_entries">
+        <item>Title Case</item>
+        <item>Capitalize first letter</item>
+        <item>lowercase</item>
+    </string-array>
+    <string-array name="dearrow_title_format_values">
+        <item>title_case</item>
+        <item>capitalize_first</item>
+        <item>lowercase</item>
+    </string-array>
+
+    <string-array name="dearrow_fallback_thumbnail_entries">
+        <item>Show a Screenshot from a Random Time</item>
+        <item>Show Original Thumbnail</item>
+    </string-array>
+    <string-array name="dearrow_fallback_thumbnail_values">
+        <item>random_screenshot</item>
+        <item>original</item>
+    </string-array>
+</resources>

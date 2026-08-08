@@ -1046,4 +1046,63 @@
     <string name="return_youtube_dislike_privacy_policy_text">ReturnYouTubeDislike Security FAQ</string>
     <string name="return_youtube_dislike_home_page_url">https://returnyoutubedislike.com/</string>
     <string name="return_youtube_dislike_security_faq_url">https://www.returnyoutubedislike.com/faq/</string>
+    
+    <!-- DeArrow -->
+    <string name="dearrow_settings_title">DeArrow</string>
+    <string name="dearrow_license_key_key" translatable="false">dearrow_license_key</string>
+    <string name="dearrow_license_key_title">License Key</string>
+    <string name="dearrow_license_key_summary_none">No license key set. A free or paid key can bypass rate limits.</string>
+    <string name="dearrow_license_key_summary_checking">Checking license key...</string>
+    <string name="dearrow_license_key_summary_valid_free">Valid Free License</string>
+    <string name="dearrow_license_key_summary_valid_paid">Valid Paid License</string>
+    <string name="dearrow_license_key_summary_invalid">Invalid License Key</string>
+    <string name="dearrow_license_key_summary_error">Error checking license key</string>
+    <string name="dearrow_home_page_key">dearrow_home_page</string>
+    <string name="dearrow_home_page_title">View Website</string>
+    <string name="dearrow_home_page_summary">View the official DeArrow website.</string>
+    <string name="dearrow_privacy_key">dearrow_privacy</string>
+    <string name="dearrow_privacy_title">View Privacy Policy</string>
+    <string name="dearrow_privacy_summary">View the DeArrow Privacy Policy.</string>
+    <string name="dearrow_homepage_url">https://dearrow.ajay.app/</string>
+    <string name="dearrow_privacy_policy_url">https://gist.github.com/ajayyy/9bfec83d57ea34f5182658ec8445aa9d</string>
+
+    <string name="dearrow_enable_key">dearrow_enable</string>
+    <string name="dearrow_enable_title">Enable DeArrow</string>
+    <string name="dearrow_enable_summary">Replace thumbnails and titles with crowdsourced ones from DeArrow</string>
+    
+    <string name="dearrow_replace_titles_key">dearrow_replace_titles</string>
+    <string name="dearrow_replace_titles_title">Replace Titles</string>
+    <string name="dearrow_replace_thumbnails_key">dearrow_replace_thumbnails</string>
+    <string name="dearrow_replace_thumbnails_title">Replace Thumbnails</string>
+    <string name="dearrow_title_format_key">dearrow_title_format</string>
+    <string name="dearrow_title_format_title">Title Format</string>
+    <string name="dearrow_remove_emojis_key">dearrow_remove_emojis</string>
+    <string name="dearrow_remove_emojis_title">Remove Emojis</string>
+    <string name="dearrow_format_original_titles_key">dearrow_format_original_titles</string>
+    <string name="dearrow_format_original_titles_title">Format Original Titles</string>
+    <string name="dearrow_format_user_submitted_titles_key">dearrow_format_user_submitted_titles</string>
+    <string name="dearrow_format_user_submitted_titles_title">Format User-Submitted Titles</string>
+    <string name="dearrow_capitalize_non_english_titles_key">dearrow_capitalize_non_english_titles</string>
+    <string name="dearrow_capitalize_non_english_titles_title">Capitalize Words for Non-English Titles</string>
+    <string name="dearrow_capitalize_non_english_titles_summary">Uses Title Case for non-english titles</string>
+    <string name="dearrow_fallback_thumbnail_key">dearrow_fallback_thumbnail</string>
+    <string name="dearrow_fallback_thumbnail_title">When No Submitted Thumbnail Exists</string>
+
+    <!-- DeArrow Submission Dialog -->
+    <string name="dearrow_submit_title_hint">Custom Title (leave blank to not submit)</string>
+    <string name="dearrow_submit_thumbnail_options">Thumbnail Options</string>
+    <string name="dearrow_submit_timestamp">Submit current playback time as thumbnail</string>
+    <string name="dearrow_submit_original">Flag original thumbnail as accurate (non-clickbait)</string>
+    <string name="dearrow_submit_success">Successfully submitted branding to DeArrow</string>
+    <string name="dearrow_submit_failure">Failed to submit branding to DeArrow</string>
+
+    <string name="dearrow_api_url_key">dearrow_api_url</string>
+    <string name="dearrow_api_url_title">Data Fetching Server Address</string>
+    <string name="dearrow_api_url_summary">The address used to make calls to the data fetching server. Unless you have your own server instance, this should not be changed.</string>
+    <string name="dearrow_default_api_url">https://sponsor.ajay.app</string>
+
+    <string name="dearrow_thumbnail_url_key">dearrow_thumbnail_url</string>
+    <string name="dearrow_thumbnail_url_title">Thumbnail Cache Server Address</string>
+    <string name="dearrow_thumbnail_url_summary">The address used to fetch DeArrow thumbnails.</string>
+    <string name="dearrow_default_thumbnail_url">https://dearrow-thumb.ajay.app</string>
 </resources>

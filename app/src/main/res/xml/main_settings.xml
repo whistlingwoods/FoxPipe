@@ -58,6 +58,11 @@
         android:title="@string/sponsor_block"
         app:iconSpaceReserved="false" />
     <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.DeArrowSettingsFragment"
+        android:icon="@drawable/ic_dearrow"
+        android:title="@string/dearrow_settings_title"
+        app:iconSpaceReserved="false" />
+    <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.ReturnYouTubeDislikeSettingsFragment"
         android:icon="@drawable/ic_thumb_down"
         android:title="ReturnYouTubeDislike"

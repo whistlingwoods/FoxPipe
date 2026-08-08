@@ -138,15 +138,16 @@ object CoilHelper {
         loadImageDefault(target, url, R.drawable.placeholder_thumbnail_playlist)
     }
 
-    private fun loadImageDefault(
+    fun loadImageDefault(
         target: ImageView,
         images: List<Image>,
-        @DrawableRes placeholderResId: Int
+        @DrawableRes placeholderResId: Int,
+        showPlaceholder: Boolean = true
     ) {
-        loadImageDefault(target, ImageStrategy.choosePreferredImage(images), placeholderResId)
+        loadImageDefault(target, ImageStrategy.choosePreferredImage(images), placeholderResId, showPlaceholder)
     }
 
-    private fun loadImageDefault(
+    fun loadImageDefault(
         target: ImageView,
         url: String?,
         @DrawableRes placeholderResId: Int,
