@@ -351,6 +351,17 @@ public final class ExtractorHelper {
         final SponsorBlockApiSettings result = new SponsorBlockApiSettings();
         result.apiUrl =
                 prefs.getString(context.getString(R.string.sponsor_block_api_url_key), null);
+
+        String localUserId = prefs.getString(
+                context.getString(R.string.sponsor_block_local_user_id_key), null);
+        if (localUserId == null || localUserId.trim().length() < 32) {
+            localUserId = java.util.UUID.randomUUID().toString().replace("-", "");
+            prefs.edit().putString(
+                    context.getString(R.string.sponsor_block_local_user_id_key),
+                    localUserId).apply();
+        }
+        result.localUserId = localUserId;
+
         result.includeSponsorCategory =
                 prefs.getBoolean(context
                         .getString(R.string.sponsor_block_category_sponsor_key), false);

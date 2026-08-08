@@ -943,6 +943,17 @@
     <string name="sponsor_block_enable_summary">Use the SponsorBlock API to automatically skip sponsors in videos. This currently only works for YouTube videos.</string>
     <string name="sponsor_block_api_url_title">API Url</string>
     <string name="sponsor_block_api_url_summary">The url to use when querying the SponsorBlock API. This must be set for SponsorBlock to work.</string>
+    
+    <string name="sponsor_block_local_user_id_key" translatable="false">sponsor_block_local_user_id</string>
+    <string name="sponsor_block_local_user_id_title">Local User ID</string>
+    <string name="sponsor_block_local_user_id_summary">Set a custom local user ID (32+ characters) for SponsorBlock to authenticate your submissions. If empty, a random one is generated and saved automatically.</string>
+
+    <string name="sponsor_block_user_stats_key" translatable="false">sponsor_block_user_stats</string>
+    <string name="sponsor_block_user_stats_title">User Stats</string>
+    <string name="sponsor_block_user_stats_loading">Loading…</string>
+    <string name="sponsor_block_user_stats_error">Failed to load stats</string>
+    <string name="sponsor_block_user_stats_result">Username: %1$s\nSegments: %2$d</string>
+
     <string name="sponsor_block_notifications_title">Notify when sponsors are skipped</string>
     <string name="sponsor_block_notifications_summary">Show a toast notification when a sponsor is automatically skipped.</string>
     <string name="sponsor_block_privacy_title">View Privacy Policy</string>

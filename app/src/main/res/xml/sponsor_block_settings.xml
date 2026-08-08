@@ -34,6 +34,21 @@
             android:summary="@string/sponsor_block_api_url_summary"
             android:title="@string/sponsor_block_api_url_title"/>
 
+        <EditTextPreference
+            app:iconSpaceReserved="false"
+            android:dependency="@string/sponsor_block_enable_key"
+            android:defaultValue=""
+            android:key="@string/sponsor_block_local_user_id_key"
+            android:summary="@string/sponsor_block_local_user_id_summary"
+            android:title="@string/sponsor_block_local_user_id_title"/>
+
+        <Preference
+            app:iconSpaceReserved="false"
+            android:dependency="@string/sponsor_block_enable_key"
+            android:key="@string/sponsor_block_user_stats_key"
+            android:summary="@string/sponsor_block_user_stats_loading"
+            android:title="@string/sponsor_block_user_stats_title"/>
+
         <SwitchPreference
             app:iconSpaceReserved="false"
             android:dependency="@string/sponsor_block_enable_key"
