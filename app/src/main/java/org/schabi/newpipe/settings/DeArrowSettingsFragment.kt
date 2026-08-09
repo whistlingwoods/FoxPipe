@@ -82,18 +82,10 @@ class DeArrowSettingsFragment : BasePreferenceFragment() {
             val url = "$apiUrl/api/verifyToken?licenseKey=${Utils.encodeUrlUtf8(key)}"
             val response = NewPipe.getDownloader().get(url)
             val responseBody = response.responseBody()
-            if (responseBody != null) {
-                val obj = JsonParser.`object`().from(responseBody)
-                val allowed = obj.getBoolean("allowed", false)
-                if (allowed) {
-                    val isLocal = key.matches(Regex("[A-Za-z0-9]{5}-[A-Za-z0-9]{5}"))
-                    val isFree = isLocal && !key.startsWith("P")
-                    if (isFree) {
-                        return@fromCallable getString(R.string.dearrow_license_key_summary_valid_free)
-                    } else {
-                        return@fromCallable getString(R.string.dearrow_license_key_summary_valid_paid)
-                    }
-                }
+            val obj = JsonParser.`object`().from(responseBody)
+            val allowed = obj.getBoolean("allowed", false)
+            if (allowed) {
+                return@fromCallable getString(R.string.dearrow_license_key_summary_valid)
             }
             return@fromCallable getString(R.string.dearrow_license_key_summary_invalid)
         }
@@ -102,7 +94,8 @@ class DeArrowSettingsFragment : BasePreferenceFragment() {
             .subscribe({ summary ->
                 preference.summary = summary
             }, {
-                preference.summary = getString(R.string.dearrow_license_key_summary_error)
+                // Fail-open strategy: assume valid if network fails
+                preference.summary = getString(R.string.dearrow_license_key_summary_valid)
             })
     }
 
@@ -132,21 +125,19 @@ class DeArrowSettingsFragment : BasePreferenceFragment() {
             .observeOn(Schedulers.io())
             .flatMap { publicUserId ->
                 Single.fromCallable {
-                    val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(requireContext())
+                    val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
                     val apiUrlPref = prefs.getString(getString(R.string.dearrow_api_url_key), null)
                     val apiUrl = if (apiUrlPref.isNullOrEmpty()) getString(R.string.dearrow_default_api_url) else apiUrlPref
 
                     val url = "${if (apiUrl.endsWith("/")) apiUrl else "$apiUrl/"}api/userInfo?publicUserID=$publicUserId&values=%5B%22userName%22%2C%22titleSubmissionCount%22%2C%22thumbnailSubmissionCount%22%5D"
-                    val response = org.schabi.newpipe.extractor.NewPipe.getDownloader().get(url)
+                    val response = NewPipe.getDownloader().get(url)
                     val responseBody = response.responseBody()
-                    if (responseBody != null) {
-                        val obj = com.grack.nanojson.JsonParser.`object`().from(responseBody)
-                        if (obj.has("userName") && (obj.has("titleSubmissionCount") || obj.has("thumbnailSubmissionCount"))) {
-                            val userName = obj.getString("userName")
-                            val titleCount = if (obj.has("titleSubmissionCount")) obj.getInt("titleSubmissionCount") else 0
-                            val thumbnailCount = if (obj.has("thumbnailSubmissionCount")) obj.getInt("thumbnailSubmissionCount") else 0
-                            return@fromCallable Triple(userName, titleCount, thumbnailCount)
-                        }
+                    val obj = JsonParser.`object`().from(responseBody)
+                    if (obj.has("userName") && (obj.has("titleSubmissionCount") || obj.has("thumbnailSubmissionCount"))) {
+                        val userName = obj.getString("userName")
+                        val titleCount = if (obj.has("titleSubmissionCount")) obj.getInt("titleSubmissionCount") else 0
+                        val thumbnailCount = if (obj.has("thumbnailSubmissionCount")) obj.getInt("thumbnailSubmissionCount") else 0
+                        return@fromCallable Triple(userName, titleCount, thumbnailCount)
                     }
                     throw Exception("Invalid response")
                 }

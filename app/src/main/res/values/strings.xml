@@ -1064,8 +1064,7 @@
     <string name="dearrow_license_key_title">License Key</string>
     <string name="dearrow_license_key_summary_none">No license key set. A free or paid key can bypass rate limits.</string>
     <string name="dearrow_license_key_summary_checking">Checking license key...</string>
-    <string name="dearrow_license_key_summary_valid_free">Valid Free License</string>
-    <string name="dearrow_license_key_summary_valid_paid">Valid Paid License</string>
+    <string name="dearrow_license_key_summary_valid">Valid License</string>
     <string name="dearrow_license_key_summary_invalid">Invalid License Key</string>
     <string name="dearrow_license_key_summary_error">Error checking license key</string>
     <string name="dearrow_home_page_key">dearrow_home_page</string>
