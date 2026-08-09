@@ -14,6 +14,7 @@ import io.reactivex.rxjava3.functions.Consumer
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.R
 import org.schabi.newpipe.local.sponsorblock.SponsorBlockDataManager
+import androidx.core.content.edit
 
 class SponsorBlockSettingsFragment : BasePreferenceFragment() {
     private var sponsorBlockDataManager: SponsorBlockDataManager? = null
@@ -39,7 +40,7 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
         val sponsorBlockWebsitePreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_home_page_key))
         )
-        sponsorBlockWebsitePreference!!.onPreferenceClickListener =
+        sponsorBlockWebsitePreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener { p: Preference ->
                 val i = Intent(
                     Intent.ACTION_VIEW,
@@ -52,7 +53,7 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
         val sponsorBlockPrivacyPreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_privacy_key))
         )
-        sponsorBlockPrivacyPreference!!.onPreferenceClickListener =
+        sponsorBlockPrivacyPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener { p: Preference ->
                 val i = Intent(
                     Intent.ACTION_VIEW,
@@ -65,7 +66,7 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
         val sponsorBlockClearWhitelistPreference: Preference = checkNotNull(
             findPreference(getString(R.string.sponsor_block_clear_whitelist_key))
         )
-        sponsorBlockClearWhitelistPreference!!.onPreferenceClickListener =
+        sponsorBlockClearWhitelistPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener { p: Preference ->
                 AlertDialog.Builder(p.context)
                     .setMessage(R.string.sponsor_block_confirm_clear_whitelist)
@@ -102,7 +103,12 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
         var currentLocalUserId = prefs.getString(getString(R.string.sponsor_block_local_user_id_key), "")
         if (currentLocalUserId.isNullOrEmpty() || currentLocalUserId.trim().length < 32) {
             currentLocalUserId = java.util.UUID.randomUUID().toString().replace("-", "")
-            prefs.edit().putString(getString(R.string.sponsor_block_local_user_id_key), currentLocalUserId).apply()
+            prefs.edit {
+                putString(
+                    getString(R.string.sponsor_block_local_user_id_key),
+                    currentLocalUserId
+                )
+            }
             localUserIdPreference.text = currentLocalUserId
         }
 
@@ -148,15 +154,13 @@ class SponsorBlockSettingsFragment : BasePreferenceFragment() {
                     val url = "${if (apiUrl.endsWith("/")) apiUrl else "$apiUrl/"}userInfo?publicUserID=$publicUserId"
                     val response = org.schabi.newpipe.extractor.NewPipe.getDownloader().get(url)
                     val responseBody = response.responseBody()
-                    if (responseBody != null) {
-                        val obj = com.grack.nanojson.JsonParser.`object`().from(responseBody)
-                        if (obj.has("userName") && obj.has("segmentCount")) {
-                            val userName = obj.getString("userName")
-                            val segmentCount = obj.getInt("segmentCount")
-                            val ignoredSegmentCount = if (obj.has("ignoredSegmentCount")) obj.getInt("ignoredSegmentCount") else 0
-                            val submissions = segmentCount + ignoredSegmentCount
-                            return@fromCallable Pair(userName, submissions)
-                        }
+                    val obj = com.grack.nanojson.JsonParser.`object`().from(responseBody)
+                    if (obj.has("userName") && obj.has("segmentCount")) {
+                        val userName = obj.getString("userName")
+                        val segmentCount = obj.getInt("segmentCount")
+                        val ignoredSegmentCount = if (obj.has("ignoredSegmentCount")) obj.getInt("ignoredSegmentCount") else 0
+                        val submissions = segmentCount + ignoredSegmentCount
+                        return@fromCallable Pair(userName, submissions)
                     }
                     throw Exception("Invalid response")
                 }

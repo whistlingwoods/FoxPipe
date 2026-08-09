@@ -189,7 +189,7 @@ class VideoDetailFragment :
 
     @StringRes val tabContentDescriptions = ArrayList<Int>()
     private var tabSettingsChanged = false
-    private var lastAppBarVerticalOffset = Int.Companion.MAX_VALUE // prevents useless updates
+    private var lastAppBarVerticalOffset = Int.MAX_VALUE // prevents useless updates
 
     private var workerSponsorBlockModeCheck: Disposable? = null
     private var submitSegmentSubscriber: Disposable? = null
@@ -197,18 +197,23 @@ class VideoDetailFragment :
 
     private val preferenceChangeListener =
         OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if (getString(R.string.show_comments_key) == key) {
-                showComments = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
-            } else if (getString(R.string.show_next_video_key) == key) {
-                showRelatedItems = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
-            } else if (getString(R.string.show_description_key) == key) {
-                showDescription = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
-            } else if (getString(R.string.sponsor_block_enable_key) == key) {
-                showSponsorBlock = sharedPreferences.getBoolean(key, false)
-                tabSettingsChanged = true
+            when (key) {
+                getString(R.string.show_comments_key) -> {
+                    showComments = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.show_next_video_key) -> {
+                    showRelatedItems = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.show_description_key) -> {
+                    showDescription = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.sponsor_block_enable_key) -> {
+                    showSponsorBlock = sharedPreferences.getBoolean(key, false)
+                    tabSettingsChanged = true
+                }
             }
         }
 
@@ -411,6 +416,7 @@ class VideoDetailFragment :
         workerSponsorBlockModeCheck?.dispose()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ReCaptchaActivity.RECAPTCHA_REQUEST) {
@@ -600,12 +606,12 @@ class VideoDetailFragment :
 
     private fun toggleTitleAndSecondaryControls() {
         if (binding.detailSecondaryControlPanel.isGone) {
-            binding.detailVideoTitleView.setMaxLines(10)
+            binding.detailVideoTitleView.maxLines = 10
             binding.detailToggleSecondaryControlsView
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 180)
             binding.detailSecondaryControlPanel.visibility = View.VISIBLE
         } else {
-            binding.detailVideoTitleView.setMaxLines(1)
+            binding.detailVideoTitleView.maxLines = 1
             binding.detailToggleSecondaryControlsView
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 0)
             binding.detailSecondaryControlPanel.visibility = View.GONE
@@ -762,7 +768,7 @@ class VideoDetailFragment :
         }
 
         setInitialData(newServiceId, newUrl, newTitle, newQueue)
-        startLoading(false, true)
+        startLoading(forceLoad = false, addToBackStack = true)
     }
 
     private fun prepareAndHandleInfoIfNeededAfterDelay(
@@ -933,7 +939,7 @@ class VideoDetailFragment :
                 else -> { // tablet + TV
                     getChildFragmentManager().beginTransaction()
                         .replace(R.id.relatedItemsLayout, getInstance(info))
-                        .commitAllowingStateLoss()
+                        .commit()
                     relatedItemsLayout.isVisible = !this.isFullscreen
                 }
             }
@@ -1232,7 +1238,7 @@ class VideoDetailFragment :
         get() = PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getBoolean(getString(R.string.use_external_video_player_key), false)
 
-    @Suppress("NullableBooleanElvis") // ?: true is clearer than != false
+    // ?: true is clearer than != false
     private val isAutoplayEnabled: Boolean
         // This method overrides default behaviour when setAutoPlay() is called.
         get() = autoPlayEnabled &&
@@ -1293,7 +1299,7 @@ class VideoDetailFragment :
                 activity.window.decorView
             }
             setHeightThumbnail(decorView.height, resources.displayMetrics)
-            view.getViewTreeObserver().removeOnPreDrawListener(preDrawListener)
+            view.viewTreeObserver.removeOnPreDrawListener(preDrawListener)
         }
         return@OnPreDrawListener false
     }
@@ -1307,7 +1313,7 @@ class VideoDetailFragment :
      */
     private fun setHeightThumbnail() {
         val metrics = resources.displayMetrics
-        requireView().getViewTreeObserver().removeOnPreDrawListener(preDrawListener)
+        requireView().viewTreeObserver.removeOnPreDrawListener(preDrawListener)
 
         if (this.isFullscreen) {
             val height = (
@@ -1321,7 +1327,7 @@ class VideoDetailFragment :
             if (height != 0) {
                 setHeightThumbnail(height, metrics)
             } else {
-                requireView().getViewTreeObserver().addOnPreDrawListener(preDrawListener)
+                requireView().viewTreeObserver.addOnPreDrawListener(preDrawListener)
             }
         } else {
             val isPortrait = metrics.heightPixels > metrics.widthPixels
@@ -1337,10 +1343,9 @@ class VideoDetailFragment :
     }
 
     private fun setHeightThumbnail(newHeight: Int, metrics: DisplayMetrics) {
-        binding.detailThumbnailImageView.setLayoutParams(
+        binding.detailThumbnailImageView.layoutParams =
             FrameLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, newHeight)
-        )
-        binding.detailThumbnailImageView.setMinimumHeight(newHeight)
+        binding.detailThumbnailImageView.minimumHeight = newHeight
         player?.UIs()?.get(VideoPlayerUi::class)?.let {
             val maxHeight = (metrics.heightPixels * MAX_PLAYER_HEIGHT).toInt()
             it.binding.surfaceView.setHeights(
@@ -1462,7 +1467,7 @@ class VideoDetailFragment :
         binding.positionView.visibility = View.GONE
 
         binding.detailVideoTitleView.text = title
-        binding.detailVideoTitleView.setMaxLines(1)
+        binding.detailVideoTitleView.maxLines = 1
         binding.detailVideoTitleView.animate(true, 0)
 
         binding.detailToggleSecondaryControlsView.visibility = View.GONE
@@ -1500,7 +1505,7 @@ class VideoDetailFragment :
         }
 
         deArrowThumbnailUrl = DeArrowHelper.getThumbnailUrl(requireContext(), info)
-        if (info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType)) {
+        if (info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType)) {
             deArrowThumbnailUrl = null // Use avatar instead of DeArrow fallback
         }
         Log.v("DeArrow", "VideoDetailFragment: Using DeArrow thumbnail URL: $deArrowThumbnailUrl")
@@ -1522,12 +1527,16 @@ class VideoDetailFragment :
 
         if (info.viewCount >= 0) {
             binding.detailViewCountView.text =
-                if (info.streamType == StreamType.AUDIO_LIVE_STREAM) {
-                    Localization.listeningCount(activity, info.viewCount)
-                } else if (info.streamType == StreamType.LIVE_STREAM) {
-                    Localization.localizeWatchingCount(activity, info.viewCount)
-                } else {
-                    Localization.localizeViewCount(activity, info.viewCount)
+                when (info.streamType) {
+                    StreamType.AUDIO_LIVE_STREAM -> {
+                        Localization.listeningCount(activity, info.viewCount)
+                    }
+                    StreamType.LIVE_STREAM -> {
+                        Localization.localizeWatchingCount(activity, info.viewCount)
+                    }
+                    else -> {
+                        Localization.localizeViewCount(activity, info.viewCount)
+                    }
                 }
             binding.detailViewCountView.visibility = View.VISIBLE
         } else {
@@ -1623,7 +1632,7 @@ class VideoDetailFragment :
             CoilHelper.loadImageDefault(binding.detailThumbnailImageView, deArrowThumbnailUrl, R.drawable.placeholder_thumbnail_video, false)
         } else {
             val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
-            if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars != null && info.uploaderAvatars.isNotEmpty()) {
+            if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars.isNotEmpty()) {
                 CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.uploaderAvatars)
             } else {
                 CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.thumbnails)
@@ -1639,7 +1648,7 @@ class VideoDetailFragment :
 
         if (playerIsStopped) {
             val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
-            val backgroundThumbnail = if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars != null && info.uploaderAvatars.isNotEmpty()) {
+            val backgroundThumbnail = if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars.isNotEmpty()) {
                 info.uploaderAvatars
             } else {
                 info.thumbnails
@@ -1679,7 +1688,7 @@ class VideoDetailFragment :
     private fun displayUploaderAsSubChannel(info: StreamInfo) {
         binding.detailSubChannelTextView.text = info.uploaderName
         binding.detailSubChannelTextView.visibility = View.VISIBLE
-        binding.detailSubChannelTextView.setSelected(true)
+        binding.detailSubChannelTextView.isSelected = true
 
         if (info.uploaderSubscriberCount > -1) {
             binding.detailUploaderTextView.text =
@@ -1697,7 +1706,7 @@ class VideoDetailFragment :
     private fun displayBothUploaderAndSubChannel(info: StreamInfo) {
         binding.detailSubChannelTextView.text = info.subChannelName
         binding.detailSubChannelTextView.visibility = View.VISIBLE
-        binding.detailSubChannelTextView.setSelected(true)
+        binding.detailSubChannelTextView.isSelected = true
 
         val subText = StringBuilder()
         if (info.uploaderName.isNotEmpty()) {
@@ -1717,7 +1726,7 @@ class VideoDetailFragment :
         } else {
             binding.detailUploaderTextView.text = subText
             binding.detailUploaderTextView.visibility = View.VISIBLE
-            binding.detailUploaderTextView.setSelected(true)
+            binding.detailUploaderTextView.isSelected = true
         }
 
         CoilHelper.loadAvatar(binding.detailSubChannelThumbnailView, info.subChannelAvatars)
@@ -1774,7 +1783,7 @@ class VideoDetailFragment :
         }
         val progressSeconds = TimeUnit.MILLISECONDS.toSeconds(progress).toInt()
         val durationSeconds = TimeUnit.MILLISECONDS.toSeconds(duration).toInt()
-        binding.positionView.setMax(durationSeconds)
+        binding.positionView.max = durationSeconds
         // If the old and the new progress values have a big difference then use animation.
         // Otherwise don't because it affects CPU
         if (abs(binding.positionView.progress - progressSeconds) > 2) {
@@ -1979,7 +1988,7 @@ class VideoDetailFragment :
         val behavior = params.behavior as AppBarLayout.Behavior
         val valueAnimator = ValueAnimator.ofInt(0, -binding.playerPlaceholder.height)
         valueAnimator.addUpdateListener { animation ->
-            behavior.setTopAndBottomOffset(animation.getAnimatedValue() as Int)
+            behavior.topAndBottomOffset = animation.animatedValue as Int
             binding.appBarLayout.requestLayout()
         }
         valueAnimator.interpolator = DecelerateInterpolator()
@@ -1990,6 +1999,7 @@ class VideoDetailFragment :
     /*//////////////////////////////////////////////////////////////////////////
     // Player related utils
     ////////////////////////////////////////////////////////////////////////// */
+    @Suppress("DEPRECATION")
     private fun showSystemUi() {
         if (DEBUG) {
             Log.d(TAG, "showSystemUi() called")
@@ -2012,6 +2022,7 @@ class VideoDetailFragment :
         )
     }
 
+    @Suppress("DEPRECATION")
     private fun hideSystemUi() {
         if (DEBUG) {
             Log.d(TAG, "hideSystemUi() called")
@@ -2064,7 +2075,7 @@ class VideoDetailFragment :
     /**
      * @return true if the player is null, or if the player is nonnull but is stopped.
      */
-    @Suppress("NullableBooleanElvis") // rewriting as "!= false" creates more confusion
+    // rewriting as "!= false" creates more confusion
     private val playerIsStopped
         get() = player?.isStopped ?: true
 
@@ -2077,7 +2088,7 @@ class VideoDetailFragment :
         // Restore the old  brightness when fragment.onPause() called or
         // when a player is in portrait
         lp.screenBrightness = -1f
-        activity.window.setAttributes(lp)
+        activity.window.attributes = lp
     }
 
     private fun setupBrightness() {
@@ -2103,7 +2114,7 @@ class VideoDetailFragment :
                 return
             }
             lp.screenBrightness = brightnessLevel
-            activity.window.setAttributes(lp)
+            activity.window.attributes = lp
         }
     }
 
@@ -2130,7 +2141,7 @@ class VideoDetailFragment :
         if (DeviceUtils.isDesktopMode(requireContext())) {
             // Remove the "hover" overlay (since it is visible on all mouse events and interferes
             // with the video content being played)
-            binding.detailThumbnailRootLayout.setForeground(null)
+            binding.detailThumbnailRootLayout.foreground = null
         }
     }
 
@@ -2194,7 +2205,7 @@ class VideoDetailFragment :
         // Pre-fill the original title
         titleEdit?.setText(currentInfo?.name)
 
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+        AlertDialog.Builder(requireContext())
             .setTitle(R.string.dearrow_settings_title)
             .setView(dialogView)
             .setPositiveButton(R.string.ok) { _, _ ->
@@ -2218,7 +2229,7 @@ class VideoDetailFragment :
                 // Submit in background
                 disposables.add(
                     io.reactivex.rxjava3.core.Completable.fromAction {
-                        val settings = org.schabi.newpipe.util.ExtractorHelper.getDeArrowApiSettings(requireContext())
+                        val settings = ExtractorHelper.getDeArrowApiSettings(requireContext())
                         if (settings?.localUserId != null && settings.localUserId.trim().length == 64 && settings.localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
                             throw IllegalStateException("Cannot submit using a Public User ID. Please use your Private User ID.")
                         }
@@ -2230,16 +2241,16 @@ class VideoDetailFragment :
                             settings
                         )
                     }
-                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                        .observeOn(io.reactivex.rxjava3.android.schedulers.AndroidSchedulers.mainThread())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                             {
-                                android.widget.Toast.makeText(requireContext(), R.string.dearrow_submit_success, android.widget.Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), R.string.dearrow_submit_success, Toast.LENGTH_SHORT).show()
                             },
                             { error ->
-                                android.util.Log.e("DeArrow", "Failed to submit branding", error)
+                                Log.e("DeArrow", "Failed to submit branding", error)
                                 val msg = if (error is IllegalStateException) error.message else getString(R.string.dearrow_submit_failure)
-                                android.widget.Toast.makeText(requireContext(), msg, android.widget.Toast.LENGTH_LONG).show()
+                                Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
                             }
                         )
                 )
@@ -2261,8 +2272,8 @@ class VideoDetailFragment :
             activity,
             ListHelper.getUrlAndNonTorrentStreams(info.videoStreams),
             ListHelper.getUrlAndNonTorrentStreams(info.videoOnlyStreams),
-            false,
-            false
+            ascendingOrder = false,
+            preferVideoOnlyStreams = false
         )
 
         if (videoStreamsForExternalPlayers.isEmpty()) {
@@ -2279,7 +2290,7 @@ class VideoDetailFragment :
                 .setSingleChoiceItems(resolutions, selectedVideoStreamIndexForExternalPlayers, null)
             builder.setNegativeButton(R.string.cancel, null)
             builder.setPositiveButton(R.string.ok) { dialog, which ->
-                val index = (dialog as AlertDialog).listView.getCheckedItemPosition()
+                val index = (dialog as AlertDialog).listView.checkedItemPosition
                 // We don't have to manage the index validity because if there is no stream
                 // available for external players, this code will be not executed and if there is
                 // no stream which matches the default resolution, 0 is returned by
@@ -2318,7 +2329,7 @@ class VideoDetailFragment :
                 .setSingleChoiceItems(trackNames.toTypedArray(), selectedAudioStream, null)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.ok) { dialog, which ->
-                    val index = (dialog as AlertDialog).listView.getCheckedItemPosition()
+                    val index = (dialog as AlertDialog).listView.checkedItemPosition
                     startOnExternalPlayer(activity, info, audioTracks[index])
                 }
                 .show()
@@ -2356,9 +2367,9 @@ class VideoDetailFragment :
         val afterDescendants = ViewGroup.FOCUS_AFTER_DESCENDANTS
         val blockDescendants = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         if (toMain) {
-            mainFragment.setDescendantFocusability(afterDescendants)
-            toolbar.setDescendantFocusability(afterDescendants)
-            (requireView() as ViewGroup).setDescendantFocusability(blockDescendants)
+            mainFragment.descendantFocusability = afterDescendants
+            toolbar.descendantFocusability = afterDescendants
+            (requireView() as ViewGroup).descendantFocusability = blockDescendants
             // Only focus the mainFragment if the mainFragment (e.g. search-results)
             // or the toolbar (e.g. TextField for search) don't have focus.
             // This was done to fix problems with the keyboard input, see also #7490
@@ -2366,9 +2377,9 @@ class VideoDetailFragment :
                 mainFragment.requestFocus()
             }
         } else {
-            mainFragment.setDescendantFocusability(blockDescendants)
-            toolbar.setDescendantFocusability(blockDescendants)
-            (requireView() as ViewGroup).setDescendantFocusability(afterDescendants)
+            mainFragment.descendantFocusability = blockDescendants
+            toolbar.descendantFocusability = blockDescendants
+            (requireView() as ViewGroup).descendantFocusability = afterDescendants
             // Only focus the player if it not already has focus
             if (!binding.getRoot().hasFocus()) {
                 binding.detailThumbnailRootLayout.requestFocus()
@@ -2390,9 +2401,9 @@ class VideoDetailFragment :
             return
         }
         holder.setPadding(
-            holder.getPaddingLeft(),
+            holder.paddingLeft,
             holder.paddingTop,
-            holder.getPaddingRight(),
+            holder.paddingRight,
             newBottomPadding
         )
     }
@@ -2531,9 +2542,7 @@ class VideoDetailFragment :
         }
         binding.overlayLayout.alpha = min(MAX_OVERLAY_ALPHA, 1 - slideOffset)
         // These numbers are not special. They just do a cool transition
-        behavior.setTopAndBottomOffset(
-            (-binding.detailThumbnailImageView.height * 2 * (1 - slideOffset) / 3).toInt()
-        )
+        behavior.topAndBottomOffset = (-binding.detailThumbnailImageView.height * 2 * (1 - slideOffset) / 3).toInt()
         appBar.requestLayout()
     }
 
@@ -2587,9 +2596,7 @@ class VideoDetailFragment :
         )
         info.addSponsorBlockSegment(segment)
 
-        currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
-            playerUi.onMarkSeekbarRequested(info)
-        }
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
         getSponsorBlockFragment()?.refreshSponsorBlockSegments()
     }
 
@@ -2599,9 +2606,7 @@ class VideoDetailFragment :
 
         info.removeSponsorBlockSegment("TEMP")
 
-        currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
-            playerUi.onMarkSeekbarRequested(info)
-        }
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
         getSponsorBlockFragment()?.refreshSponsorBlockSegments()
     }
 
@@ -2641,9 +2646,7 @@ class VideoDetailFragment :
                 info.removeSponsorBlockSegment("TEMP")
                 info.addSponsorBlockSegment(newSegment)
 
-                currentPlayer.UIs()?.get(MainPlayerUi::class)?.let { playerUi ->
-                    playerUi.onMarkSeekbarRequested(info)
-                }
+                currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
                 getSponsorBlockFragment()?.clearPendingSegment()
 
                 AlertDialog.Builder(context)

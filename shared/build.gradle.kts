@@ -15,7 +15,7 @@ plugins {
 
 // Better than adding a third-party dependency for something as simple as this
 // https://stackoverflow.com/a/74771876/8446131
-val buildConfigGenerator by tasks.registering(Sync::class) {
+val buildConfigGenerator = tasks.register<Sync>("buildConfigGenerator") {
     val buildConfigPackage = NEWPIPE_APPLICATION_ID_NEW
     val rawClass = """
         package $buildConfigPackage
@@ -127,7 +127,7 @@ kotlin {
             implementation(libs.androidx.preference)
             implementation(libs.androidx.browser)
         }
-        val androidDeviceTest by getting {
+        val androidDeviceTest = getByName("androidDeviceTest") {
             dependencies {
                 implementation(libs.androidx.compose.ui.test.manifest)
                 implementation(libs.androidx.compose.ui.test.junit4)
@@ -137,7 +137,7 @@ kotlin {
                 implementation(libs.androidx.test.espresso.core)
             }
         }
-        val jvmTest by getting {
+        val jvmTest = getByName("jvmTest") {
             dependencies {
                 implementation(compose.desktop.currentOs)
             }
