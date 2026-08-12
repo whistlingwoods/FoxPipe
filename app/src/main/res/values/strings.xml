@@ -537,6 +537,12 @@
     <string name="playback_speed_control">Playback Speed Controls</string>
     <string name="playback_tempo">Tempo</string>
     <string name="playback_pitch">Pitch</string>
+    <!-- Volume boost -->
+    <string name="volume_boost">Volume boost</string>
+    <string name="volume_boost_summary">Amplify quiet audio. Loud peaks are limited to reduce distortion.</string>
+    <string name="volume_boost_auto">Adjust automatically</string>
+    <string name="volume_boost_auto_summary">Raise the gain during quiet passages and lower it when the audio gets louder.</string>
+    <string name="volume_muted">Muted</string>
     <string name="unhook_checkbox">Unhook (may cause distortion)</string>
     <string name="skip_silence_checkbox">Fast-forward during silence</string>
     <string name="playback_step">Step</string>
