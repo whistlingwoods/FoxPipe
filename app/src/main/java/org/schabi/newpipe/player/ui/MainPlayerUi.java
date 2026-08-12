@@ -61,6 +61,7 @@ import org.schabi.newpipe.player.gesture.BasePlayerGestureListener;
 import org.schabi.newpipe.player.gesture.MainPlayerGestureListener;
 import org.schabi.newpipe.player.helper.PlaybackParameterDialog;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.player.helper.VolumeBoostDialog;
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueAdapter;
@@ -291,7 +292,6 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 R.drawable.ic_expand_more));
         binding.share.setVisibility(View.VISIBLE);
         binding.openInBrowser.setVisibility(View.VISIBLE);
-        binding.switchMute.setVisibility(View.VISIBLE);
         binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
         // Top controls have a large minHeight which is allows to drag the player
         // down in fullscreen mode (just larger area to make easy to locate by finger)
@@ -874,6 +874,13 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                                 player.getPlaybackPitch(), player.getPlaybackSkipSilence(),
                                 player::setPlaybackParameters)
                         .show(activity.getSupportFragmentManager(), null));
+    }
+
+    @Override
+    protected void onVolumeBoostClicked() {
+        getParentActivity().ifPresent(activity ->
+                VolumeBoostDialog.newInstance(player).show(activity.getSupportFragmentManager(),
+                        null));
     }
 
     @Override
