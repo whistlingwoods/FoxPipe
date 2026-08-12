@@ -440,6 +440,14 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         playbackSpeedPopupMenu.show();
         isSomePopupMenuVisible = true;
     }
+
+    @Override
+    protected void onVolumeBoostClicked() {
+        // the popup player has no activity to show a dialog on, so use a menu instead
+        buildVolumeBoostMenu();
+        volumeBoostPopupMenu.show();
+        isSomePopupMenuVisible = true;
+    }
     //endregion
 
     /*//////////////////////////////////////////////////////////////////////////
