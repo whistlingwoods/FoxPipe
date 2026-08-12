@@ -67,7 +67,6 @@ import androidx.core.math.MathUtils;
 import androidx.preference.PreferenceManager;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -102,6 +101,8 @@ import org.schabi.newpipe.player.helper.CustomRenderersFactory;
 import org.schabi.newpipe.player.helper.LoadController;
 import org.schabi.newpipe.player.helper.PlayerDataSource;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.player.helper.VolumeBoostAudioProcessor;
+import org.schabi.newpipe.player.helper.VolumeBoostRenderersFactory;
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.mediasession.MediaSessionPlayerUi;
 import org.schabi.newpipe.player.notification.NotificationPlayerUi;
@@ -216,7 +217,7 @@ public final class Player implements PlaybackListener, Listener {
     @NonNull
     private final LoadController loadController;
     @NonNull
-    private final DefaultRenderersFactory renderFactory;
+    private final VolumeBoostRenderersFactory renderFactory;
 
     @NonNull
     private final VideoPlaybackResolver videoResolver;
@@ -303,7 +304,12 @@ public final class Player implements PlaybackListener, Listener {
         renderFactory = prefs.getBoolean(
                 context.getString(
                         R.string.always_use_exoplayer_set_output_surface_workaround_key), false)
-                ? new CustomRenderersFactory(context) : new DefaultRenderersFactory(context);
+                ? new CustomRenderersFactory(context) : new VolumeBoostRenderersFactory(context);
+        renderFactory.setVolumeBoost(prefs.getFloat(
+                context.getString(R.string.playback_volume_boost_key),
+                VolumeBoostAudioProcessor.MINIMUM_VOLUME_BOOST));
+        renderFactory.setAutomaticVolumeBoost(prefs.getBoolean(context.getString(
+                R.string.playback_auto_volume_boost_key), false));
 
         renderFactory.setEnableDecoderFallback(
                 prefs.getBoolean(
@@ -968,6 +974,24 @@ public final class Player implements PlaybackListener, Listener {
 
     public boolean getPlaybackSkipSilence() {
         return !exoPlayerIsNull() && simpleExoPlayer.getSkipSilenceEnabled();
+    }
+
+    public float getVolumeBoost() {
+        return renderFactory.getVolumeBoost();
+    }
+
+    public boolean isAutoVolumeBoostEnabled() {
+        return renderFactory.isAutomaticVolumeBoost();
+    }
+
+    public void setVolumeBoost(final float gain, final boolean automatic) {
+        renderFactory.setVolumeBoost(gain);
+        renderFactory.setAutomaticVolumeBoost(automatic);
+        prefs.edit()
+                .putFloat(context.getString(R.string.playback_volume_boost_key), getVolumeBoost())
+                .putBoolean(context.getString(R.string.playback_auto_volume_boost_key), automatic)
+                .apply();
+        UIs.call(PlayerUi::onVolumeBoostChanged);
     }
 
     public PlaybackParameters getPlaybackParameters() {
