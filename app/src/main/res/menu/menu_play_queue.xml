@@ -27,9 +27,9 @@
     </item>
 
     <item
-        android:id="@+id/action_mute"
-        android:icon="@drawable/ic_volume_off"
-        android:title="@string/mute"
+        android:id="@+id/action_volume_boost"
+        android:icon="@drawable/ic_volume_up"
+        android:title="@string/volume_boost"
         android:visible="true"
         app:showAsAction="ifRoom" />
 
