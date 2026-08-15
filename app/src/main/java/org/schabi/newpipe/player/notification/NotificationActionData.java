@@ -145,7 +145,7 @@ public final class NotificationActionData {
                 }
 
             case NotificationConstants.REPEAT:
-                if (player.isStopAfterCurrentSong()) {
+                if (player.isStopAfterCurrentStream()) {
                     return new NotificationActionData(ACTION_REPEAT,
                             ctx.getString(R.string.notification_action_stop_after_current),
                             com.google.android.exoplayer2.ext.mediasession.R.drawable

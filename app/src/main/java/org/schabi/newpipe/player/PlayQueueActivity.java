@@ -568,7 +568,7 @@ public final class PlayQueueActivity extends AppCompatActivity
     }
 
     private void onPlayModeChanged(final int repeatMode, final boolean shuffled) {
-        if (player != null && player.isStopAfterCurrentSong()) {
+        if (player != null && player.isStopAfterCurrentStream()) {
             // Show a half-transparent repeat_one icon for "stop after current song"
             queueControlBinding.controlRepeat.setImageResource(
                     com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one);

@@ -88,8 +88,8 @@ public final class NotificationPlayerUi extends PlayerUi {
     }
 
     @Override
-    public void onStopAfterCurrentSongChanged(final boolean stopAfterCurrentSong) {
-        super.onStopAfterCurrentSongChanged(stopAfterCurrentSong);
+    public void onStopAfterCurrentStreamChanged(final boolean stopAfterCurrentStream) {
+        super.onStopAfterCurrentStreamChanged(stopAfterCurrentStream);
         notificationUtil.createNotificationIfNeededAndUpdate(false);
     }
 

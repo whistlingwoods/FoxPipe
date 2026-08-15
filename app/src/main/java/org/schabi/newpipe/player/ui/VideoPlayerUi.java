@@ -1000,7 +1000,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         super.onRepeatModeChanged(repeatMode);
 
         // Only update icon if stop-after-current is not active
-        if (!player.isStopAfterCurrentSong()) {
+        if (!player.isStopAfterCurrentStream()) {
             if (repeatMode == REPEAT_MODE_ALL) {
                 binding.repeatButton.setImageResource(
                         com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_all);
@@ -1015,9 +1015,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     @Override
-    public void onStopAfterCurrentSongChanged(final boolean stopAfterCurrentSong) {
-        super.onStopAfterCurrentSongChanged(stopAfterCurrentSong);
-        if (stopAfterCurrentSong) {
+    public void onStopAfterCurrentStreamChanged(final boolean stopAfterCurrentStream) {
+        super.onStopAfterCurrentStreamChanged(stopAfterCurrentStream);
+        if (stopAfterCurrentStream) {
             // Use repeat_one icon with a different tint to indicate "stop after current"
             binding.repeatButton.setImageResource(
                     com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one);
@@ -1051,7 +1051,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     private void setRepeatButton(final int repeatMode) {
-        if (player.isStopAfterCurrentSong()) {
+        if (player.isStopAfterCurrentStream()) {
             binding.repeatButton.setImageResource(
                     com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one);
             binding.repeatButton.setAlpha(0.5f);

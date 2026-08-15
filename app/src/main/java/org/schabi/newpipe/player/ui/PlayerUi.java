@@ -148,7 +148,7 @@ public abstract class PlayerUi {
     public void onRepeatModeChanged(@RepeatMode final int repeatMode) {
     }
 
-    public void onStopAfterCurrentSongChanged(final boolean stopAfterCurrentSong) {
+    public void onStopAfterCurrentStreamChanged(final boolean stopAfterCurrentStream) {
     }
 
     public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
