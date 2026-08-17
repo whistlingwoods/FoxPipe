@@ -79,7 +79,9 @@
         <module name="JavadocMethod"/>
         <module name="JavadocType"/>
         <!--<module name="JavadocVariable"/>-->
-        <module name="JavadocStyle"/>
+        <module name="SummaryJavadoc">
+            <property name="period" value=""/>
+        </module>
         <!--<module name="MissingJavadocMethod"/>-->
 
         <!-- Checks for Naming Conventions.                  -->

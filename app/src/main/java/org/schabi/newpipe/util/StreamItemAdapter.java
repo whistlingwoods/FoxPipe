@@ -203,6 +203,8 @@ public class StreamItemAdapter<T extends Stream, U extends Stream> extends BaseA
     }
 
     /**
+     * Checks if there are any video-only streams without a secondary stream.
+     *
      * @return if there are any video-only streams with no secondary stream associated with them.
      * @see #hasAnyVideoOnlyStreamWithNoSecondaryStream
      */

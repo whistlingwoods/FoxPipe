@@ -52,6 +52,21 @@
         android:icon="@drawable/ic_settings_backup_restore"
         android:title="@string/settings_category_backup_restore_title"
         app:iconSpaceReserved="false" />
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.SponsorBlockSettingsFragment"
+        android:icon="@drawable/ic_sponsor_block_enable"
+        android:title="@string/sponsor_block"
+        app:iconSpaceReserved="false" />
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.DeArrowSettingsFragment"
+        android:icon="@drawable/ic_dearrow"
+        android:title="@string/dearrow_settings_title"
+        app:iconSpaceReserved="false" />
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.ReturnYouTubeDislikeSettingsFragment"
+        android:icon="@drawable/ic_thumb_down"
+        android:title="ReturnYouTubeDislike"
+        app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.DebugSettingsFragment"

@@ -30,6 +30,8 @@ public class BlankFragment extends BaseFragment {
     }
 
     /**
+     * Builds a blank fragment or error panel based on the provided error info.
+     *
      * @param errorInfo if null acts like {@link BlankFragment}, else shows an error panel.
      */
     public BlankFragment(@Nullable final ErrorInfo errorInfo) {

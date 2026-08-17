@@ -27,6 +27,11 @@
         <item name="colorPrimary">@color/light_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/light_youtube_primary_color</item>
         <item name="colorAccent">@color/light_youtube_accent_color</item>
+        <item name="newpipeColorAccent">@color/light_youtube_accent_color</item>
+        <item name="m3_primary">@color/m3_primary_light</item>
+        <item name="m3_on_primary">@color/m3_on_primary_light</item>
+        <item name="m3_outline">@color/m3_outline_light</item>
+        <item name="m3_surface_variant">@color/m3_surface_variant_light</item>
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="windowBackground">@color/light_background_color</item>
 
@@ -51,6 +56,11 @@
         <item name="colorPrimary">@color/dark_youtube_primary_color</item>
         <item name="colorPrimaryDark">@color/dark_youtube_primary_color</item>
         <item name="colorAccent">@color/dark_youtube_accent_color</item>
+        <item name="newpipeColorAccent">@color/dark_youtube_accent_color</item>
+        <item name="m3_primary">@color/m3_primary_dark</item>
+        <item name="m3_on_primary">@color/m3_on_primary_dark</item>
+        <item name="m3_outline">@color/m3_outline_dark</item>
+        <item name="m3_surface_variant">@color/m3_surface_variant_dark</item>
         <item name="android:windowBackground">@color/dark_background_color</item>
         <item name="windowBackground">@color/dark_background_color</item>
 
@@ -72,6 +82,7 @@
 
     <!-- Black Theme -->
     <style name="Base.V21.BlackTheme" parent="DarkTheme">
+        <item name="m3_surface_variant">@color/m3_surface_variant_black</item>
         <item name="android:windowBackground">@color/black_background_color</item>
         <item name="windowBackground">@color/black_background_color</item>
 
@@ -122,14 +133,17 @@
     <!-- Settings -->
     <style name="LightSettingsTheme" parent="LightTheme">
         <item name="colorAccent">@color/light_settings_accent_color</item>
+        <item name="newpipeColorAccent">@color/light_settings_accent_color</item>
     </style>
 
     <style name="DarkSettingsTheme" parent="DarkTheme">
         <item name="colorAccent">@color/dark_settings_accent_color</item>
+        <item name="newpipeColorAccent">@color/dark_settings_accent_color</item>
     </style>
 
     <style name="BlackSettingsTheme" parent="BlackTheme">
         <item name="colorAccent">@color/black_settings_accent_color</item>
+        <item name="newpipeColorAccent">@color/black_settings_accent_color</item>
     </style>
 
     <!-- Router Activity -->
@@ -154,5 +168,14 @@
     </style>
 
     <style name="RouterActivityThemeDark" parent="Base.RouterActivityThemeDark" />
+
+    <style name="ThemeOverlay.NewPipe.MaterialSwitch" parent="Theme.Material3.DayNight">
+        <!-- Depending on MDC-Android version, track is either colorPrimary or colorPrimaryContainer, thumb is colorPrimary or colorOnPrimary. Setting them all correctly ensures it matches Compose. -->
+        <item name="colorPrimary">?attr/m3_primary</item>
+        <item name="colorPrimaryContainer">?attr/m3_primary</item>
+        <item name="colorOnPrimary">?attr/m3_on_primary</item>
+        <item name="colorOutline">?attr/m3_outline</item>
+        <item name="colorSurfaceVariant">?attr/m3_surface_variant</item>
+    </style>
 
 </resources>

@@ -300,6 +300,8 @@ public final class SettingMigrations {
         }
 
         /**
+         * Checks whether this migration should be run for the current settings version.
+         *
          * @param currentVersion current settings version
          * @return Returns whether this migration should be run.
          * A migration is necessary if the old version of this migration is lower than or equal to

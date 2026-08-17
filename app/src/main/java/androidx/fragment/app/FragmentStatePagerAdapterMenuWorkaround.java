@@ -133,6 +133,8 @@ public abstract class FragmentStatePagerAdapterMenuWorkaround extends PagerAdapt
     }
 
     /**
+     * Gets the fragment associated with the specified position.
+     *
      * @param position the position of the item you want
      * @return the {@link Fragment} associated with a specified position
      */

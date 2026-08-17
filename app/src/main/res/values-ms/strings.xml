@@ -62,7 +62,6 @@
     <string name="metadata_cache_wipe_summary">Hapuskan semua cache data halaman web</string>
     <string name="metadata_cache_wipe_complete_notice">Cache metadata dihapuskan</string>
     <string name="auto_queue_title">Tambah siaran seterusnya ke giliran secara automatik</string>
-    <string name="auto_queue_summary"></string>
     <string name="show_search_suggestions_title">Cadangan carian</string>
     <string name="show_search_suggestions_summary">Tunjukkan cadangan semasa mencari</string>
     <string name="enable_search_history_title">Sejarah carian</string>
@@ -232,8 +231,6 @@
     <string name="title_activity_history">Sejarah</string>
     <string name="action_history">Sejarah</string>
     <string name="delete_item_search_history">Adakah anda mahu memadamkan item ini dari sejarah carian\?</string>
-    <string name="title_last_played">Terakhir dimainkan</string>
-    <string name="title_most_played">Kebanyakan dimainkan</string>
     <string name="main_page_content">Kandungan halaman utama</string>
     <string name="main_page_content_summary">Tab apa yang ditunjukkan pada halaman utama</string>
     <string name="blank_page_summary">Halaman Kosong</string>

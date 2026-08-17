@@ -14,6 +14,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
+ * Writer for generating MP4 files from DASH streams.
+ *
  * @author kapodamy
  */
 public class Mp4FromDashWriter {

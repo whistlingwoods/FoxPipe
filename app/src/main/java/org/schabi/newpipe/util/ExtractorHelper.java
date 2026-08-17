@@ -23,6 +23,7 @@ import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 import static org.schabi.newpipe.util.text.TextLinkifier.SET_LINK_MOVEMENT_METHOD;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -45,7 +46,10 @@ import org.schabi.newpipe.extractor.channel.tabs.ChannelTabInfo;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
 import org.schabi.newpipe.extractor.linkhandler.ListLinkHandler;
 import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
+import org.schabi.newpipe.extractor.returnyoutubedislike.ReturnYouTubeDislikeApiSettings;
+import org.schabi.newpipe.extractor.dearrow.DeArrowApiSettings;
 import org.schabi.newpipe.extractor.search.SearchInfo;
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockApiSettings;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.suggestion.SuggestionExtractor;
@@ -109,11 +113,17 @@ public final class ExtractorHelper {
         });
     }
 
-    public static Single<StreamInfo> getStreamInfo(final int serviceId, final String url,
+    public static Single<StreamInfo> getStreamInfo(final Context context,
+                                                   final int serviceId,
+                                                   final String url,
                                                    final boolean forceLoad) {
         checkServiceId(serviceId);
         return checkCache(forceLoad, serviceId, url, InfoCache.Type.STREAM,
-                Single.fromCallable(() -> StreamInfo.getInfo(NewPipe.getService(serviceId), url)));
+                Single.fromCallable(() -> StreamInfo.getInfo(
+                        url,
+                        buildSponsorBlockApiSettings(context),
+                        buildReturnYouTubeDislikeApiSettings(context),
+                        getDeArrowApiSettings(context))));
     }
 
     public static Single<ChannelInfo> getChannelInfo(final int serviceId, final String url,
@@ -325,5 +335,104 @@ public final class ExtractorHelper {
         } else {
             return text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
         }
+    }
+
+    private static @Nullable SponsorBlockApiSettings buildSponsorBlockApiSettings(
+            final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        final boolean isSponsorBlockEnabled = prefs.getBoolean(context
+                .getString(R.string.sponsor_block_enable_key), false);
+
+        if (!isSponsorBlockEnabled) {
+            return null;
+        }
+
+        final SponsorBlockApiSettings result = new SponsorBlockApiSettings();
+        result.apiUrl =
+                prefs.getString(context.getString(R.string.sponsor_block_api_url_key), null);
+
+        String localUserId = prefs.getString(
+                context.getString(R.string.sponsor_block_local_user_id_key), null);
+        if (localUserId == null || localUserId.trim().length() < 32) {
+            localUserId = java.util.UUID.randomUUID().toString().replace("-", "");
+            prefs.edit().putString(
+                    context.getString(R.string.sponsor_block_local_user_id_key),
+                    localUserId).apply();
+        }
+        result.localUserId = localUserId;
+
+        result.includeSponsorCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_sponsor_key), false);
+        result.includeIntroCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_intro_key), false);
+        result.includeOutroCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_outro_key), false);
+        result.includeInteractionCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_interaction_key), false);
+        result.includeHighlightCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_highlight_key), false);
+        result.includeSelfPromoCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_self_promo_key), false);
+        result.includeMusicCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_non_music_key), false);
+        result.includePreviewCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_preview_key), false);
+        result.includeFillerCategory =
+                prefs.getBoolean(context
+                        .getString(R.string.sponsor_block_category_filler_key), false);
+
+        return result;
+    }
+
+    private static @Nullable ReturnYouTubeDislikeApiSettings buildReturnYouTubeDislikeApiSettings(
+            final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        final boolean isRydEnabled = prefs.getBoolean(context
+                .getString(R.string.return_youtube_dislike_enable_key), false);
+
+        if (!isRydEnabled) {
+            return null;
+        }
+
+        final ReturnYouTubeDislikeApiSettings result = new ReturnYouTubeDislikeApiSettings();
+        result.apiUrl = prefs.getString(
+                context.getString(R.string.return_youtube_dislike_api_url_key), null);
+        return result;
+    }
+
+    @Nullable
+    public static DeArrowApiSettings getDeArrowApiSettings(final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        final boolean isDeArrowEnabled = prefs.getBoolean(context
+                .getString(R.string.dearrow_enable_key), false);
+
+        if (!isDeArrowEnabled) {
+            Log.v(TAG, "DeArrow is disabled in preferences; skipping DeArrowApiSettings.");
+            return null;
+        }
+
+        final DeArrowApiSettings result = new DeArrowApiSettings();
+        result.apiUrl = prefs.getString(
+                context.getString(R.string.dearrow_api_url_key),
+                context.getString(R.string.dearrow_default_api_url));
+        result.thumbnailUrl = prefs.getString(
+                context.getString(R.string.dearrow_thumbnail_url_key),
+                context.getString(R.string.dearrow_default_thumbnail_url));
+        result.localUserId = prefs.getString(
+                context.getString(R.string.sponsor_block_local_user_id_key), null);
+        Log.v(TAG, "DeArrow is enabled. Using API URL: " + result.apiUrl
+                + " and Thumbnail URL: " + result.thumbnailUrl);
+        return result;
     }
 }

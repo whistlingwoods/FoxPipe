@@ -61,6 +61,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HistoryRecordManager {
+    private final Context context;
     private final AppDatabase database;
     private final StreamDAO streamTable;
     private final StreamHistoryDAO streamHistoryTable;
@@ -71,6 +72,7 @@ public class HistoryRecordManager {
     private final String streamHistoryKey;
 
     public HistoryRecordManager(final Context context) {
+        this.context = context;
         database = NewPipeDatabase.getInstance(context);
         streamTable = database.streamDAO();
         streamHistoryTable = database.streamHistoryDAO();
@@ -98,7 +100,7 @@ public class HistoryRecordManager {
             return Completable.complete();
         }
 
-        final var remoteInfo = getStreamInfo(info.getServiceId(), info.getUrl(), false)
+        final var remoteInfo = getStreamInfo(context, info.getServiceId(), info.getUrl(), false)
             .map(item ->
                 new LongLongPair(item.getDuration(), streamTable.upsert(new StreamEntity(item))));
 
@@ -151,28 +153,20 @@ public class HistoryRecordManager {
     }
 
     public Completable deleteStreamHistoryAndState(final long streamId) {
-        return Completable.fromAction(() -> {
-            streamStateTable.deleteState(streamId);
-            streamHistoryTable.deleteStreamHistory(streamId);
-        }).subscribeOn(Schedulers.io());
+        return streamStateTable.deleteState(streamId)
+                .andThen(streamHistoryTable.deleteStreamHistory(streamId));
     }
 
-    public Single<Integer> deleteWholeStreamHistory() {
-        return Single.fromCallable(streamHistoryTable::deleteAll)
-                .subscribeOn(Schedulers.io());
+    public Completable deleteWholeStreamHistory() {
+        return streamHistoryTable.deleteAll().subscribeOn(Schedulers.io());
     }
 
-    public Single<Integer> deleteCompleteStreamStateHistory() {
-        return Single.fromCallable(streamStateTable::deleteAll)
-                .subscribeOn(Schedulers.io());
+    public Completable deleteCompleteStreamStateHistory() {
+        return streamStateTable.deleteAll().subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<StreamHistoryEntry>> getStreamHistorySortedById() {
         return streamHistoryTable.getHistorySortedById().subscribeOn(Schedulers.io());
-    }
-
-    public Flowable<List<StreamStatisticsEntry>> getStreamStatistics() {
-        return streamHistoryTable.getStatistics().subscribeOn(Schedulers.io());
     }
 
     private boolean isStreamHistoryEnabled() {
@@ -229,7 +223,7 @@ public class HistoryRecordManager {
     ///////////////////////////////////////////////////////
 
     public Maybe<StreamStateEntity> loadStreamState(final PlayQueueItem queueItem) {
-        return queueItem.getStream()
+        return queueItem.getStream(context)
                 .flatMapMaybe(this::loadStreamState)
                 .filter(state -> state.isValid(queueItem.getDuration()))
                 .subscribeOn(Schedulers.io());
@@ -283,8 +277,7 @@ public class HistoryRecordManager {
     // Utility
     ///////////////////////////////////////////////////////
 
-    public Single<Integer> removeOrphanedRecords() {
-        return Single.fromCallable(streamTable::deleteOrphans).subscribeOn(Schedulers.io());
+    public Completable removeOrphanedRecords() {
+        return streamTable.deleteOrphans().subscribeOn(Schedulers.io());
     }
-
 }

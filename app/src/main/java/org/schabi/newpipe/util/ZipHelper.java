@@ -128,6 +128,8 @@ public final class ZipHelper {
     }
 
     /**
+     * Checks whether a specified file exists within the zip archive.
+     *
      * @param zipFile   the zip file
      * @param fileInZip the filename to check
      * @return whether the provided filename is in the zip; only the first level is checked

@@ -16,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 /**
+ * Writer for WebM format streams.
+ *
  * @author kapodamy
  */
 public class WebMWriter implements Closeable {

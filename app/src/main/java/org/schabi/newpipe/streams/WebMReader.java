@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 /**
+ * Reader for WebM format streams.
  *
  * @author kapodamy
  */

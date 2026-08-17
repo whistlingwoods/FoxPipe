@@ -216,7 +216,7 @@ class MediaBrowserPlaybackPreparer(
         }
 
         val streamId = path[0].toLong()
-        return database.streamHistoryDAO().history
+        return database.streamHistoryDAO().getHistory()
             .firstOrError()
             .map { items ->
                 val infoItems = items
@@ -238,7 +238,7 @@ class MediaBrowserPlaybackPreparer(
 
         val serviceId = path[1].toInt()
         return when (infoItemTypeFromString(path[0])) {
-            InfoType.STREAM -> ExtractorHelper.getStreamInfo(serviceId, url, false)
+            InfoType.STREAM -> ExtractorHelper.getStreamInfo(context, serviceId, url, false)
                 .map { SinglePlayQueue(it) }
 
             InfoType.PLAYLIST -> ExtractorHelper.getPlaylistInfo(serviceId, url, false)

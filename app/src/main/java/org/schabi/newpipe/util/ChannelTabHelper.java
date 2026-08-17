@@ -17,6 +17,8 @@ public final class ChannelTabHelper {
     }
 
     /**
+     * Checks whether the tab should contain playable streams.
+     *
      * @param tab the channel tab to check
      * @return whether the tab should contain (playable) streams or not
      */
@@ -34,6 +36,8 @@ public final class ChannelTabHelper {
     }
 
     /**
+     * Checks whether the link handler tab should contain playable streams.
+     *
      * @param tab the channel tab link handler to check
      * @return whether the tab should contain (playable) streams or not
      */

@@ -53,6 +53,7 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
@@ -76,6 +77,11 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.StreamingService.ServiceInfo.MediaCapability
 import org.schabi.newpipe.extractor.exceptions.ContentNotSupportedException
 import org.schabi.newpipe.extractor.exceptions.ExtractionException
+import org.schabi.newpipe.extractor.returnyoutubedislike.ReturnYouTubeDislikeInfo
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockAction
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockCategory
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockExtractorHelper
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment
 import org.schabi.newpipe.extractor.stream.Stream
 import org.schabi.newpipe.extractor.stream.StreamExtractor
 import org.schabi.newpipe.extractor.stream.StreamInfo
@@ -85,6 +91,8 @@ import org.schabi.newpipe.fragments.BaseStateFragment
 import org.schabi.newpipe.fragments.EmptyFragment
 import org.schabi.newpipe.fragments.MainFragment
 import org.schabi.newpipe.fragments.list.comments.CommentsFragment.Companion.getInstance
+import org.schabi.newpipe.fragments.list.sponsorblock.SponsorBlockFragment
+import org.schabi.newpipe.fragments.list.sponsorblock.SponsorBlockFragmentListener
 import org.schabi.newpipe.fragments.list.videos.RelatedItemsFragment.Companion.getInstance
 import org.schabi.newpipe.ktx.AnimationType
 import org.schabi.newpipe.ktx.animate
@@ -92,6 +100,7 @@ import org.schabi.newpipe.ktx.animateRotation
 import org.schabi.newpipe.local.dialog.PlaylistDialog
 import org.schabi.newpipe.local.history.HistoryRecordManager
 import org.schabi.newpipe.local.playlist.LocalPlaylistFragment
+import org.schabi.newpipe.local.sponsorblock.SponsorBlockDataManager
 import org.schabi.newpipe.player.Player
 import org.schabi.newpipe.player.PlayerIntentType
 import org.schabi.newpipe.player.PlayerService
@@ -115,8 +124,10 @@ import org.schabi.newpipe.util.NavigationHelper
 import org.schabi.newpipe.util.PermissionHelper
 import org.schabi.newpipe.util.PermissionHelper.checkStoragePermissions
 import org.schabi.newpipe.util.PlayButtonHelper
+import org.schabi.newpipe.util.SponsorBlockMode
 import org.schabi.newpipe.util.StreamTypeUtil
 import org.schabi.newpipe.util.ThemeHelper
+import org.schabi.newpipe.util.dearrow.DeArrowHelper
 import org.schabi.newpipe.util.external_communication.KoreUtils
 import org.schabi.newpipe.util.external_communication.ShareUtils
 import org.schabi.newpipe.util.image.CoilHelper
@@ -125,7 +136,8 @@ class VideoDetailFragment :
     BaseStateFragment<StreamInfo>(),
     BackPressable,
     PlayerServiceExtendedEventListener,
-    OnKeyDownListener {
+    OnKeyDownListener,
+    SponsorBlockFragmentListener {
 
     // stream info
     @JvmField
@@ -136,10 +148,13 @@ class VideoDetailFragment :
     @State
     var title: String = ""
 
-    @JvmField
     @State
     var url: String? = null
+
+    private var isPlaying = false
+
     private var currentInfo: StreamInfo? = null
+    private var deArrowThumbnailUrl: String? = null
 
     // player objects
     private var playQueue: PlayQueue? = null
@@ -147,6 +162,8 @@ class VideoDetailFragment :
     @JvmField
     @State
     var autoPlayEnabled: Boolean = true
+
+    var forceFullscreen: Boolean = false
 
     @JvmField
     @State
@@ -165,27 +182,43 @@ class VideoDetailFragment :
     private var showComments = false
     private var showRelatedItems = false
     private var showDescription = false
+    private var showSponsorBlock = false
     private lateinit var selectedTabTag: String
 
     @AttrRes val tabIcons = ArrayList<Int>()
 
     @StringRes val tabContentDescriptions = ArrayList<Int>()
     private var tabSettingsChanged = false
-    private var lastAppBarVerticalOffset = Int.Companion.MAX_VALUE // prevents useless updates
+    private var lastAppBarVerticalOffset = Int.MAX_VALUE // prevents useless updates
+
+    private var workerSponsorBlockModeCheck: Disposable? = null
+    private var submitSegmentSubscriber: Disposable? = null
+    private lateinit var sponsorBlockDataManager: SponsorBlockDataManager
 
     private val preferenceChangeListener =
         OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if (getString(R.string.show_comments_key) == key) {
-                showComments = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
-            } else if (getString(R.string.show_next_video_key) == key) {
-                showRelatedItems = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
-            } else if (getString(R.string.show_description_key) == key) {
-                showDescription = sharedPreferences.getBoolean(key, true)
-                tabSettingsChanged = true
+            when (key) {
+                getString(R.string.show_comments_key) -> {
+                    showComments = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.show_next_video_key) -> {
+                    showRelatedItems = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.show_description_key) -> {
+                    showDescription = sharedPreferences.getBoolean(key, true)
+                    tabSettingsChanged = true
+                }
+                getString(R.string.sponsor_block_enable_key) -> {
+                    showSponsorBlock = sharedPreferences.getBoolean(key, false)
+                    tabSettingsChanged = true
+                }
             }
         }
+
+    @State
+    var currentSponsorBlockMode: SponsorBlockMode? = null
 
     // bottom sheet
     @JvmField
@@ -264,6 +297,7 @@ class VideoDetailFragment :
         showComments = prefs.getBoolean(getString(R.string.show_comments_key), true)
         showRelatedItems = prefs.getBoolean(getString(R.string.show_next_video_key), true)
         showDescription = prefs.getBoolean(getString(R.string.show_description_key), true)
+        showSponsorBlock = prefs.getBoolean(getString(R.string.sponsor_block_enable_key), false)
         selectedTabTag = prefs.getString(
             getString(R.string.stream_info_selected_tab_key),
             COMMENTS_TAB_TAG
@@ -284,6 +318,7 @@ class VideoDetailFragment :
             false,
             settingsContentObserver!!
         )
+        sponsorBlockDataManager = SponsorBlockDataManager(requireContext())
     }
 
     override fun onCreateView(
@@ -375,6 +410,13 @@ class VideoDetailFragment :
         nullableBinding = null
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        submitSegmentSubscriber?.dispose()
+        workerSponsorBlockModeCheck?.dispose()
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ReCaptchaActivity.RECAPTCHA_REQUEST) {
@@ -449,6 +491,10 @@ class VideoDetailFragment :
                 openDownloadDialog()
             }
         }
+        binding.detailControlsDearrow?.setOnClickListener {
+            showDeArrowSubmissionDialog()
+        }
+
         binding.detailControlsShare.setOnClickListener(
             makeOnClickListener { info ->
                 ShareUtils.shareText(requireContext(), info.name, info.url, info.thumbnails)
@@ -560,12 +606,12 @@ class VideoDetailFragment :
 
     private fun toggleTitleAndSecondaryControls() {
         if (binding.detailSecondaryControlPanel.isGone) {
-            binding.detailVideoTitleView.setMaxLines(10)
+            binding.detailVideoTitleView.maxLines = 10
             binding.detailToggleSecondaryControlsView
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 180)
             binding.detailSecondaryControlPanel.visibility = View.VISIBLE
         } else {
-            binding.detailVideoTitleView.setMaxLines(1)
+            binding.detailVideoTitleView.maxLines = 1
             binding.detailToggleSecondaryControlsView
                 .animateRotation(VideoPlayerUi.DEFAULT_CONTROLS_DURATION, 0)
             binding.detailSecondaryControlPanel.visibility = View.GONE
@@ -722,7 +768,7 @@ class VideoDetailFragment :
         }
 
         setInitialData(newServiceId, newUrl, newTitle, newQueue)
-        startLoading(false, true)
+        startLoading(forceLoad = false, addToBackStack = true)
     }
 
     private fun prepareAndHandleInfoIfNeededAfterDelay(
@@ -778,7 +824,7 @@ class VideoDetailFragment :
 
     private fun runWorker(forceLoad: Boolean, addToBackStack: Boolean) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        currentWorker = ExtractorHelper.getStreamInfo(serviceId, url, forceLoad)
+        currentWorker = ExtractorHelper.getStreamInfo(requireContext(), serviceId, url, forceLoad)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
@@ -845,6 +891,13 @@ class VideoDetailFragment :
             tabContentDescriptions.add(R.string.description_tab_description)
         }
 
+        if (showSponsorBlock) {
+            // temp empty fragment. will be updated in handleResult
+            pageAdapter.addFragment(EmptyFragment.newInstance(false), SPONSOR_BLOCK_TAB_TAG)
+            tabIcons.add(R.drawable.ic_sponsor_block_enable)
+            tabContentDescriptions.add(R.string.sponsor_block_tab_description)
+        }
+
         if (pageAdapter.count == 0) {
             pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG)
         }
@@ -886,7 +939,7 @@ class VideoDetailFragment :
                 else -> { // tablet + TV
                     getChildFragmentManager().beginTransaction()
                         .replace(R.id.relatedItemsLayout, getInstance(info))
-                        .commitAllowingStateLoss()
+                        .commit()
                     relatedItemsLayout.isVisible = !this.isFullscreen
                 }
             }
@@ -894,6 +947,23 @@ class VideoDetailFragment :
 
         if (showDescription) {
             pageAdapter.updateItem(DESCRIPTION_TAB_TAG, DescriptionFragment(info))
+        }
+
+        if (showSponsorBlock) {
+            val sponsorBlockFragment = SponsorBlockFragment(info)
+            sponsorBlockFragment.setListener(this)
+            pageAdapter.updateItem(SPONSOR_BLOCK_TAB_TAG, sponsorBlockFragment)
+
+            workerSponsorBlockModeCheck = sponsorBlockDataManager.isWhiteListed(info.uploaderName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { isWhitelisted ->
+                    if (currentSponsorBlockMode == null) {
+                        currentSponsorBlockMode = if (isWhitelisted) SponsorBlockMode.DISABLED else SponsorBlockMode.ENABLED
+                    }
+                    sponsorBlockFragment.setSponsorBlockMode(currentSponsorBlockMode!!)
+                    sponsorBlockFragment.setIsWhitelisted(isWhitelisted)
+                }
         }
 
         binding.viewPager.visibility = View.VISIBLE
@@ -1053,7 +1123,11 @@ class VideoDetailFragment :
      * = false`, hence preventing it from going directly fullscreen.
      */
     fun openVideoPlayerAutoFullscreen() {
-        openVideoPlayer(PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext()))
+        openVideoPlayer(
+            forceFullscreen ||
+                PlayerHelper.isStartMainPlayerFullscreenEnabled(requireContext())
+        )
+        forceFullscreen = false
     }
 
     private fun openNormalBackgroundPlayer(append: Boolean) {
@@ -1064,7 +1138,7 @@ class VideoDetailFragment :
 
         val queue = setupPlayQueueForIntent(append)
         if (append) {
-            NavigationHelper.enqueueOnPlayer(activity, queue, PlayerType.AUDIO)
+            NavigationHelper.enqueueOnPlayer(activity, queue, PlayerType.BACKGROUND)
         } else {
             replaceQueueIfUserConfirms {
                 NavigationHelper.playOnBackgroundPlayer(activity, queue, true)
@@ -1164,7 +1238,7 @@ class VideoDetailFragment :
         get() = PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getBoolean(getString(R.string.use_external_video_player_key), false)
 
-    @Suppress("NullableBooleanElvis") // ?: true is clearer than != false
+    // ?: true is clearer than != false
     private val isAutoplayEnabled: Boolean
         // This method overrides default behaviour when setAutoPlay() is called.
         get() = autoPlayEnabled &&
@@ -1197,6 +1271,7 @@ class VideoDetailFragment :
                     playerUi.removeViewFromParent()
                     b.playerPlaceholder.addView(playerUi.getBinding().getRoot())
                     playerUi.setupVideoSurfaceIfNeeded()
+                    currentInfo?.let { playerUi.onMarkSeekbarRequested(it) }
                 }
             }
         }
@@ -1224,7 +1299,7 @@ class VideoDetailFragment :
                 activity.window.decorView
             }
             setHeightThumbnail(decorView.height, resources.displayMetrics)
-            view.getViewTreeObserver().removeOnPreDrawListener(preDrawListener)
+            view.viewTreeObserver.removeOnPreDrawListener(preDrawListener)
         }
         return@OnPreDrawListener false
     }
@@ -1238,7 +1313,7 @@ class VideoDetailFragment :
      */
     private fun setHeightThumbnail() {
         val metrics = resources.displayMetrics
-        requireView().getViewTreeObserver().removeOnPreDrawListener(preDrawListener)
+        requireView().viewTreeObserver.removeOnPreDrawListener(preDrawListener)
 
         if (this.isFullscreen) {
             val height = (
@@ -1252,7 +1327,7 @@ class VideoDetailFragment :
             if (height != 0) {
                 setHeightThumbnail(height, metrics)
             } else {
-                requireView().getViewTreeObserver().addOnPreDrawListener(preDrawListener)
+                requireView().viewTreeObserver.addOnPreDrawListener(preDrawListener)
             }
         } else {
             val isPortrait = metrics.heightPixels > metrics.widthPixels
@@ -1268,10 +1343,9 @@ class VideoDetailFragment :
     }
 
     private fun setHeightThumbnail(newHeight: Int, metrics: DisplayMetrics) {
-        binding.detailThumbnailImageView.setLayoutParams(
+        binding.detailThumbnailImageView.layoutParams =
             FrameLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, newHeight)
-        )
-        binding.detailThumbnailImageView.setMinimumHeight(newHeight)
+        binding.detailThumbnailImageView.minimumHeight = newHeight
         player?.UIs()?.get(VideoPlayerUi::class)?.let {
             val maxHeight = (metrics.heightPixels * MAX_PLAYER_HEIGHT).toInt()
             it.binding.surfaceView.setHeights(
@@ -1393,7 +1467,7 @@ class VideoDetailFragment :
         binding.positionView.visibility = View.GONE
 
         binding.detailVideoTitleView.text = title
-        binding.detailVideoTitleView.setMaxLines(1)
+        binding.detailVideoTitleView.maxLines = 1
         binding.detailVideoTitleView.animate(true, 0)
 
         binding.detailToggleSecondaryControlsView.visibility = View.GONE
@@ -1414,8 +1488,29 @@ class VideoDetailFragment :
     override fun handleResult(info: StreamInfo) {
         super.handleResult(info)
 
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val rydInfo: ReturnYouTubeDislikeInfo? = info.rydInfo
+        val isRydEnabled = prefs.getBoolean(getString(R.string.return_youtube_dislike_enable_key), true)
+        val overrideLikeCount =
+            prefs.getBoolean(getString(R.string.return_youtube_dislike_override_like_count_key), true)
+        val overrideViewCount =
+            prefs.getBoolean(getString(R.string.return_youtube_dislike_override_view_count_key), true)
+
         currentInfo = info
-        setInitialData(info.serviceId, info.originalUrl, info.name, playQueue)
+
+        var displayTitle = info.name
+        DeArrowHelper.getFormattedTitle(requireContext(), info)?.let {
+            Log.v("DeArrow", "VideoDetailFragment: Using DeArrow title: $it")
+            displayTitle = it
+        }
+
+        deArrowThumbnailUrl = DeArrowHelper.getThumbnailUrl(requireContext(), info)
+        if (info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType)) {
+            deArrowThumbnailUrl = null // Use avatar instead of DeArrow fallback
+        }
+        Log.v("DeArrow", "VideoDetailFragment: Using DeArrow thumbnail URL: $deArrowThumbnailUrl")
+
+        setInitialData(info.serviceId, info.originalUrl, displayTitle, playQueue)
 
         updateTabs(info)
 
@@ -1432,16 +1527,26 @@ class VideoDetailFragment :
 
         if (info.viewCount >= 0) {
             binding.detailViewCountView.text =
-                if (info.streamType == StreamType.AUDIO_LIVE_STREAM) {
-                    Localization.listeningCount(activity, info.viewCount)
-                } else if (info.streamType == StreamType.LIVE_STREAM) {
-                    Localization.localizeWatchingCount(activity, info.viewCount)
-                } else {
-                    Localization.localizeViewCount(activity, info.viewCount)
+                when (info.streamType) {
+                    StreamType.AUDIO_LIVE_STREAM -> {
+                        Localization.listeningCount(activity, info.viewCount)
+                    }
+                    StreamType.LIVE_STREAM -> {
+                        Localization.localizeWatchingCount(activity, info.viewCount)
+                    }
+                    else -> {
+                        Localization.localizeViewCount(activity, info.viewCount)
+                    }
                 }
             binding.detailViewCountView.visibility = View.VISIBLE
         } else {
             binding.detailViewCountView.visibility = View.GONE
+        }
+
+        if (rydInfo != null && isRydEnabled && overrideViewCount && rydInfo.viewCount > 0) {
+            binding.detailViewCountView.text =
+                Localization.localizeViewCount(activity, rydInfo.viewCount)
+            binding.detailViewCountView.visibility = View.VISIBLE
         }
 
         if (info.dislikeCount == -1L && info.likeCount == -1L) {
@@ -1461,6 +1566,26 @@ class VideoDetailFragment :
                 binding.detailThumbsDownImgView.visibility = View.GONE
             }
 
+            if (rydInfo != null && isRydEnabled && rydInfo.dislikes >= 0) {
+                val showAsPercentage = prefs.getBoolean(
+                    activity.getString(
+                        R.string.return_youtube_dislike_show_dislikes_as_percentage_key
+                    ),
+                    false
+                )
+
+                val dislikeText = if (showAsPercentage) {
+                    val percentage = rydInfo.dislikes.toDouble() / (rydInfo.likes + rydInfo.dislikes) * 100.0
+                    Localization.localizePercentage(percentage)
+                } else {
+                    Localization.shortCount(activity, rydInfo.dislikes)
+                }
+
+                binding.detailThumbsDownCountView.text = dislikeText
+                binding.detailThumbsDownCountView.visibility = View.VISIBLE
+                binding.detailThumbsDownImgView.visibility = View.VISIBLE
+            }
+
             if (info.likeCount >= 0) {
                 binding.detailThumbsUpCountView.text =
                     Localization.shortCount(activity, info.likeCount)
@@ -1469,6 +1594,13 @@ class VideoDetailFragment :
             } else {
                 binding.detailThumbsUpCountView.visibility = View.GONE
                 binding.detailThumbsUpImgView.visibility = View.GONE
+            }
+
+            if (rydInfo != null && isRydEnabled && overrideLikeCount && rydInfo.likes >= 0) {
+                binding.detailThumbsUpCountView.text =
+                    Localization.shortCount(activity, rydInfo.likes)
+                binding.detailThumbsUpCountView.visibility = View.VISIBLE
+                binding.detailThumbsUpImgView.visibility = View.VISIBLE
             }
             binding.detailThumbsDisabledView.visibility = View.GONE
         }
@@ -1495,7 +1627,18 @@ class VideoDetailFragment :
         binding.detailSecondaryControlPanel.visibility = View.GONE
 
         checkUpdateProgressInfo(info)
-        CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.thumbnails)
+
+        if (deArrowThumbnailUrl != null) {
+            CoilHelper.loadImageDefault(binding.detailThumbnailImageView, deArrowThumbnailUrl, R.drawable.placeholder_thumbnail_video, false)
+        } else {
+            val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
+            if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars.isNotEmpty()) {
+                CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.uploaderAvatars)
+            } else {
+                CoilHelper.loadDetailsThumbnail(binding.detailThumbnailImageView, info.thumbnails)
+            }
+        }
+
         ExtractorHelper.showMetaInfoInTextView(
             info.metaInfo,
             binding.detailMetaInfoTextView,
@@ -1504,7 +1647,13 @@ class VideoDetailFragment :
         )
 
         if (playerIsStopped) {
-            updateOverlayData(info.name, info.uploaderName, info.thumbnails)
+            val replaceThumbnails = prefs.getBoolean(getString(R.string.dearrow_replace_thumbnails_key), true)
+            val backgroundThumbnail = if (replaceThumbnails && info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId && StreamTypeUtil.isLiveStream(info.streamType) && info.uploaderAvatars.isNotEmpty()) {
+                info.uploaderAvatars
+            } else {
+                info.thumbnails
+            }
+            updateOverlayData(title, info.uploaderName, backgroundThumbnail, deArrowThumbnailUrl)
         }
 
         if (!info.errors.isEmpty()) {
@@ -1526,6 +1675,9 @@ class VideoDetailFragment :
         val hasAudioStreams = info.videoStreams.isNotEmpty() || info.audioStreams.isNotEmpty()
         binding.detailControlsBackground.isVisible = hasAudioStreams
 
+        // DeArrow is currently only supported for YouTube
+        binding.detailControlsDearrow?.isVisible = info.serviceId == org.schabi.newpipe.extractor.ServiceList.YouTube.serviceId
+
         val hasVideoStreams = info.videoStreams.isNotEmpty() || info.videoOnlyStreams.isNotEmpty()
         binding.detailControlsPopup.isVisible = hasVideoStreams
         binding.detailThumbnailPlayButton.setImageResource(
@@ -1536,7 +1688,7 @@ class VideoDetailFragment :
     private fun displayUploaderAsSubChannel(info: StreamInfo) {
         binding.detailSubChannelTextView.text = info.uploaderName
         binding.detailSubChannelTextView.visibility = View.VISIBLE
-        binding.detailSubChannelTextView.setSelected(true)
+        binding.detailSubChannelTextView.isSelected = true
 
         if (info.uploaderSubscriberCount > -1) {
             binding.detailUploaderTextView.text =
@@ -1554,7 +1706,7 @@ class VideoDetailFragment :
     private fun displayBothUploaderAndSubChannel(info: StreamInfo) {
         binding.detailSubChannelTextView.text = info.subChannelName
         binding.detailSubChannelTextView.visibility = View.VISIBLE
-        binding.detailSubChannelTextView.setSelected(true)
+        binding.detailSubChannelTextView.isSelected = true
 
         val subText = StringBuilder()
         if (info.uploaderName.isNotEmpty()) {
@@ -1574,7 +1726,7 @@ class VideoDetailFragment :
         } else {
             binding.detailUploaderTextView.text = subText
             binding.detailUploaderTextView.visibility = View.VISIBLE
-            binding.detailUploaderTextView.setSelected(true)
+            binding.detailUploaderTextView.isSelected = true
         }
 
         CoilHelper.loadAvatar(binding.detailSubChannelThumbnailView, info.subChannelAvatars)
@@ -1631,7 +1783,7 @@ class VideoDetailFragment :
         }
         val progressSeconds = TimeUnit.MILLISECONDS.toSeconds(progress).toInt()
         val durationSeconds = TimeUnit.MILLISECONDS.toSeconds(duration).toInt()
-        binding.positionView.setMax(durationSeconds)
+        binding.positionView.max = durationSeconds
         // If the old and the new progress values have a big difference then use animation.
         // Otherwise don't because it affects CPU
         if (abs(binding.positionView.progress - progressSeconds) > 2) {
@@ -1712,12 +1864,34 @@ class VideoDetailFragment :
     ) {
         // Progress updates are received every second even if media is paused. It's useless until
         // playing, hence the `player?.isPlaying == true` check.
-        if (player?.isPlaying == true && player?.playQueue?.item?.url?.equals(url) == true) {
-            updatePlaybackProgress(currentProgress.toLong(), duration.toLong())
+        if (player?.isPlaying == true) {
+            getSponsorBlockFragment()?.setCurrentProgress(currentProgress)
+            if (player?.playQueue?.item?.url?.equals(url) == true) {
+                updatePlaybackProgress(currentProgress.toLong(), duration.toLong())
+            }
         }
     }
 
     override fun onMetadataUpdate(info: StreamInfo, queue: PlayQueue) {
+        val context = requireContext()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val isSponsorBlockEnabled = prefs.getBoolean(getString(R.string.sponsor_block_enable_key), false)
+
+        if (player != null && isSponsorBlockEnabled) {
+            workerSponsorBlockModeCheck = sponsorBlockDataManager.isWhiteListed(info.uploaderName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { isWhitelisted ->
+                    if (currentSponsorBlockMode == null) {
+                        currentSponsorBlockMode = if (isWhitelisted) SponsorBlockMode.DISABLED else SponsorBlockMode.ENABLED
+                    }
+                    player?.sponsorBlockMode = currentSponsorBlockMode
+                    getSponsorBlockFragment()?.let { fragment ->
+                        fragment.setSponsorBlockMode(currentSponsorBlockMode!!)
+                        fragment.setIsWhitelisted(isWhitelisted)
+                    }
+                }
+        }
         findQueueInStack(queue)?.let { item ->
             // When PlayQueue can have multiple streams (PlaylistPlayQueue or ChannelPlayQueue)
             // every new played stream gives new title and url.
@@ -1814,7 +1988,7 @@ class VideoDetailFragment :
         val behavior = params.behavior as AppBarLayout.Behavior
         val valueAnimator = ValueAnimator.ofInt(0, -binding.playerPlaceholder.height)
         valueAnimator.addUpdateListener { animation ->
-            behavior.setTopAndBottomOffset(animation.getAnimatedValue() as Int)
+            behavior.topAndBottomOffset = animation.animatedValue as Int
             binding.appBarLayout.requestLayout()
         }
         valueAnimator.interpolator = DecelerateInterpolator()
@@ -1825,6 +1999,7 @@ class VideoDetailFragment :
     /*//////////////////////////////////////////////////////////////////////////
     // Player related utils
     ////////////////////////////////////////////////////////////////////////// */
+    @Suppress("DEPRECATION")
     private fun showSystemUi() {
         if (DEBUG) {
             Log.d(TAG, "showSystemUi() called")
@@ -1847,6 +2022,7 @@ class VideoDetailFragment :
         )
     }
 
+    @Suppress("DEPRECATION")
     private fun hideSystemUi() {
         if (DEBUG) {
             Log.d(TAG, "hideSystemUi() called")
@@ -1899,7 +2075,7 @@ class VideoDetailFragment :
     /**
      * @return true if the player is null, or if the player is nonnull but is stopped.
      */
-    @Suppress("NullableBooleanElvis") // rewriting as "!= false" creates more confusion
+    // rewriting as "!= false" creates more confusion
     private val playerIsStopped
         get() = player?.isStopped ?: true
 
@@ -1912,7 +2088,7 @@ class VideoDetailFragment :
         // Restore the old  brightness when fragment.onPause() called or
         // when a player is in portrait
         lp.screenBrightness = -1f
-        activity.window.setAttributes(lp)
+        activity.window.attributes = lp
     }
 
     private fun setupBrightness() {
@@ -1938,7 +2114,7 @@ class VideoDetailFragment :
                 return
             }
             lp.screenBrightness = brightnessLevel
-            activity.window.setAttributes(lp)
+            activity.window.attributes = lp
         }
     }
 
@@ -1957,6 +2133,7 @@ class VideoDetailFragment :
             binding.detailControlsBackground.setBackgroundColor(transparent)
             binding.detailControlsPopup.setBackgroundColor(transparent)
             binding.detailControlsDownload.setBackgroundColor(transparent)
+            binding.detailControlsDearrow?.setBackgroundColor(transparent)
             binding.detailControlsShare.setBackgroundColor(transparent)
             binding.detailControlsOpenInBrowser.setBackgroundColor(transparent)
             binding.detailControlsPlayWithKodi.setBackgroundColor(transparent)
@@ -1964,7 +2141,7 @@ class VideoDetailFragment :
         if (DeviceUtils.isDesktopMode(requireContext())) {
             // Remove the "hover" overlay (since it is visible on all mouse events and interferes
             // with the video content being played)
-            binding.detailThumbnailRootLayout.setForeground(null)
+            binding.detailThumbnailRootLayout.foreground = null
         }
     }
 
@@ -2017,6 +2194,71 @@ class VideoDetailFragment :
             .show()
     }
 
+    private fun showDeArrowSubmissionDialog() {
+        if (currentInfo == null) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_dearrow_submit, null)
+        val titleEdit = dialogView.findViewById<android.widget.EditText>(R.id.dearrow_submit_title_edit)
+        val timestampCheckbox = dialogView.findViewById<android.widget.CheckBox>(R.id.dearrow_submit_timestamp_checkbox)
+        val originalCheckbox = dialogView.findViewById<android.widget.CheckBox>(R.id.dearrow_submit_original_checkbox)
+
+        // Pre-fill the original title
+        titleEdit?.setText(currentInfo?.name)
+
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.dearrow_settings_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val newTitle = titleEdit?.text?.toString()?.trim() ?: ""
+                val submitTitle = if (newTitle.isEmpty() || newTitle == currentInfo?.name) null else newTitle
+
+                // Get timestamp in seconds
+                val timestamp = if (timestampCheckbox?.isChecked == true && player?.exoPlayer != null) {
+                    player!!.exoPlayer!!.currentPosition / 1000.0
+                } else {
+                    0.0
+                }
+
+                val original = originalCheckbox?.isChecked == true
+
+                if (submitTitle == null && timestampCheckbox?.isChecked != true && originalCheckbox?.isChecked != true) {
+                    // Nothing to submit
+                    return@setPositiveButton
+                }
+
+                // Submit in background
+                disposables.add(
+                    io.reactivex.rxjava3.core.Completable.fromAction {
+                        val settings = ExtractorHelper.getDeArrowApiSettings(requireContext())
+                        if (settings?.localUserId != null && settings.localUserId.trim().length == 64 && settings.localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
+                            throw IllegalStateException("Cannot submit using a Public User ID. Please use your Private User ID.")
+                        }
+                        org.schabi.newpipe.extractor.dearrow.DeArrowExtractorHelper.submitBranding(
+                            currentInfo?.id,
+                            submitTitle,
+                            timestamp,
+                            original,
+                            settings
+                        )
+                    }
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                            {
+                                Toast.makeText(requireContext(), R.string.dearrow_submit_success, Toast.LENGTH_SHORT).show()
+                            },
+                            { error ->
+                                Log.e("DeArrow", "Failed to submit branding", error)
+                                val msg = if (error is IllegalStateException) error.message else getString(R.string.dearrow_submit_failure)
+                                Toast.makeText(requireContext(), msg, Toast.LENGTH_LONG).show()
+                            }
+                        )
+                )
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
     private fun showExternalVideoPlaybackDialog() {
         val info = currentInfo ?: return
 
@@ -2030,8 +2272,8 @@ class VideoDetailFragment :
             activity,
             ListHelper.getUrlAndNonTorrentStreams(info.videoStreams),
             ListHelper.getUrlAndNonTorrentStreams(info.videoOnlyStreams),
-            false,
-            false
+            ascendingOrder = false,
+            preferVideoOnlyStreams = false
         )
 
         if (videoStreamsForExternalPlayers.isEmpty()) {
@@ -2048,7 +2290,7 @@ class VideoDetailFragment :
                 .setSingleChoiceItems(resolutions, selectedVideoStreamIndexForExternalPlayers, null)
             builder.setNegativeButton(R.string.cancel, null)
             builder.setPositiveButton(R.string.ok) { dialog, which ->
-                val index = (dialog as AlertDialog).listView.getCheckedItemPosition()
+                val index = (dialog as AlertDialog).listView.checkedItemPosition
                 // We don't have to manage the index validity because if there is no stream
                 // available for external players, this code will be not executed and if there is
                 // no stream which matches the default resolution, 0 is returned by
@@ -2087,7 +2329,7 @@ class VideoDetailFragment :
                 .setSingleChoiceItems(trackNames.toTypedArray(), selectedAudioStream, null)
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.ok) { dialog, which ->
-                    val index = (dialog as AlertDialog).listView.getCheckedItemPosition()
+                    val index = (dialog as AlertDialog).listView.checkedItemPosition
                     startOnExternalPlayer(activity, info, audioTracks[index])
                 }
                 .show()
@@ -2125,9 +2367,9 @@ class VideoDetailFragment :
         val afterDescendants = ViewGroup.FOCUS_AFTER_DESCENDANTS
         val blockDescendants = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         if (toMain) {
-            mainFragment.setDescendantFocusability(afterDescendants)
-            toolbar.setDescendantFocusability(afterDescendants)
-            (requireView() as ViewGroup).setDescendantFocusability(blockDescendants)
+            mainFragment.descendantFocusability = afterDescendants
+            toolbar.descendantFocusability = afterDescendants
+            (requireView() as ViewGroup).descendantFocusability = blockDescendants
             // Only focus the mainFragment if the mainFragment (e.g. search-results)
             // or the toolbar (e.g. TextField for search) don't have focus.
             // This was done to fix problems with the keyboard input, see also #7490
@@ -2135,9 +2377,9 @@ class VideoDetailFragment :
                 mainFragment.requestFocus()
             }
         } else {
-            mainFragment.setDescendantFocusability(blockDescendants)
-            toolbar.setDescendantFocusability(blockDescendants)
-            (requireView() as ViewGroup).setDescendantFocusability(afterDescendants)
+            mainFragment.descendantFocusability = blockDescendants
+            toolbar.descendantFocusability = blockDescendants
+            (requireView() as ViewGroup).descendantFocusability = afterDescendants
             // Only focus the player if it not already has focus
             if (!binding.getRoot().hasFocus()) {
                 binding.detailThumbnailRootLayout.requestFocus()
@@ -2159,9 +2401,9 @@ class VideoDetailFragment :
             return
         }
         holder.setPadding(
-            holder.getPaddingLeft(),
+            holder.paddingLeft,
             holder.paddingTop,
-            holder.getPaddingRight(),
+            holder.paddingRight,
             newBottomPadding
         )
     }
@@ -2268,14 +2510,19 @@ class VideoDetailFragment :
     }
 
     private fun updateOverlayData(
-        overlayTitle: String?,
-        uploader: String?,
-        thumbnails: List<Image>
+        title: String?,
+        uploaderName: String?,
+        thumbnails: List<Image>,
+        customThumbnailUrl: String? = null
     ) {
-        binding.overlayTitleTextView.text = overlayTitle ?: ""
-        binding.overlayChannelTextView.text = uploader ?: ""
+        binding.overlayTitleTextView.text = title ?: ""
+        binding.overlayChannelTextView.text = uploaderName ?: ""
         binding.overlayThumbnail.setImageDrawable(null)
-        CoilHelper.loadDetailsThumbnail(binding.overlayThumbnail, thumbnails)
+        if (customThumbnailUrl != null) {
+            CoilHelper.loadImageDefault(binding.overlayThumbnail, customThumbnailUrl, R.drawable.placeholder_thumbnail_video, false)
+        } else {
+            CoilHelper.loadDetailsThumbnail(binding.overlayThumbnail, thumbnails)
+        }
     }
 
     private fun setOverlayPlayPauseImage(playerIsPlaying: Boolean) {
@@ -2295,9 +2542,7 @@ class VideoDetailFragment :
         }
         binding.overlayLayout.alpha = min(MAX_OVERLAY_ALPHA, 1 - slideOffset)
         // These numbers are not special. They just do a cool transition
-        behavior.setTopAndBottomOffset(
-            (-binding.detailThumbnailImageView.height * 2 * (1 - slideOffset) / 3).toInt()
-        )
+        behavior.topAndBottomOffset = (-binding.detailThumbnailImageView.height * 2 * (1 - slideOffset) / 3).toInt()
         appBar.requestLayout()
     }
 
@@ -2324,6 +2569,105 @@ class VideoDetailFragment :
         }
     }
 
+    private fun getSponsorBlockFragment(): SponsorBlockFragment? {
+        val sponsorBlockTabPos = pageAdapter.getItemPositionByTitle(SPONSOR_BLOCK_TAB_TAG)
+        if (sponsorBlockTabPos < 0) {
+            return null
+        }
+        return pageAdapter.getItem(sponsorBlockTabPos) as? SponsorBlockFragment
+    }
+
+    override fun onSkippingEnabledChanged(newValue: Boolean) {
+        currentSponsorBlockMode = if (newValue) SponsorBlockMode.ENABLED else SponsorBlockMode.DISABLED
+        player?.sponsorBlockMode = currentSponsorBlockMode
+    }
+
+    override fun onRequestNewPendingSegment(startTime: Int, endTime: Int) {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+
+        info.removeSponsorBlockSegment("TEMP")
+        val segment = SponsorBlockSegment(
+            "TEMP",
+            startTime.toDouble(),
+            endTime.toDouble(),
+            SponsorBlockCategory.PENDING,
+            SponsorBlockAction.SKIP
+        )
+        info.addSponsorBlockSegment(segment)
+
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
+        getSponsorBlockFragment()?.refreshSponsorBlockSegments()
+    }
+
+    override fun onRequestClearPendingSegment() {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+
+        info.removeSponsorBlockSegment("TEMP")
+
+        currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
+        getSponsorBlockFragment()?.refreshSponsorBlockSegments()
+    }
+
+    override fun onRequestSubmitPendingSegment(newSegment: SponsorBlockSegment) {
+        val info = currentInfo ?: return
+        val currentPlayer = player ?: return
+        val context = requireContext()
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val apiUrl = prefs.getString(getString(R.string.sponsor_block_api_url_key), null)
+        if (apiUrl.isNullOrEmpty()) {
+            return
+        }
+
+        submitSegmentSubscriber = Single.fromCallable {
+            val localUserId = prefs.getString(getString(R.string.sponsor_block_local_user_id_key), null)
+            if (localUserId != null && localUserId.trim().length == 64 && localUserId.trim().matches(Regex("[0-9a-fA-F]+"))) {
+                throw IllegalStateException("Cannot submit using a Public User ID. Please use your Private User ID.")
+            }
+            SponsorBlockExtractorHelper.submitSponsorBlockSegment(info, newSegment, apiUrl, localUserId)
+        }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({ response ->
+                val responseCode = response.responseCode()
+
+                // 200 = all good
+                // 409 = all good, but the request timed out
+                if (responseCode != 200 && responseCode != 409) {
+                    var message: String? = response.responseMessage()
+                    if (message.isNullOrEmpty()) {
+                        message = "Error $responseCode"
+                    }
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    return@subscribe
+                }
+
+                info.removeSponsorBlockSegment("TEMP")
+                info.addSponsorBlockSegment(newSegment)
+
+                currentPlayer.UIs()?.get(MainPlayerUi::class)?.onMarkSeekbarRequested(info)
+                getSponsorBlockFragment()?.clearPendingSegment()
+
+                AlertDialog.Builder(context)
+                    .setMessage(R.string.sponsor_block_upload_success_message)
+                    .setPositiveButton(R.string.ok) { d, _ -> d.dismiss() }
+                    .show()
+            }, { throwable ->
+                if (throwable is NullPointerException) {
+                    return@subscribe
+                }
+                showSnackbar(
+                    context,
+                    ErrorInfo(throwable, UserAction.USER_REPORT, "Submit SponsorBlock segment")
+                )
+            })
+    }
+
+    override fun onSeekToRequested(positionMillis: Long) {
+        player?.seekTo(positionMillis)
+    }
+
     companion object {
         const val KEY_SWITCHING_PLAYERS: String = "switching_players"
 
@@ -2344,6 +2688,7 @@ class VideoDetailFragment :
         private const val COMMENTS_TAB_TAG = "COMMENTS"
         private const val RELATED_TAB_TAG = "NEXT VIDEO"
         private const val DESCRIPTION_TAB_TAG = "DESCRIPTION TAB"
+        private const val SPONSOR_BLOCK_TAB_TAG = "SPONSOR_BLOCK TAB"
         private const val EMPTY_TAB_TAG = "EMPTY TAB"
 
         /*//////////////////////////////////////////////////////////////////////// */

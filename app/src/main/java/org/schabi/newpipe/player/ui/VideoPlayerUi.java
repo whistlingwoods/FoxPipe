@@ -82,6 +82,7 @@ import org.schabi.newpipe.player.seekbarpreview.SeekbarPreviewThumbnailHolder;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
+import org.schabi.newpipe.util.SponsorBlockHelper;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
 import org.schabi.newpipe.views.player.PlayerFastSeekOverlay;
@@ -215,6 +216,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         binding.repeatButton.setOnClickListener(v -> onRepeatClicked());
         binding.shuffleButton.setOnClickListener(v -> onShuffleClicked());
+        binding.unskipButton.setOnClickListener(v -> onUnskipClicked());
+        binding.skipButton.setOnClickListener(v -> onSkipClicked());
 
         binding.playPauseButton.setOnClickListener(makeOnClickListener(player::playPause));
         binding.playPreviousButton.setOnClickListener(makeOnClickListener(player::playPrevious));
@@ -291,6 +294,8 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         binding.repeatButton.setOnClickListener(null);
         binding.shuffleButton.setOnClickListener(null);
+        binding.unskipButton.setOnClickListener(null);
+        binding.skipButton.setOnClickListener(null);
 
         binding.playPauseButton.setOnClickListener(null);
         binding.playPreviousButton.setOnClickListener(null);
@@ -400,6 +405,10 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
         // #6825 - Ensure that the shuffle-button is in the correct state on the UI
         setShuffleButton(player.getExoPlayer().getShuffleModeEnabled());
+
+        // Set repeat button to the correct UI state
+        setRepeatButton(player.getExoPlayer().getRepeatMode());
+
     }
 
     public abstract void removeViewFromParent();
@@ -798,6 +807,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     @Override
+    public void onMarkSeekbarRequested(@NonNull final StreamInfo streamInfo) {
+        SponsorBlockHelper.markSegments(context, binding.playbackSeekBar, streamInfo);
+    }
+
+    @Override
     public void onBlocked() {
         super.onBlocked();
 
@@ -849,6 +863,22 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.loadingPanel.setBackgroundColor(Color.TRANSPARENT);
         binding.loadingPanel.setVisibility(View.VISIBLE);
         binding.getRoot().setKeepScreenOn(true);
+    }
+
+    public void showAutoUnskip() {
+        binding.unskipButton.setVisibility(View.VISIBLE);
+    }
+
+    public void hideAutoUnskip() {
+        binding.unskipButton.setVisibility(View.GONE);
+    }
+
+    public void showAutoSkip() {
+        binding.skipButton.setVisibility(View.VISIBLE);
+    }
+
+    public void hideAutoSkip() {
+        binding.skipButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -947,6 +977,20 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         player.toggleShuffleModeEnabled();
     }
 
+    public void onUnskipClicked() {
+        if (DEBUG) {
+            Log.d(TAG, "onUnskipClicked() called");
+        }
+        player.toggleUnskip();
+    }
+
+    public void onSkipClicked() {
+        if (DEBUG) {
+            Log.d(TAG, "onSkipClicked() called");
+        }
+        player.toggleSkip();
+    }
+
     // TODO: don’t reference internal exoplayer2 resources
     @SuppressLint("PrivateResource")
     @Override
@@ -985,6 +1029,18 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private void setShuffleButton(final boolean shuffled) {
         binding.shuffleButton.setImageAlpha(shuffled ? 255 : 77);
     }
+
+    private void setRepeatButton(final int repeatMode) {
+        final int resId = switch (repeatMode) {
+            case REPEAT_MODE_ALL
+                    -> com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_all;
+            case REPEAT_MODE_ONE
+                    -> com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_one;
+            default -> com.google.android.exoplayer2.ui.R.drawable.exo_controls_repeat_off;
+        };
+        binding.repeatButton.setImageResource(resId);
+    }
+
     //endregion
 
 
@@ -1417,6 +1473,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     /**
+     * Sets up the subtitle view with the specified caption scale.
      *
      * @param captionScale Value returned by {@link PlayerHelper#getCaptionScale}.
      */

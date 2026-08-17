@@ -171,6 +171,8 @@ public final class NotificationConstants {
 
 
     /**
+     * Retrieves compact slot indices from shared preferences.
+     *
      * @param context the context to use
      * @param sharedPreferences the shared preferences to query values from
      * @return a sorted list of the indices of the slots to use as compact slots
