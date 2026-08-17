@@ -202,14 +202,17 @@ class VideoDetailFragment :
                     showComments = sharedPreferences.getBoolean(key, true)
                     tabSettingsChanged = true
                 }
+
                 getString(R.string.show_next_video_key) -> {
                     showRelatedItems = sharedPreferences.getBoolean(key, true)
                     tabSettingsChanged = true
                 }
+
                 getString(R.string.show_description_key) -> {
                     showDescription = sharedPreferences.getBoolean(key, true)
                     tabSettingsChanged = true
                 }
+
                 getString(R.string.sponsor_block_enable_key) -> {
                     showSponsorBlock = sharedPreferences.getBoolean(key, false)
                     tabSettingsChanged = true
@@ -1531,9 +1534,11 @@ class VideoDetailFragment :
                     StreamType.AUDIO_LIVE_STREAM -> {
                         Localization.listeningCount(activity, info.viewCount)
                     }
+
                     StreamType.LIVE_STREAM -> {
                         Localization.localizeWatchingCount(activity, info.viewCount)
                     }
+
                     else -> {
                         Localization.localizeViewCount(activity, info.viewCount)
                     }

@@ -4,13 +4,13 @@ import android.content.Context
 import android.util.Log
 import android.util.LruCache
 import androidx.preference.PreferenceManager
+import java.util.Locale
+import java.util.regex.Pattern
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.dearrow.DeArrowApiSettings
 import org.schabi.newpipe.extractor.dearrow.DeArrowInfo
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.util.ExtractorHelper
-import java.util.Locale
-import java.util.regex.Pattern
 
 object DeArrowHelper {
 

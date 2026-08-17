@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.preference.Preference
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -14,7 +15,6 @@ import io.reactivex.rxjava3.functions.Consumer
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.R
 import org.schabi.newpipe.local.sponsorblock.SponsorBlockDataManager
-import androidx.core.content.edit
 
 class SponsorBlockSettingsFragment : BasePreferenceFragment() {
     private var sponsorBlockDataManager: SponsorBlockDataManager? = null
