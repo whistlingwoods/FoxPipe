@@ -97,11 +97,7 @@ jobs:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
           arch: ${{ matrix.arch }}
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -memory 2048
-          disable-animations: true
-          script: |
-            adb wait-for-device shell 'while [[ -z $(getprop sys.boot_completed) ]]; do sleep 1; done; input keyevent 82'
-            ./gradlew connectedCheck --stacktrace
+          script: ./gradlew connectedCheck --stacktrace --no-configuration-cache
 
       - name: Upload test report when tests fail # because the printed out stacktrace (console) is too short, see also #7553
         uses: actions/upload-artifact@v7
