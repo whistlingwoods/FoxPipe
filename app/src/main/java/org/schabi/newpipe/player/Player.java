@@ -74,7 +74,6 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player.PositionInfo;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.Tracks;
-import com.google.android.exoplayer2.audio.SilenceSkippingAudioProcessor;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.text.CueGroup;
@@ -317,20 +316,10 @@ public final class Player implements PlaybackListener, Listener {
                 new DefaultBandwidthMeter.Builder(context).build());
         loadController = new LoadController();
 
-        final boolean alwaysUseExoplayerSetOutputSurfaceWorkaround = prefs.getBoolean(
-                context.getString(R.string.always_use_exoplayer_set_output_surface_workaround_key),
-                false);
-        final int maxSilenceDurationMillis = prefs.getInt(
-                context.getString(R.string.max_silence_duration_key),
-                Integer.parseInt(context.getString(R.string.max_silence_duration_value)));
-        final SilenceSkippingAudioProcessor silenceSkippingAudioProcessor =
-                new SilenceSkippingAudioProcessor(
-                        MILLISECONDS.toMicros(maxSilenceDurationMillis),
-                        MILLISECONDS.toMicros(maxSilenceDurationMillis),
-                        SilenceSkippingAudioProcessor.DEFAULT_SILENCE_THRESHOLD_LEVEL);
-        renderFactory = new CustomRenderersFactory(
-                context, alwaysUseExoplayerSetOutputSurfaceWorkaround,
-                silenceSkippingAudioProcessor);
+        renderFactory = prefs.getBoolean(
+                context.getString(
+                        R.string.always_use_exoplayer_set_output_surface_workaround_key), false)
+                ? new CustomRenderersFactory(context) : new DefaultRenderersFactory(context);
 
         renderFactory.setEnableDecoderFallback(
                 prefs.getBoolean(
