@@ -77,7 +77,7 @@ public class VolumeBoostRenderersFactory extends DefaultRenderersFactory {
         volumeBoostAudioProcessor.setVolumeBoost(volumeBoost);
         volumeBoostAudioProcessor.setAutomaticVolumeBoost(automaticVolumeBoost);
 
-        return new DefaultAudioSink.Builder(context)
+        return new DefaultAudioSink.Builder()
                 .setAudioProcessors(new AudioProcessor[] {volumeBoostAudioProcessor})
                 .setEnableFloatOutput(enableFloatOutput)
                 .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
