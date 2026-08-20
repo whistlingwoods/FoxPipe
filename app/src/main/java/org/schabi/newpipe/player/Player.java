@@ -1849,7 +1849,6 @@ public final class Player implements PlaybackListener, Listener {
         if (isStopped()) {
             // Some phones suspend a paused player after 10 minutes. This causes the player to
             // enter STATE_IDLE, causing playback to fail. So we try to recover from that here.
-            setRecovery();
             reloadPlayQueueManager();
         }
 
