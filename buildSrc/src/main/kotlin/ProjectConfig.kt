@@ -12,4 +12,4 @@ const val NEWPIPE_VERSION_CODE = 1014
 const val NEWPIPE_VERSION_NAME = "0.29.0"
 
 const val NEWPIPE_APPLICATION_ID_OLD = "org.schabi.newpipe"
-const val NEWPIPE_APPLICATION_ID_NEW = "net.newpipe.app"
+const val NEWPIPE_APPLICATION_ID_NEW = "apps.palmtree.palmpipe"

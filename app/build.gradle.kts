@@ -39,8 +39,8 @@ configure<ApplicationExtension> {
     namespace = NEWPIPE_APPLICATION_ID_OLD
 
     defaultConfig {
-        applicationId = NEWPIPE_APPLICATION_ID_OLD
-        resValue("string", "app_name", "NewPipe")
+        applicationId = "apps.palmtree.palmpipe"
+        resValue("string", "app_name", "PalmPipe")
         minSdk {
             version = release(NEWPIPE_VERSION_SDK_MIN)
         }
@@ -50,7 +50,7 @@ configure<ApplicationExtension> {
 
         versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: NEWPIPE_VERSION_CODE
 
-        versionName = NEWPIPE_VERSION_NAME
+        versionName = NEWPIPE_VERSION_NAME + "-personal-r1"
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -63,17 +63,17 @@ configure<ApplicationExtension> {
             // suffix the app id and the app name with git branch name
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                 applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
+                resValue("string", "app_name", "PalmPipe Debug")
             } else {
                 applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "PalmPipe $workingBranch")
             }
         }
 
         release {
             System.getProperty("packageSuffix")?.let { suffix ->
                 applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+                resValue("string", "app_name", "PalmPipe $suffix")
             }
             isMinifyEnabled = true
             isShrinkResources = true
@@ -91,10 +91,10 @@ configure<ApplicationExtension> {
             // suffix the app id and the app name with git branch name
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
                 applicationIdSuffix = ".continuous"
-                resValue("string", "app_name", "NewPipe Continuous")
+                resValue("string", "app_name", "PalmPipe Continuous")
             } else {
                 applicationIdSuffix = ".continuous.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "PalmPipe $workingBranch")
             }
         }
     }
