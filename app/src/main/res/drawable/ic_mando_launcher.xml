@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Electric blue outer ring -->
+    <path
+        android:fillColor="#2979FF"
+        android:pathData="M54,4 C81.6,4 104,26.4 104,54 C104,81.6 81.6,104 54,104 C26.4,104 4,81.6 4,54 C4,26.4 26.4,4 54,4 Z" />
+
+    <!-- Black inner face -->
+    <path
+        android:fillColor="#05070B"
+        android:pathData="M54,10 C78.3,10 98,29.7 98,54 C98,78.3 78.3,98 54,98 C29.7,98 10,78.3 10,54 C10,29.7 29.7,10 54,10 Z" />
+
+    <!-- Blue MP / M shape -->
+    <path
+        android:fillColor="#147DFF"
+        android:pathData="M24,82 L24,28 L38,28 L54,46 L70,28 L84,28 L84,82 L70,82 L70,50 L54,68 L38,50 L38,82 Z" />
+
+    <!-- White play button -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M47,42 L47,66 L68,54 Z" />
+
+</vector>

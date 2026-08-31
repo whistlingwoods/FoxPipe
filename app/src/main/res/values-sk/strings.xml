@@ -78,7 +78,7 @@
     <string name="downloads_title">Stiahnuté</string>
     <string name="error_report_title">Hlásenie o chybe</string>
     <string name="app_ui_crash">Aplikácia/UP zlyhalo</string>
-    <string name="info_labels">Čo:\\nPožiadavka:\\nJazyk obsahu:\\nKrajina Obsahu:\\nJazyk Aplikácie:\\nSlužba:\\nČas v GMT:\\nBalík:\\nVerzia:\\nOS:</string>
+    <string name="info_labels">Čo:\nPožiadavka:\nJazyk obsahu:\nKrajina Obsahu:\nJazyk Aplikácie:\nSlužba:\nČas v GMT:\nBalík:\nVerzia:\nOS:</string>
     <string name="title_activity_recaptcha">Výzva reCAPTCHA</string>
     <string name="black_theme_title">Čierna</string>
     <string name="all">Všetko</string>
@@ -110,34 +110,34 @@
     <string name="fragment_feed_title">Čo je nové</string>
     <string name="enable_search_history_title">Hľadať v histórií</string>
     <string name="enable_search_history_summary">Hľadané výrazy uloží lokálne</string>
-    <string name="enable_watch_history_title">História pozretí</string>
-    <string name="enable_watch_history_summary">Uloží históriu pozretých videí</string>
+    <string name="enable_watch_history_title">História pozerania</string>
+    <string name="enable_watch_history_summary">Uloží históriu pozeraných videí</string>
     <string name="resume_on_audio_focus_gain_title">Pokračovať v prehrávaní</string>
     <string name="resume_on_audio_focus_gain_summary">Pokračouje v prehrávaní po prerušení (napr. po telefonáte)</string>
     <string name="notification_channel_name">NewPipe oznámenia</string>
     <string name="notification_channel_description">Notifikácie NewPipe prehrávača</string>
-    <string name="settings_category_downloads_title">Preberanie</string>
+    <string name="settings_category_downloads_title">Sťahovanie</string>
     <string name="settings_file_charset_title">Povolené znaky v názvoch súborov</string>
     <string name="settings_file_replacement_character_summary">Neplatné znaky budú nahradené znakmi s týmto významom</string>
     <string name="settings_file_replacement_character_title">Náhradný znak</string>
     <string name="charset_letters_and_digits">Písmená a číslice</string>
     <string name="charset_most_special_characters">Väčšina špeciálnych znakov</string>
-    <string name="title_activity_about">O NewPipe</string>
+    <string name="title_activity_about">O aplikácii NewPipe</string>
     <string name="title_licenses">Licencie tretích strán</string>
     <string name="copyright" formatted="true">© %1$s od %2$s pod %3$s</string>
     <string name="tab_about">O nás a často kladené otázky</string>
     <string name="tab_licenses">Licencie</string>
-    <string name="app_description">Ľahké prehrávanie na Androide.</string>
-    <string name="view_on_github">Pozrieť na GitHube</string>
+    <string name="app_description">Voľné a ľahké streamovanie pre Android.</string>
+    <string name="view_on_github">Pozrieť na GitHub</string>
     <string name="app_license_title">Licencia NewPipe</string>
-    <string name="contribution_encouragement">Či už máte nápady, prekladáte, spravíte zmenu dizajnu, čistenie kódu alebo skutočné ťažké zmeny v kóde, pomoc je vždy vítaná. Čím viac, tým lepšie!</string>
-    <string name="read_full_license">Prečítať licencie</string>
-    <string name="contribution_title">Zapojiť sa</string>
+    <string name="contribution_encouragement">Či už máte nápady týkajúce sa prekladu, dizajnu, čistenia kódu alebo zásadných zmien v kóde – vaša pomoc je vždy vítaná. Čím viac sa urobí, tým lepšie to bude!</string>
+    <string name="read_full_license">Prečítajte si licenciu</string>
+    <string name="contribution_title">Prispieť</string>
     <string name="title_activity_history">História</string>
     <string name="action_history">História</string>
     <string name="settings_category_player_title">Prehrávač</string>
     <string name="settings_category_player_behavior_title">Správanie</string>
-    <string name="settings_category_history_title">História a vyrovnávacia pamäť</string>
+    <string name="settings_category_history_title">História a medzipamäť</string>
     <string name="undo">Vrátiť</string>
     <string name="search_no_results">Žiadne výsledky</string>
     <string name="empty_list_subtitle">Zatiaľ je tu ticho ako v hrobe</string>
@@ -147,11 +147,12 @@
         <item quantity="few">%s odberatelia</item>
         <item quantity="other">%s odberateľov</item>
     </plurals>
-    <string name="no_views">Žiadne pozretia</string>
+    <string name="no_views">Žiadne zobrazenia</string>
     <plurals name="views">
-        <item quantity="one">%s pozriete</item>
-        <item quantity="few">%s pozretia</item>
-        <item quantity="other">%s pozretí</item>
+        <item quantity="one">%s zobrazenie</item>
+        <item quantity="few">%s zobrazenia</item>
+        <item quantity="many">%s zobrazení</item>
+        <item quantity="other">%s zobrazení</item>
     </plurals>
     <string name="no_videos">Žiadne videá</string>
     <plurals name="videos">
@@ -188,11 +189,11 @@
     <string name="create">Vytvoriť</string>
     <string name="dismiss">Zrušiť</string>
     <string name="rename">Premenovať</string>
-    <string name="donation_title">Prispieť</string>
-    <string name="donation_encouragement">Aplikácia NewPipe je vyvíjaná dobrovoľníkmi v ich voľnom čase snažiac sa vám priniesť najlepší zážitok z appky, ak sa vám páči, odmeňte vývojárov aby mohli NewPipe naďalej vylepšovať napríklad pri šálke dobrej kávy.</string>
-    <string name="give_back">Daruj</string>
-    <string name="website_title">Webstránka</string>
-    <string name="website_encouragement">Pre viac informácií a noviniek navštívte webstránku NewPipe.</string>
+    <string name="donation_title">Darovať</string>
+    <string name="donation_encouragement">NewPipe vyvíjajú dobrovoľníci, ktorí vo voľnom čase pracujú na tom, aby vám poskytli čo najlepší používateľský zážitok. Odmeňte vývojárov, aby mohli NewPipe ešte vylepšiť, zatiaľ čo si vychutnávajú šálku kávy.</string>
+    <string name="give_back">Odmeniť</string>
+    <string name="website_title">Webová stránka</string>
+    <string name="website_encouragement">Navštívte webovú stránku NewPipe pre viac informácií a noviniek.</string>
     <string name="delete_item_search_history">Chcete odstrániť túto položku z histórie vyhľadávania?</string>
     <string name="title_last_played">Naposledy prehrávané</string>
     <string name="title_most_played">Najprehrávanejšie</string>
@@ -296,20 +297,19 @@
     <string name="playback_tempo">Rýchlosť</string>
     <string name="playback_pitch">Výška</string>
     <string name="unhook_checkbox">Spraviť nezávislými (môže spôsobovať skreslenie)</string>
-    <string name="clear_views_history_title">Vymazať históriu pozretí</string>
+    <string name="clear_views_history_title">Vymazať históriu pozerania</string>
     <string name="clear_views_history_summary">Odstráni históriu a pozície prehrávaných streamov</string>
-    <string name="delete_view_history_alert">Vymazať celú históriu pozretí\?</string>
-    <string name="watch_history_deleted">História pozretí bola vymazaná</string>
+    <string name="delete_view_history_alert">Vymazať celú históriu pozerania?</string>
+    <string name="watch_history_deleted">História pozerania bola vymazaná</string>
     <string name="clear_search_history_title">Vymazať históriu vyhľadávania</string>
     <string name="clear_search_history_summary">Odstráni históriu vyhľadávania kľúčových slov</string>
     <string name="delete_search_history_alert">Vymazať celú históriu vyhľadávania\?</string>
     <string name="search_history_deleted">História vyhľadávaní bola vymazaná</string>
     <string name="one_item_deleted">1 položka bola vymazaná.</string>
-    <string name="app_license">NewPipe je slobodný softvér pod licenciou copyleft. Môžete ho používať, študovať a vylepšovať ako len chcete. Konkrétne ho môžete šíriť a/alebo upravovať pod podmienkami Všeobecnej verejnej licencie GNU, ako ju publikuje Free Software Foundation, buď verzia 3 licencie, alebo (podľa vašej voľby) ktorákoľvek neskoršia verzia.</string>
-    <string name="privacy_policy_title">Ochrana osobných údajov v NewPipe</string>
-    <string name="privacy_policy_encouragement">NewPipe projekt berie vaše súkromie vážne. Preto aplikácia nezhromažďuje žiadne údaje bez vášho súhlasu.
-\nNewPipe v ochrane súkromia podrobne vysvetľuje, aké údaje budú odoslané a uložené pri hlásení o páde.</string>
-    <string name="read_privacy_policy">Prečítajte si pravidlá ochrany osobných údajov</string>
+    <string name="app_license">NewPipe je voľný softvér s copyleftom: Môžete ho používať, študovať, zdieľať a vylepšovať podľa vlastného uváženia. Konkrétne ho môžete redistribuovať a/alebo modifikovať podľa podmienok Všeobecnej verejnej licencie GNU, ako ju uverejnila Free Software Foundation, buď verzie 3 licencie, alebo (podľa vášho výberu) akejkoľvek neskoršej verzie.</string>
+    <string name="privacy_policy_title">Zásady ochrany osobných údajov NewPipe</string>
+    <string name="privacy_policy_encouragement">Projekt NewPipe berie ochranu vašich osobných údajov veľmi vážne. Aplikácia preto bez vášho súhlasu nezhromažďuje žiadne údaje.\nV zásadách ochrany osobných údajov NewPipe je podrobne vysvetlené, aké údaje sa odosielajú a ukladajú pri zaslaní správy o chybe.</string>
+    <string name="read_privacy_policy">Prečítajte si zásady ochrany osobných údajov</string>
     <string name="import_settings">Chcete zároveň importovať aj nastavenia?</string>
     <string name="start_accept_privacy_policy">V súlade s Európskym Všeobecným Nariadením o Ochrane Údajov (GDPR), chceme upriamiť Vašu pozornosť na zmluvu o ochrane osobných údajov v NewPipe. Starostlivo si ju prečítajte.
 \nMusíte ju prijať pred nahlásením chyby.</string>
@@ -510,9 +510,9 @@
 \n
 \nMožno v budúcnosti sa to zmení.</string>
     <string name="remove_watched_popup_partially_watched_streams">Áno aj čiastočne pozreté videá</string>
-    <string name="remove_watched_popup_warning">Pozreté videá, ktoré ste pozreli pred a po ich pridaní do playlistu, budú odstránené. \nSte si istí ich odstránením z playlistu? Táto operácia je nezvratná!</string>
-    <string name="remove_watched_popup_title">Odstrániť pozreté videá?</string>
-    <string name="remove_watched">Odstrániť pozreté</string>
+    <string name="remove_watched_popup_warning">Videá, ktoré ste sledovali pred a po pridaní do playlistu, budú odstránené. \nNaozaj to chcete urobiť?</string>
+    <string name="remove_watched_popup_title">Odstrániť pozerané videá?</string>
+    <string name="remove_watched">Odstrániť pozerané</string>
     <string name="show_original_time_ago_summary">Pôvodné texty zo služieb budú viditeľné v položkách streamu</string>
     <string name="show_original_time_ago_title">Zobrazovať pôvodný čas</string>
     <string name="infinite_videos">∞ videí</string>
@@ -647,8 +647,6 @@
     <string name="low_quality_smaller">Nízka kvalita (menšie)</string>
     <string name="high_quality_larger">Vysoká kvalita (väčšie)</string>
     <string name="seekbar_preview_thumbnail_title">Náhľad miniatúry pri vyhľadávaní</string>
-    <string name="show_image_indicators_summary">Zobrazí farebné pásiky Picasso na obrázkoch podľa ich zdroja: červený pre sieť, modrý pre disk a zelený pre pamäť</string>
-    <string name="show_image_indicators_title">Zobraziť indikátory obrázka</string>
     <string name="main_page_content_swipe_remove">Potiahnutím vymazať</string>
     <string name="comments_are_disabled">Komentáre sú zakázané</string>
     <string name="start_main_player_fullscreen_summary">Ak je automatické otáčanie zablokované, nespustí videá v miniprehrávači, ale prepne sa do celoobrazovkového režimu. Do miniprehrávača sa dostanete po ukončení režimu celej obrazovky</string>
@@ -678,7 +676,7 @@
     <string name="show_error_snackbar">Zobraziť krátke oznámenie chyby</string>
     <string name="create_error_notification">Oznámte chybu</string>
     <string name="progressive_load_interval_exoplayer_default">ExoPlayer preddefinovaný</string>
-    <string name="notifications">Upozornenia</string>
+    <string name="notifications">Oznámenia</string>
     <string name="streams_notifications_interval_title">Frekvencia kontroly</string>
     <string name="delete_downloaded_files_confirm">Vymazať všetky stiahnuté súbory z disku\?</string>
     <string name="notifications_disabled">Upozornenia sú vypnuté</string>
@@ -712,9 +710,9 @@
     <string name="no_video_streams_available_for_external_players">Žiadne video streamy nie sú k dispozícií pre externé prehrávače</string>
     <string name="unknown_quality">Neznáma kvalita</string>
     <string name="faq_title">Často kladené otázky</string>
-    <string name="faq">Pozrieť na webovej stránke</string>
+    <string name="faq">Pozrieť na webstránke</string>
     <string name="sort">Usporiadať</string>
-    <string name="faq_description">Ak máte problémy s používaním aplikácie, určite si prečítajte tieto odpovede na časté otázky!</string>
+    <string name="faq_description">Ak máte problémy s používaním aplikácie, určite si prečítajte tieto odpovede na zvyčajné otázky!</string>
     <string name="unset_playlist_thumbnail">Vypnutie trvalého náhľadu</string>
     <string name="msg_failed_to_copy">Kopírovanie do schránky zlyhalo</string>
     <string name="duplicate_in_playlist">Playlisty zobrazené šedou farbou už obsahujú danú položku.</string>
@@ -861,6 +859,37 @@
     <string name="player_http_403">Počas prehrávania bola zo servera prijatá chyba HTTP 403, pravdepodobne spôsobená vypršaním platnosti streamingovej adresy URL alebo zákazom IP adresy</string>
     <string name="player_http_invalid_status">Chyba HTTP %1$s prijatá zo servera počas prehrávania</string>
     <string name="youtube_player_http_403">Chyba HTTP 403 prijatá zo servera počas prehrávania, pravdepodobne spôsobená zákazom IP adresy alebo problémami s deobfuskáciou streamingovej URL adresy</string>
-    <string name="sign_in_confirm_not_bot_error">%1$s odmietol poskytnúť údaje, žiada o prihlásenie na potvrdenie, že žiadateľ nie je bot.\n\nVaša IP adresa mohla byť dočasne zakázaná %1$s, môžete nejaký čas počkať alebo prejsť na inú IP adresu (napríklad zapnutím/vypnutím VPN alebo prepnutím z WiFi na mobilné dáta).</string>
+    <string name="sign_in_confirm_not_bot_error">%1$s odmietol poskytnúť údaje, žiada o prihlásenie na potvrdenie, že žiadateľ nie je bot.\n\nVaša IP adresa mohla byť dočasne zakázaná %1$s, môžete nejaký čas počkať alebo prejsť na inú IP adresu (napríklad zapnutím/vypnutím VPN alebo prepnutím z WiFi na mobilné dáta).\n\nPozrite si <a href="%2$s">túto časť FAQ</a> pre viac informácií.</string>
     <string name="unsupported_content_in_country">Tento obsah nie je dostupný pre aktuálne zvolenú krajinu obsahu.\n\nZmeňte výber v ponuke \"Nastavenia &gt; Obsah &gt; Predvolená krajina obsahu\".</string>
+    <string name="kao_dialog_warning">V auguste 2025 spoločnosť Google oznámila, že od septembra 2026 bude inštalácia aplikácií vyžadovať overenie vývojára pre všetky aplikácie Android na certifikovaných zariadeniach, vrátane tých, ktoré sú inštalované mimo obchodu Play Store. Keďže vývojári NewPipe s touto požiadavkou nesúhlasia, NewPipe po tomto termíne nebude na certifikovaných zariadeniach Android fungovať.</string>
+    <string name="kao_dialog_more_info">Podrobnosti</string>
+    <string name="kao_solution">Riešenie</string>
+    <plurals name="export_subscriptions">
+        <item quantity="one">Exportovanie %d odberu…</item>
+        <item quantity="few">Exportovanie %d odberov…</item>
+        <item quantity="many">Exportovanie %d odberov…</item>
+        <item quantity="other">Exportovanie %d odberov…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">Načítanie %d odberu…</item>
+        <item quantity="few">Načítanie %d odberov…</item>
+        <item quantity="many">Načítanie %d odberov…</item>
+        <item quantity="other">Načítanie %d odberov…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">Importovanie %d odberu…</item>
+        <item quantity="few">Importovanie %d odberov…</item>
+        <item quantity="many">Importovanie %d odberov…</item>
+        <item quantity="other">Importovanie %d odberov…</item>
+    </plurals>
+    <string name="import_subscriptions_title">Importovať odbery</string>
+    <string name="export_subscriptions_title">Exportovať odbery</string>
+    <string name="import_subscriptions_summary">Import odberov z predchádzajúceho exportu .json</string>
+    <string name="export_subscriptions_summary">Export vašich odberov do súboru .json</string>
+    <string name="import_from_previous_export">Importovať z predchádzajúceho exportu</string>
+    <string name="api23_requirement_dialog_title">NewPipe ukončuje podporu pre Android 5</string>
+    <string name="api23_requirement_dialog_message">NewPipe je bohužiaľ závislý od niekoľkých knižníc, ktoré ukončili podporu pre Android 5.0 a 5.1. Ďalšia verzia NewPipe bude preto, žiaľ, fungovať len na zariadeniach s Androidom 6 alebo novším. Viac informácií nájdete v blogovom príspevku.</string>
+    <string name="api23_requirement_dialog_blogpost">Blogový príspevok</string>
+    <string name="channel_tab_podcasts">Podcasty</string>
+    <string name="channel_tab_courses">Kurzy</string>
 </resources>

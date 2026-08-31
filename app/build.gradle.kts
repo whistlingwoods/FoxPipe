@@ -3,48 +3,54 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import com.android.build.api.dsl.ApplicationExtension
+import java.util.regex.Pattern
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.jetbrains.kotlin.kapt)
+    alias(libs.plugins.android.legacy.kapt)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.jetbrains.kotlin.parcelize)
+    alias(libs.plugins.jetbrains.kotlinx.serialization)
     alias(libs.plugins.sonarqube)
+    alias(libs.plugins.about.libraries)
     checkstyle
 }
 
 val gitWorkingBranch = providers.exec {
     commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
 }.standardOutput.asText.map { it.trim() }
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
+val defaultBranches = listOf("master", "dev")
+val workingBranch = gitWorkingBranch.getOrElse("")
+val normalizedWorkingBranch = workingBranch
+    .replaceFirst("^[^A-Za-z]+".toRegex(), "")
+    .replace("[^0-9A-Za-z]+".toRegex(), "")
 
 kotlin {
-    compilerOptions {
-        // TODO: Drop annotation default target when it is stable
-        freeCompilerArgs.addAll(
-            "-Xannotation-default-target=param-property"
-        )
-    }
+    jvmToolchain(21)
 }
 
-android {
-    compileSdk = 36
-    namespace = "org.schabi.newpipe"
+configure<ApplicationExtension> {
+    compileSdk {
+        version = release(NEWPIPE_VERSION_SDK_COMPILE_MAJOR) {
+            minorApiLevel = NEWPIPE_VERSION_SDK_COMPILE_MINOR
+        }
+    }
+    namespace = NEWPIPE_APPLICATION_ID_OLD
 
     defaultConfig {
-        applicationId = "org.schabi.newpipe"
-        resValue("string", "app_name", "NewPipe")
-        minSdk = 21
-        targetSdk = 35
+        applicationId = NEWPIPE_APPLICATION_ID_OLD
+        resValue("string", "app_name", "Mando Player")
+        minSdk {
+            version = release(NEWPIPE_VERSION_SDK_MIN)
+        }
+        targetSdk {
+            version = release(NEWPIPE_VERSION_SDK_TARGET)
+        }
 
-        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: 1007
+        versionCode = System.getProperty("versionCodeOverride")?.toInt() ?: NEWPIPE_VERSION_CODE
 
-        versionName = "0.28.2"
+        versionName = NEWPIPE_VERSION_NAME
         System.getProperty("versionNameSuffix")?.let { versionNameSuffix = it }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -55,41 +61,48 @@ android {
             isDebuggable = true
 
             // suffix the app id and the app name with git branch name
-            val defaultBranches = listOf("master", "dev")
-            val workingBranch = gitWorkingBranch.getOrElse("")
-            val normalizedWorkingBranch = workingBranch
-                .replaceFirst("^[^A-Za-z]+".toRegex(), "")
-                .replace("[^0-9A-Za-z]+".toRegex(), "")
-
             if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
-                // default values when branch name could not be determined or is master or dev
                 applicationIdSuffix = ".debug"
-                resValue("string", "app_name", "NewPipe Debug")
+                resValue("string", "app_name", "Mando Player Debug")
             } else {
                 applicationIdSuffix = ".debug.$normalizedWorkingBranch"
-                resValue("string", "app_name", "NewPipe $workingBranch")
+                resValue("string", "app_name", "Mando Player $workingBranch")
             }
         }
 
         release {
             System.getProperty("packageSuffix")?.let { suffix ->
                 applicationIdSuffix = suffix
-                resValue("string", "app_name", "NewPipe $suffix")
+                resValue("string", "app_name", "Mando Player $suffix")
             }
             isMinifyEnabled = true
-            isShrinkResources = false // disabled to fix F-Droid"s reproducible build
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+
+        register("continuous") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            isDefault = true
+
+            // suffix the app id and the app name with git branch name
+            if (normalizedWorkingBranch.isEmpty() || workingBranch in defaultBranches) {
+                applicationIdSuffix = ".continuous"
+                resValue("string", "app_name", "Mando Player Continuous")
+            } else {
+                applicationIdSuffix = ".continuous.$normalizedWorkingBranch"
+                resValue("string", "app_name", "Mando Player $workingBranch")
+            }
         }
     }
 
     lint {
-        checkReleaseBuilds = false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
+        lintConfig = file("lint.xml")
+        // Continue the debug build even when errors are found
         abortOnError = false
-        // suppress false warning ("Resource IDs will be non-final in Android Gradle Plugin version
-        // 5.0, avoid using them in switch case statements"), which affects only library projects
-        disable += "NonConstantResourceId"
     }
 
     compileOptions {
@@ -100,7 +113,7 @@ android {
 
     sourceSets {
         getByName("androidTest") {
-            assets.srcDir("$projectDir/schemas")
+            assets.directories += "$projectDir/schemas"
         }
     }
 
@@ -111,6 +124,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        resValues = true
     }
 
     packaging {
@@ -130,16 +144,8 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
-
 // Custom dependency configuration for ktlint
 val ktlint by configurations.creating
-
-// https://checkstyle.org/#JRE_and_JDK
-tasks.withType<Checkstyle>().configureEach {
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
 
 checkstyle {
     configDirectory = rootProject.file("checkstyle")
@@ -209,19 +215,20 @@ sonar {
 }
 
 dependencies {
-    /** Desugaring **/
+    // Desugaring
     coreLibraryDesugaring(libs.android.desugar)
 
-    /** NewPipe libraries **/
+    // NewPipe libraries
+    implementation(projects.shared)
     implementation(libs.newpipe.nanojson)
     implementation(libs.newpipe.extractor)
     implementation(libs.newpipe.filepicker)
 
-    /** Checkstyle **/
+    // Checkstyle
     checkstyle(libs.puppycrawl.checkstyle)
     ktlint(libs.pinterest.ktlint)
 
-    /** AndroidX **/
+    // AndroidX
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.cardview)
     implementation(libs.androidx.constraintlayout)
@@ -244,7 +251,13 @@ dependencies {
     implementation(libs.google.android.material)
     implementation(libs.androidx.webkit)
 
-    /** Third-party libraries **/
+    // Coroutines interop
+    implementation(libs.kotlinx.coroutines.rx3)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Third-party libraries
     implementation(libs.livefront.bridge)
     implementation(libs.evernote.statesaver.core)
     kapt(libs.evernote.statesaver.compiler)
@@ -254,6 +267,7 @@ dependencies {
 
     // HTTP client
     implementation(libs.squareup.okhttp)
+    implementation(libs.squareup.okhttp.brotli)
 
     // Media player
     implementation(libs.google.exoplayer.core)
@@ -270,7 +284,8 @@ dependencies {
     implementation(libs.lisawray.groupie.viewbinding)
 
     // Image loading
-    implementation(libs.squareup.picasso)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
     // Markdown library for Android
     implementation(libs.noties.markwon.core)
@@ -293,8 +308,7 @@ dependencies {
     // Date and time formatting
     implementation(libs.ocpsoft.prettytime)
 
-    /** Debugging **/
-    // Memory leak detection
+    // Debugging and memory leak detection
     debugImplementation(libs.squareup.leakcanary.watcher)
     debugImplementation(libs.squareup.leakcanary.plumber)
     debugImplementation(libs.squareup.leakcanary.core)
@@ -302,7 +316,7 @@ dependencies {
     debugImplementation(libs.facebook.stetho.core)
     debugImplementation(libs.facebook.stetho.okhttp3)
 
-    /** Testing **/
+    // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
 
@@ -310,4 +324,21 @@ dependencies {
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.assertj.core)
+}
+
+aboutLibraries {
+    collect {
+        configPath = file("../config/aboutlibraries")
+    }
+    export {
+        outputFile = file("../shared/src/androidMain/assets/aboutlibraries.json")
+        prettyPrint = true
+        excludeFields.addAll("organization", "scm", "funding")
+    }
+    library {
+        exclusionPatterns = listOf(
+            Pattern.compile("^com\\.github\\.TeamNewPipe:NewPipeExtractor$"),
+            Pattern.compile("^com\\.evernote:android-state$")
+        )
+    }
 }

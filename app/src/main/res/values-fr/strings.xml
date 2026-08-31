@@ -10,9 +10,9 @@
     <string name="install">Installer</string>
     <string name="kore_not_found">Installer l’application Kore manquante \?</string>
     <string name="no_player_found">Aucun lecteur de flux trouvé. Installer VLC \?</string>
-    <string name="open_in_browser">Ouvrir dans un navigateur</string>
+    <string name="open_in_browser">Ouvrir dans le navigateur</string>
     <string name="play_with_kodi_title">Lire avec Kodi</string>
-    <string name="search">Rechercher</string>
+    <string name="search">Chercher</string>
     <string name="settings">Paramètres</string>
     <string name="share">Partager</string>
     <string name="share_dialog_title">Partager avec</string>
@@ -86,7 +86,7 @@
     <string name="open_in_popup_mode">Ouvrir en mode flottant</string>
     <string name="popup_playing_toast">Lecture en mode flottant</string>
     <string name="disabled">Désactivés</string>
-    <string name="info_labels">Quoi :\\nRequest :\\nContent Language :\\nContent Country :\\nApp Language :\\nService :\\nGMT Time :\\nPackage :\\nVersion :\\nOS version :</string>
+    <string name="info_labels">Quoi :\nRequest :\nContent Language :\nContent Country :\nApp Language :\nService :\nGMT Time :\nPackage :\nVersion :\nOS version :</string>
     <string name="msg_popup_permission">Cette autorisation est nécessaire pour
 \nutiliser le mode flottant</string>
     <string name="controls_background_title">Arrière-plan</string>
@@ -107,18 +107,18 @@
     <string name="channel_unsubscribed">Désabonné de la chaîne</string>
     <string name="tab_subscriptions">Abonnements</string>
     <string name="settings_category_downloads_title">Téléchargement</string>
-    <string name="title_licenses">Licences tierce partie</string>
+    <string name="title_licenses">Licences de tiers</string>
     <string name="tab_about">À propos &amp; FAQ</string>
     <string name="tab_licenses">Licences</string>
-    <string name="app_description">Lecteur multimédia libre et léger pour Android.</string>
-    <string name="view_on_github">Voir sur GitHub</string>
+    <string name="app_description">Streaming libre et léger sur Android.</string>
+    <string name="view_on_github">Consulter sur GitHub</string>
     <string name="app_license_title">Licence de NewPipe</string>
     <string name="read_full_license">Lire la licence</string>
     <string name="contribution_title">Contribuer</string>
     <string name="charset_letters_and_digits">Lettres et chiffres</string>
     <string name="title_activity_about">À propos de NewPipe</string>
     <string name="copyright" formatted="true">© %1$s par %2$s sous %3$s</string>
-    <string name="contribution_encouragement">Que ce soit pour des idées de traductions, de changements de design, de nettoyage de code ou de gros changements de code, une aide est toujours la bienvenue. Plus on en fera meilleur il sera !</string>
+    <string name="contribution_encouragement">Que vous ayez des idées concernant la traduction, des modifications de conception, le nettoyage du code ou des modifications techniques importantes, votre aide est toujours la bienvenue. Plus on y met du nôtre, meilleurs sont les résultats !</string>
     <string name="subscription_change_failed">Impossible de modifier l’abonnement</string>
     <string name="subscription_update_failed">Impossible d’actualiser l’abonnement</string>
     <string name="resume_on_audio_focus_gain_summary">Continuer la lecture après les interruptions (ex. : appels téléphoniques)</string>
@@ -183,11 +183,11 @@
     <string name="hold_to_append">Maintenir pour ajouter à la file</string>
     <string name="start_here_on_background">Démarrer la lecture en arrière-plan</string>
     <string name="start_here_on_popup">Démarrer la lecture dans une fenêtre flottante</string>
-    <string name="donation_title">Donner</string>
-    <string name="donation_encouragement">NewPipe est développé par des volontaires sur leur temps libre afin de vous proposer la meilleure expérience possible. Vous pouvez leur offrir un café pour les soutenir dans leurs efforts et rendre NewPipe encore meilleur.</string>
-    <string name="website_title">Site Web</string>
-    <string name="website_encouragement">Visitez le site Web de NewPipe pour plus d’informations et de nouvelles.</string>
-    <string name="give_back">Donner en retour</string>
+    <string name="donation_title">Faire un don</string>
+    <string name="donation_encouragement">NewPipe est développé par des bénévoles qui consacrent leur temps libre à vous offrir la meilleure expérience utilisateur possible. Contribuez à aider les développeurs à améliorer encore NewPipe tout en leur permettant de s\'offrir une tasse de café.</string>
+    <string name="website_title">Site web</string>
+    <string name="website_encouragement">Rendez-vous sur le site Web de NewPipe pour plus d\'informations et les dernières actualités.</string>
+    <string name="give_back">Redonner</string>
     <string name="default_content_country_title">Pays du contenu par défaut</string>
     <string name="switch_to_background">Basculer en arrière-plan</string>
     <string name="switch_to_popup">Basculer en mode flottant</string>
@@ -207,15 +207,15 @@
     <string name="preferred_player_fetcher_notification_message">Chargement du contenu demandé</string>
     <string name="import_data_title">Importer la base de données</string>
     <string name="export_data_title">Exporter la base de données</string>
-    <string name="import_data_summary">Remplace votre historique, vos abonnements, vos listes de lecture et (en option) vos paramètres</string>
-    <string name="export_data_summary">Exporte l’historique, les abonnements, les listes de lecture et les paramètres</string>
+    <string name="import_data_summary">Remplace votre historique actuel, vos abonnements, vos playlists et (éventuellement) vos paramètres.</string>
+    <string name="export_data_summary">Historique des exportations, abonnements, playlists et paramètres</string>
     <string name="export_complete_toast">Exporté</string>
     <string name="import_complete_toast">Importé</string>
     <string name="no_valid_zip_file">Fichier ZIP non valide</string>
     <string name="could_not_import_all_files">Avertissement : impossible d’importer tous les fichiers.</string>
     <string name="override_current_data">Cela effacera vos paramètres actuels.</string>
     <string name="show_info">Afficher les informations</string>
-    <string name="tab_bookmarks">Listes de lecture enregistrées</string>
+    <string name="tab_bookmarks">Playlists enregistrées</string>
     <string name="controls_add_to_playlist_title">Ajouter à</string>
     <string name="detail_drag_description">Glisser pour réordonner</string>
     <string name="create">Créer</string>
@@ -253,7 +253,7 @@
     <string name="controls_download_desc">Télécharger le flux</string>
     <string name="auto_queue_title">Ajout automatique du flux suivant à la file de lecture</string>
     <string name="auto_queue_summary">Continue la file de lecture (non répétitive) en ajoutant un flux lié</string>
-    <string name="settings_category_debug_title">Débogage</string>
+    <string name="settings_category_debug_title">Corriger</string>
     <string name="resize_fill">Remplir</string>
     <string name="caption_auto_generated">Générés automatiquement</string>
     <string name="enable_leak_canary_summary">La surveillance des fuites de mémoire peut geler l’application durant le vidage du tas</string>
@@ -305,9 +305,9 @@
     <string name="delete_search_history_alert">Voulez-vous supprimer entièrement l’historique de recherche \?</string>
     <string name="search_history_deleted">Historique de recherche supprimé</string>
     <string name="one_item_deleted">1 élément supprimé.</string>
-    <string name="app_license">NewPipe est un logiciel sous licence libre copyleft : vous pouvez l’utiliser, l’étudier, le partager, et l’améliorer comme bon vous semble. Plus précisément, vous pouvez le redistribuer ou le modifier sous les termes de la licence générale publique GNU, comme publiée par la Free Software Foundation, dans sa version 3, ou, à votre convenance, dans une quelconque version ultérieure.</string>
+    <string name="app_license">NewPipe est un logiciel libre sous licence copyleft : vous pouvez l\'utiliser, l\'étudier, le partager et l\'améliorer à votre guise. Plus précisément, vous pouvez le redistribuer et/ou le modifier selon les termes de la Licence publique générale GNU telle que publiée par la Free Software Foundation, soit la version 3 de la licence, soit (à votre choix) toute version ultérieure.</string>
     <string name="privacy_policy_title">Politique de confidentialité de NewPipe</string>
-    <string name="read_privacy_policy">Lire la politique de confidentialité</string>
+    <string name="read_privacy_policy">Consultez notre politique de confidentialité</string>
     <string name="import_settings">Voulez-vous également importer les paramètres \?</string>
     <string name="accept">Accepter</string>
     <string name="decline">Refuser</string>
@@ -318,7 +318,7 @@
     <string name="limit_data_usage_none_description">Aucune limite</string>
     <string name="limit_mobile_data_usage_title">Limiter la définition lors de l’utilisation des données mobiles</string>
     <string name="channels">Chaînes</string>
-    <string name="playlists">Listes de lecture</string>
+    <string name="playlists">Playlists</string>
     <string name="tracks">Morceaux</string>
     <string name="users">Utilisateurs</string>
     <string name="skip_silence_checkbox">Accélérer pendant les silences</string>
@@ -404,7 +404,7 @@
 \nAutorisez le sélecteur de dossier système si vous voulez télécharger vers une carte SD externe</string>
     <string name="enable_playback_resume_summary">Reprend la lecture à la dernière position</string>
     <string name="enable_playback_state_lists_title">Positions dans les listes</string>
-    <string name="enable_playback_state_lists_summary">Affiche les indicateurs de position de lecture dans les listes</string>
+    <string name="enable_playback_state_lists_summary">Afficher les indicateurs de position de lecture dans les listes</string>
     <string name="watch_history_states_deleted">Positions de reprise de lecture supprimées</string>
     <string name="downloads_storage_use_saf_title">Utiliser le sélecteur de dossier système</string>
     <string name="downloads_storage_use_saf_summary">L’« Infrastructure d’accès au stockage » permet le téléchargement sur une carte mémoire SD externe</string>
@@ -522,8 +522,8 @@
 \nActivez « %1$s » dans les paramètres si vous voulez la voir.</string>
     <string name="remove_watched">Supprimer les vidéos visionnées</string>
     <string name="remove_watched_popup_partially_watched_streams">Oui ainsi que les vidéos partiellement visionnées</string>
-    <string name="remove_watched_popup_warning">Les vidéos qui ont été visionnées avant et après avoir été ajoutées à la playlist seront supprimées. \nÊtes-vous certain(e) ? Cette action est irréversible !</string>
-    <string name="remove_watched_popup_title">Supprimer les vidéos visionnées ?</string>
+    <string name="remove_watched_popup_warning">Les flux visionnés avant et après leur ajout à la playlist seront supprimés.\nÊtes-vous sûr ?</string>
+    <string name="remove_watched_popup_title">Supprimer les flux visionnés ?</string>
     <string name="detail_sub_channel_thumbnail_view_description">Miniature de l\'avatar de la chaine</string>
     <string name="video_detail_by">De %s</string>
     <string name="channel_created_by">Créé par %s</string>
@@ -640,10 +640,8 @@
     <string name="seekbar_preview_thumbnail_title">Prévisualisation de la barre de progression sur la miniature</string>
     <string name="mark_as_watched">Marquer comme visionné</string>
     <string name="detail_heart_img_view_description">Apprécié par le créateur</string>
-    <string name="show_image_indicators_title">Afficher les indicateurs d’image</string>
     <string name="remote_search_suggestions">Suggestions de recherche distante</string>
     <string name="local_search_suggestions">Suggestions de recherche locale</string>
-    <string name="show_image_indicators_summary">Affiche les rubans colorés de Picasso au-dessus des images indiquant leur source : rouge pour le réseau, bleu pour le disque et vert pour la mémoire</string>
     <plurals name="deleted_downloads_toast">
         <item quantity="one">%1$s téléchargement supprimé</item>
         <item quantity="many">%1$s téléchargements supprimés</item>
@@ -714,8 +712,8 @@
     <string name="no_video_streams_available_for_external_players">Aucun flux vidéo n’est disponible pour les lecteurs externes</string>
     <string name="progressive_load_interval_title">Taille de l\'intervalle de chargement de la lecture</string>
     <string name="faq_title">Foire aux questions</string>
-    <string name="faq">Voir sur le site web</string>
-    <string name="faq_description">Si vous avez des difficultés à utiliser l\'application, consultez les réponses aux questions les plus fréquentes !</string>
+    <string name="faq">Consulter sur le site web</string>
+    <string name="faq_description">Si vous rencontrez des difficultés avec l\'application, n\'hésitez pas à consulter ces réponses aux questions fréquentes !</string>
     <string name="sort">Trier</string>
     <string name="fast_mode">Mode rapide</string>
     <string name="import_subscriptions_hint">Importer ou exporter des abonnements à partir du menu</string>
@@ -723,7 +721,7 @@
     <string name="app_update_available_notification_text">Appuyez pour télécharger %s</string>
     <string name="msg_failed_to_copy">Échec de la copie dans le presse-papiers</string>
     <string name="night_theme_available">Cette option est disponible seulement si %s est sélectionné pour le thème</string>
-    <string name="duplicate_in_playlist">Les listes de lecture grisées contiennent déjà cet élément.</string>
+    <string name="duplicate_in_playlist">Les playlists grisées contiennent déjà cet élément.</string>
     <string name="card">Carte</string>
     <string name="ignore_hardware_media_buttons_summary">Utile si, par exemple, vous utilisez un casque avec des boutons dysfonctionnels</string>
     <string name="remove_duplicates">Effacer les doublons</string>
@@ -784,7 +782,7 @@
     <string name="channel_tab_albums">Albums</string>
     <string name="image_quality_medium">Qualité moyenne</string>
     <string name="metadata_banners">Bannières</string>
-    <string name="channel_tab_playlists">Listes de lecture</string>
+    <string name="channel_tab_playlists">Playlists</string>
     <string name="more_options">Plus d’options</string>
     <string name="metadata_thumbnails">Miniatures</string>
     <string name="channel_tab_tracks">Pistes</string>
@@ -836,7 +834,7 @@
     <string name="import_settings_vulnerable_format">Les paramètres de l\'export en cours d\'importation utilisent un format vulnérable qui a été déprécié depuis NewPipe 0.27.0. Assurez-vous que l\'export en cours d\'importation provient d\'une source fiable. Privilégiez les exports obtenues à partir de NewPipe 0.27.0 ou des versions plus récentes à l\'avenir. Le support pour l\'importation des paramètres dans ce format vulnérable sera bientôt complètement supprimé et les anciennes versions de NewPipe ne pourront plus importer les paramètres des exports des nouvelles versions.</string>
     <string name="audio_track_type_secondary">secondaire</string>
     <string name="share_playlist_as_youtube_temporary_playlist">Partager comme liste de lecture YouTube temporaire</string>
-    <string name="tab_bookmarks_short">Listes de lecture</string>
+    <string name="tab_bookmarks_short">Playlists</string>
     <string name="select_a_feed_group">Sélectionnez un groupe de flux</string>
     <string name="no_feed_group_created_yet">Encore aucun groupe de flux créé</string>
     <string name="feed_group_page_summary">Page du groupe de chaînes</string>
@@ -863,6 +861,34 @@
     <string name="player_http_403">Erreur HTTP 403 reçue du serveur pendant la lecture, probablement causée par l\'expiration de l\'URL de streaming ou une interdiction d\'IP</string>
     <string name="player_http_invalid_status">Erreur HTTP %1$s reçue du serveur pendant la lecture</string>
     <string name="youtube_player_http_403">Erreur HTTP 403 reçue du serveur pendant la lecture, probablement causée par un bannissement d\'IP ou des problèmes de désobfuscation de l\'URL de streaming</string>
-    <string name="sign_in_confirm_not_bot_error">%1$s a refusé de fournir des données et a demandé un identifiant pour confirmer que le demandeur n\'est pas un robot.\n\nVotre adresse IP a peut-être été temporairement bannie par %1$s. Vous pouvez patienter un peu ou changer d\'adresse IP (par exemple en activant/désactivant un VPN, ou en passant du Wi-Fi aux données mobiles).</string>
+    <string name="sign_in_confirm_not_bot_error">%1$s a refusé de fournir des données et a demandé un identifiant pour confirmer que l\'auteur de la requête n\'est pas un robot.\n\nVotre adresse IP a peut-être été temporairement bloquée par %1$s. Vous pouvez patienter ou essayer une autre adresse IP (par exemple, en activant/désactivant un VPN ou en passant du Wi-Fi aux données mobiles).\n\nPour plus d\'informations, veuillez consulter <a href="%2$s">cette FAQ</a>.</string>
     <string name="unsupported_content_in_country">Ce contenu n\'est pas disponible pour le pays actuellement sélectionné.\n\nModifiez votre sélection dans « Paramètres &gt; Contenu &gt; Pays par défaut ».</string>
+    <string name="kao_dialog_warning">En août 2025, Google a annoncé qu\'à compter de septembre 2026, l\'installation d\'applications nécessiterait une vérification par le développeur pour toutes les applications Android sur les appareils certifiés, y compris celles installées en dehors du Play Store. Les développeurs de NewPipe refusant cette exigence, NewPipe ne fonctionnera plus sur les appareils Android certifiés après cette date.</string>
+    <string name="kao_dialog_more_info">Détails</string>
+    <string name="kao_solution">Solution</string>
+    <plurals name="export_subscriptions">
+        <item quantity="one">Exportation de l\'abonnement %d…</item>
+        <item quantity="many">Exportation de %d abonnements…</item>
+        <item quantity="other">Exportation de %d abonnements…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">Chargement de l\'abonnement %d…</item>
+        <item quantity="many">Chargement de %d abonnements…</item>
+        <item quantity="other">Chargement de %d abonnements…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">Importation de l\'abonnement %d…</item>
+        <item quantity="many">Importation de %d abonnements…</item>
+        <item quantity="other">Importation de %d abonnements…</item>
+    </plurals>
+    <string name="import_subscriptions_title">Importer des abonnements</string>
+    <string name="export_subscriptions_title">Exporter les abonnements</string>
+    <string name="import_subscriptions_summary">Importer des abonnements à partir d\'une exportation .json précédente</string>
+    <string name="export_subscriptions_summary">Exportez vos abonnements dans un fichier .json</string>
+    <string name="import_from_previous_export">Importer à partir d\'une exportation précédente</string>
+    <string name="api23_requirement_dialog_title">NewPipe ne prendra plus en charge Android 5</string>
+    <string name="api23_requirement_dialog_message">Malheureusement, NewPipe dépend de certaines bibliothèques qui ne prennent plus en charge Android 5.0 et 5.1. La prochaine version de NewPipe ne fonctionnera donc, à notre grand regret, que sur les appareils équipés d\'Android 6 ou d\'une version ultérieure. Pour en savoir plus, consultez l\'article de blog.</string>
+    <string name="api23_requirement_dialog_blogpost">Article de blog</string>
+    <string name="channel_tab_podcasts">Podcasts</string>
+    <string name="channel_tab_courses">Cours</string>
 </resources>

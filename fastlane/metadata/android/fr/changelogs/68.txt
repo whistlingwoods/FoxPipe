@@ -1,44 +1,45 @@
-# Modifications de la v0.14.1
+# Modifications de la version v0.14.1
 
-### Corrigé
-- Correction du problème de décryptage de l'URL vidéo (#1659)
-- Correction du problème d'extraction du lien de description (#1657)
+### Corrections
+- Correction d'un problème d'échec du déchiffrement de l'URL d'une vidéo #1659 
 
-# Modifications de la v0.14.0
+- Correction d'un problème d'extraction incorrecte du lien de description #1657
 
-### Nouveau
-- Nouveau design du tiroir (#1461)
-- Nouvelle page d'accueil personnalisable (#1461)
+# Modifications de la version v0.14.0
+
+### Nouveautés
+- Nouveau design du menu coulissant #1461
+- Nouvelle page d'accueil personnalisable #1461
 
 ### Améliorations
-- Refonte des commandes gestuelles (#1604)
-- Nouvelle méthode pour fermer le lecteur pop-up (#1597)
+- Refonte des commandes gestuelles #1604 
+- Nouvelle méthode pour fermer le lecteur contextuel #1597
 
-### Corrigé
-- Correction d'une erreur lorsque le nombre d'abonnements n'est pas disponible. Résout le problème n° 1649.
+### Corrections
+- Correction d'une erreur lorsque le nombre d'abonnés n'est pas disponible. Clôture le ticket #1649.
 
- - Afficher « Nombre d'abonnés indisponible » dans ces cas
+  - Affichage du message « Nombre d'abonnés non disponible » dans ces cas-là
 
-- Correction d'une exception NPE lorsqu'une playlist YouTube est vide
+- Correction d'un NPE (Null Pointer Exception) lorsqu'une playlist YouTube est vide
 
-- Correction rapide pour les bornes interactives sur SoundCloud
+- Correction rapide pour les kiosques sur SoundCloud
 
-- Refactorisation et correction du bug n° 1623
+- Refactorisation et correction de bugs #1623 
 
-- Correction du résultat de recherche cyclique n° 1562
+  - Correction des résultats de recherche cyclique  #1562
 
-- Correction de la barre de progression (position statique)
+  - Correction de la barre de recherche qui n’était pas positionnée de manière statique
 
-- Correction du blocage incorrect des vidéos YouTube Premium
+  - Correction du blocage incorrect des vidéos YouTube Premium
 
-- Correction du chargement intempestif des vidéos (dû à l'analyse DASH)
+  - Correction du chargement parfois impossible des vidéos (en raison de l’analyse DASH)
 
-- Correction des liens dans la description des vidéos
+  - Correction des liens dans la description des vidéos
 
-- Afficher un avertissement lors d'une tentative de téléchargement sur carte SD externe
+  - Affichage d'un avertissement lorsqu'un utilisateur tente de télécharger vers une carte SD externe
 
-- Correction d'une exception déclenchant un rapport en cas d'absence d'affichage
+  - Correction d'un rapport d'exception déclenché alors que rien ne s'affichait
 
-- Correction de l'affichage des miniatures dans le lecteur en arrière-plan sous Android 8.1 [voir ici](https://github.com/TeamNewPipe/NewPipe/issues/943)
+  -  Vignette non affichée dans le lecteur en arrière-plan sous Android 8.1 [voir ici](https://github.com/TeamNewPipe/NewPipe/issues/943)
 
-- Correction de l'enregistrement du récepteur de diffusion. Résout le problème n° 1641.
+- Correction de l'enregistrement du récepteur de diffusion. Clôture le ticket n° 1641.
