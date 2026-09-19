@@ -46,7 +46,7 @@
     <string name="content_not_available">Contenuto non disponibile</string>
     <string name="parsing_error">Impossibile analizzare il sito web</string>
     <string name="could_not_setup_download_menu">Impossibile impostare il menu di download</string>
-    <string name="content">Contenuti</string>
+    <string name="content">Contenuto</string>
     <string name="show_age_restricted_content_title">Mostra contenuti con restrizioni di età</string>
     <string name="main_bg_subtitle">Tocca la lente d\'ingrandimento per iniziare.</string>
     <string name="duration_live">In diretta</string>
@@ -118,6 +118,7 @@
     <string name="subscription_change_failed">Impossibile cambiare l\'iscrizione</string>
     <string name="subscription_update_failed">Impossibile aggiornare l\'iscrizione</string>
     <string name="tab_subscriptions">Iscrizioni</string>
+    <string name="manage_subscriptions">Gestisci iscrizioni</string>
     <string name="fragment_feed_title">Novità</string>
     <string name="enable_search_history_title">Cronologia delle ricerche</string>
     <string name="enable_search_history_summary">Salva le ricerche localmente</string>
@@ -125,7 +126,7 @@
     <string name="enable_watch_history_summary">Salva la cronologia degli elementi visualizzati</string>
     <string name="resume_on_audio_focus_gain_title">Riprendi la riproduzione</string>
     <string name="resume_on_audio_focus_gain_summary">Continua a riprodurre dopo le interruzioni (es. telefonate)</string>
-    <string name="settings_category_downloads_title">Download</string>
+    <string name="settings_category_downloads_title">Scaricamenti</string>
     <string name="settings_file_charset_title">Caratteri ammessi per i nomi dei file</string>
     <string name="settings_file_replacement_character_summary">I caratteri non validi vengono sostituiti con il valore specificato</string>
     <string name="settings_file_replacement_character_title">Carattere sostitutivo</string>
@@ -330,6 +331,7 @@
     <string name="tracks">Tracce</string>
     <string name="users">Utenti</string>
     <string name="unsubscribe">Disiscriviti</string>
+    <string name="unsubscribe_confirmation_selected">Disiscriverti da %1$d canali selezionati?</string>
     <string name="tab_choose">Scegli scheda</string>
     <string name="settings_category_updates_title">Aggiornamenti</string>
     <string name="file_deleted">File eliminato</string>
@@ -887,4 +889,6 @@
     <string name="api23_requirement_dialog_title">NewPipe sta abbandonando il supporto per Android 5</string>
     <string name="api23_requirement_dialog_message">Purtroppo NewPipe dipende da alcune librerie che hanno abbandonato il supporto per Android 5.0 e 5.1. La prossima versione di NewPipe funzionerà solo su dispositivi con Android 6 o superiore, purtroppo. Maggiori info nel post del blog.</string>
     <string name="api23_requirement_dialog_blogpost">Post del blog</string>
+    <string name="channel_tab_podcasts">Podcast</string>
+    <string name="channel_tab_courses">Corsi</string>
 </resources>
