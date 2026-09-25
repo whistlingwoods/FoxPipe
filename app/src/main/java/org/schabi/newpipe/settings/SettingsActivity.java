@@ -16,6 +16,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -303,9 +304,13 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         if (active) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(FRAGMENT_HOLDER_ID, searchFragment, PreferenceSearchFragment.NAME)
+            final FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            final Fragment current = getSupportFragmentManager()
+                    .findFragmentById(FRAGMENT_HOLDER_ID);
+            if (current != null) {
+                ft.hide(current);
+            }
+            ft.add(FRAGMENT_HOLDER_ID, searchFragment, PreferenceSearchFragment.NAME)
                     .addToBackStack(PreferenceSearchFragment.NAME)
                     .commit();
 
