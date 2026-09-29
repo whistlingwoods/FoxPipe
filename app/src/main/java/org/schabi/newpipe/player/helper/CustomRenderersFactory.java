@@ -17,9 +17,8 @@ import com.google.android.exoplayer2.video.VideoRendererEventListener;
 import java.util.ArrayList;
 
 /**
- * A {@link DefaultRenderersFactory} which uses {@link CustomMediaCodecVideoRenderer} as an
- * implementation of video codec renders and uses a provided {@link SilenceSkippingAudioProcessor}
- * to control silence skipping behavior more precisely.
+ * A {@link DefaultRenderersFactory} which only uses {@link CustomMediaCodecVideoRenderer} as an
+ * implementation of video codec renders.
  *
  * <p>
  * As no ExoPlayer extension is currently used, the reflection code used by ExoPlayer to try to
