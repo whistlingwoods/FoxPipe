@@ -78,7 +78,7 @@ configure<ApplicationExtension> {
                 applicationIdSuffix = suffix
                 resValue("string", "app_name", "ZenPipe $suffix")
             }
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             isShrinkResources = false // disabled to fix F-Droid"s reproducible build
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -104,6 +104,14 @@ configure<ApplicationExtension> {
         isCoreLibraryDesugaringEnabled = true
         encoding = "utf-8"
     }
+
+android {
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+}
 
     sourceSets {
         getByName("androidTest") {
@@ -137,7 +145,6 @@ configure<ApplicationExtension> {
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
-
 
 // Custom dependency configuration for ktlint
 val ktlint by configurations.creating
@@ -219,6 +226,8 @@ sonar {
 dependencies {
     /** Desugaring **/
     coreLibraryDesugaring(libs.android.desugar)
+
+    compileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
     /** NewPipe libraries **/
     implementation(libs.newpipe.nanojson)
