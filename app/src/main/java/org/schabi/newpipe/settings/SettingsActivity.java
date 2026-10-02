@@ -324,7 +324,6 @@ public class SettingsActivity extends AppCompatActivity implements
                         FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
             keyboardController.hide();
-            searchEditText.clearFocus();
         }
 
         resetSearchText();
