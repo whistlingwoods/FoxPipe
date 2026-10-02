@@ -43,7 +43,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.TooltipCompat;
 import androidx.collection.SparseArrayCompat;
 import androidx.core.text.HtmlCompat;
-import androidx.core.view.SoftwareKeyboardControllerCompat;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,6 +75,7 @@ import org.schabi.newpipe.settings.NewPipeSettings;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.DeviceUtils;
 import org.schabi.newpipe.util.ExtractorHelper;
+import org.schabi.newpipe.util.KeyboardUtil;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.ServiceHelper;
 
@@ -705,14 +705,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         if (DEBUG) {
             Log.d(TAG, "showKeyboardSearch() called");
         }
-        new SoftwareKeyboardControllerCompat(searchEditText).show();
+        KeyboardUtil.showKeyboard(activity, searchEditText);
     }
 
     private void hideKeyboardSearch() {
         if (DEBUG) {
             Log.d(TAG, "hideKeyboardSearch() called");
         }
-        new SoftwareKeyboardControllerCompat(searchEditText).hide();
+
+        KeyboardUtil.hideKeyboard(activity, searchEditText);
     }
 
     private void showDeleteSuggestionDialog(final SuggestionItem item) {
