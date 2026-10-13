@@ -9,7 +9,9 @@ import androidx.compose.runtime.mutableStateListOf
 import co.touchlab.kermit.Logger
 import net.newpipe.app.screen.about.AboutScreen
 import net.newpipe.app.screen.settings.AppearanceSettingsScreen
+import net.newpipe.app.screen.settings.PlayerSettingsScreen
 import net.newpipe.app.screen.settings.SettingsHomeScreen
+import net.newpipe.app.screen.settings.VideoAudioSettingsScreen
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.annotation.Provided
 import org.koin.core.annotation.Singleton
@@ -36,6 +38,14 @@ fun navModule() = module {
 
     navigation<Destination.AppearanceSettings> {
         AppearanceSettingsScreen()
+    }
+
+    navigation<Destination.VideoAudioSettings> {
+        VideoAudioSettingsScreen()
+    }
+
+    navigation<Destination.PlayerSettings> {
+        PlayerSettingsScreen()
     }
 }
 
