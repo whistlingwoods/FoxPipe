@@ -60,6 +60,8 @@ import androidx.preference.PreferenceManager;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import org.schabi.newpipe.cast.session.CastSessionManager;
+import org.schabi.newpipe.cast.ui.CastDeviceBottomSheet;
 import org.schabi.newpipe.databinding.ActivityMainBinding;
 import org.schabi.newpipe.databinding.DrawerHeaderBinding;
 import org.schabi.newpipe.databinding.DrawerLayoutBinding;
@@ -163,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onCreate(savedInstanceState);
+
+        if (redirectToTvIfApplicable()) {
+            return;
+        }
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPrefEditor = sharedPreferences.edit();
 
@@ -208,6 +215,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         MigrationManager.showUserInfoIfPresent(this);
+    }
+
+    private boolean redirectToTvIfApplicable() {
+        if (DeviceUtils.isTv(this) && !getIntent().getBooleanExtra("force_mobile_ui", false)) {
+            startActivity(new Intent(this, org.schabi.newpipe.tv.ui.TvMainActivity.class));
+            finish();
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -739,6 +755,12 @@ public class MainActivity extends AppCompatActivity {
 
         updateDrawerNavigation();
 
+        final MenuItem castItem =
+                menu.add(Menu.NONE, R.id.menu_item_cast, Menu.NONE, R.string.cast);
+        castItem.setIcon(CastSessionManager.getInstance(this).isConnected()
+                ? R.drawable.ic_cast_connected : R.drawable.ic_cast);
+        castItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
         return true;
     }
 
@@ -750,6 +772,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (item.getItemId() == android.R.id.home) {
             onHomeButtonPressed();
+            return true;
+        } else if (item.getItemId() == R.id.menu_item_cast) {
+            new CastDeviceBottomSheet().show(getSupportFragmentManager(), "CastDeviceBottomSheet");
             return true;
         }
         return super.onOptionsItemSelected(item);

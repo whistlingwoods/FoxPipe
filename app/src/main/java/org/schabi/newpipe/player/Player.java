@@ -58,6 +58,7 @@ import android.media.AudioManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -76,6 +77,8 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.Tracks;
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.hls.playlist.HlsPlaylistTracker;
+import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.text.CueGroup;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
@@ -84,6 +87,10 @@ import com.google.android.exoplayer2.video.VideoSize;
 
 import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.cast.model.CastPlayerState;
+import org.schabi.newpipe.cast.session.CastSession;
+import org.schabi.newpipe.cast.session.CastSessionManager;
+import org.schabi.newpipe.cast.ui.CastPlayerUi;
 import org.schabi.newpipe.databinding.PlayerBinding;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
@@ -121,6 +128,7 @@ import org.schabi.newpipe.player.ui.PopupPlayerUi;
 import org.schabi.newpipe.player.ui.VideoPlayerUi;
 import org.schabi.newpipe.util.DependentPreferenceHelper;
 import org.schabi.newpipe.util.ExtractorHelper;
+import org.schabi.newpipe.util.InfoCache;
 import org.schabi.newpipe.util.ListHelper;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.SerializedCache;
@@ -234,6 +242,8 @@ public final class Player implements PlaybackListener, Listener {
     // minimized to background but will resume automatically to the original player type
     private boolean isAudioOnly = false;
     private boolean isPrepared = false;
+    private int http403RecoveryCount = 0;
+    private int playlistStuckRecoveryCount = 0;
 
     /*//////////////////////////////////////////////////////////////////////////
     // UIs, listeners and disposables
@@ -315,7 +325,8 @@ public final class Player implements PlaybackListener, Listener {
         // PlayerUi#initPlayer(), and UIs.call() guarantees UI order is preserved.
         UIs = new PlayerUiList(
                 new MediaSessionPlayerUi(this, mediaSession, sessionConnector),
-                new NotificationPlayerUi(this)
+                new NotificationPlayerUi(this),
+                new CastPlayerUi(this)
         );
     }
 
@@ -1091,6 +1102,8 @@ public final class Player implements PlaybackListener, Listener {
                 }
                 break;
             case com.google.android.exoplayer2.Player.STATE_READY: //3
+                http403RecoveryCount = 0;
+                playlistStuckRecoveryCount = 0;
                 if (!isPrepared) {
                     isPrepared = true;
                     onPrepared(playWhenReady);
@@ -1542,23 +1555,85 @@ public final class Player implements PlaybackListener, Listener {
     // Any error code not explicitly covered here are either unrelated to NewPipe use case
     // (e.g. DRM) or not recoverable (e.g. Decoder error). In both cases, the player should
     // shutdown.
-    @SuppressWarnings("SwitchIntDef")
     @Override
     public void onPlayerError(@NonNull final PlaybackException error) {
         Log.e(TAG, "ExoPlayer - onPlayerError() called with:", error);
 
         saveStreamProgressState();
-        boolean isCatchableException = false;
+        final boolean isCatchableException;
 
+        if (isPlaylistStuckException(error)) {
+            isCatchableException = handlePlaylistStuckRecovery();
+        } else if (error.errorCode == ERROR_CODE_IO_BAD_HTTP_STATUS
+                && isHttpForbiddenOrExpired(error)) {
+            isCatchableException = handleHttpForbiddenRecovery();
+        } else {
+            isCatchableException = handleStandardPlayerError(error);
+        }
+
+        if (!isCatchableException) {
+            createErrorNotification(error);
+        }
+
+        if (fragmentListener != null) {
+            fragmentListener.onPlayerError(error, isCatchableException);
+        }
+    }
+
+    private boolean handlePlaylistStuckRecovery() {
+        if (playlistStuckRecoveryCount < 2) {
+            playlistStuckRecoveryCount++;
+            Log.w(TAG, "PlaylistStuckException detected, re-syncing to live edge (attempt "
+                    + playlistStuckRecoveryCount + ")");
+            simpleExoPlayer.seekToDefaultPosition();
+            simpleExoPlayer.prepare();
+            onBuffering();
+        } else {
+            Log.w(TAG, "PlaylistStuckException persists after retries, "
+                    + "live stream ended or offline");
+            simpleExoPlayer.stop();
+            Toast.makeText(context, R.string.error_livestream_ended, Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+
+    private boolean handleHttpForbiddenRecovery() {
+        if (http403RecoveryCount < 1) {
+            http403RecoveryCount++;
+            Log.w(TAG, "HTTP 403/410 Forbidden detected, self-healing stream "
+                    + "by evicting cache and refreshing URLs");
+            if (currentMetadata != null) {
+                InfoCache.getInstance().removeInfo(
+                        currentMetadata.getServiceId(),
+                        currentMetadata.getStreamUrl(),
+                        InfoCache.Type.STREAM);
+            }
+            if (playQueue != null && playQueue.getItem() != null) {
+                playQueue.getItem().setForceReload(true);
+            }
+            setRecovery();
+            reloadPlayQueueManager();
+            onBuffering();
+            return true;
+        } else {
+            Log.e(TAG, "HTTP 403/410 Forbidden persists after fresh URL refresh");
+            if (!exoPlayerIsNull() && playQueue != null) {
+                playQueue.error();
+            }
+            return false;
+        }
+    }
+
+    @SuppressWarnings("SwitchIntDef")
+    private boolean handleStandardPlayerError(@NonNull final PlaybackException error) {
         switch (error.errorCode) {
             case ERROR_CODE_BEHIND_LIVE_WINDOW:
-                isCatchableException = true;
                 simpleExoPlayer.seekToDefaultPosition();
                 simpleExoPlayer.prepare();
                 // Inform the user that we are reloading the stream by
                 // switching to the buffering state
                 onBuffering();
-                break;
+                return true;
             case ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE:
             case ERROR_CODE_IO_BAD_HTTP_STATUS:
             case ERROR_CODE_IO_FILE_NOT_FOUND:
@@ -1588,14 +1663,35 @@ public final class Player implements PlaybackListener, Listener {
                 onPlaybackShutdown();
                 break;
         }
+        return false;
+    }
 
-        if (!isCatchableException) {
-            createErrorNotification(error);
+    /* package-private */ static boolean isPlaylistStuckException(
+            @NonNull final PlaybackException error) {
+        Throwable cause = error;
+        while (cause != null) {
+            if (cause instanceof HlsPlaylistTracker.PlaylistStuckException) {
+                return true;
+            }
+            cause = cause.getCause();
         }
+        return false;
+    }
 
-        if (fragmentListener != null) {
-            fragmentListener.onPlayerError(error, isCatchableException);
+    /* package-private */ static boolean isHttpForbiddenOrExpired(
+            @NonNull final PlaybackException error) {
+        Throwable cause = error;
+        while (cause != null) {
+            if (cause instanceof HttpDataSource.InvalidResponseCodeException) {
+                final int responseCode =
+                        ((HttpDataSource.InvalidResponseCodeException) cause).responseCode;
+                if (responseCode == 403 || responseCode == 410) {
+                    return true;
+                }
+            }
+            cause = cause.getCause();
         }
+        return false;
     }
 
     private void createErrorNotification(@NonNull final PlaybackException error) {
@@ -1697,6 +1793,8 @@ public final class Player implements PlaybackListener, Listener {
             }
 
             if (removeThumbnailBeforeSync) {
+                http403RecoveryCount = 0;
+                playlistStuckRecoveryCount = 0;
                 // unset the current (now outdated) thumbnail to ensure it is not used during sync
                 onThumbnailLoaded(null);
             }
@@ -1714,6 +1812,11 @@ public final class Player implements PlaybackListener, Listener {
     public void seekTo(final long positionMillis) {
         if (DEBUG) {
             Log.d(TAG, "seekBy() called with: position = [" + positionMillis + "]");
+        }
+        final CastSessionManager castManager = CastSessionManager.getInstance(context);
+        if (castManager.isConnected() && castManager.getCurrentSession() != null) {
+            castManager.getCurrentSession().seekTo(positionMillis);
+            return;
         }
         if (!exoPlayerIsNull()) {
             // prevent invalid positions when fast-forwarding/-rewinding
@@ -1747,6 +1850,11 @@ public final class Player implements PlaybackListener, Listener {
         if (DEBUG) {
             Log.d(TAG, "play() called");
         }
+        final CastSessionManager castManager = CastSessionManager.getInstance(context);
+        if (castManager.isConnected() && castManager.getCurrentSession() != null) {
+            castManager.getCurrentSession().play();
+            return;
+        }
         if (audioReactor == null || playQueue == null || exoPlayerIsNull()) {
             return;
         }
@@ -1773,6 +1881,10 @@ public final class Player implements PlaybackListener, Listener {
         if (DEBUG) {
             Log.d(TAG, "pause() called");
         }
+        final CastSessionManager castManager = CastSessionManager.getInstance(context);
+        if (castManager.isConnected() && castManager.getCurrentSession() != null) {
+            castManager.getCurrentSession().pause();
+        }
         if (audioReactor == null || exoPlayerIsNull()) {
             return;
         }
@@ -1784,6 +1896,17 @@ public final class Player implements PlaybackListener, Listener {
     public void playPause() {
         if (DEBUG) {
             Log.d(TAG, "onPlayPause() called");
+        }
+
+        final CastSessionManager castManager = CastSessionManager.getInstance(context);
+        if (castManager.isConnected() && castManager.getCurrentSession() != null) {
+            final CastSession session = castManager.getCurrentSession();
+            if (session.getPlayerState() == CastPlayerState.PLAYING) {
+                session.pause();
+            } else {
+                session.play();
+            }
+            return;
         }
 
         if (getPlayWhenReady()

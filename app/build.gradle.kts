@@ -105,6 +105,10 @@ configure<ApplicationExtension> {
         abortOnError = false
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     compileOptions {
         // Flag to enable support for the new language APIs
         isCoreLibraryDesugaringEnabled = true
@@ -235,6 +239,8 @@ dependencies {
     implementation(libs.androidx.core)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.fragment)
+    implementation(libs.androidx.leanback)
+    implementation(libs.androidx.leanback.preference)
     implementation(libs.androidx.lifecycle.livedata)
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.localbroadcastmanager)
