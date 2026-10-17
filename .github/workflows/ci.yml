@@ -6,7 +6,10 @@ on:
     branches:
       - dev
       - master
+      - refactor
       - release**
+      - material
+      - pipe
     paths-ignore:
       - 'README.md'
       - 'doc/**'
@@ -19,6 +22,8 @@ on:
     branches:
       - dev
       - master
+      - material
+      - pipe
     paths-ignore:
       - 'README.md'
       - 'doc/**'
@@ -28,102 +33,199 @@ on:
       - '.github/FUNDING.yml'
       - '.github/ISSUE_TEMPLATE/**'
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test-jvm:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     permissions:
-      contents: read
-
+      contents: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: gradle/wrapper-validation-action@v1
-
-      - name: create and checkout branch
-        # push events already checked out the branch
-        if: github.event_name == 'pull_request'
-        run: git checkout -B ${{ github.head_ref }}
-
-      - name: set up JDK 11
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v6
         with:
-          java-version: 11
-          distribution: "temurin"
-          cache: 'gradle'
+          fetch-depth: 2
 
-      - name: Build debug APK and run jvm tests
-        run: ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint
+      - name: Create and checkout branch
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: git checkout -B "$BRANCH"
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21.0.12+8.0.LTS
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.1.0"
+
+      - name: Verify source-inspection tests do not grow
+        run: python3 scripts/check-source-inspection-tests.py "$(git rev-parse HEAD^)"
+
+      - name: Verify Room schema bumps app version
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_REF:refs/remotes/origin/$BASE_REF"
+          python3 scripts/check-database-version-bump.py "origin/$BASE_REF"
+
+      - name: Verify bundled changelog
+        run: python3 scripts/generate-changelog.py --check
+
+      - name: Build debug APK and run JVM tests
+        run: >-
+          ./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint
+          --max-workers=2
+          '-Dorg.gradle.jvmargs=-Xmx4096M --add-opens jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED'
+
+      - name: Commit generated Room schema
+        if: always() && github.event_name == 'pull_request'
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          DB_VERSION="$(grep -E 'const val DB_VER_CURRENT = DB_VER_[0-9]+'             app/src/main/java/org/schabi/newpipe/database/Migrations.kt             | sed -E 's/.*DB_VER_([0-9]+).*/\1/')"
+          SCHEMA_DIR="app/schemas/org.schabi.newpipe.database.AppDatabase"
+          SCHEMA="$SCHEMA_DIR/$DB_VERSION.json"
+          TEMP_SCHEMA="$RUNNER_TEMP/$DB_VERSION.json"
+          if [ -n "$DB_VERSION" ] && [ -f "$SCHEMA" ]; then
+            cp "$SCHEMA" "$TEMP_SCHEMA"
+            git fetch origin "$BRANCH"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            cp "$TEMP_SCHEMA" "$SCHEMA"
+            if [ -n "$(git status --porcelain -- "$SCHEMA")" ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add "$SCHEMA"
+              git commit -m "Add Room schema $DB_VERSION"
+              git push origin HEAD:"$BRANCH"
+            fi
+          fi
+
+      - name: Upload lint report when checks fail
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.*
+          if-no-files-found: ignore
+
+      - name: Verify 16 KB native-library compatibility
+        run: |
+          APK_PATH="$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)"
+          test -n "$APK_PATH"
+          python3 scripts/check_android_16kb_elf.py "$APK_PATH"
+
+      - name: Verify debug APK identity
+        run: |
+          APK_PATH="$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)"
+          test -n "$APK_PATH"
+          BUILD_TOOLS_VERSION="36.1.0"
+          AAPT="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt"
+          "$AAPT" dump badging "$APK_PATH" | tee "$RUNNER_TEMP/debug-apk-badging.txt"
+          grep -q "package: name='org.wisso.newpipematerial.debug'" "$RUNNER_TEMP/debug-apk-badging.txt"
+          grep -q "application-label:'WizeStream Debug'" "$RUNNER_TEMP/debug-apk-badging.txt"
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
-          name: app
+          name: wizestream-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
   test-android:
-    # macos has hardware acceleration. See android-emulator-runner action
-    runs-on: macos-latest
-    timeout-minutes: 20
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
+      # Keep platform failures from cancelling coverage on the other Android versions.
+      fail-fast: false
       matrix:
-        # api-level 19 is min sdk, but throws errors related to desugaring
-        api-level: [ 21, 29 ]
-
+        include:
+          - api-level: 23
+            target: default
+            arch: x86
+          - api-level: 28
+            target: default
+            arch: x86_64
+            # The API 28 quick-boot snapshot can lose package/activity services after resuming.
+            extra-emulator-options: -no-snapshot-load
+            # Exercise the legacy copy-toast path on the Android version reported in #522.
+            test-options: -Pandroid.testInstrumentationRunnerArguments.class=org.schabi.newpipe.util.LegacyTextSelectionThemeTest,org.schabi.newpipe.sync.ProfileSyncIdentityCompatibilityTest,org.schabi.newpipe.player.video.VideoAdjustmentLifecycleTest,org.schabi.newpipe.player.video.VideoAdjustmentPlaybackTest,org.schabi.newpipe.player.pip.NativePipPlaybackTest
+          - api-level: 35
+            target: default
+            arch: x86_64
     permissions:
       contents: read
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
-      - name: set up JDK 11
-        uses: actions/setup-java@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v5
         with:
-          java-version: 11
-          distribution: "temurin"
-          cache: 'gradle'
+          java-version: 21.0.12+8.0.LTS
+          distribution: temurin
 
-      - name: Run android tests
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.1.0"
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Cache Android emulator
+        id: avd-cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ runner.os }}-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}-v1
+
+      - name: Generate Android emulator snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          # workaround to emulator bug: https://github.com/ReactiveCircus/android-emulator-runner/issues/160
-          emulator-build: 7425822
-          script: ./gradlew connectedCheck --stacktrace
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
 
-      - name: Upload test report when tests fail # because the printed out stacktrace (console) is too short, see also #7553
-        uses: actions/upload-artifact@v3
+      - name: Run Android tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none ${{ matrix.extra-emulator-options }}
+          script: bash scripts/connected-tests-with-previews.sh ${{ matrix.test-options }}
+
+      - name: Upload player layout previews
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: player-layout-previews-api${{ matrix.api-level }}
+          path: ${{ runner.temp }}/player-layout-previews/*.png
+          if-no-files-found: ignore
+
+      - name: Upload test report when tests fail
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: android-test-report-api${{ matrix.api-level }}
           path: app/build/reports/androidTests/connected/**
-
-  sonar:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: 11 # Sonar requires JDK 11
-          distribution: "temurin"
-          cache: 'gradle'
-
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info

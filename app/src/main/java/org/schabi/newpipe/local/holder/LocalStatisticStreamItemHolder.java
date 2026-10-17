@@ -13,10 +13,12 @@ import org.schabi.newpipe.database.LocalItem;
 import org.schabi.newpipe.database.stream.StreamStatisticsEntry;
 import org.schabi.newpipe.ktx.ViewUtils;
 import org.schabi.newpipe.local.LocalItemBuilder;
+import org.schabi.newpipe.local.LocalUploaderNavigation;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
+import org.schabi.newpipe.util.DependentPreferenceHelper;
 import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.util.ServiceHelper;
+import org.schabi.newpipe.util.image.CoilHelper;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
 import java.time.format.DateTimeFormatter;
@@ -46,6 +48,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
     public final ImageView itemThumbnailView;
     public final TextView itemVideoTitleView;
     public final TextView itemUploaderView;
+    private final View itemUploaderRoot;
+    private final ImageView itemUploaderAvatarView;
     public final TextView itemDurationView;
     @Nullable
     public final TextView itemAdditionalDetails;
@@ -63,6 +67,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         itemThumbnailView = itemView.findViewById(R.id.itemThumbnailView);
         itemVideoTitleView = itemView.findViewById(R.id.itemVideoTitleView);
         itemUploaderView = itemView.findViewById(R.id.itemUploaderView);
+        itemUploaderRoot = itemView.findViewById(R.id.itemUploaderRoot);
+        itemUploaderAvatarView = itemView.findViewById(R.id.itemUploaderAvatarView);
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
         itemAdditionalDetails = itemView.findViewById(R.id.itemAdditionalDetails);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
@@ -70,12 +76,15 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
 
     private String getStreamInfoDetailLine(final StreamStatisticsEntry entry,
                                            final DateTimeFormatter dateTimeFormatter) {
+        final String sourceName = entry.getStreamEntity().isLocalMedia()
+                ? itemBuilder.getContext().getString(R.string.local_media_on_device)
+                : ServiceHelper.getNameOfServiceById(entry.getStreamEntity().getServiceId());
         return Localization.concatenateStrings(
                 // watchCount
                 Localization.shortViewCount(itemBuilder.getContext(), entry.getWatchCount()),
                 dateTimeFormatter.format(entry.getLatestAccessDate()),
                 // serviceName
-                ServiceHelper.getNameOfServiceById(entry.getStreamEntity().getServiceId()));
+                sourceName);
     }
 
     @Override
@@ -89,6 +98,11 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
 
         itemVideoTitleView.setText(item.getStreamEntity().getTitle());
         itemUploaderView.setText(item.getStreamEntity().getUploader());
+        CoilHelper.INSTANCE.loadAvatar(itemUploaderAvatarView,
+                item.getStreamEntity().getUploaderAvatarUrl());
+        bindUploaderNavigation(itemUploaderRoot, item,
+                LocalUploaderNavigation.canOpenChannel(item.getStreamEntity()),
+                item.getStreamEntity().getUploader());
 
         if (item.getStreamEntity().getDuration() > 0) {
             itemDurationView.
@@ -97,7 +111,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
                     R.color.duration_background_color));
             itemDurationView.setVisibility(View.VISIBLE);
 
-            if (item.getProgressMillis() > 0) {
+            if (DependentPreferenceHelper.getPositionsInListsEnabled(itemProgressView.getContext())
+                    && item.getProgressMillis() > 0) {
                 itemProgressView.setVisibility(View.VISIBLE);
                 itemProgressView.setMax((int) item.getStreamEntity().getDuration());
                 itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
@@ -115,8 +130,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         }
 
         // Default thumbnail is shown on error, while loading and if the url is empty
-        PicassoHelper.loadThumbnail(item.getStreamEntity().getThumbnailUrl())
-                .into(itemThumbnailView);
+        CoilHelper.INSTANCE.loadThumbnail(itemThumbnailView,
+                item.getStreamEntity().getThumbnailUrl());
 
         itemView.setOnClickListener(view -> {
             if (itemBuilder.getOnItemSelectedListener() != null) {
@@ -141,7 +156,8 @@ public class LocalStatisticStreamItemHolder extends LocalItemHolder {
         }
         final StreamStatisticsEntry item = (StreamStatisticsEntry) localItem;
 
-        if (item.getProgressMillis() > 0 && item.getStreamEntity().getDuration() > 0) {
+        if (DependentPreferenceHelper.getPositionsInListsEnabled(itemProgressView.getContext())
+                && item.getProgressMillis() > 0 && item.getStreamEntity().getDuration() > 0) {
             itemProgressView.setMax((int) item.getStreamEntity().getDuration());
             if (itemProgressView.getVisibility() == View.VISIBLE) {
                 itemProgressView.setProgressAnimated((int) TimeUnit.MILLISECONDS

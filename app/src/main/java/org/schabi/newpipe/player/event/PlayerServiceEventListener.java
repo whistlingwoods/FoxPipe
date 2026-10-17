@@ -1,13 +1,20 @@
 package org.schabi.newpipe.player.event;
 
-import com.google.android.exoplayer2.PlaybackException;
+import androidx.media3.common.PlaybackException;
 
 public interface PlayerServiceEventListener extends PlayerEventListener {
     void onViewCreated();
 
     void onFullscreenStateChanged(boolean fullscreen);
 
-    void onScreenRotationButtonClicked();
+    /** Called after the main player has re-enabled video on return from the background. */
+    void onVideoPlaybackResumed();
+
+    void onScreenRotationButtonClicked(boolean fullscreen);
+
+    default void onManualFullscreenButtonClicked(final boolean fullscreen) {
+        onScreenRotationButtonClicked(fullscreen);
+    }
 
     void onMoreOptionsLongClicked();
 

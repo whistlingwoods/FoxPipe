@@ -1,8 +1,5 @@
 package org.schabi.newpipe.settings;
 
-import static org.schabi.newpipe.extractor.utils.Utils.decodeUrlUtf8;
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -30,8 +27,6 @@ import org.schabi.newpipe.util.FilePickerActivityHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
 
 public class DownloadSettingsFragment extends BasePreferenceFragment {
     public static final boolean IGNORE_RELEASE_ON_OLD_PATH = true;
@@ -44,6 +39,16 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
     private Preference prefStorageAsk;
 
     private Context ctx;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        final Preference status = findPreference("automatic_download_status");
+        if (status != null) {
+            status.setSummary(defaultPreferences.getString("automatic_download_status",
+                    getString(R.string.automatic_download_waiting_status)));
+        }
+    }
     private final ActivityResultLauncher<Intent> requestDownloadVideoPathLauncher =
             registerForActivityResult(
                     new StartActivityForResult(), this::requestDownloadVideoPathResult);
@@ -54,6 +59,18 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
     @Override
     public void onCreatePreferences(final Bundle savedInstanceState, final String rootKey) {
         addPreferencesFromResourceRegistry();
+
+        findPreference(org.schabi.newpipe.download.ExternalDownloader.PACKAGE)
+                .setOnPreferenceChangeListener((preference, value) -> {
+                    final boolean valid = org.schabi.newpipe.download.ExternalDownloader
+                            .isValidPackage(value.toString().trim());
+                    if (!valid) {
+                        android.widget.Toast.makeText(requireContext(),
+                                R.string.external_downloader_invalid_package,
+                                android.widget.Toast.LENGTH_LONG).show();
+                    }
+                    return valid;
+                });
 
         downloadPathVideoPreference = getString(R.string.download_path_video_key);
         downloadPathAudioPreference = getString(R.string.download_path_audio_key);
@@ -84,6 +101,15 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
             updatePathPickers(!(boolean) value);
             return true;
         });
+        for (final String key : new String[]{
+                org.schabi.newpipe.download.AutomaticDownloads.ENABLED,
+                org.schabi.newpipe.download.AutomaticDownloads.WIFI_ONLY}) {
+            findPreference(key).setOnPreferenceChangeListener((preference, value) -> {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
+                        org.schabi.newpipe.download.AutomaticDownloads.initialize(ctx));
+                return true;
+            });
+        }
     }
 
     @Override
@@ -108,28 +134,15 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
 
     private void showPathInSummary(final String prefKey, @StringRes final int defaultString,
                                    final Preference target) {
-        String rawUri = defaultPreferences.getString(prefKey, null);
-        if (rawUri == null || rawUri.isEmpty()) {
+        final Uri uri = Uri.parse(defaultPreferences.getString(prefKey, ""));
+        if (uri.equals(Uri.EMPTY)) {
             target.setSummary(getString(defaultString));
             return;
         }
 
-        if (rawUri.charAt(0) == File.separatorChar) {
-            target.setSummary(rawUri);
-            return;
-        }
-        if (rawUri.startsWith(ContentResolver.SCHEME_FILE)) {
-            target.setSummary(new File(URI.create(rawUri)).getPath());
-            return;
-        }
-
-        try {
-            rawUri = decodeUrlUtf8(rawUri);
-        } catch (final UnsupportedEncodingException e) {
-            // nothing to do
-        }
-
-        target.setSummary(rawUri);
+        final String summary = ContentResolver.SCHEME_FILE.equals(uri.getScheme())
+                ? uri.getPath() : uri.toString();
+        target.setSummary(summary);
     }
 
     private boolean isFileUri(final String path) {
@@ -170,11 +183,11 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
     }
 
     private void showMessageDialog(@StringRes final int title, @StringRes final int message) {
-        final AlertDialog.Builder msg = new AlertDialog.Builder(ctx);
-        msg.setTitle(title);
-        msg.setMessage(message);
-        msg.setPositiveButton(getString(R.string.ok), null);
-        msg.show();
+        new AlertDialog.Builder(ctx)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.ok), null)
+                .show();
     }
 
     @Override
@@ -185,6 +198,11 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
         }
 
         final String key = preference.getKey();
+
+        if ("automatic_download_channels".equals(key)) {
+            org.schabi.newpipe.download.AutomaticDownloads.manage(requireContext());
+            return true;
+        }
 
         if (key.equals(storageUseSafPreference)) {
             if (!NewPipeSettings.useStorageAccessFramework(ctx)) {
@@ -225,8 +243,6 @@ public class DownloadSettingsFragment extends BasePreferenceFragment {
     }
 
     private void requestDownloadPathResult(final ActivityResult result, final String key) {
-        assureCorrectAppLanguage(getContext());
-
         if (result.getResultCode() != Activity.RESULT_OK) {
             return;
         }

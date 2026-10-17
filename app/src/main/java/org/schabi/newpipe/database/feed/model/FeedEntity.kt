@@ -7,25 +7,30 @@ import androidx.room.Index
 import org.schabi.newpipe.database.feed.model.FeedEntity.Companion.FEED_TABLE
 import org.schabi.newpipe.database.feed.model.FeedEntity.Companion.STREAM_ID
 import org.schabi.newpipe.database.feed.model.FeedEntity.Companion.SUBSCRIPTION_ID
+import org.schabi.newpipe.database.feed.model.FeedEntity.Companion.YOUTUBE_MODE_MASK
 import org.schabi.newpipe.database.stream.model.StreamEntity
 import org.schabi.newpipe.database.subscription.SubscriptionEntity
 
 @Entity(
     tableName = FEED_TABLE,
-    primaryKeys = [STREAM_ID, SUBSCRIPTION_ID],
+    primaryKeys = [STREAM_ID, SUBSCRIPTION_ID, YOUTUBE_MODE_MASK],
     indices = [Index(SUBSCRIPTION_ID)],
     foreignKeys = [
         ForeignKey(
             entity = StreamEntity::class,
             parentColumns = [StreamEntity.STREAM_ID],
             childColumns = [STREAM_ID],
-            onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE, deferred = true
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+            deferred = true
         ),
         ForeignKey(
             entity = SubscriptionEntity::class,
             parentColumns = [SubscriptionEntity.SUBSCRIPTION_UID],
             childColumns = [SUBSCRIPTION_ID],
-            onDelete = ForeignKey.CASCADE, onUpdate = ForeignKey.CASCADE, deferred = true
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE,
+            deferred = true
         )
     ]
 )
@@ -34,7 +39,13 @@ data class FeedEntity(
     var streamId: Long,
 
     @ColumnInfo(name = SUBSCRIPTION_ID)
-    var subscriptionId: Long
+    var subscriptionId: Long,
+
+    @ColumnInfo(name = YOUTUBE_MODE_MASK, defaultValue = "1")
+    var youtubeModeMask: Int = SubscriptionEntity.YOUTUBE_MODE_REGULAR,
+
+    @ColumnInfo(name = "first_discovered_at", defaultValue = "0")
+    var firstDiscoveredAt: Long = System.currentTimeMillis()
 ) {
 
     companion object {
@@ -42,5 +53,6 @@ data class FeedEntity(
 
         const val STREAM_ID = "stream_id"
         const val SUBSCRIPTION_ID = "subscription_id"
+        const val YOUTUBE_MODE_MASK = "youtube_mode_mask"
     }
 }

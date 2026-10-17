@@ -2,11 +2,12 @@ package org.schabi.newpipe.player.mediaitem;
 
 import android.net.Uri;
 
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.MediaItem.RequestMetadata;
-import com.google.android.exoplayer2.MediaMetadata;
-import com.google.android.exoplayer2.Player;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MediaItem.RequestMetadata;
+import androidx.media3.common.MediaMetadata;
+import androidx.media3.common.Player;
 
+import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
@@ -43,6 +44,11 @@ public interface MediaItemTag {
 
     String getUploaderUrl();
 
+    @Nullable
+    default String getAlbumTitle() {
+        return null;
+    }
+
     StreamType getStreamType();
 
     @NonNull
@@ -52,6 +58,11 @@ public interface MediaItemTag {
 
     @NonNull
     default Optional<Quality> getMaybeQuality() {
+        return Optional.empty();
+    }
+
+    @NonNull
+    default Optional<AudioTrack> getMaybeAudioTrack() {
         return Optional.empty();
     }
 
@@ -75,9 +86,11 @@ public interface MediaItemTag {
 
     @NonNull
     default MediaItem asMediaItem() {
+        final String thumbnailUrl = getThumbnailUrl();
         final MediaMetadata mediaMetadata = new MediaMetadata.Builder()
-                .setArtworkUri(Uri.parse(getThumbnailUrl()))
+                .setArtworkUri(thumbnailUrl == null ? null : Uri.parse(thumbnailUrl))
                 .setArtist(getUploaderName())
+                .setAlbumTitle(getAlbumTitle())
                 .setDescription(getTitle())
                 .setDisplayTitle(getTitle())
                 .setTitle(getTitle())
@@ -100,16 +113,23 @@ public interface MediaItemTag {
         @NonNull
         private final List<VideoStream> sortedVideoStreams;
         private final int selectedVideoStreamIndex;
+        private final boolean adaptive;
 
         private Quality(@NonNull final List<VideoStream> sortedVideoStreams,
-                        final int selectedVideoStreamIndex) {
+                        final int selectedVideoStreamIndex,
+                        final boolean adaptive) {
             this.sortedVideoStreams = sortedVideoStreams;
             this.selectedVideoStreamIndex = selectedVideoStreamIndex;
+            this.adaptive = adaptive;
         }
 
         static Quality of(@NonNull final List<VideoStream> sortedVideoStreams,
                           final int selectedVideoStreamIndex) {
-            return new Quality(sortedVideoStreams, selectedVideoStreamIndex);
+            return new Quality(sortedVideoStreams, selectedVideoStreamIndex, false);
+        }
+
+        static Quality adaptive(@NonNull final List<VideoStream> sortedVideoStreams) {
+            return new Quality(sortedVideoStreams, -1, true);
         }
 
         @NonNull
@@ -121,11 +141,48 @@ public interface MediaItemTag {
             return selectedVideoStreamIndex;
         }
 
+        public boolean isAdaptive() {
+            return adaptive;
+        }
+
         @Nullable
         public VideoStream getSelectedVideoStream() {
             return selectedVideoStreamIndex < 0
                     || selectedVideoStreamIndex >= sortedVideoStreams.size()
                     ? null : sortedVideoStreams.get(selectedVideoStreamIndex);
+        }
+    }
+
+    final class AudioTrack {
+        @NonNull
+        private final List<AudioStream> audioStreams;
+        private final int selectedAudioStreamIndex;
+
+        private AudioTrack(@NonNull final List<AudioStream> audioStreams,
+                           final int selectedAudioStreamIndex) {
+            this.audioStreams = audioStreams;
+            this.selectedAudioStreamIndex = selectedAudioStreamIndex;
+        }
+
+        static AudioTrack of(@NonNull final List<AudioStream> audioStreams,
+                             final int selectedAudioStreamIndex) {
+            return new AudioTrack(audioStreams, selectedAudioStreamIndex);
+        }
+
+        @NonNull
+        public List<AudioStream> getAudioStreams() {
+            return audioStreams;
+        }
+
+        public int getSelectedAudioStreamIndex() {
+            return selectedAudioStreamIndex;
+        }
+
+        @Nullable
+        public AudioStream getSelectedAudioStream() {
+            return selectedAudioStreamIndex < 0
+                    || selectedAudioStreamIndex >= audioStreams.size()
+                    ? null : audioStreams.get(selectedAudioStreamIndex);
         }
     }
 }

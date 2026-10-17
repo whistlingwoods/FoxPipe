@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item
-        android:drawable="@color/light_youtube_primary_color"/>
+    <!-- Before Android 12 the starting window cannot read the saved app theme.
+         Use a dark brand frame so dark-mode users never see a white cold start;
+         the app-owned splash then takes over with the selected theme. -->
+    <item android:drawable="@color/dark_background_color" />
 
-    <item>
-        <bitmap
-            android:src="@drawable/ic_newpipe_triangle_white"
-            android:gravity="center_vertical|center_horizontal" />
-    </item>
+    <item
+        android:drawable="@drawable/ic_wizestream_splash_system"
+        android:gravity="center" />
 </layer-list>

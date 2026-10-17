@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="playback_reset">റീസെറ്റ്</string>
     <string name="playback_step">സ്റ്റെപ്</string>
@@ -81,7 +81,6 @@
     <string name="new_and_hot">പുതിയതും ചൂടേറിയതും</string>
     <string name="top_50">മികച്ച 50</string>
     <string name="trending">ട്രെൻഡിങ്ങ്</string>
-    <string name="localization_changes_requires_app_restart">അപ്ലിക്കേഷൻ പുനരാരംഭിച്ചുകഴിഞ്ഞാൽ ഭാഷ മാറും</string>
     <string name="error_unable_to_load_comments">കമെന്റുകൾ ലോഡുചെയ്യാനായില്ല</string>
     <string name="import_settings">ക്രമീകരണങ്ങളും ഇമ്പോർട്ടുചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുണ്ടോ\?</string>
     <string name="override_current_data">ഇത് നിങ്ങളുടെ നിലവിലെ സജ്ജീകരണത്തെ അസാധുവാക്കും.</string>
@@ -105,17 +104,14 @@
     <string name="title_activity_history">ചരിത്രം</string>
     <string name="read_full_license">ലൈസൻസ് വായിക്കൂ</string>
     <string name="app_license">കോപ്പി‌ലെഫ്റ്റ് ലിബ്രെ സോഫ്റ്റ്വെയറാണ് ന്യൂ‌പൈപ്പ്: നിങ്ങൾക്ക് അത് ഉപയോഗിക്കാനും പഠിക്കാനും പങ്കിടാനും ഇഷ്ടാനുസരണം മെച്ചപ്പെടുത്താനും കഴിയും. സ്വതന്ത്ര സോഫ്റ്റ്‌വെയർ ഫൗണ്ടേഷൻ പ്രസിദ്ധീകരിച്ച ഗ്നു ജനറൽ പബ്ലിക് ലൈസൻസിന്റെ നിബന്ധനകൾ പ്രകാരം, ലൈസൻസിന്റെ മൂന്നാം പതിപ്പ് അല്ലെങ്കിൽ (നിങ്ങളുടെ ഓപ്ഷനിൽ) പിന്നീടുള്ള ഏതെങ്കിലും പതിപ്പ് പ്രകാരം നിങ്ങൾക്ക് ഇത് പുനർവിതരണം ചെയ്യാനും / അല്ലെങ്കിൽ പരിഷ്ക്കരിക്കാനും കഴിയും.</string>
-    <string name="app_license_title">ന്യൂപൈപ്പിന്റെ ലൈസൻസ്</string>
+    <string name="app_license_title">WizeStreamിന്റെ ലൈസൻസ്</string>
     <string name="read_privacy_policy">സ്വകാര്യതാനയം വായിക്കൂ</string>
-    <string name="privacy_policy_encouragement">ദ ന്യൂപൈപ്പ് പ്രോജക്ട് നിങ്ങളുടെ സ്വകാര്യതയെ മാനിക്കുന്നു. അതുകൊണ്ടുതന്നെ, നിങ്ങളുടെ ഒരു ഡേറ്റയും ഞങ്ങൾ ശേഖരിക്കുന്നില്ല. 
-\nനിങ്ങൾ ഒരു ക്രാഷ് റിപ്പോർട്ട് അയക്കുമ്പോൾ അതിൻപ്രകാരം എന്ത് ഡാറ്റ ആണ് ശേഖരിക്കുന്നെന്നും സൂക്ഷിക്കുന്നതെന്നുമൊക്കെ ന്യൂപൈപ്പിന്റെ സ്വകാര്യതാനയം വ്യകതമാക്കുന്നതാണ്.</string>
-    <string name="privacy_policy_title">ന്യൂപൈപ്പിന്റെ സ്വകാര്യതാനയം</string>
-    <string name="website_encouragement">കൂടുതൽ വിവരങ്ങൾക്കും വാർത്തകൾക്കും ന്യൂപൈപ്പിന്റെ വെബ്സൈറ്റ് സന്ദർശിക്കുക.</string>
+    <string name="privacy_policy_encouragement">ദ WizeStream പ്രോജക്ട് നിങ്ങളുടെ സ്വകാര്യതയെ മാനിക്കുന്നു. അതുകൊണ്ടുതന്നെ, നിങ്ങളുടെ ഒരു ഡേറ്റയും ഞങ്ങൾ ശേഖരിക്കുന്നില്ല.
+\nനിങ്ങൾ ഒരു ക്രാഷ് റിപ്പോർട്ട് അയക്കുമ്പോൾ അതിൻപ്രകാരം എന്ത് ഡാറ്റ ആണ് ശേഖരിക്കുന്നെന്നും സൂക്ഷിക്കുന്നതെന്നുമൊക്കെ WizeStreamിന്റെ സ്വകാര്യതാനയം വ്യകതമാക്കുന്നതാണ്.</string>
+    <string name="privacy_policy_title">WizeStreamിന്റെ സ്വകാര്യതാനയം</string>
+    <string name="website_encouragement">കൂടുതൽ വിവരങ്ങൾക്കും വാർത്തകൾക്കും WizeStreamിന്റെ വെബ്സൈറ്റ് സന്ദർശിക്കുക.</string>
     <string name="website_title">വെബ്സൈറ്റ്</string>
-    <string name="give_back">തിരികെ നൽകുക</string>
-    <string name="info_labels">എന്താണ്:\\nഅപേക്ഷ:\\nഉള്ളടക്കത്തിന്റെ ഭാഷ:\\nഉള്ളടക്കത്തിന്റെ രാജ്യം:\\n അപ്ലിക്കേഷന്റെ ഭാഷ:\\nസേവനം:\\nGMT സമയം:\\nപാക്കേജ്:\\nപതിപ്പ്:\\nOS ന്റെ പതിപ്പ്:</string>
-    <string name="donation_encouragement">നിങ്ങൾക്ക് മികച്ച ഉപഭോക്തൃ അനുഭവം നൽകാനായി പ്രയത്‌നിക്കുന്ന ലോകമെമ്പാടുമുള്ള വൊളന്റിയർമാരാണ് ന്യൂപൈപ്പിന്റെ ശക്തി. ന്യൂപൈപ്പിനെ ഇനിയും മികവുറ്റതാക്കാൻ നിങ്ങൾക്ക് കഴിയും, നിങ്ങളുടെ സംഭാവനയിലൂടെ.</string>
-    <string name="donation_title">സംഭാവന ചെയ്യുക</string>
+    <string name="info_labels">എന്താണ്:\nഅപേക്ഷ:\nഉള്ളടക്കത്തിന്റെ ഭാഷ:\nഉള്ളടക്കത്തിന്റെ രാജ്യം:\n അപ്ലിക്കേഷന്റെ ഭാഷ:\nസേവനം:\nGMT സമയം:\nപാക്കേജ്:\nപതിപ്പ്:\nOS ന്റെ പതിപ്പ്:</string>
     <string name="view_on_github">ജിറ്റ്ഹബിൽ കാണുക</string>
     <string name="contribution_encouragement">തർജ്ജമയോ, ഡിസൈൻ മാറ്റങ്ങളോ, കോഡിങ് പരിപാടിയോ, എന്തുമാവട്ടെ, സഹായം എന്നും സ്വാഗതാർഹമാണ്. ഒത്തു പിടിച്ചാൽ മലയും പോരുംന്നല്ലേ!</string>
     <string name="contribution_title">സംഭാവന</string>
@@ -124,15 +120,14 @@
     <string name="tab_about">കുറിച്ച്</string>
     <string name="copyright" formatted="true">%3$s ന്റെ കീഴിൽ %2$s ന്റെ ©%1$s</string>
     <string name="title_licenses">തേർഡ്-പാർട്ടി ലൈസൻസുകൾ</string>
-    <string name="title_activity_about">ന്യൂപൈപ്പിനെക്കുറിച്ച്</string>
-    <string name="toast_no_player">ഈ ഫയൽ പ്ലേ ചെയ്യാൻ കഴിയുന്ന ഒരു അപ്പും ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല</string>
+    <string name="title_activity_about">WizeStreamിനെക്കുറിച്ച്</string>
     <string name="charset_most_special_characters">പ്രത്യേക അടയാളങ്ങൾ</string>
     <string name="charset_letters_and_digits">അക്ഷരങ്ങളും അക്കങ്ങളും</string>
     <string name="settings_file_replacement_character_title">പകരം ഉപയോഗിക്കാവുന്ന അടയാളം</string>
     <string name="settings_file_replacement_character_summary">സ്വീകാര്യമല്ലാത്ത അടയാളങ്ങൾ ഈ അടയാളം കൊണ്ട് മാറ്റുന്നതാണ്</string>
     <string name="settings_file_charset_title">ഫയൽനാമങ്ങളിൽ അനുവദിച്ചിട്ടുള്ള അടയാളങ്ങൾ</string>
     <string name="settings_category_downloads_title">ഡൗൺലോഡ്</string>
-    <string name="recaptcha_done_button">ഓകെ</string>
+    <string name="done">ഓകെ</string>
     <string name="recaptcha_request_toast">reCAPTCHA ചാലഞ്ചിനായി അഭ്യർത്ഥിച്ചു</string>
     <string name="subtitle_activity_recaptcha">തീർന്നാൽ \"Done\" അമർത്തുക</string>
     <string name="title_activity_recaptcha">reCAPTCHA ചാലഞ്ച്</string>
@@ -143,7 +138,7 @@
     <string name="msg_copied">ക്ലിപ്ബോർഡിലേക്ക് പകർത്തി</string>
     <string name="msg_wait">കാത്തിരിക്കു…</string>
     <string name="msg_running_detail">വിശദാംശങ്ങൾക്കായി തൊടൂ</string>
-    <string name="msg_running">ന്യൂപൈപ്പ് ഡൗൺലോഡിങ്ങ്</string>
+    <string name="msg_running">WizeStream ഡൗൺലോഡിങ്ങ്</string>
     <string name="msg_error">പിശക്</string>
     <string name="msg_threads">ത്രെഡുകൾ</string>
     <string name="msg_name">ഫയൽനാമം</string>
@@ -185,9 +180,6 @@
     </plurals>
     <string name="no_subscribers">സബ്ക്രൈബേഴ്സ് ഇല്ല</string>
     <string name="drawer_header_description">സേവനം മാറ്റുക, ഇപ്പോൾ തിരഞ്ഞെടുത്തത്:</string>
-    <string name="short_billion">B</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
     <string name="retry">വീണ്ടും ശ്രമിക്കുക</string>
     <string name="audio">ഓഡിയോ</string>
     <string name="video">വീഡിയോ</string>
@@ -227,7 +219,6 @@
     <string name="could_not_setup_download_menu">ഡൗൺലോഡ് മെനു തുറക്കാനായില്ല</string>
     <string name="content_not_available">കന്റെന്റ് ലഭ്യമല്ല</string>
     <string name="parsing_error">വെബ്സൈറ്റ് വ്യാപരിക്കാനായില്ല</string>
-    <string name="youtube_signature_deobfuscation_error">വീഡിയോ URL സിഗ്നേച്ചർ ഡീക്രിപ്റ്റ് ചെയ്യാൻ സാധിച്ചില്ല</string>
     <string name="could_not_load_thumbnails">ലഘുചിത്രങ്ങൾ ലോഡ് ചെയ്യാനായില്ല</string>
     <string name="network_error">നെറ്റ്‌വർക്ക് പിശക്</string>
     <string name="download_to_sdcard_error_message">എസ്ഡി കാർഡിലേക്ക്‌ ഡൗൺലോഡ് അസാധ്യം. ഡൗൺലോഡ് ഫോൾഡർ മാറ്റട്ടെ\?</string>
@@ -250,16 +241,16 @@
     <string name="export_data_title">ഡാറ്റാബേസ് കയറ്റുമതി ചെയ്യുക</string>
     <string name="import_data_title">ഡാറ്റാബേസ് അവതരിപ്പിക്കുക</string>
     <string name="accept">അംഗീകരിക്കുക</string>
-    <string name="start_accept_privacy_policy">യൂറോപ്യൻ ജനറൽ ഡാറ്റാ പ്രൊട്ടക്ഷൻ റെഗുലേഷൻ (ജിഡിപിആർ) അനുസരിക്കുന്നതിന്, ന്യൂപൈപ്പിന്റെ സ്വകാര്യതാ നയത്തിലേക്ക് ഞങ്ങൾ നിങ്ങളുടെ ശ്രദ്ധ ആകർഷിക്കുന്നു. ദയവായി ഇത് ശ്രദ്ധാപൂർവ്വം വായിക്കുക.
+    <string name="start_accept_privacy_policy">യൂറോപ്യൻ ജനറൽ ഡാറ്റാ പ്രൊട്ടക്ഷൻ റെഗുലേഷൻ (ജിഡിപിആർ) അനുസരിക്കുന്നതിന്, WizeStreamിന്റെ സ്വകാര്യതാ നയത്തിലേക്ക് ഞങ്ങൾ നിങ്ങളുടെ ശ്രദ്ധ ആകർഷിക്കുന്നു. ദയവായി ഇത് ശ്രദ്ധാപൂർവ്വം വായിക്കുക.
 \nബഗ് റിപ്പോർട്ട് ഞങ്ങൾക്ക് അയയ്ക്കാൻ നിങ്ങൾ അത് അംഗീകരിക്കണം.</string>
     <string name="switch_to_main">പ്രധാനപ്പെട്ടതിലേക്ക് മാറുക</string>
     <string name="switch_to_popup">പോപ്പപ്പിലേക്ക് മാറുക</string>
     <string name="switch_to_background">ബാക്ക്ഗ്രൗണ്ടിലേക്ക്‌ മാറുക</string>
     <string name="unknown_content">[അജ്ഞാതം]</string>
-    <string name="app_update_notification_channel_description">പുതിയ ന്യൂപൈപ്പ് പതിപ്പിന് വേണ്ടിയുള്ള അറിയിപ്പ്</string>
+    <string name="app_update_notification_channel_description">പുതിയ WizeStream പതിപ്പിന് വേണ്ടിയുള്ള അറിയിപ്പ്</string>
     <string name="app_update_notification_channel_name">ആപ്പ് അപ്ഡേറ്റ് ചെയ്യാനുള്ള അറിയിപ്പ്</string>
-    <string name="notification_channel_description">ന്യൂപൈപ്പ് പ്ലേയറിന് വേണ്ടിയുള്ള അറിയിപ്പുകൾ</string>
-    <string name="notification_channel_name">ന്യൂപൈപ്പ് അറിയിപ്പ്</string>
+    <string name="notification_channel_description">WizeStream പ്ലേയറിന് വേണ്ടിയുള്ള അറിയിപ്പുകൾ</string>
+    <string name="notification_channel_name">WizeStream അറിയിപ്പ്</string>
     <string name="file">ഫയൽ</string>
     <string name="just_once">ഒരിക്കൽ മാത്രം</string>
     <string name="always">എപ്പോഴും</string>
@@ -326,20 +317,14 @@
     <string name="enable_search_history_title">അന്വേഷണ ചരിത്രം</string>
     <string name="show_search_suggestions_summary">സെർച്ച് ചെയ്യുമ്പോൾ നിർദ്ദേശങ്ങൾ തിരഞ്ഞെടുക്കുക</string>
     <string name="show_search_suggestions_title">സെർച്ച് നിർദ്ദേശങ്ങൾ</string>
-    <string name="brightness_gesture_control_summary">ആംഗ്യത്തിലൂടെ പ്ലയറിലെ പ്രകാശം നിയന്ത്രിക്കാം</string>
-    <string name="brightness_gesture_control_title">ആംഗ്യത്തിലൂടെ പ്രകാശം നിയന്ത്രിക്കുക</string>
-    <string name="volume_gesture_control_summary">ആംഗ്യം ഉപയോഗിച്ച് വോള്യം നിയന്ത്രിക്കാം</string>
-    <string name="volume_gesture_control_title">ആംഗ്യത്തിലൂടെ വോള്യം നിയന്ത്രിക്കുക</string>
     <string name="auto_queue_summary">തീരാറായ പ്ലേബാക്ക് ക്യൂവിനെ മറ്റൊരു അനുബന്ധ സ്‌ട്രീമുമായി കൂട്ടിച്ചേർത്ത് തുടരുക</string>
     <string name="auto_queue_title">അടുത്ത സ്ട്രീം ഓട്ടോക്യൂ ചെയ്യുക</string>
     <string name="metadata_cache_wipe_complete_notice">കാഷെ ആയ മെറ്റാഡേറ്റ തുടച്ചുനീക്കി</string>
     <string name="metadata_cache_wipe_summary">കാഷെ ആയ ഡേറ്റ നീക്കംചെയ്യുക</string>
     <string name="metadata_cache_wipe_title">കാഷെ ആയ മെറ്റാഡേറ്റ തുടച്ചുനീക്കി</string>
     <string name="thumbnail_cache_wipe_complete_notice">ഇമേജ് കാചെ തുടച്ചുമാറ്റി</string>
-    <string name="download_thumbnail_summary">ലഘുചിങ്ങൾ ലോഡ് ചെയ്യാതിരിക്കാനും ഡേറ്റയും മെമ്മറിയും ലാഭിക്കാനുമായി ഓഫ്ചെയ്യുക. എസ് ഡീ കാർഡിലെയും മെമ്മറിയിലെയും കാച്ചേ ക്ലിയർ ചെയ്യും</string>
     <string name="show_comments_summary">കമന്റുകൾ മറയ്ക്കാനായി ഓഫ് ചെയ്യുക</string>
     <string name="show_comments_title">കമന്റുകൾ കാണിക്കുക</string>
-    <string name="download_thumbnail_title">ലഘുചിത്രങ്ങൾ ലോഡ്‌ ചെയ്യുക</string>
     <string name="seek_duration_title">ഫാസ്റ്റ്-ഫോർവേർഡ്/റീവൈൻഡ് സമയദൈർഘ്യം</string>
     <string name="use_inexact_seek_title">Inexact seek ഉപയോഗിക്കുക</string>
     <string name="use_inexact_seek_summary">കുറഞ്ഞ കൃത്യതയോടെ സീക് ചെയ്യാൻ ഇൻ എക്സക്ട് സഹായിക്കുന്നു. 5,15,25 സെക്കൻഡ് സീക്‌ ഈ മോഡിൽ പ്രവർത്തിക്കുകയില്ല</string>
@@ -402,7 +387,7 @@
 \nഭാവിയിലെ ഒരു പതിപ്പിൽ ഇത് പിന്തുണയ്‌ക്കുമെന്ന് പ്രതീക്ഷിക്കുന്നു.</string>
     <string name="feed_use_dedicated_fetch_method_help_text">ഫീഡ് ലോഡിംഗ് വളരെ മന്ദഗതിയിലാണെന്ന് നിങ്ങൾ കരുതുന്നുണ്ടോ\? അങ്ങനെയാണെങ്കിൽ, വേഗത്തിലുള്ള ലോഡിംഗ് പ്രവർത്തനക്ഷമമാക്കാൻ ശ്രമിക്കുക (നിങ്ങൾക്ക് ഇത് ക്രമീകരണങ്ങളിലോ ചുവടെയുള്ള ബട്ടൺ അമർത്തിയോ മാറ്റാം).
 \n
-\nന്യൂപൈപ്പ് രണ്ട് ഫീഡ് ലോഡിംഗ് തന്ത്രങ്ങൾ വാഗ്ദാനം ചെയ്യുന്നു:
+\nWizeStream രണ്ട് ഫീഡ് ലോഡിംഗ് തന്ത്രങ്ങൾ വാഗ്ദാനം ചെയ്യുന്നു:
 \nSlow സബ്‌സ്‌ക്രിപ്‌ഷൻ ചാനൽ മുഴുവനും ലഭ്യമാക്കുന്നു, അത് മന്ദഗതിയിലുള്ളതും എന്നാൽ പൂർണ്ണവുമാണ്.
 \nA ഒരു സമർപ്പിത സേവന എൻ‌ഡ്‌പോയിൻറ് ഉപയോഗിക്കുന്നു, അത് വേഗതയേറിയതും എന്നാൽ സാധാരണയായി പൂർത്തിയാകാത്തതുമാണ്.
 \n
@@ -419,7 +404,7 @@
     <string name="paused">താൽക്കാലികമായി നിർത്തി</string>
     <string name="missions_header_pending">ശേഷിക്കുന്നു</string>
     <string name="missions_header_finished">പൂർത്തിയായി</string>
-    <string name="app_update_available_notification_title">ന്യൂപൈപ്പ് അപ്‌ഡേറ്റ് ലഭ്യമാണ്!</string>
+    <string name="app_update_available_notification_title">WizeStream അപ്‌ഡേറ്റ് ലഭ്യമാണ്!</string>
     <string name="auto">ഓട്ടോ</string>
     <string name="grid">ഗ്രിഡ്</string>
     <string name="list">ലിസ്റ്റ്</string>
@@ -473,10 +458,9 @@
         <item quantity="other">%d സെക്കൻഡുകൾ</item>
     </plurals>
     <string name="new_seek_duration_toast">എക്സോപ്ലെയർ പരിമിതികൾ കാരണം തിരയൽ ദൈർഘ്യം %d സെക്കൻഡിലേക്ക് സജ്ജമാക്കി</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">അതെ, അതിന്റെകൂടെ ഭാഗികമായി കണ്ട വീഡിയോകളും</string>
-    <string name="remove_watched_popup_warning">പ്ലേലിസ്റ്റിലേക്ക് ചേർക്കുന്നതിന് മുമ്പും ശേഷവും കണ്ട വീഡിയോകൾ നീക്കംചെയ്യും.
-\nനിങ്ങൾക്ക് ഉറപ്പാണോ\? ഇത് പഴയപടിയാക്കാൻ കഴിയില്ല!</string>
-    <string name="remove_watched_popup_title">കണ്ട വീഡിയോകൾ നീക്കംചെയ്യണോ\?</string>
+    <string name="remove_watched_popup_partially_watched_streams">അതെ, അതിന്റെകൂടെ ഭാഗികമായി കണ്ട വീഡിയോകളും</string>
+    <string name="remove_watched_popup_warning">പ്ലേലിസ്റ്റിലേക്ക് ചേർക്കുന്നതിന് മുമ്പും ശേഷവും കണ്ട വീഡിയോകൾ നീക്കംചെയ്യും. \nനിങ്ങൾക്ക് ഉറപ്പാണോ? ഇത് പഴയപടിയാക്കാൻ കഴിയില്ല!</string>
+    <string name="remove_watched_popup_title">കണ്ട വീഡിയോകൾ നീക്കംചെയ്യണോ?</string>
     <string name="remove_watched">കണ്ടത് നീക്കംചെയ്യുക</string>
     <string name="systems_language">സിസ്റ്റം ഡിഫോൾട്ട്</string>
     <string name="app_language_title">അപ്ലിക്കേഷൻ ഭാഷ</string>
@@ -502,8 +486,8 @@
     <string name="error_download_resource_gone">ഈ ഡൗൺലോഡ് വീണ്ടെടുക്കാനാവില്ല</string>
     <string name="error_timeout">കണക്ഷൻ കാലഹരണപ്പെട്ടു</string>
     <string name="error_progress_lost">ഫയൽ ഇല്ലാതാക്കിയതിനാൽ പുരോഗതി നഷ്‌ടപ്പെട്ടു</string>
-    <string name="error_insufficient_storage">ഉപകരണത്തിൽ ഇനിയൊരു സ്ഥലവും ബാക്കിയില്ല</string>
-    <string name="error_postprocessing_stopped">ഫയലിൽ പ്രവർത്തിക്കുമ്പോൾ ന്യൂപൈപ്പ് അടച്ചു</string>
+    <string name="error_insufficient_storage_left">ഉപകരണത്തിൽ ഇനിയൊരു സ്ഥലവും ബാക്കിയില്ല</string>
+    <string name="error_postprocessing_stopped">ഫയലിൽ പ്രവർത്തിക്കുമ്പോൾ WizeStream അടച്ചു</string>
     <string name="error_postprocessing_failed">പോസ്റ്റ്-പ്രോസസ്സിംഗ് പരാജയപ്പെട്ടു</string>
     <string name="error_http_not_found">കണ്ടെത്താനായില്ല</string>
     <string name="error_http_unsupported_range">മൾട്ടി-ത്രെഡഡ് ഡൗൺലോഡുകൾ‌ സെർ‌വർ‌ സ്വീകരിക്കുന്നില്ല, വീണ്ടും ശ്രമിക്കുക @string/msg_threads = 1</string>
@@ -552,10 +536,10 @@
     <string name="auto_device_theme_title">യാന്ത്രികം (ഉപകരണ തീം)</string>
     <string name="radio">റേഡിയോ</string>
     <string name="featured">തിരഞ്ഞെടുത്തത്</string>
-    <string name="paid_content">പണമടച്ച ഉപയോക്താക്കൾക്ക് മാത്രമേ ഈ ഉള്ളടക്കം ലഭ്യമാകൂ, അതിനാൽ ഇത് ന്യൂപൈപ്പ് സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
-    <string name="youtube_music_premium_content">ഈ വീഡിയോ യൂട്യൂബ് മ്യൂസിക് പ്രീമിയം അംഗങ്ങൾക്ക് മാത്രമേ ലഭ്യമാകൂ, അതിനാൽ ഇത് ന്യൂപൈപ്പ് സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
-    <string name="private_content">ഈ ഉള്ളടക്കം സ്വകാര്യമാണ്, അതിനാൽ ഇത് ന്യൂപൈപ്പ് സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
-    <string name="soundcloud_go_plus_content">ഇത് നിങ്ങളുടെ രാജ്യത്തെങ്കിലും ഒരു സൗണ്ട്ക്ലൗഡ് ഗോ + ട്രാക്കാണ്, അതിനാൽ ഇത് ന്യൂപൈപ്പ് സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
+    <string name="paid_content">പണമടച്ച ഉപയോക്താക്കൾക്ക് മാത്രമേ ഈ ഉള്ളടക്കം ലഭ്യമാകൂ, അതിനാൽ ഇത് WizeStream സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
+    <string name="youtube_music_premium_content">ഈ വീഡിയോ യൂട്യൂബ് മ്യൂസിക് പ്രീമിയം അംഗങ്ങൾക്ക് മാത്രമേ ലഭ്യമാകൂ, അതിനാൽ ഇത് WizeStream സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
+    <string name="private_content">ഈ ഉള്ളടക്കം സ്വകാര്യമാണ്, അതിനാൽ ഇത് WizeStream സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
+    <string name="soundcloud_go_plus_content">ഇത് നിങ്ങളുടെ രാജ്യത്തെങ്കിലും ഒരു സൗണ്ട്ക്ലൗഡ് ഗോ + ട്രാക്കാണ്, അതിനാൽ ഇത് WizeStream സ്ട്രീം ചെയ്യാനോ ഡൗൺലോഡ് ചെയ്യാനോ കഴിയില്ല.</string>
     <string name="georestricted_content">ഈ ഉള്ളടക്കം നിങ്ങളുടെ രാജ്യത്ത് ലഭ്യമല്ല.</string>
     <string name="no_app_to_open_intent">നിങ്ങളുടെ ഉപകരണത്തിലെ ഒരു അപ്ലിക്കേഷനും ഇത് തുറക്കാൻ കഴിയില്ല</string>
     <string name="chapters">അധ്യായങ്ങൾ</string>
@@ -576,13 +560,13 @@
     <string name="description_tab_description">വിവരണം</string>
     <string name="related_items_tab_description">അനുബന്ധ ഇനങ്ങൾ</string>
     <string name="comments_tab_description">അഭിപ്രായങ്ങൾ</string>
-    <string name="clear_cookie_summary">നിങ്ങൾ ഒരു reCAPTCHA പരിഹരിക്കുമ്പോൾ ന്യൂപൈപ്പ് സംഭരിക്കുന്ന കുക്കികൾ മായ്‌ക്കുക</string>
+    <string name="clear_cookie_summary">നിങ്ങൾ ഒരു reCAPTCHA പരിഹരിക്കുമ്പോൾ WizeStream സംഭരിക്കുന്ന കുക്കികൾ മായ്‌ക്കുക</string>
     <string name="recaptcha_cookies_cleared">reCAPTCHA കുക്കികൾ‌ മായ്‌ച്ചു</string>
     <string name="clear_cookie_title">ReCAPTCHA കുക്കികൾ മായ്‌ക്കുക</string>
     <string name="hash_channel_description">വീഡിയോ ഹാഷിംഗ് പുരോഗതിക്കായുള്ള അറിയിപ്പുകൾ</string>
     <string name="hash_channel_name">വീഡിയോ ഹാഷ് അറിയിപ്പ്</string>
     <string name="restricted_video_no_stream">ഈ വീഡിയോ പ്രായപരിധി നിർണ്ണയിച്ചിരിക്കുന്നു.
-\nപ്രായ-നിയന്ത്രിത വീഡിയോകളുള്ള പുതിയ യൂട്യൂബ് നയങ്ങൾ കാരണം, ന്യൂപൈപ്പിന് അതിന്റെ വീഡിയോ സ്ട്രീമുകളിലൊന്നും ആക്സസ് ചെയ്യാൻ കഴിയില്ല, അതിനാൽ ഇത് പ്ലേ ചെയ്യാൻ കഴിയില്ല.</string>
+\nപ്രായ-നിയന്ത്രിത വീഡിയോകളുള്ള പുതിയ യൂട്യൂബ് നയങ്ങൾ കാരണം, WizeStreamിന് അതിന്റെ വീഡിയോ സ്ട്രീമുകളിലൊന്നും ആക്സസ് ചെയ്യാൻ കഴിയില്ല, അതിനാൽ ഇത് പ്ലേ ചെയ്യാൻ കഴിയില്ല.</string>
     <string name="youtube_restricted_mode_enabled_summary">പക്വതയുള്ള ഉള്ളടക്കം മറയ്ക്കുന്ന \"നിയന്ത്രിത മോഡ്\" യൂട്യൂബ് നൽകുന്നു</string>
     <string name="show_age_restricted_content_summary">കുട്ടികൾക്ക് അനുയോജ്യമല്ലാത്ത ഉള്ളടക്കം കാണിക്കുക കാരണം അതിന് പ്രായപരിധി ഉണ്ട് (18+ പോലെ)</string>
     <string name="unsupported_url_dialog_message">URL തിരിച്ചറിയാൻ കഴിഞ്ഞില്ല. മറ്റൊരു അപ്ലിക്കേഷൻ ഉപയോഗിച്ച് തുറക്കണോ\?</string>
@@ -603,7 +587,6 @@
     <string name="notification_action_1_title">രണ്ടാം പ്രവർത്തന ബട്ടൺ</string>
     <string name="notification_action_0_title">ആദ്യ പ്രവർത്തന ബട്ടൺ</string>
     <string name="disable_media_tunneling_summary">വീഡിയോ കാണുമ്പോൾ കറുത്ത സ്ക്രീൻ, അവ്യക്തത അനുഭവിക്കുന്നു എങ്കിൽ മീഡിയ ട്യൂൺലിങ് പ്രവർത്തനരഹിതമാക്കുക</string>
-    <string name="show_image_indicators_summary">ഉറവിടം തിരിച്ചറിയാൻ പിക്കാസോ കളർഡ് റിബൺ ചിത്രങ്ങളുടെ മുകളിൽ കാണിക്കുക: നെറ്റ്‌വർക്കിന് ചുവപ്പ്, ഡിസ്കിനു നീല, മെമ്മറിയിക്ക് പച്ച</string>
     <string name="seekbar_preview_thumbnail_title">സീക്ബാർ ചെറുചിത്രം പ്രദർശനം</string>
     <string name="detail_heart_img_view_description">സ്നേഹത്തോടെ സൃഷ്ടാവ്</string>
     <string name="description_select_disable">ഡിസ്ക്രിപ്ഷനിലെ ടെക്സ്റ്റ്‌ സെലക്ട്‌ ചെയ്യുവാൻ അനുവദിക്കാതെ ഇരിക്കുക</string>
@@ -616,7 +599,6 @@
     <string name="metadata_privacy_private">സ്വകാര്യം</string>
     <string name="metadata_privacy_unlisted">ലിസ്റ്റ് ചെയ്യപ്പെടാത്തത്</string>
     <string name="metadata_privacy_public">പൊതുവായത്</string>
-    <string name="metadata_thumbnail_url">ചെറുചിത്രം URL</string>
     <string name="metadata_host">ഹോസ്റ്റ്</string>
     <string name="metadata_support">പിന്തുണ</string>
     <string name="metadata_language">ഭാഷ</string>
@@ -626,9 +608,7 @@
     <string name="metadata_tags">ടാഗുക്കൾ</string>
     <string name="metadata_category">വിഭാഗം</string>
     <string name="description_select_note">താക്കൾക് ഇപ്പോൾ ഡിസ്ക്രിപ്ഷൻ ബോക്സിലെ ടെക്സ്റ്റ്‌ തിരഞ്ഞെടുക്കാൻ സാധിക്കും. ശ്രെദ്ധിക്കുക സെലെക്ഷൻ മോഡിൽ പേജ് ചിലപ്പോൾ മിന്നുകയും ലിങ്കുകൾ ക്ലിക്ക് ചെയ്യാനാകാതെയും വന്നേക്കാം.</string>
-    <string name="service_provides_reason">ഇതിന്റെ കാരണം %s നൽകും:</string>
     <string name="account_terminated">അക്കൗണ്ട് ഇല്ലാതായിരിക്കുന്നു</string>
-    <string name="feed_toggle_show_played_items">കണ്ട ഐറ്റംസ് കാണിക്കുക</string>
     <string name="feed_load_error_fast_unknown">ഫാസ്റ്റ് ഫീഡ് മോഡ് കൂടുതൽ വിവരങ്ങൾ നൽകില്ല.</string>
     <string name="feed_load_error_terminated">സൃഷ്ടാവിന്റെ അക്കൗണ്ട് ഇല്ലാതായിരിക്കുന്നു.
 \nഭാവിയിൽ ഫീഡ് ലോഡ് ചെയ്യാൻ ന്യൂ പൈപ്പിന് സാധിക്കില്ല.
@@ -640,7 +620,6 @@
     <string name="dont_show">കാണിക്കരുത്</string>
     <string name="low_quality_smaller">കുറഞ്ഞ നിലവാരം (ചെറുത് )</string>
     <string name="high_quality_larger">ഉയർന്ന നിലവാരം (വലിയത് )</string>
-    <string name="show_image_indicators_title">ഇമേജ് ഇൻഡിക്കേറ്ററുകൾ കാണിക്കുക</string>
     <string name="disable_media_tunneling_title">മീഡിയ ട്യൂൺലിങ് പ്രവർത്തനരഹിതമാക്കുക</string>
     <string name="no_dir_yet">ഡൌൺലോഡ് ഫോൾഡർ ഇത് വരെയും സെറ്റ് ചെയ്തിട്ടില്ല, സ്ഥിര ഡൌൺലോഡ് ഫോൾഡർ ഇപ്പോൾ തിരഞ്ഞെക്കുക</string>
     <string name="comments_are_disabled">അഭിപ്രായങ്ങൾ പ്രവർത്തനരഹിതമായിരിക്കുന്നു</string>
@@ -654,6 +633,8 @@
     <string name="notifications">അറിയിപ്പുകൾ</string>
     <string name="settings_category_player_notification_title">പ്ലേയർ അറിയിപ്പ്</string>
     <string name="streams_notification_channel_name">പുതിയ സ്ട്രീമുകൾ</string>
-    <string name="progressive_load_interval_summary">ലോഡ് ഇടവേള മാറ്റുക (ഇപ്പൊൾ %s). കുറഞ്ഞ മൂല്യം വീഡിയോ വേഗത്തിൽ ലോഡ് ചെയ്യാൻ ഇടയാക്കാം. മാറ്റങ്ങൾ പ്രാഭല്യതിൽ വരുത്താൻ പ്ലേയർ പുനരാരംഭിക്കണം.</string>
     <string name="crash_the_player">പ്ലേയർ തകർക്കുക</string>
+    <string name="prefer_original_audio_title">യഥാർത്ഥ ശബ്ദത്തിന് പരിഗണന കൊടുക്കുക</string>
+    <string name="prefer_original_audio_summary">ഭാഷ ഏതായാലും യഥാർത്ഥ ശബ്ദം തിരഞ്ഞെടുക്കുക</string>
 </resources>
+

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="no_player_found_toast">Koan Stream-Playa gfundn (Wennsd\'n VLC installiast, gähds).</string>
     <string name="use_external_video_player_title">An andan Wideo-Playa heanehma</string>
@@ -26,4 +26,7 @@
     <string name="use_external_video_player_summary">Duad bei manchen Auflösungen d\'Tonspur weggad</string>
     <string name="open_in_popup_mode">Im Pop-up Modus aufmacha</string>
     <string name="main_bg_subtitle">Drug auf\'d Lubn zum ofanga.</string>
+    <string name="ok">Bassd scho</string>
+    <string name="no">naa</string>
 </resources>
+

@@ -1,11 +1,13 @@
 package us.shandian.giga.util;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
+import static com.google.android.material.R.attr.colorPrimaryContainer;
+import static com.google.android.material.R.attr.colorSurfaceVariant;
+
 import android.content.Context;
 import android.os.Build;
+import android.os.Environment;
+import android.os.StatFs;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
@@ -13,11 +15,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.util.Util;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.streams.io.SharpInputStream;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
+import org.schabi.newpipe.util.ThemeHelper;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -140,43 +143,12 @@ public class Utility {
 
     @ColorInt
     public static int getBackgroundForFileType(Context ctx, FileType type) {
-        int colorRes;
-        switch (type) {
-            case MUSIC:
-                colorRes = R.color.audio_left_to_load_color;
-                break;
-            case VIDEO:
-                colorRes = R.color.video_left_to_load_color;
-                break;
-            case SUBTITLE:
-                colorRes = R.color.subtitle_left_to_load_color;
-                break;
-            default:
-                colorRes = R.color.gray;
-        }
-
-        return ContextCompat.getColor(ctx, colorRes);
+        return ThemeHelper.resolveColorFromAttr(ctx, colorSurfaceVariant);
     }
 
     @ColorInt
     public static int getForegroundForFileType(Context ctx, FileType type) {
-        int colorRes;
-        switch (type) {
-            case MUSIC:
-                colorRes = R.color.audio_already_load_color;
-                break;
-            case VIDEO:
-                colorRes = R.color.video_already_load_color;
-                break;
-            case SUBTITLE:
-                colorRes = R.color.subtitle_already_load_color;
-                break;
-            default:
-                colorRes = R.color.gray;
-                break;
-        }
-
-        return ContextCompat.getColor(ctx, colorRes);
+        return ThemeHelper.resolveColorFromAttr(ctx, colorPrimaryContainer);
     }
 
     @DrawableRes
@@ -225,6 +197,28 @@ public class Utility {
 
         try {
             return Long.parseLong(connection.getHeaderField("Content-Length"));
+        } catch (Exception err) {
+            // nothing to do
+        }
+
+        return -1;
+    }
+
+    /**
+     * Get the content length of the entire file even if the HTTP response is partial
+     * (response code 206).
+     * @param connection http connection
+     * @return content length
+     */
+    public static long getTotalContentLength(final HttpURLConnection connection) {
+        try {
+            if (connection.getResponseCode() == 206) {
+                final String rangeStr = connection.getHeaderField("Content-Range");
+                final String bytesStr = rangeStr.split("/", 2)[1];
+                return Long.parseLong(bytesStr);
+            } else {
+                return getContentLength(connection);
+            }
         } catch (Exception err) {
             // nothing to do
         }

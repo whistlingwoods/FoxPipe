@@ -3,17 +3,21 @@ package org.schabi.newpipe.local.dialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.text.InputType;
+import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog.Builder;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.schabi.newpipe.NewPipeDatabase;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.databinding.DialogEditTextBinding;
 import org.schabi.newpipe.local.playlist.LocalPlaylistManager;
+import org.schabi.newpipe.profiles.ProfileManager;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.util.List;
@@ -45,14 +49,16 @@ public final class PlaylistCreationDialog extends PlaylistDialog {
             return super.onCreateDialog(savedInstanceState);
         }
 
+        final int dialogTheme = ThemeHelper.getDialogTheme(requireContext());
+        final ContextThemeWrapper themedContext =
+                new ContextThemeWrapper(requireContext(), dialogTheme);
         final DialogEditTextBinding dialogBinding =
-                DialogEditTextBinding.inflate(getLayoutInflater());
-        dialogBinding.getRoot().getContext().setTheme(ThemeHelper.getDialogTheme(requireContext()));
+                DialogEditTextBinding.inflate(LayoutInflater.from(themedContext));
         dialogBinding.dialogEditText.setHint(R.string.name);
         dialogBinding.dialogEditText.setInputType(InputType.TYPE_CLASS_TEXT);
 
-        final Builder dialogBuilder = new Builder(requireContext(),
-                ThemeHelper.getDialogTheme(requireContext()))
+        final MaterialAlertDialogBuilder dialogBuilder =
+                new MaterialAlertDialogBuilder(themedContext)
                 .setTitle(R.string.create_playlist)
                 .setView(dialogBinding.getRoot())
                 .setCancelable(true)
@@ -60,7 +66,9 @@ public final class PlaylistCreationDialog extends PlaylistDialog {
                 .setPositiveButton(R.string.create, (dialogInterface, i) -> {
                     final String name = dialogBinding.dialogEditText.getText().toString();
                     final LocalPlaylistManager playlistManager =
-                            new LocalPlaylistManager(NewPipeDatabase.getInstance(requireContext()));
+                            new LocalPlaylistManager(
+                                    NewPipeDatabase.getInstance(requireContext()),
+                                    ProfileManager.getActiveProfileId(requireContext()));
                     final Toast successToast = Toast.makeText(getActivity(),
                             R.string.playlist_creation_success,
                             Toast.LENGTH_SHORT);

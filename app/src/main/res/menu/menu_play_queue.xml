@@ -4,6 +4,13 @@
     tools:context=".player.PlayQueueActivity">
 
     <item
+        android:id="@+id/action_browse_local_media"
+        android:orderInCategory="0"
+        android:title="@string/local_media_browse_all_songs"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_append_playlist"
         android:icon="@drawable/ic_playlist_add"
         android:title="@string/add_to_playlist"
@@ -17,6 +24,37 @@
         android:tooltipText="@string/playback_speed_control"
         android:visible="true"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_sleep_timer"
+        android:icon="@drawable/ic_sleep_timer"
+        android:title="@string/sleep_timer"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_equalizer"
+        android:checkable="true"
+        android:icon="@drawable/ic_equalizer"
+        android:title="@string/equalizer"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_visualizer"
+        android:checkable="true"
+        android:icon="@drawable/ic_waveform"
+        android:title="@string/show_visualizer"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_audio_track"
+        android:tooltipText="@string/audio_track"
+        android:visible="false"
+        app:showAsAction="ifRoom">
+        <menu />
+    </item>
 
     <item
         android:id="@+id/action_mute"
@@ -38,8 +76,15 @@
         app:showAsAction="never" />
 
     <item
-        android:id="@+id/action_switch_main"
+        android:id="@+id/action_download_queue"
+        android:icon="@drawable/ic_file_download"
         android:orderInCategory="3"
+        android:title="@string/download_queue"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_switch_main"
+        android:orderInCategory="4"
         android:title="@string/switch_to_main"
         app:showAsAction="never" />
 </menu>

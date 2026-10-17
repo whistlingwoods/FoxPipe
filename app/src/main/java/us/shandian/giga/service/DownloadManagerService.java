@@ -23,7 +23,6 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,22 +32,25 @@ import androidx.annotation.StringRes;
 import androidx.collection.SparseArrayCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
+import androidx.core.app.PendingIntentCompat;
 import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.IntentCompat;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.download.DownloadActivity;
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.player.helper.LockManager;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
 import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.PendingIntentCompat;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.MissionRecoveryInfo;
@@ -73,12 +75,12 @@ public class DownloadManagerService extends Service {
     private static final String EXTRA_THREADS = "DownloadManagerService.extra.threads";
     private static final String EXTRA_POSTPROCESSING_NAME = "DownloadManagerService.extra.postprocessingName";
     private static final String EXTRA_POSTPROCESSING_ARGS = "DownloadManagerService.extra.postprocessingArgs";
-    private static final String EXTRA_SOURCE = "DownloadManagerService.extra.source";
     private static final String EXTRA_NEAR_LENGTH = "DownloadManagerService.extra.nearLength";
     private static final String EXTRA_PATH = "DownloadManagerService.extra.storagePath";
     private static final String EXTRA_PARENT_PATH = "DownloadManagerService.extra.storageParentPath";
     private static final String EXTRA_STORAGE_TAG = "DownloadManagerService.extra.storageTag";
     private static final String EXTRA_RECOVERY_INFO = "DownloadManagerService.extra.recoveryInfo";
+    private static final String EXTRA_STREAM_INFO = "DownloadManagerService.extra.streamInfo";
 
     private static final String ACTION_RESET_DOWNLOAD_FINISHED = APPLICATION_ID + ".reset_download_finished";
     private static final String ACTION_OPEN_DOWNLOADS_FINISHED = APPLICATION_ID + ".open_downloads_finished";
@@ -146,7 +148,7 @@ public class DownloadManagerService extends Service {
 
         mOpenDownloadList = PendingIntentCompat.getActivity(this, 0,
                 openDownloadListIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT, false);
 
         icLauncher = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
 
@@ -228,7 +230,8 @@ public class DownloadManagerService extends Service {
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE);
 
         if (mNotificationManager != null && downloadDoneNotification != null) {
-            downloadDoneNotification.setDeleteIntent(null);// prevent NewPipe running when is killed, cleared from recent, etc
+            // Prevent WizeStream from running when killed or cleared from recents.
+            downloadDoneNotification.setDeleteIntent(null);
             mNotificationManager.notify(DOWNLOADS_NOTIFICATION_ID, downloadDoneNotification.build());
         }
 
@@ -310,7 +313,7 @@ public class DownloadManagerService extends Service {
     }
 
     private void handlePreferenceChange(SharedPreferences prefs, @NonNull String key) {
-        if (key.equals(getString(R.string.downloads_maximum_retry))) {
+        if (getString(R.string.downloads_maximum_retry).equals(key)) {
             try {
                 String value = prefs.getString(key, getString(R.string.downloads_maximum_retry_default));
                 mManager.mPrefMaxRetry = value == null ? 0 : Integer.parseInt(value);
@@ -318,13 +321,13 @@ public class DownloadManagerService extends Service {
                 mManager.mPrefMaxRetry = 0;
             }
             mManager.updateMaximumAttempts();
-        } else if (key.equals(getString(R.string.downloads_cross_network))) {
+        } else if (getString(R.string.downloads_cross_network).equals(key)) {
             mManager.mPrefMeteredDownloads = prefs.getBoolean(key, false);
-        } else if (key.equals(getString(R.string.downloads_queue_limit))) {
+        } else if (getString(R.string.downloads_queue_limit).equals(key)) {
             mManager.mPrefQueueLimit = prefs.getBoolean(key, true);
-        } else if (key.equals(getString(R.string.download_path_video_key))) {
+        } else if (getString(R.string.download_path_video_key).equals(key)) {
             mManager.mMainStorageVideo = loadMainVideoStorage();
-        } else if (key.equals(getString(R.string.download_path_audio_key))) {
+        } else if (getString(R.string.download_path_audio_key).equals(key)) {
             mManager.mMainStorageAudio = loadMainAudioStorage();
         }
     }
@@ -352,44 +355,57 @@ public class DownloadManagerService extends Service {
      * @param kind         type of file (a: audio  v: video  s: subtitle ?: file-extension defined)
      * @param threads      the number of threads maximal used to download chunks of the file.
      * @param psName       the name of the required post-processing algorithm, or {@code null} to ignore.
-     * @param source       source url of the resource
+     * @param streamInfo   stream metadata that may be written into the downloaded file.
      * @param psArgs       the arguments for the post-processing algorithm.
      * @param nearLength   the approximated final length of the file
      * @param recoveryInfo array of MissionRecoveryInfo, in case is required recover the download
      */
     public static void startMission(Context context, String[] urls, StoredFileHelper storage,
-                                    char kind, int threads, String source, String psName,
-                                    String[] psArgs, long nearLength, MissionRecoveryInfo[] recoveryInfo) {
-        Intent intent = new Intent(context, DownloadManagerService.class);
-        intent.setAction(Intent.ACTION_RUN);
-        intent.putExtra(EXTRA_URLS, urls);
-        intent.putExtra(EXTRA_KIND, kind);
-        intent.putExtra(EXTRA_THREADS, threads);
-        intent.putExtra(EXTRA_SOURCE, source);
-        intent.putExtra(EXTRA_POSTPROCESSING_NAME, psName);
-        intent.putExtra(EXTRA_POSTPROCESSING_ARGS, psArgs);
-        intent.putExtra(EXTRA_NEAR_LENGTH, nearLength);
-        intent.putExtra(EXTRA_RECOVERY_INFO, recoveryInfo);
+                                    char kind, int threads, StreamInfo streamInfo, String psName,
+                                    String[] psArgs, long nearLength,
+                                    ArrayList<MissionRecoveryInfo> recoveryInfo) {
+        startMission(context, urls, storage, kind, threads, streamInfo, psName, psArgs,
+                nearLength, recoveryInfo, null);
+    }
 
-        intent.putExtra(EXTRA_PARENT_PATH, storage.getParentUri());
-        intent.putExtra(EXTRA_PATH, storage.getUri());
-        intent.putExtra(EXTRA_STORAGE_TAG, storage.getTag());
+    public static void startMission(Context context, String[] urls, StoredFileHelper storage,
+                                    char kind, int threads, StreamInfo streamInfo, String psName,
+                                    String[] psArgs, long nearLength,
+                                    ArrayList<MissionRecoveryInfo> recoveryInfo,
+                                    Boolean automaticWifiOnly) {
+        final Intent intent = new Intent(context, DownloadManagerService.class)
+                .setAction(Intent.ACTION_RUN)
+                .putExtra("automatic_download", automaticWifiOnly != null)
+                .putExtra("automatic_wifi_only", Boolean.TRUE.equals(automaticWifiOnly))
+                .putExtra(EXTRA_URLS, urls)
+                .putExtra(EXTRA_KIND, kind)
+                .putExtra(EXTRA_THREADS, threads)
+                .putExtra(EXTRA_POSTPROCESSING_NAME, psName)
+                .putExtra(EXTRA_POSTPROCESSING_ARGS, psArgs)
+                .putExtra(EXTRA_NEAR_LENGTH, nearLength)
+                .putExtra(EXTRA_RECOVERY_INFO, recoveryInfo)
+                .putExtra(EXTRA_PARENT_PATH, storage.getParentUri())
+                .putExtra(EXTRA_PATH, storage.getUri())
+                .putExtra(EXTRA_STORAGE_TAG, storage.getTag())
+                .putExtra(EXTRA_STREAM_INFO, streamInfo);
 
         context.startService(intent);
     }
 
     private void startMission(Intent intent) {
         String[] urls = intent.getStringArrayExtra(EXTRA_URLS);
-        Uri path = intent.getParcelableExtra(EXTRA_PATH);
-        Uri parentPath = intent.getParcelableExtra(EXTRA_PARENT_PATH);
+        Uri path = IntentCompat.getParcelableExtra(intent, EXTRA_PATH, Uri.class);
+        Uri parentPath = IntentCompat.getParcelableExtra(intent, EXTRA_PARENT_PATH, Uri.class);
         int threads = intent.getIntExtra(EXTRA_THREADS, 1);
         char kind = intent.getCharExtra(EXTRA_KIND, '?');
         String psName = intent.getStringExtra(EXTRA_POSTPROCESSING_NAME);
         String[] psArgs = intent.getStringArrayExtra(EXTRA_POSTPROCESSING_ARGS);
-        String source = intent.getStringExtra(EXTRA_SOURCE);
         long nearLength = intent.getLongExtra(EXTRA_NEAR_LENGTH, 0);
         String tag = intent.getStringExtra(EXTRA_STORAGE_TAG);
-        Parcelable[] parcelRecovery = intent.getParcelableArrayExtra(EXTRA_RECOVERY_INFO);
+        StreamInfo streamInfo = (StreamInfo)intent.getSerializableExtra(EXTRA_STREAM_INFO);
+        final var recovery = IntentCompat.getParcelableArrayListExtra(intent, EXTRA_RECOVERY_INFO,
+                MissionRecoveryInfo.class);
+        Objects.requireNonNull(recovery);
 
         StoredFileHelper storage;
         try {
@@ -402,17 +418,24 @@ public class DownloadManagerService extends Service {
         if (psName == null)
             ps = null;
         else
-            ps = Postprocessing.getAlgorithm(psName, psArgs);
-
-        MissionRecoveryInfo[] recovery = new MissionRecoveryInfo[parcelRecovery.length];
-        for (int i = 0; i < parcelRecovery.length; i++)
-            recovery[i] = (MissionRecoveryInfo) parcelRecovery[i];
+            ps = Postprocessing.getAlgorithm(psName, psArgs, streamInfo);
 
         final DownloadMission mission = new DownloadMission(urls, storage, kind, ps);
+        if (intent.getBooleanExtra("automatic_download", false)
+                && mManager.hasMissionForSource(streamInfo.getUrl(), kind)) {
+            storage.delete();
+            return;
+        }
+        mission.requiresUnmeteredNetwork = intent.getBooleanExtra("automatic_wifi_only", false);
         mission.threadCount = threads;
-        mission.source = source;
+        mission.source = streamInfo.getUrl();
+        if (Postprocessing.ALGORITHM_SEGMENTS.equals(psName)) {
+            // Keep partial exports distinguishable from complete offline copies.
+            mission.source += (mission.source.contains("#") ? "&" : "#")
+                    + "wizestream-segments=" + psArgs[0];
+        }
         mission.nearLength = nearLength;
-        mission.recoveryInfo = recovery;
+        mission.recoveryInfo = recovery.toArray(new MissionRecoveryInfo[0]);
 
         if (ps != null)
             ps.setTemporalDir(DownloadManager.pickAvailableTemporalDir(this));
@@ -487,7 +510,7 @@ public class DownloadManagerService extends Service {
     private PendingIntent makePendingIntent(String action) {
         Intent intent = new Intent(this, DownloadManagerService.class).setAction(action);
         return PendingIntentCompat.getService(this, intent.hashCode(), intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT, false);
     }
 
     private void manageLock(boolean acquire) {

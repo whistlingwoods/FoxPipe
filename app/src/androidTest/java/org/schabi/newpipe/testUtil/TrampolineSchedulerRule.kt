@@ -17,21 +17,30 @@ class TrampolineSchedulerRule : TestRule {
 
     private val scheduler = Schedulers.trampoline()
 
-    override fun apply(base: Statement, description: Description): Statement =
-        object : Statement() {
-            override fun evaluate() {
-                try {
-                    RxJavaPlugins.setComputationSchedulerHandler { scheduler }
-                    RxJavaPlugins.setIoSchedulerHandler { scheduler }
-                    RxJavaPlugins.setNewThreadSchedulerHandler { scheduler }
-                    RxJavaPlugins.setSingleSchedulerHandler { scheduler }
-                    RxAndroidPlugins.setInitMainThreadSchedulerHandler { scheduler }
+    override fun apply(base: Statement, description: Description): Statement = object : Statement() {
+        override fun evaluate() {
+            val computationHandler = RxJavaPlugins.getComputationSchedulerHandler()
+            val ioHandler = RxJavaPlugins.getIoSchedulerHandler()
+            val newThreadHandler = RxJavaPlugins.getNewThreadSchedulerHandler()
+            val singleHandler = RxJavaPlugins.getSingleSchedulerHandler()
+            val mainHandler = RxAndroidPlugins.getInitMainThreadSchedulerHandler()
+            try {
+                RxJavaPlugins.setComputationSchedulerHandler { scheduler }
+                RxJavaPlugins.setIoSchedulerHandler { scheduler }
+                RxJavaPlugins.setNewThreadSchedulerHandler { scheduler }
+                RxJavaPlugins.setSingleSchedulerHandler { scheduler }
+                RxAndroidPlugins.setInitMainThreadSchedulerHandler { scheduler }
 
-                    base.evaluate()
-                } finally {
-                    RxJavaPlugins.reset()
-                    RxAndroidPlugins.reset()
-                }
+                base.evaluate()
+            } finally {
+                // Restore only the hooks this rule changes. A global reset removes the app's
+                // error handler while asynchronous requests from UI tests are being cancelled.
+                RxJavaPlugins.setComputationSchedulerHandler(computationHandler)
+                RxJavaPlugins.setIoSchedulerHandler(ioHandler)
+                RxJavaPlugins.setNewThreadSchedulerHandler(newThreadHandler)
+                RxJavaPlugins.setSingleSchedulerHandler(singleHandler)
+                RxAndroidPlugins.setInitMainThreadSchedulerHandler(mainHandler)
             }
         }
+    }
 }

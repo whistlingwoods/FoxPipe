@@ -1,0 +1,7 @@
+- Added YouTube caption auto-translation with target language selection.
+- Added local music metadata, embedded artwork, and folder cover images.
+- Improved local Play All, Shuffle, and direct queue navigation.
+- Improved Android media controls, PiP/share, and fullscreen transitions.
+- Fixed Media3 TTML playback and selected caption translation tracks.
+- Live streams stay at 1x while saved VOD speeds are preserved.
+- Improved playback and sync stability.

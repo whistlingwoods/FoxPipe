@@ -8,8 +8,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.preference.Preference;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import org.schabi.newpipe.DownloaderImpl;
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.database.DatabaseMaintenanceManager;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.error.ReCaptchaActivity;
@@ -27,6 +30,7 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
     private String playbackStatesClearKey;
     private String searchHistoryClearKey;
     private HistoryRecordManager recordManager;
+    private DatabaseMaintenanceManager maintenanceManager;
     private CompositeDisposable disposables;
 
     @Override
@@ -38,6 +42,7 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
         playbackStatesClearKey = getString(R.string.clear_playback_states_key);
         searchHistoryClearKey = getString(R.string.clear_search_history_key);
         recordManager = new HistoryRecordManager(getActivity());
+        maintenanceManager = new DatabaseMaintenanceManager(requireContext());
         disposables = new CompositeDisposable();
 
         final Preference clearCookiePref = requirePreference(R.string.clear_cookie_key);
@@ -60,8 +65,15 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
     public boolean onPreferenceTreeClick(final Preference preference) {
         if (preference.getKey().equals(cacheWipeKey)) {
             InfoCache.getInstance().clearCache();
-            Toast.makeText(requireContext(),
-                    R.string.metadata_cache_wipe_complete_notice, Toast.LENGTH_SHORT).show();
+            disposables.add(maintenanceManager.clearPersistentCaches()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            result -> Toast.makeText(requireContext(),
+                                    R.string.metadata_cache_wipe_complete_notice,
+                                    Toast.LENGTH_SHORT).show(),
+                            throwable -> ErrorUtil.openActivity(requireContext(),
+                                    new ErrorInfo(throwable, UserAction.DELETE_FROM_HISTORY,
+                                            "Clear persistent caches"))));
         } else if (preference.getKey().equals(viewsHistoryClearKey)) {
             openDeleteWatchHistoryDialog(requireContext(), recordManager, disposables);
         } else if (preference.getKey().equals(playbackStatesClearKey)) {
@@ -79,8 +91,11 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
         return recordManager.deleteCompleteStreamStateHistory()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        howManyDeleted -> Toast.makeText(context,
-                                R.string.watch_history_states_deleted,  Toast.LENGTH_SHORT).show(),
+                        howManyDeleted -> {
+                            Toast.makeText(context, R.string.watch_history_states_deleted,
+                                    Toast.LENGTH_SHORT).show();
+                            compactUnpairedSyncJournals(context);
+                        },
                         throwable -> ErrorUtil.openActivity(context,
                                 new ErrorInfo(throwable, UserAction.DELETE_FROM_HISTORY,
                                         "Delete playback states")));
@@ -91,8 +106,11 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
         return recordManager.deleteWholeStreamHistory()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        howManyDeleted -> Toast.makeText(context,
-                                R.string.watch_history_deleted, Toast.LENGTH_SHORT).show(),
+                        howManyDeleted -> {
+                            Toast.makeText(context, R.string.watch_history_deleted,
+                                    Toast.LENGTH_SHORT).show();
+                            compactUnpairedSyncJournals(context);
+                        },
                         throwable -> ErrorUtil.openActivity(context,
                                 new ErrorInfo(throwable, UserAction.DELETE_FROM_HISTORY,
                                         "Delete from history")));
@@ -110,53 +128,74 @@ public class HistorySettingsFragment extends BasePreferenceFragment {
     }
 
     private static Disposable getDeleteSearchHistoryDisposable(
-            @NonNull final Context context, final HistoryRecordManager recordManager) {
+            @NonNull final Context context, final HistoryRecordManager recordManager,
+            @NonNull final Runnable onDeleted) {
         return recordManager.deleteCompleteSearchHistory()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        howManyDeleted -> Toast.makeText(context,
-                                R.string.search_history_deleted, Toast.LENGTH_SHORT).show(),
+                        howManyDeleted -> {
+                            Toast.makeText(context, R.string.search_history_deleted,
+                                    Toast.LENGTH_SHORT).show();
+                            compactUnpairedSyncJournals(context);
+                            onDeleted.run();
+                        },
                         throwable -> ErrorUtil.openActivity(context,
                                 new ErrorInfo(throwable, UserAction.DELETE_FROM_HISTORY,
                                         "Delete search history")));
     }
 
+    private static void compactUnpairedSyncJournals(@NonNull final Context context) {
+        new DatabaseMaintenanceManager(context).compactUnpairedSyncJournals()
+                .subscribe(
+                        ignored -> { },
+                        throwable -> ErrorUtil.openActivity(context,
+                                new ErrorInfo(throwable, UserAction.DELETE_FROM_HISTORY,
+                                        "Compact synchronization journals")));
+    }
+
     public static void openDeleteWatchHistoryDialog(@NonNull final Context context,
                                                     final HistoryRecordManager recordManager,
                                                     final CompositeDisposable disposables) {
-        new AlertDialog.Builder(context)
+        new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.delete_view_history_alert)
+                .setMessage(R.string.delete_watch_history_warning)
                 .setNegativeButton(R.string.cancel, ((dialog, which) -> dialog.dismiss()))
                 .setPositiveButton(R.string.delete, ((dialog, which) -> {
                     disposables.add(getDeletePlaybackStatesDisposable(context, recordManager));
                     disposables.add(getWholeStreamHistoryDisposable(context, recordManager));
                     disposables.add(getRemoveOrphanedRecordsDisposable(context, recordManager));
                 }))
-                .create()
                 .show();
     }
 
     public static void openDeletePlaybackStatesDialog(@NonNull final Context context,
                                                       final HistoryRecordManager recordManager,
                                                       final CompositeDisposable disposables) {
-        new AlertDialog.Builder(context)
+        new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.delete_playback_states_alert)
                 .setNegativeButton(R.string.cancel, ((dialog, which) -> dialog.dismiss()))
                 .setPositiveButton(R.string.delete, ((dialog, which) ->
                         disposables.add(getDeletePlaybackStatesDisposable(context, recordManager))))
-                .create()
                 .show();
     }
 
-    public static void openDeleteSearchHistoryDialog(@NonNull final Context context,
+    public static AlertDialog openDeleteSearchHistoryDialog(@NonNull final Context context,
                                                      final HistoryRecordManager recordManager,
                                                      final CompositeDisposable disposables) {
-        new AlertDialog.Builder(context)
+        return openDeleteSearchHistoryDialog(context, recordManager, disposables, () -> { });
+    }
+
+    public static AlertDialog openDeleteSearchHistoryDialog(@NonNull final Context context,
+                                                     final HistoryRecordManager recordManager,
+                                                     final CompositeDisposable disposables,
+                                                     @NonNull final Runnable onDeleted) {
+        return new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.delete_search_history_alert)
+                .setMessage(R.string.delete_search_history_warning)
                 .setNegativeButton(R.string.cancel, ((dialog, which) -> dialog.dismiss()))
                 .setPositiveButton(R.string.delete, ((dialog, which) ->
-                        disposables.add(getDeleteSearchHistoryDisposable(context, recordManager))))
-                .create()
+                        disposables.add(getDeleteSearchHistoryDisposable(context,
+                                recordManager, onDeleted))))
                 .show();
     }
 }

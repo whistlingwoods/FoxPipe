@@ -3,14 +3,40 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:installLocation="auto">
 
+    <uses-sdk tools:overrideLibrary="org.fcast.sender_sdk" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- We need to be able to open links in the browser on API 30+ -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -21,18 +47,26 @@
     <application
         android:name=".App"
         android:allowBackup="true"
-        android:banner="@mipmap/newpipe_tv_banner"
+        android:banner="@mipmap/wizestream_tv_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:logo="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:resizeableActivity="true"
         android:theme="@style/OpeningTheme"
         tools:ignore="AllowBackup">
+
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
         <activity
             android:name=".MainActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:label="@string/app_name"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:supportsPictureInPicture="true"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -41,11 +75,32 @@
             </intent-filter>
         </activity>
 
+        <!-- MediaButtonReceiver must remain undeclared until PlayerService supports cold-start
+             playback resumption. Media3 starts the service in the foreground for a hardware play
+             event, and Android terminates it if playback cannot immediately promote the service. -->
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
+
+        <service
+            android:name=".sync.DeviceSyncListenerService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="false" />
+
         <receiver
-            android:name="androidx.media.session.MediaButtonReceiver"
+            android:name=".sync.DeviceSyncListenerBootReceiver"
+            android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 
@@ -55,6 +110,10 @@
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 
@@ -70,13 +129,31 @@
             android:label="@string/settings" />
 
         <activity
+            android:name=".settings.DeviceSyncCaptureActivity"
+            android:exported="false"
+            android:screenOrientation="sensorPortrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <activity
+            android:name=".about.changelog.ChangelogActivity"
+            android:exported="false"
+            android:label="@string/changelog_title" />
+
+        <activity
             android:name=".about.AboutActivity"
             android:exported="false"
             android:label="@string/title_activity_about" />
 
-        <service android:name=".local.subscription.services.SubscriptionsImportService" />
-        <service android:name=".local.subscription.services.SubscriptionsExportService" />
-        <service android:name=".local.feed.service.FeedLoadService" />
+        <service
+            android:name=".local.feed.service.FeedLoadService"
+            android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <activity
             android:name=".PanicResponderActivity"
@@ -108,7 +185,8 @@
             android:label="@string/app_name"
             android:launchMode="singleTask" />
 
-        <service android:name="us.shandian.giga.service.DownloadManagerService" />
+        <service android:name="us.shandian.giga.service.DownloadManagerService"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".util.FilePickerActivityHelper"
@@ -165,6 +243,7 @@
                 <data android:pathPrefix="/watch" />
                 <data android:pathPrefix="/attribution_link" />
                 <data android:pathPrefix="/shorts/" />
+                <data android:pathPrefix="/live/" />
                 <!-- channel prefix -->
                 <data android:pathPrefix="/channel/" />
                 <data android:pathPrefix="/user/" />
@@ -303,6 +382,7 @@
                 <data android:scheme="https" />
                 <data android:host="soundcloud.com" />
                 <data android:host="m.soundcloud.com" />
+                <data android:host="on.soundcloud.com" />
                 <data android:host="www.soundcloud.com" />
                 <data android:pathPrefix="/" />
             </intent-filter>
@@ -347,16 +427,19 @@
 
                 <data android:host="eduvid.org" />
                 <data android:host="framatube.org" />
+                <data android:host="indymotion.fr" />
                 <data android:host="media.assassinate-you.net" />
+                <data android:host="media.fsfe.org" />
                 <data android:host="peertube.co.uk" />
                 <data android:host="peertube.cpy.re" />
-                <data android:host="peertube.mastodon.host" />
                 <data android:host="peertube.fr" />
-                <data android:host="tilvids.com" />
-                <data android:host="video.ploud.fr" />
-                <data android:host="video.lqdn.fr" />
+                <data android:host="peertube.mastodon.host" />
+                <data android:host="peertube.stream" />
                 <data android:host="skeptikon.fr" />
-                <data android:host="media.fsfe.org" />
+                <data android:host="tilvids.com" />
+                <data android:host="video.lqdn.fr" />
+                <data android:host="video.ploud.fr" />
+                <data android:host="subscribeto.me" />
 
                 <data android:pathPrefix="/videos/" /> <!-- it contains playlists -->
                 <data android:pathPrefix="/w/" /> <!-- short video URLs -->
@@ -398,6 +481,7 @@
         </activity>
         <service
             android:name=".RouterActivity$FetcherService"
+            android:foregroundServiceType="dataSync"
             android:exported="false" />
 
         <!-- opting out of sending metrics to Google in Android System WebView -->
@@ -413,5 +497,10 @@
         <meta-data
             android:name="com.samsung.android.multidisplay.keep_process_alive"
             android:value="true" />
+        <!-- Android Auto -->
+        <meta-data android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+        <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
+            android:resource="@mipmap/ic_launcher" />
     </application>
 </manifest>

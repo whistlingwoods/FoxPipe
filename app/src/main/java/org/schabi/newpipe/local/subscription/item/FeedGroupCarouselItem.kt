@@ -9,6 +9,8 @@ import com.xwray.groupie.viewbinding.BindableItem
 import com.xwray.groupie.viewbinding.GroupieViewHolder
 import org.schabi.newpipe.R
 import org.schabi.newpipe.databinding.FeedItemCarouselBinding
+import org.schabi.newpipe.local.subscription.SubscriptionGridColumns
+import org.schabi.newpipe.local.subscription.SubscriptionGridSpanPolicy
 import org.schabi.newpipe.util.DeviceUtils
 import org.schabi.newpipe.util.ThemeHelper.getGridSpanCount
 
@@ -18,6 +20,7 @@ class FeedGroupCarouselItem(
 ) : BindableItem<FeedItemCarouselBinding>() {
     companion object {
         const val PAYLOAD_UPDATE_LIST_VIEW_MODE = 2
+        const val PAYLOAD_UPDATE_GRID_COLUMNS = 3
     }
 
     private var carouselLayoutManager: LinearLayoutManager? = null
@@ -46,7 +49,10 @@ class FeedGroupCarouselItem(
         position: Int,
         payloads: MutableList<Any>
     ) {
-        if (payloads.contains(PAYLOAD_UPDATE_LIST_VIEW_MODE)) {
+        if (
+            payloads.contains(PAYLOAD_UPDATE_LIST_VIEW_MODE) ||
+            payloads.contains(PAYLOAD_UPDATE_GRID_COLUMNS)
+        ) {
             updateViewMode(viewBinding)
             return
         }
@@ -71,7 +77,12 @@ class FeedGroupCarouselItem(
         carouselLayoutManager = if (listViewMode) {
             LinearLayoutManager(context)
         } else {
-            GridLayoutManager(context, getGridSpanCount(context, DeviceUtils.dpToPx(112, context)))
+            val configuredColumns = SubscriptionGridColumns.get(context)
+            val spanCount = SubscriptionGridSpanPolicy.resolve(
+                configuredColumns,
+                getGridSpanCount(context, DeviceUtils.dpToPx(112, context))
+            )
+            GridLayoutManager(context, spanCount)
         }
 
         viewBinding.recyclerView.apply {

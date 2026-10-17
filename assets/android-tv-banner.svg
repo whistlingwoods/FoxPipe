@@ -1,70 +1,84 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 26.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="AndroidTV-Banner" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
-	 y="0px" viewBox="0 0 320 180" style="enable-background:new 0 0 320 180;" xml:space="preserve">
-<style type="text/css">
-	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#CD201F;}
-	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#EEEEEE;}
-	.st2{fill:#EEEEEE;}
-</style>
-<rect id="Background" class="st0" width="320" height="180"/>
-<g id="Logotype">
-	<path id="Logo" class="st1" d="M48.9,122.91l9.93-6.33l0.21-41.95L84.58,89.8L66.1,100.46v12.2l38.4-22.86L48.85,57.09L48.9,122.91
-		z"/>
-	<g>
-		<path class="st2" d="M138.83,105.27h-6.15L120.7,85.63v19.65h-6.15V75.42h6.15l12,19.69V75.42h6.13V105.27z"/>
-		<path class="st2" d="M153.18,105.68c-3.25,0-5.9-1-7.95-2.99s-3.07-4.66-3.07-7.98v-0.57c0-2.23,0.43-4.22,1.29-5.98
-			s2.08-3.11,3.66-4.06s3.38-1.42,5.4-1.42c3.04,0,5.43,0.96,7.17,2.87c1.74,1.91,2.62,4.63,2.62,8.14v2.42h-14.13
-			c0.19,1.45,0.77,2.61,1.73,3.49c0.96,0.88,2.18,1.31,3.66,1.31c2.28,0,4.07-0.83,5.35-2.48l2.91,3.26
-			c-0.89,1.26-2.09,2.24-3.61,2.94C156.71,105.33,155.03,105.68,153.18,105.68z M152.51,87.45c-1.18,0-2.13,0.4-2.86,1.19
-			c-0.73,0.8-1.2,1.94-1.4,3.42h8.24v-0.47c-0.03-1.32-0.38-2.34-1.07-3.06S153.76,87.45,152.51,87.45z"/>
-		<path class="st2" d="M184.97,97.21l2.91-14.13h5.72l-5.66,22.19h-4.96l-4.2-13.97l-4.2,13.97h-4.94l-5.66-22.19h5.72l2.89,14.11
-			l4.06-14.11h4.29L184.97,97.21z"/>
-		<path class="st2" d="M203.08,94.75v10.52h-6.15V75.42h11.65c2.24,0,4.21,0.41,5.92,1.23c1.7,0.82,3.01,1.99,3.93,3.5
-			s1.37,3.23,1.37,5.16c0,2.93-1,5.23-3,6.92s-4.77,2.53-8.32,2.53H203.08z M203.08,89.77h5.5c1.63,0,2.87-0.38,3.72-1.15
-			c0.85-0.77,1.28-1.86,1.28-3.28c0-1.46-0.43-2.65-1.29-3.55s-2.05-1.37-3.57-1.39h-5.64V89.77z"/>
-		<path class="st2" d="M222.75,77.34c0-0.89,0.3-1.62,0.89-2.19c0.6-0.57,1.41-0.86,2.43-0.86c1.01,0,1.82,0.29,2.42,0.86
-			s0.9,1.31,0.9,2.19c0,0.9-0.3,1.64-0.91,2.21s-1.41,0.86-2.41,0.86s-1.8-0.29-2.41-0.86C223.05,78.98,222.75,78.25,222.75,77.34z
-			 M229.04,105.27h-5.95V83.08h5.95V105.27z"/>
-		<path class="st2" d="M253.48,94.38c0,3.42-0.78,6.16-2.33,8.21c-1.55,2.06-3.65,3.09-6.29,3.09c-2.24,0-4.05-0.78-5.43-2.34v10.46
-			h-5.93V83.08h5.5l0.21,2.17c1.44-1.72,3.31-2.58,5.62-2.58c2.73,0,4.86,1.01,6.38,3.04s2.28,4.81,2.28,8.37V94.38z M247.55,93.95
-			c0-2.06-0.37-3.66-1.1-4.78s-1.79-1.68-3.19-1.68c-1.86,0-3.14,0.71-3.83,2.13v9.08c0.72,1.46,2.02,2.19,3.88,2.19
-			C246.14,100.91,247.55,98.59,247.55,93.95z"/>
-		<path class="st2" d="M267.36,105.68c-3.25,0-5.9-1-7.95-2.99c-2.04-2-3.07-4.66-3.07-7.98v-0.57c0-2.23,0.43-4.22,1.29-5.98
-			s2.08-3.11,3.66-4.06c1.58-0.95,3.38-1.42,5.4-1.42c3.04,0,5.42,0.96,7.17,2.87c1.74,1.91,2.62,4.63,2.62,8.14v2.42h-14.13
-			c0.19,1.45,0.77,2.61,1.73,3.49c0.96,0.88,2.18,1.31,3.66,1.31c2.28,0,4.07-0.83,5.35-2.48l2.91,3.26
-			c-0.89,1.26-2.09,2.24-3.61,2.94C270.89,105.33,269.21,105.68,267.36,105.68z M266.68,87.45c-1.18,0-2.13,0.4-2.86,1.19
-			c-0.73,0.8-1.2,1.94-1.4,3.42h8.24v-0.47c-0.03-1.32-0.38-2.34-1.07-3.06S267.94,87.45,266.68,87.45z"/>
-	</g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 320 180"
+   width="320"
+   height="180"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="android-tv-banner.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2">
+    <filter
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Drop Shadow"
+       id="filter116"
+       x="-0.041231213"
+       y="-0.043194608"
+       width="1.0996421"
+       height="1.104387">
+      <feFlood
+         result="flood"
+         in="SourceGraphic"
+         flood-opacity="0.101961"
+         flood-color="rgb(0,0,0)"
+         id="feFlood115" />
+      <feGaussianBlur
+         result="blur"
+         in="SourceGraphic"
+         stdDeviation="0.100000"
+         id="feGaussianBlur115" />
+      <feOffset
+         result="offset"
+         in="blur"
+         dx="0.100000"
+         dy="0.100000"
+         id="feOffset115" />
+      <feComposite
+         result="comp1"
+         operator="in"
+         in="flood"
+         in2="offset"
+         id="feComposite115" />
+      <feComposite
+         result="comp2"
+         operator="over"
+         in="SourceGraphic"
+         in2="comp1"
+         id="feComposite116" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="2.0699547"
+     inkscape:cx="212.80659"
+     inkscape:cy="75.847072"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <rect
+     width="320"
+     height="180"
+     fill="#F9DEDC"
+     id="rect1" />
+  <path
+     id="path27-3"
+     style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#c32025;fill-opacity:1;fill-rule:evenodd;stroke-width:1.00246;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill markers;filter:url(#filter116);enable-background:accumulate;stop-color:#000000"
+     d="m 1.8240072,1.4553195 c -0.056998,-0.00266 -0.1045671,0.042937 -0.1042131,0.099895 v 5.356043 c -5.076e-4,0.073707 0.076703,0.1222986 0.1430995,0.090064 l 0.7958603,-0.379395 c 0.022263,-0.010917 0.048741,-0.052795 0.048741,-0.052795 l 0.8897,-2.1754391 v 1.6236868 c -5.076e-4,0.073708 0.076703,0.1222976 0.1430994,0.090064 L 4.9887848,5.5127294 c 0.022264,-0.010917 0.039651,-0.029748 0.048741,-0.052795 l 0.8134886,-1.989623 c 0.019665,-0.048628 -0.0019,-0.1041296 -0.049252,-0.1268107 L 5.2651321,3.0867696 c -0.05148,-0.0249 -0.1133361,-0.00151 -0.1353217,0.051242 L 4.4008329,4.9257748 V 2.7368775 c 7.62e-5,-0.038517 -0.022143,-0.073609 -0.057028,-0.090061 L 3.6931135,2.3378139 C 3.6413326,2.3134489 3.5796831,2.3375928 3.5583096,2.3906083 L 2.5234311,4.9278451 V 1.8429958 c -7.163e-4,-0.037766 -0.022815,-0.071863 -0.057028,-0.08799 L 1.8628976,1.4651536 c -0.01216,-0.00588 -0.025394,-0.00923 -0.038888,-0.00984 z m 4.6989472,2.2463494 c -0.036932,0.0037 -0.068707,0.027684 -0.082433,0.06211 L 6.0039601,4.8357116 c -0.034263,0.083954 0.052734,0.1661238 0.1348041,0.1273277 L 7.4831723,4.3232951 c 0.076603,-0.035687 0.076603,-0.1444309 0,-0.180122 L 6.5758391,3.710986 C 6.5593941,3.703076 6.5411051,3.699879 6.5229541,3.701666 Z"
+     sodipodi:nodetypes="cccccccccccccccccccccccccccccccccsc"
+     transform="matrix(10.866142,0,0,10.866142,114,44)" />
 </svg>

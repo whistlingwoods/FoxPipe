@@ -13,6 +13,7 @@ import io.reactivex.rxjava3.processors.BehaviorProcessor
 import io.reactivex.rxjava3.schedulers.Schedulers
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity
 import org.schabi.newpipe.local.feed.FeedDatabaseManager
+import org.schabi.newpipe.local.feed.FeedScope
 import org.schabi.newpipe.local.subscription.FeedGroupIcon
 import org.schabi.newpipe.local.subscription.SubscriptionManager
 import org.schabi.newpipe.local.subscription.item.PickerSubscriptionItem
@@ -32,12 +33,13 @@ class FeedGroupDialogViewModel(
 
     private var subscriptionsFlowable = Flowable
         .combineLatest(
+            FeedScope.feedChanges(applicationContext),
             filterSubscriptions.startWithItem(initialQuery),
             toggleShowOnlyUngrouped.startWithItem(initialShowOnlyUngrouped)
-        ) { t1: String, t2: Boolean -> Filter(t1, t2) }
+        ) { scope, query, ungrouped -> Triple(scope, query, ungrouped) }
         .distinctUntilChanged()
-        .switchMap { (query, showOnlyUngrouped) ->
-            subscriptionManager.getSubscriptions(groupId, query, showOnlyUngrouped)
+        .switchMap { (scope, query, showOnlyUngrouped) ->
+            subscriptionManager.getSubscriptionsForScope(scope, groupId, query, showOnlyUngrouped)
         }.map { list -> list.map { PickerSubscriptionItem(it) } }
 
     private val mutableGroupLiveData = MutableLiveData<FeedGroupEntity>()
@@ -55,7 +57,8 @@ class FeedGroupDialogViewModel(
 
     private var subscriptionsDisposable = Flowable
         .combineLatest(
-            subscriptionsFlowable, feedDatabaseManager.subscriptionIdsForGroup(groupId)
+            subscriptionsFlowable,
+            feedDatabaseManager.subscriptionIdsForGroup(groupId)
         ) { t1: List<PickerSubscriptionItem>, t2: List<Long> -> t1 to t2.toSet() }
         .subscribeOn(Schedulers.io())
         .subscribe(mutableSubscriptionsLiveData::postValue)
@@ -110,8 +113,8 @@ class FeedGroupDialogViewModel(
     }
 
     sealed class DialogEvent {
-        object ProcessingEvent : DialogEvent()
-        object SuccessEvent : DialogEvent()
+        data object ProcessingEvent : DialogEvent()
+        data object SuccessEvent : DialogEvent()
     }
 
     data class Filter(val query: String, val showOnlyUngrouped: Boolean)
@@ -125,7 +128,10 @@ class FeedGroupDialogViewModel(
         ) = viewModelFactory {
             initializer {
                 FeedGroupDialogViewModel(
-                    context.applicationContext, groupId, initialQuery, initialShowOnlyUngrouped
+                    context.applicationContext,
+                    groupId,
+                    initialQuery,
+                    initialShowOnlyUngrouped
                 )
             }
         }

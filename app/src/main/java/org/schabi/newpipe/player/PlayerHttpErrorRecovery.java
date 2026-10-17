@@ -1,0 +1,299 @@
+package org.schabi.newpipe.player;
+
+import static org.schabi.newpipe.extractor.ServiceList.YouTube;
+
+import android.os.SystemClock;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import androidx.media3.common.PlaybackException;
+import androidx.media3.datasource.HttpDataSource;
+import androidx.media3.exoplayer.dash.DashManifestStaleException;
+import androidx.media3.exoplayer.hls.playlist.HlsPlaylistTracker;
+
+import org.schabi.newpipe.extractor.stream.VideoStream;
+import org.schabi.newpipe.player.playqueue.PlayQueueItem;
+
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
+
+/** Utility methods for deciding whether a player media URL failure can be retried safely. */
+final class PlayerHttpErrorRecovery {
+    private static final String REQUEST_DIAGNOSTIC_PREFIX =
+            "YouTube media request diagnostic: ";
+
+    private PlayerHttpErrorRecovery() {
+    }
+
+    static final class RecoveryGuard {
+        static final int MAX_ATTEMPTS = 3;
+        static final long RESET_AFTER_MILLIS = TimeUnit.MINUTES.toMillis(10);
+        private static final long[] RETRY_DELAYS_MILLIS = {0, 1_000, 3_000};
+
+        @NonNull
+        private final LongSupplier elapsedRealtimeSupplier;
+        @Nullable
+        private String currentRecoveryKey;
+        private int attemptCount;
+        private long lastAttemptAtMillis;
+
+        RecoveryGuard() {
+            this(SystemClock::elapsedRealtime);
+        }
+
+        RecoveryGuard(@NonNull final LongSupplier elapsedRealtimeSupplier) {
+            this.elapsedRealtimeSupplier = elapsedRealtimeSupplier;
+        }
+
+        void reset() {
+            currentRecoveryKey = null;
+            attemptCount = 0;
+            lastAttemptAtMillis = 0;
+        }
+
+        @Nullable
+        RecoveryAttempt acquireAttempt(@NonNull final String recoveryKey) {
+            final long now = elapsedRealtimeSupplier.getAsLong();
+            if (attemptCount > 0
+                    && now - lastAttemptAtMillis >= RESET_AFTER_MILLIS) {
+                reset();
+            }
+
+            if (!recoveryKey.equals(currentRecoveryKey)) {
+                currentRecoveryKey = recoveryKey;
+                attemptCount = 0;
+            }
+            if (attemptCount >= MAX_ATTEMPTS) {
+                return null;
+            }
+
+            final RecoveryAttempt attempt = new RecoveryAttempt(attemptCount + 1,
+                    RETRY_DELAYS_MILLIS[attemptCount]);
+            attemptCount++;
+            lastAttemptAtMillis = now;
+            return attempt;
+        }
+    }
+
+    static final class OneShotRecoveryGuard {
+        @Nullable
+        private String currentRecoveryKey;
+        private boolean acquired;
+
+        boolean acquire(@NonNull final String recoveryKey) {
+            if (!recoveryKey.equals(currentRecoveryKey)) {
+                currentRecoveryKey = recoveryKey;
+                acquired = false;
+            }
+            if (acquired) {
+                return false;
+            }
+            acquired = true;
+            return true;
+        }
+
+        void reset() {
+            currentRecoveryKey = null;
+            acquired = false;
+        }
+    }
+
+    static final class RecoveryAttempt {
+        private final int number;
+        private final long delayMillis;
+
+        RecoveryAttempt(final int number, final long delayMillis) {
+            this.number = number;
+            this.delayMillis = delayMillis;
+        }
+
+        int getNumber() {
+            return number;
+        }
+
+        long getDelayMillis() {
+            return delayMillis;
+        }
+    }
+
+    static boolean isRecoverableAudioTrackInitFailure(final int errorCode) {
+        return errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED;
+    }
+
+    static boolean isRecoverableAv1DecoderInitFailure(
+            final int errorCode,
+            @Nullable final VideoStream stream) {
+        if (errorCode != PlaybackException.ERROR_CODE_DECODER_INIT_FAILED || stream == null) {
+            return false;
+        }
+
+        final String codec = stream.getCodec();
+        final String normalizedCodec = codec == null ? "" : codec.toLowerCase(Locale.ROOT);
+        return normalizedCodec.contains("av01") || normalizedCodec.contains("av1");
+    }
+
+    static boolean isRecoverableYouTubeMediaUrlFailure(@NonNull final Throwable error,
+                                                       @Nullable final PlayQueueItem item) {
+        return item != null
+                && isYouTubeService(item.getServiceId())
+                && isRecoverableMediaUrlFailure(error);
+    }
+
+    static boolean isRecoverableMediaUrlFailure(@NonNull final Throwable error) {
+        return isRecoverableStatusCode(findInvalidResponseCode(error))
+                || hasYouTubeCdnConnectionFailure(error)
+                || hasUnknownHostCause(error)
+                || hasPlaylistStuckCause(error)
+                || hasStaleDashManifestCause(error);
+    }
+
+    static boolean isYouTubeService(final int serviceId) {
+        return serviceId == YouTube.getServiceId();
+    }
+
+    static boolean isRecoverableStatusCode(@Nullable final Integer responseCode) {
+        if (responseCode == null) {
+            return false;
+        }
+        return responseCode == 403 || responseCode == 404 || responseCode == 410;
+    }
+
+    @Nullable
+    static Integer findInvalidResponseCode(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof HttpDataSource.InvalidResponseCodeException) {
+                return ((HttpDataSource.InvalidResponseCodeException) current).responseCode;
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    static boolean hasYouTubeCdnConnectionFailure(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof HttpDataSource.HttpDataSourceException) {
+                final HttpDataSource.HttpDataSourceException httpError =
+                        (HttpDataSource.HttpDataSourceException) current;
+                final String host = httpError.dataSpec == null
+                        ? null : httpError.dataSpec.uri.getHost();
+                final String normalizedHost = host == null ? "" : host.toLowerCase(Locale.ROOT);
+                if (httpError.type == HttpDataSource.HttpDataSourceException.TYPE_OPEN
+                        && (normalizedHost.equals("googlevideo.com")
+                        || normalizedHost.endsWith(".googlevideo.com"))) {
+                    Throwable cause = httpError.getCause();
+                    while (cause != null) {
+                        if (cause instanceof ConnectException) {
+                            return true;
+                        }
+                        cause = cause.getCause();
+                    }
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    static boolean hasUnknownHostCause(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof UnknownHostException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    static boolean hasPlaylistStuckCause(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof HlsPlaylistTracker.PlaylistStuckException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    static boolean hasStaleDashManifestCause(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof DashManifestStaleException) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    static boolean shouldAvoidAndroidVrAv1HfrStream(@NonNull final Throwable error,
+                                                     @Nullable final VideoStream stream) {
+        if (stream == null || stream.getFps() <= 30) {
+            return false;
+        }
+
+        final String codec = stream.getCodec();
+        final String normalizedCodec = codec == null ? "" : codec.toLowerCase(Locale.ROOT);
+        if (!normalizedCodec.contains("av01") && !normalizedCodec.contains("av1")) {
+            return false;
+        }
+
+        final String diagnostic = findSafeRequestDiagnostic(error);
+        return Integer.valueOf(403).equals(findInvalidResponseCode(error))
+                && diagnostic != null
+                && diagnostic.contains("client=ANDROID_VR");
+    }
+
+    static boolean isRejectedVideoFormat(@NonNull final Throwable error,
+                                          @Nullable final VideoStream stream) {
+        if (stream == null || stream.getItag() <= 0
+                || !Integer.valueOf(403).equals(findInvalidResponseCode(error))) {
+            return false;
+        }
+        final String diagnostic = findSafeRequestDiagnostic(error);
+        return diagnostic != null && java.util.regex.Pattern.compile(
+                "(?:^|,\\s*)itag=" + stream.getItag() + "(?:,|$)")
+                .matcher(diagnostic).find();
+    }
+
+    @Nullable
+    static String findSafeRequestDiagnostic(@NonNull final Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            final String message = current.getMessage();
+            if (message != null && message.startsWith(REQUEST_DIAGNOSTIC_PREFIX)) {
+                return message.substring(REQUEST_DIAGNOSTIC_PREFIX.length());
+            }
+            current = current.getCause();
+        }
+        return null;
+    }
+
+    @Nullable
+    static String buildSafeErrorContext(@NonNull final Throwable error) {
+        final Integer responseCode = findInvalidResponseCode(error);
+        final String requestDiagnostic = findSafeRequestDiagnostic(error);
+        if (responseCode == null && requestDiagnostic == null) {
+            return null;
+        }
+
+        final StringBuilder context = new StringBuilder();
+        if (responseCode != null) {
+            context.append("status=").append(responseCode);
+        }
+        if (requestDiagnostic != null) {
+            if (context.length() > 0) {
+                context.append(", ");
+            }
+            context.append(requestDiagnostic);
+        }
+        return context.toString();
+    }
+}

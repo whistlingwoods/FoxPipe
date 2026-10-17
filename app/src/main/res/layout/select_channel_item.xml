@@ -23,8 +23,9 @@
         app:shapeAppearance="@style/CircularImageView"
         tools:ignore="RtlHardcoded" />
 
-    <org.schabi.newpipe.views.NewPipeTextView
+    <org.schabi.newpipe.views.MediaTextView
         android:id="@+id/itemTitleView"
+        app:mediaTextRole="channelName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
@@ -33,7 +34,8 @@
         android:layout_toRightOf="@+id/itemThumbnailView"
         android:ellipsize="end"
         android:lines="1"
-        android:textAppearance="?android:attr/textAppearanceListItem"
+        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+        android:textColor="?attr/colorOnSurface"
         tools:text="Channel Title, Lorem ipsum" />
 
 </RelativeLayout>

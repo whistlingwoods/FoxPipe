@@ -17,10 +17,10 @@ import org.schabi.newpipe.player.mediasource.ManagedMediaSource;
 import org.schabi.newpipe.player.mediasource.ManagedMediaSourcePlaylist;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
-import org.schabi.newpipe.player.playqueue.events.MoveEvent;
-import org.schabi.newpipe.player.playqueue.events.PlayQueueEvent;
-import org.schabi.newpipe.player.playqueue.events.RemoveEvent;
-import org.schabi.newpipe.player.playqueue.events.ReorderEvent;
+import org.schabi.newpipe.player.playqueue.PlayQueueEvent.MoveEvent;
+import org.schabi.newpipe.player.playqueue.PlayQueueEvent;
+import org.schabi.newpipe.player.playqueue.PlayQueueEvent.RemoveEvent;
+import org.schabi.newpipe.player.playqueue.PlayQueueEvent.ReorderEvent;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -420,6 +420,38 @@ public class MediaSourceManager {
     }
 
     private Single<ManagedMediaSource> getLoadedMediaSource(@NonNull final PlayQueueItem stream) {
+        if (stream.isLocalMedia()) {
+            return Single.fromCallable(() -> Optional
+                            .ofNullable(playbackListener.sourceOfLocal(stream))
+                            .<ManagedMediaSource>flatMap(source ->
+                                    MediaItemTag.from(source.getMediaItem())
+                                            .map(tag -> new LoadedMediaSource(source, tag, stream,
+                                                    Long.MAX_VALUE)))
+                            .orElseGet(() -> FailedMediaSource.of(stream,
+                                    new MediaSourceResolutionException(
+                                            "Unable to resolve local media: " + stream.getUrl()))))
+                    .onErrorReturn(throwable -> FailedMediaSource.of(stream,
+                            new MediaSourceResolutionException(
+                                    "Unable to open local media: " + throwable.getMessage())));
+        }
+        return Single.fromCallable(() -> Optional.ofNullable(
+                        playbackListener.sourceOfDownloaded(stream)))
+                .subscribeOn(Schedulers.io())
+                .onErrorReturnItem(Optional.empty())
+                .flatMap(source -> {
+                    if (source.isPresent()) {
+                        final Optional<MediaItemTag> tag =
+                                MediaItemTag.from(source.get().getMediaItem());
+                        if (tag.isPresent()) {
+                            return Single.<ManagedMediaSource>just(new LoadedMediaSource(
+                                    source.get(), tag.get(), stream, Long.MAX_VALUE));
+                        }
+                    }
+                    return getRemoteMediaSource(stream);
+                });
+    }
+
+    private Single<ManagedMediaSource> getRemoteMediaSource(@NonNull final PlayQueueItem stream) {
         return stream.getStream()
                 .map(streamInfo -> Optional
                         .ofNullable(playbackListener.sourceOf(stream, streamInfo))
@@ -478,7 +510,7 @@ public class MediaSourceManager {
 
     /**
      * Checks if the corresponding MediaSource in
-     * {@link com.google.android.exoplayer2.source.ConcatenatingMediaSource}
+     * {@link androidx.media3.exoplayer.source.ConcatenatingMediaSource}
      * for a given {@link PlayQueueItem} needs replacement, either due to gapless playback
      * readiness or playlist desynchronization.
      * <p>

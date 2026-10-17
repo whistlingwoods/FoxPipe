@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="main_bg_subtitle">শুরু করতে আতস কাঁচটিতে টিপ দাও।</string>
     <string name="upload_date_text">%1$s তারিখে প্রকাশিত</string>
@@ -61,7 +61,6 @@
     <string name="general_error">ত্রুটি</string>
     <string name="network_error">নেটওয়ার্ক ত্রুটি</string>
     <string name="could_not_load_thumbnails">সব থাম্বনেইল লোড করা যায়নি</string>
-    <string name="youtube_signature_deobfuscation_error">ভিডিও URL স্বাক্ষর ডিক্রিপ্ট করা যায়নি</string>
     <string name="parsing_error">ওয়েবসাইট বিশ্লেষন করা যায়নি</string>
     <string name="content_not_available">কন্টেন্ট উপলব্ধ নয়</string>
     <string name="could_not_setup_download_menu">ডাউনলোড মেনু সেটআপ করা যায়নি</string>
@@ -83,9 +82,6 @@
     <string name="video">ভিডিও</string>
     <string name="audio">অডিও</string>
     <string name="retry">পুনরায় চেষ্টা করো</string>
-    <string name="short_thousand">হা</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">বি</string>
     <!-- Missions -->
     <string name="start">শুরু</string>
     <string name="pause">বিরতি</string>
@@ -97,7 +93,7 @@
     <string name="msg_name">ফাইলের নাম</string>
     <string name="msg_threads">থ্রেড</string>
     <string name="msg_error">ত্রুটি</string>
-    <string name="msg_running">NewPipe ডাউনলোড হচ্ছে</string>
+    <string name="msg_running">WizeStream ডাউনলোড হচ্ছে</string>
     <string name="msg_running_detail">বিস্তারিত জানার জন্য আলতো চাপ</string>
     <string name="msg_wait">অনুগ্রহপূর্বক অপেক্ষা করো…</string>
     <string name="msg_copied">ক্লিপবোর্ডে অনুলিপি করা হয়েছে</string>
@@ -107,7 +103,7 @@
     <string name="title_activity_recaptcha">reCAPTCHA চ্যালেঞ্জ</string>
     <string name="recaptcha_request_toast">reCAPTCHA চ্যালেঞ্জ অনুরোধ করা হয়েছে</string>
     <!-- End of GigaGet's Strings -->
-    <string name="info_labels">কি:\\nঅনুরোধ:\\nকন্টেন্ট ভাষা:\\nসার্ভিস:\\nসময়(GMT এ):\\nপ্যাকেজ:\\nসংস্করণ:\\nওএস সংস্করণ:\\nআইপি পরিসর:</string>
+    <string name="info_labels">কি:\nঅনুরোধ:\nকন্টেন্ট ভাষা:\nসার্ভিস:\nসময়(GMT এ):\nপ্যাকেজ:\nসংস্করণ:\nওএস সংস্করণ:\nআইপি পরিসর:</string>
     <string name="controls_download_desc">স্ট্রিম ফাইল ডাউনলোড করুন</string>
     <string name="show_info">তথ্য দেখাও</string>
     <string name="fragment_feed_title">নতুন যা কিছু</string>
@@ -140,17 +136,11 @@
     <string name="seek_duration_title">দ্রুত-ফরওয়ার্ড/-পুনরায় সন্ধান সময়কাল</string>
     <string name="show_comments_summary">মন্তব্যসমূহ লুকাতে বন্ধ করুন</string>
     <string name="show_comments_title">মন্তব্যসমূহ দেখাও</string>
-    <string name="download_thumbnail_title">থাম্বনেইল লোড করো</string>
-    <string name="download_thumbnail_summary">থাম্বনেইল প্রদর্শন বন্ধ করার মাধ্যমে, ডাটা এবং মেমোরি সংরক্ষণ করুন। অপশনটি‌ পরিবর্তনে ইন-মেমোরি এবং অন-ডিস্ক ইমেজ ক্যাশ উভয়ই মুছে যাবে।</string>
     <string name="thumbnail_cache_wipe_complete_notice">ছবির ক্যাশ মোছা হয়েছে</string>
     <string name="metadata_cache_wipe_summary">সব ক্যাশড ওয়েবপেজ ডেটা মুছে ফেলো</string>
     <string name="metadata_cache_wipe_title">ক্যাশ করা মেটাডেটা মোছ</string>
     <string name="metadata_cache_wipe_complete_notice">মেটাডেটা ক্যাশ মোছা হয়েছে</string>
     <string name="auto_queue_title">পরবর্তী স্ট্রিম স্বয়ংক্রিয়ংভাবে সংযোজন করো</string>
-    <string name="brightness_gesture_control_summary">প্লেয়ারের উজ্জ্বলতা নিয়ন্ত্রণ করতে সংকেত ব্যবহার করো</string>
-    <string name="brightness_gesture_control_title">উজ্জ্বলতার নিয়ন্ত্রণ সংকেত</string>
-    <string name="volume_gesture_control_summary">প্লেয়ারের ভলিউম নিয়ন্ত্রণ করতে সংকেত ব্যবহার করো</string>
-    <string name="volume_gesture_control_title">ভলিউম সংকেত নিয়ন্ত্রণ</string>
     <string name="missions_header_finished">সম্পন্ন</string>
     <string name="list">তালিকা</string>
     <string name="enable_playback_state_lists_title">তালিকা আকারে সাজাও</string>
@@ -161,7 +151,7 @@
     <string name="show_search_suggestions_title">অনুসন্ধানের পরামর্শ</string>
     <string name="search_showing_result_for">ফলাফল দেখাচ্ছে: %s এর জন্যে</string>
     <string name="tab_about">সম্পর্কিত</string>
-    <string name="title_activity_about">নিউপাইপ এর সম্বন্ধে</string>
+    <string name="title_activity_about">WizeStream এর সম্বন্ধে</string>
     <string name="trending">ট্রেন্ডিং</string>
     <string name="feed_create_new_group_button_title">নতুন</string>
     <string name="feed_notification_loading">ফিড লোড হচ্ছে…</string>
@@ -172,7 +162,7 @@
     <string name="stop">বন্ধ করুন</string>
     <string name="delete_downloaded_files">ডাউনলোড করা ফাইলগুলো ডিলিট করুন</string>
     <string name="clear_download_history">ডাওন লোড ইতিহাস মুছুন</string>
-    <string name="error_insufficient_storage">ডিভাইস এ স্পেস নেই</string>
+    <string name="error_insufficient_storage_left">ডিভাইস এ স্পেস নেই</string>
     <string name="error_http_not_found">পাওয়া যায় নি</string>
     <string name="error_unknown_host">সার্ভার পাওয়া যায় নি</string>
     <string name="show_error">এরর দেখান</string>
@@ -205,10 +195,9 @@
     <string name="title_most_played">সবথেকে বেশি চালানো</string>
     <string name="title_last_played">শেষ চালানো</string>
     <string name="read_full_license">লাইসেন্স পড়ুন</string>
-    <string name="app_license_title">নিউপাইপ এর লাইসেন্স</string>
+    <string name="app_license_title">WizeStream এর লাইসেন্স</string>
     <string name="read_privacy_policy">প্রাইভেসি পলিসি পড়ুন</string>
-    <string name="privacy_policy_title">নিউপাইপ এর গোপনীয়তা নীতি</string>
-    <string name="give_back">ফিরিয়ে দিন</string>
+    <string name="privacy_policy_title">WizeStream এর গোপনীয়তা নীতি</string>
     <string name="view_on_github">গিটহাব এ দেখুন</string>
     <string name="title_licenses">থার্ড-পার্টি লাইসেন্স সমূহ</string>
     <string name="charset_letters_and_digits">শব্দ ও নম্বর</string>
@@ -246,9 +235,9 @@
     <string name="switch_to_main">মেন এ ফিরে যান</string>
     <string name="switch_to_popup">পপ-আপ এ খুলুন</string>
     <string name="switch_to_background">পেছনে নিয়ে যান</string>
-    <string name="app_update_notification_channel_description">নতুন নিউপাইপ ভার্সন এর নোটিফিকেশন</string>
+    <string name="app_update_notification_channel_description">নতুন WizeStream ভার্সন এর নোটিফিকেশন</string>
     <string name="app_update_notification_channel_name">অ্যাপ আপডেট নোটিফিকেশন</string>
-    <string name="notification_channel_name">নিউ পাইপ নোটিফিকেশন</string>
+    <string name="notification_channel_name">WizeStream নোটিফিকেশন</string>
     <string name="play_all">সব চালু করুন</string>
     <string name="file_deleted">ফাইল ডিলিট হয়েছে</string>
     <string name="best_resolution">সেরা রেজুলিউসন</string>
@@ -264,7 +253,7 @@
     <string name="peertube_instance_url_title">পিয়ার টিউব এর ইন্সটান্স সমূহ</string>
     <string name="grid">ছক</string>
     <string name="local">স্থানীয়</string>
-    <string name="recaptcha_done_button">হয়েছে</string>
+    <string name="done">হয়েছে</string>
     <string name="events">ইভেন্টগুলো</string>
     <string name="settings_category_updates_title">আপডেট</string>
     <string name="minimize_on_exit_none_description">কোনোটি না</string>
@@ -288,7 +277,6 @@
     <string name="action_history">ইতিহাস</string>
     <string name="title_activity_history">ইতিহাস</string>
     <string name="tab_licenses">অনুমতিপত্র</string>
-    <string name="donation_title">দান করো</string>
     <string name="contribution_title">স্বেচ্ছাস্বেবা</string>
     <string name="settings_category_downloads_title">ডাউনলোড</string>
     <string name="dismiss">সরাও</string>
@@ -303,9 +291,8 @@
     <string name="notification_action_0_title">প্রথম ক্রিয়া বোতাম</string>
     <string name="notification_scale_to_square_image_title">থাম্বনেল ১:১ অনুপাতে সেট করো</string>
     <string name="systems_language">সিস্টেম ডিফল্ট</string>
-    <string name="toast_no_player">এ ফাইলটি চালানোর জন্য কোন অ্যাপ ইন্সটলকৃত নেই</string>
     <string name="bookmark_playlist">প্লেলিস্ট বুকমার্ক করুন</string>
-    <string name="feed_use_dedicated_fetch_method_title">"যখন পর্যাপ্ত  নিবেদিত ফিড থেকে ডাটা সংগ্রহ করুন"</string>
+    <string name="feed_use_dedicated_fetch_method_title">যখন পর্যাপ্ত নিবেদিত ফিড থেকে ডাটা সংগ্রহ করুন</string>
     <string name="feed_update_threshold_option_always_update">সবসময় হালনগাদ করুন</string>
     <string name="feed_update_threshold_summary">শেষ হালনাগাদের পর একটি সাবস্ক্রিপশনের আগের সময় সেকেলে বিবেচিত — %s</string>
     <string name="feed_update_threshold_title">ফিড হালনাগাদ প্রবেশস্থল</string>
@@ -325,17 +312,17 @@
     <string name="feed_groups_header_title">চ্যানেল গ্রুপ</string>
     <plurals name="days">
         <item quantity="one">%d দিন</item>
-        <item quantity="other">"%d   দিন"</item>
+        <item quantity="other">%d দিন</item>
     </plurals>
     <plurals name="hours">
         <item quantity="one">%d ঘন্টা</item>
-        <item quantity="other">"%d  ঘন্টা"</item>
+        <item quantity="other">%d ঘন্টা</item>
     </plurals>
     <plurals name="minutes">
         <item quantity="one">%d মিনিট</item>
         <item quantity="other">%d মিনিট</item>
     </plurals>
-    <string name="website_encouragement">আরও তথ্য এবং খবরের জন্য নিউপাইপ ওয়েবসাইট দেখো।</string>
+    <string name="website_encouragement">আরও তথ্য এবং খবরের জন্য WizeStream ওয়েবসাইট দেখো।</string>
     <string name="open_with">দিয়ে খুলো</string>
     <string name="comments_tab_description">মতামত</string>
     <string name="off">বন্ধ</string>
@@ -390,7 +377,7 @@
     <string name="notification_action_4_title">পঞ্চম পদক্ষেপ বোতাম</string>
     <string name="show_description_summary">ভিডিও বর্ণনা ও বাড়তি তথ্য লুকাতে বন্ধ করুন</string>
     <string name="dont_show">দেখিও না</string>
-    <string name="app_update_available_notification_title">নিউ পাইপ আপডেট এসেছে!</string>
+    <string name="app_update_available_notification_title">WizeStream আপডেট এসেছে!</string>
     <string name="comments_are_disabled">মন্তব্যসমূহ নিষ্ক্রিয় আছে</string>
     <plurals name="views">
         <item quantity="one">%s বার দেখেছে</item>
@@ -409,7 +396,7 @@
     <string name="default_content_country_title">কনটেন্টের জন্য পূর্বনির্ধারিত দেশ</string>
     <string name="external_player_unsupported_link_type">বাইরের প্লেয়ারসমূহ এ ধরনের লিঙ্কসমূহ সমর্থন করে না</string>
     <string name="msg_calculating_hash">হ্যাশ হিসাব করা হচ্ছে</string>
-    <string name="manual_update_title">আপডেট চেক করো</string>
+    <string name="check_for_updates">আপডেট চেক করো</string>
     <plurals name="watching">
         <item quantity="one">%s জন দেখছে</item>
         <item quantity="other">%s জন দেখছে</item>
@@ -459,3 +446,4 @@
     <string name="notification_colorize_summary">অ্যান্ড্রয়েডকে থাম্বনেইলের প্রধান রং অনুযায়ী রঙিন করুন (উল্লেখ্য যে, এটি সব ডিভাইসে উপলব্ধ নয়)</string>
     <string name="unknown_format">অজানা ধরন</string>
 </resources>
+

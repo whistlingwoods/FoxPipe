@@ -1,6 +1,7 @@
 package org.schabi.newpipe.local.holder;
 
 import android.text.TextUtils;
+import android.view.View;
 import android.view.ViewGroup;
 
 import org.schabi.newpipe.database.LocalItem;
@@ -8,12 +9,13 @@ import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity;
 import org.schabi.newpipe.local.LocalItemBuilder;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
 import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.PicassoHelper;
 import org.schabi.newpipe.util.ServiceHelper;
+import org.schabi.newpipe.util.image.CoilHelper;
 
 import java.time.format.DateTimeFormatter;
 
 public class RemotePlaylistItemHolder extends PlaylistItemHolder {
+
     public RemotePlaylistItemHolder(final LocalItemBuilder infoItemBuilder,
                                     final ViewGroup parent) {
         super(infoItemBuilder, parent);
@@ -28,14 +30,20 @@ public class RemotePlaylistItemHolder extends PlaylistItemHolder {
     public void updateFromItem(final LocalItem localItem,
                                final HistoryRecordManager historyRecordManager,
                                final DateTimeFormatter dateTimeFormatter) {
-        if (!(localItem instanceof PlaylistRemoteEntity)) {
+        if (!(localItem instanceof PlaylistRemoteEntity item)) {
             return;
         }
-        final PlaylistRemoteEntity item = (PlaylistRemoteEntity) localItem;
 
-        itemTitleView.setText(item.getName());
-        itemStreamCountView.setText(Localization.localizeStreamCountMini(
-                itemStreamCountView.getContext(), item.getStreamCount()));
+        itemTitleView.setText(item.getOrderingName());
+        final Long streamCount = item.getStreamCount();
+        if (streamCount == null) {
+            itemStreamCountView.setText(null);
+            itemStreamCountView.setVisibility(View.GONE);
+        } else {
+            itemStreamCountView.setText(Localization.localizeStreamCountMini(
+                    itemStreamCountView.getContext(), streamCount));
+            itemStreamCountView.setVisibility(View.VISIBLE);
+        }
         // Here is where the uploader name is set in the bookmarked playlists library
         if (!TextUtils.isEmpty(item.getUploader())) {
             itemUploaderView.setText(Localization.concatenateStrings(item.getUploader(),
@@ -44,7 +52,7 @@ public class RemotePlaylistItemHolder extends PlaylistItemHolder {
             itemUploaderView.setText(ServiceHelper.getNameOfServiceById(item.getServiceId()));
         }
 
-        PicassoHelper.loadPlaylistThumbnail(item.getThumbnailUrl()).into(itemThumbnailView);
+        CoilHelper.INSTANCE.loadPlaylistThumbnail(itemThumbnailView, item.getThumbnailUrl());
 
         super.updateFromItem(localItem, historyRecordManager, dateTimeFormatter);
     }

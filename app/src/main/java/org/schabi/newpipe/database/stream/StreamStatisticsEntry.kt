@@ -1,15 +1,26 @@
+/*
+ * SPDX-FileCopyrightText: 2020-2023 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package org.schabi.newpipe.database.stream
 
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
+import androidx.room.Ignore
+import java.time.OffsetDateTime
 import org.schabi.newpipe.database.LocalItem
 import org.schabi.newpipe.database.history.model.StreamHistoryEntity
 import org.schabi.newpipe.database.stream.model.StreamEntity
-import org.schabi.newpipe.database.stream.model.StreamStateEntity.STREAM_PROGRESS_MILLIS
+import org.schabi.newpipe.database.stream.model.StreamStateEntity.Companion.STREAM_PROGRESS_MILLIS
+import org.schabi.newpipe.extractor.localization.DateWrapper
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
-import java.time.OffsetDateTime
+import org.schabi.newpipe.player.playqueue.PlayQueueItem
+import org.schabi.newpipe.util.image.ExtractorImageCompat
+import org.schabi.newpipe.util.image.ImageStrategy
 
-class StreamStatisticsEntry(
+data class StreamStatisticsEntry(
     @Embedded
     val streamEntity: StreamEntity,
 
@@ -25,19 +36,35 @@ class StreamStatisticsEntry(
     @ColumnInfo(name = STREAM_WATCH_COUNT)
     val watchCount: Long
 ) : LocalItem {
+
+    override val localItemType: LocalItem.LocalItemType
+        get() = LocalItem.LocalItemType.STATISTIC_STREAM_ITEM
+
+    @Ignore
     fun toStreamInfoItem(): StreamInfoItem {
-        val item = StreamInfoItem(streamEntity.serviceId, streamEntity.url, streamEntity.title, streamEntity.streamType)
-        item.duration = streamEntity.duration
-        item.uploaderName = streamEntity.uploader
-        item.uploaderUrl = streamEntity.uploaderUrl
-        item.thumbnailUrl = streamEntity.thumbnailUrl
-
-        return item
+        return StreamInfoItem(
+            streamEntity.serviceId,
+            streamEntity.url,
+            streamEntity.title,
+            streamEntity.streamType
+        ).apply {
+            duration = streamEntity.duration
+            uploaderName = streamEntity.uploader
+            uploaderUrl = streamEntity.uploaderUrl
+            textualUploadDate = streamEntity.textualUploadDate
+            uploadDate = streamEntity.uploadDate?.let {
+                DateWrapper(it, streamEntity.isUploadDateApproximation ?: false)
+            }
+            setShortFormContent(streamEntity.isShortFormContent)
+            ExtractorImageCompat.setThumbnailImages(
+                this,
+                ImageStrategy.dbUrlToImageList(streamEntity.thumbnailUrl)
+            )
+        }
     }
 
-    override fun getLocalItemType(): LocalItem.LocalItemType {
-        return LocalItem.LocalItemType.STATISTIC_STREAM_ITEM
-    }
+    @Ignore
+    fun toPlayQueueItem(): PlayQueueItem = streamEntity.toPlayQueueItem()
 
     companion object {
         const val STREAM_LATEST_DATE = "latestAccess"

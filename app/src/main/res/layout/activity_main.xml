@@ -5,18 +5,27 @@
     android:layout_height="match_parent">
 
     <org.schabi.newpipe.views.FocusAwareCoordinator
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragment_holder"
+        <FrameLayout
+            android:id="@+id/main_safe_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="?attr/actionBarSize" />
+            android:background="?attr/colorSurface">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/fragment_holder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="?attr/actionBarSize" />
+
+        </FrameLayout>
 
         <include
-            layout="@layout/toolbar_layout"
-            android:id="@+id/toolbar_layout"/>
+            android:id="@+id/toolbar_layout"
+            layout="@layout/toolbar_layout" />
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment_player_holder"
@@ -27,10 +36,69 @@
             app:behavior_peekHeight="0dp"
             app:layout_behavior="org.schabi.newpipe.player.gesture.CustomBottomSheetBehavior" />
 
+        <View
+            android:id="@+id/main_bottom_system_bar_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom"
+            android:background="?attr/main_navigation_background_color"
+            android:importantForAccessibility="no" />
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/main_bottom_navigation"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/main_bottom_navigation_height"
+            android:layout_gravity="bottom"
+            android:background="?attr/main_navigation_background_color"
+            android:elevation="0dp"
+            android:visibility="gone"
+            app:itemActiveIndicatorStyle="@style/wizestreamBottomNavigationActiveIndicator"
+            app:itemIconTint="@color/tab_layout_material_item_color"
+            app:itemPaddingBottom="@dimen/main_bottom_navigation_item_padding_bottom"
+            app:itemPaddingTop="@dimen/main_bottom_navigation_item_padding_top"
+            app:itemRippleColor="?attr/colorControlHighlight"
+            app:itemTextColor="@color/tab_layout_material_item_color"
+            app:labelVisibilityMode="labeled" />
+
+        <com.google.android.material.navigationrail.NavigationRailView
+            android:id="@+id/main_navigation_rail"
+            android:layout_width="@dimen/main_navigation_rail_width"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?attr/main_navigation_background_color"
+            android:elevation="0dp"
+            android:paddingVertical="8dp"
+            android:visibility="gone"
+            app:itemActiveIndicatorStyle="@style/wizestreamBottomNavigationActiveIndicator"
+            app:itemIconTint="@color/tab_layout_material_item_color"
+            app:itemRippleColor="?attr/colorControlHighlight"
+            app:itemTextColor="@color/tab_layout_material_item_color"
+            app:labelVisibilityMode="labeled"
+            app:menuGravity="center" />
+
+        <org.schabi.newpipe.views.ThemedSplashOverlay
+            android:id="@+id/themed_splash_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/colorSurface"
+            android:clickable="true"
+            android:elevation="32dp"
+            android:focusable="true"
+            android:importantForAccessibility="noHideDescendants">
+
+            <ImageView
+                android:layout_width="144dp"
+                android:layout_height="144dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_wizestream_splash_themed" />
+
+        </org.schabi.newpipe.views.ThemedSplashOverlay>
+
     </org.schabi.newpipe.views.FocusAwareCoordinator>
 
     <include
-        layout="@layout/drawer_layout"
-        android:id="@+id/drawer_layout" />
+        android:id="@+id/drawer_layout"
+        layout="@layout/drawer_layout" />
 
 </org.schabi.newpipe.views.FocusAwareDrawerLayout>

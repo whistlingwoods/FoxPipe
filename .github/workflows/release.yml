@@ -1,0 +1,199 @@
+name: Build release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_target:
+        description: "What to do with the signed release APK"
+        required: false
+        default: "artifacts"
+        type: choice
+        options:
+          - artifacts
+          - release
+          - all
+  push:
+    branches:
+      - "release-pre-*"
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out release source
+        uses: actions/checkout@v6
+
+      - uses: gradle/actions/wrapper-validation@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21.0.12+8.0.LTS
+          distribution: temurin
+          cache: gradle
+
+      - name: Install Android SDK platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.1.0"
+
+      - name: Write release keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.WIZESTREAM_RELEASE_KEYSTORE_BASE64 || secrets.NEWPIPE_MATERIAL_RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RELEASE_KEYSTORE_BASE64}" ]; then
+            echo "Missing WIZESTREAM_RELEASE_KEYSTORE_BASE64 secret" >&2
+            exit 1
+          fi
+          printf '%s' "${RELEASE_KEYSTORE_BASE64}" | base64 -d > "$RUNNER_TEMP/wizestream-release.keystore"
+
+      - name: Build signed release APK twice and compare SHA-256
+        env:
+          WIZESTREAM_RELEASE_STORE_FILE: ${{ runner.temp }}/wizestream-release.keystore
+          WIZESTREAM_RELEASE_STORE_PASSWORD: ${{ secrets.WIZESTREAM_RELEASE_STORE_PASSWORD || secrets.NEWPIPE_MATERIAL_RELEASE_STORE_PASSWORD }}
+          WIZESTREAM_RELEASE_KEY_ALIAS: ${{ secrets.WIZESTREAM_RELEASE_KEY_ALIAS || secrets.NEWPIPE_MATERIAL_RELEASE_KEY_ALIAS }}
+          WIZESTREAM_RELEASE_KEY_PASSWORD: ${{ secrets.WIZESTREAM_RELEASE_KEY_PASSWORD || secrets.NEWPIPE_MATERIAL_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${WIZESTREAM_RELEASE_STORE_PASSWORD}" ] || \
+             [ -z "${WIZESTREAM_RELEASE_KEY_ALIAS}" ] || \
+             [ -z "${WIZESTREAM_RELEASE_KEY_PASSWORD}" ]; then
+            echo "Missing one or more WizeStream release signing secrets" >&2
+            exit 1
+          fi
+          scripts/reproducible-build.sh \
+            --verify \
+            --output-dir "$RUNNER_TEMP/reproducible-arm"
+
+      - name: Verify release APK identity
+        run: |
+          set -euo pipefail
+          APK_PATH="$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+          test -n "$APK_PATH"
+          BUILD_TOOLS_VERSION="36.1.0"
+          AAPT="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt"
+          "$AAPT" dump badging "$APK_PATH" | tee "$RUNNER_TEMP/release-apk-badging.txt"
+          grep -q "package: name='org.wisso.newpipematerial'" "$RUNNER_TEMP/release-apk-badging.txt"
+          grep -q "application-label:'WizeStream'" "$RUNNER_TEMP/release-apk-badging.txt"
+          scripts/verify-apk-abis.sh "$APK_PATH" arm64-v8a armeabi-v7a
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
+          "$APKSIGNER" verify --verbose --print-certs "$APK_PATH"
+
+      - name: "Prepare ARM APK"
+        id: release_info
+        run: |
+          VERSION_NAME="$(jq -r ".elements[0].versionName" "app/build/outputs/apk/release/output-metadata.json")"
+          VERSION_CODE="$(jq -r ".elements[0].versionCode" "app/build/outputs/apk/release/output-metadata.json")"
+          RELEASE_TAG="v${VERSION_NAME}"
+
+          if [[ ! "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Gradle versionName '$VERSION_NAME' is not a stable semantic version (X.Y.Z)"
+            exit 1
+          fi
+
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "$RELEASE_TAG" ]; then
+            echo "Tag mismatch: pushed tag is '$GITHUB_REF_NAME' but Gradle versionName is '$VERSION_NAME' and expects tag '$RELEASE_TAG'"
+            exit 1
+          fi
+
+          APK_NAME="wizestream_v${VERSION_NAME}.apk"
+          mkdir -p dist
+          APK_PATH="dist/${APK_NAME}"
+          CHANGELOG_PATH="fastlane/metadata/android/en-US/changelogs/${VERSION_CODE}.txt"
+
+          mv app/build/outputs/apk/release/*.apk "$APK_PATH"
+
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "changelog_path=$CHANGELOG_PATH" >> "$GITHUB_OUTPUT"
+
+          echo "Version name: $VERSION_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version code: $VERSION_CODE" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release tag: $RELEASE_TAG" >> "$GITHUB_STEP_SUMMARY"
+          echo "Changelog: $CHANGELOG_PATH" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build signed x86_64 release APK twice and compare SHA-256
+        env:
+          WIZESTREAM_RELEASE_STORE_FILE: ${{ runner.temp }}/wizestream-release.keystore
+          WIZESTREAM_RELEASE_STORE_PASSWORD: ${{ secrets.WIZESTREAM_RELEASE_STORE_PASSWORD || secrets.NEWPIPE_MATERIAL_RELEASE_STORE_PASSWORD }}
+          WIZESTREAM_RELEASE_KEY_ALIAS: ${{ secrets.WIZESTREAM_RELEASE_KEY_ALIAS || secrets.NEWPIPE_MATERIAL_RELEASE_KEY_ALIAS }}
+          WIZESTREAM_RELEASE_KEY_PASSWORD: ${{ secrets.WIZESTREAM_RELEASE_KEY_PASSWORD || secrets.NEWPIPE_MATERIAL_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          scripts/reproducible-build.sh \
+            --verify \
+            --output-dir "$RUNNER_TEMP/reproducible-x86-64" \
+            -- \
+            -PreleaseAbi=x86_64
+
+      - name: Prepare and verify x86_64 APK
+        id: x86_release_info
+        run: |
+          set -euo pipefail
+          VERSION_NAME="$(jq -r ".elements[0].versionName" "app/build/outputs/apk/release/output-metadata.json")"
+          VERSION_CODE="$(jq -r ".elements[0].versionCode" "app/build/outputs/apk/release/output-metadata.json")"
+
+          test "$VERSION_NAME" = "${{ steps.release_info.outputs.version_name }}"
+          test "$VERSION_CODE" = "${{ steps.release_info.outputs.version_code }}"
+
+          APK_NAME="wizestream_v${VERSION_NAME}_x86_64.apk"
+          APK_PATH="dist/${APK_NAME}"
+          mv app/build/outputs/apk/release/*.apk "$APK_PATH"
+
+          BUILD_TOOLS_VERSION="36.1.0"
+          AAPT="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt"
+          "$AAPT" dump badging "$APK_PATH" | tee "$RUNNER_TEMP/x86-64-release-badging.txt"
+          grep -q "package: name='org.wisso.newpipematerial'" "$RUNNER_TEMP/x86-64-release-badging.txt"
+          grep -q "application-label:'WizeStream'" "$RUNNER_TEMP/x86-64-release-badging.txt"
+          scripts/verify-apk-abis.sh "$APK_PATH" x86_64
+
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
+          "$APKSIGNER" verify --verbose --print-certs "$APK_PATH"
+
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "x86_64 APK: $APK_NAME" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: "Upload ARM APK artifact"
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.release_target == 'artifacts' || inputs.release_target == 'all') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: wizestream-signed-release-arm-apk
+          path: ${{ steps.release_info.outputs.apk_path }}
+
+      - name: "Upload x86_64 APK artifact"
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.release_target == 'artifacts' || inputs.release_target == 'all') }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: wizestream-signed-release-x86-64-apk
+          path: ${{ steps.x86_release_info.outputs.apk_path }}
+
+      - name: "Validate changelog"
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (inputs.release_target == 'release' || inputs.release_target == 'all')) }}
+        run: |
+          test -s "${{ steps.release_info.outputs.changelog_path }}"
+
+      - name: "Create release"
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (inputs.release_target == 'release' || inputs.release_target == 'all')) }}
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || steps.release_info.outputs.release_tag }}
+          target_commitish: pipe
+          name: WizeStream ${{ steps.release_info.outputs.version_name }}
+          body_path: ${{ steps.release_info.outputs.changelog_path }}
+          files: |
+            ${{ steps.release_info.outputs.apk_path }}
+            ${{ steps.x86_release_info.outputs.apk_path }}
+          fail_on_unmatched_files: true
+          prerelease: ${{ github.ref_type == 'branch' }}
+          make_latest: ${{ github.ref_type == 'tag' }}

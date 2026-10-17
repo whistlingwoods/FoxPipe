@@ -1,10 +1,16 @@
 package org.schabi.newpipe.player.playback;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.os.Build;
 import android.view.SurfaceHolder;
 
-import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.video.PlaceholderSurface;
+import androidx.media3.common.C;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.Size;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.Renderer;
+import androidx.media3.exoplayer.video.PlaceholderSurface;
 
 /**
  * Prevent error message: 'Unrecoverable player error occurred'
@@ -27,6 +33,7 @@ public final class SurfaceHolderCallback implements SurfaceHolder.Callback {
     private final Context context;
     private final Player player;
     private PlaceholderSurface placeholderSurface;
+    private boolean released;
 
     public SurfaceHolderCallback(final Context context, final Player player) {
         this.context = context;
@@ -35,7 +42,7 @@ public final class SurfaceHolderCallback implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(final SurfaceHolder holder) {
-        player.setVideoSurface(holder.getSurface());
+        bindVideoSurface(holder);
     }
 
     @Override
@@ -43,20 +50,88 @@ public final class SurfaceHolderCallback implements SurfaceHolder.Callback {
                                final int format,
                                final int width,
                                final int height) {
+        // Android 13 and newer can synchronously time out while Media3 detaches the
+        // current output for a redundant size-only callback. surfaceCreated owns the live
+        // output on those versions. Keep the legacy fullscreen/orientation rebind workaround
+        // on Android 12 and older.
+        if (shouldRebindOnSurfaceChanged(Build.VERSION.SDK_INT)) {
+            bindVideoSurface(holder);
+        }
+        updateOutputResolution(width, height);
+    }
+
+    static boolean shouldRebindOnSurfaceChanged(final int sdkInt) {
+        return sdkInt < Build.VERSION_CODES.TIRAMISU;
+    }
+
+    private void bindVideoSurface(final SurfaceHolder holder) {
+        if (!released) {
+            player.setVideoSurface(holder.getSurface());
+            final Rect frame = holder.getSurfaceFrame();
+            if (frame != null) {
+                updateOutputResolution(frame.width(), frame.height());
+            }
+        }
+    }
+
+    private void updateOutputResolution(final int width, final int height) {
+        if (released || !(player instanceof ExoPlayer)) {
+            return;
+        }
+        // A raw Surface does not tell Media3 its dimensions. The effects pipeline needs an
+        // explicit output size, including size-only callbacks on Android 13 and newer.
+        final ExoPlayer exoPlayer = (ExoPlayer) player;
+        final Size size = new Size(Math.max(0, width), Math.max(0, height));
+        for (int index = 0; index < exoPlayer.getRendererCount(); index++) {
+            if (exoPlayer.getRendererType(index) == C.TRACK_TYPE_VIDEO) {
+                exoPlayer.createMessage(exoPlayer.getRenderer(index))
+                        .setType(Renderer.MSG_SET_VIDEO_OUTPUT_RESOLUTION)
+                        .setPayload(size)
+                        .send();
+            }
+        }
+    }
+
+    /**
+     * Rebinds the current surface after the display wakes if Android retained the view without
+     * dispatching a fresh surface callback.
+     *
+     * @param holder holder belonging to the visible player surface
+     * @return whether a valid surface was rebound
+     */
+    public boolean rebindVideoSurfaceIfValid(final SurfaceHolder holder) {
+        if (released || !holder.getSurface().isValid()) {
+            return false;
+        }
+        bindVideoSurface(holder);
+        return true;
     }
 
     @Override
     public void surfaceDestroyed(final SurfaceHolder holder) {
+        if (released) {
+            return;
+        }
         if (placeholderSurface == null) {
             placeholderSurface = PlaceholderSurface.newInstanceV17(context, false);
         }
         player.setVideoSurface(placeholderSurface);
+        updateOutputResolution(0, 0);
     }
 
     public void release() {
-        if (placeholderSurface != null) {
-            placeholderSurface.release();
-            placeholderSurface = null;
+        if (released) {
+            return;
+        }
+        released = true;
+        // Disconnect decoder output before releasing the surface it may still be using.
+        try {
+            player.clearVideoSurface();
+        } finally {
+            if (placeholderSurface != null) {
+                placeholderSurface.release();
+                placeholderSurface = null;
+            }
         }
     }
 }

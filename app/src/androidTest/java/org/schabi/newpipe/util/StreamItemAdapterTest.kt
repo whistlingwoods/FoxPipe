@@ -12,15 +12,21 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import androidx.test.internal.runner.junit4.statement.UiThreadStatement
 import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.schabi.newpipe.R
 import org.schabi.newpipe.extractor.MediaFormat
+import org.schabi.newpipe.extractor.downloader.Response
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.Stream
 import org.schabi.newpipe.extractor.stream.SubtitlesStream
 import org.schabi.newpipe.extractor.stream.VideoStream
+import org.schabi.newpipe.util.StreamItemAdapter.StreamInfoWrapper
 
 @MediumTest
 @RunWith(AndroidJUnit4::class)
@@ -84,7 +90,7 @@ class StreamItemAdapterTest {
     @Test
     fun subtitleStreams_noIcon() {
         val adapter = StreamItemAdapter<SubtitlesStream, Stream>(
-            StreamItemAdapter.StreamSizeWrapper(
+            StreamItemAdapter.StreamInfoWrapper(
                 (0 until 5).map {
                     SubtitlesStream.Builder()
                         .setContent("https://example.com", true)
@@ -105,7 +111,7 @@ class StreamItemAdapterTest {
     @Test
     fun audioStreams_noIcon() {
         val adapter = StreamItemAdapter<AudioStream, Stream>(
-            StreamItemAdapter.StreamSizeWrapper(
+            StreamItemAdapter.StreamInfoWrapper(
                 (0 until 5).map {
                     AudioStream.Builder()
                         .setId(Stream.ID_UNKNOWN)
@@ -123,43 +129,169 @@ class StreamItemAdapterTest {
         }
     }
 
+    @Test
+    fun retrieveMediaFormatFromFileTypeHeaders() {
+        val streams = getIncompleteAudioStreams(5)
+        val wrapper = StreamInfoWrapper(streams, context)
+        val retrieveMediaFormat = { stream: AudioStream, response: Response ->
+            StreamInfoWrapper.retrieveMediaFormatFromFileTypeHeaders(stream, wrapper, response)
+        }
+        val helper = AssertionHelper(streams, wrapper, retrieveMediaFormat)
+
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("content-length", "mp3"))), 0)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("file-type", "mp0"))), 1)
+
+        helper.assertValidResponse(getResponse(mapOf(Pair("x-amz-meta-file-type", "m4a"))), 2, MediaFormat.M4A)
+        helper.assertValidResponse(getResponse(mapOf(Pair("file-type", "mp3"))), 3, MediaFormat.MP3)
+    }
+
+    @Test
+    fun retrieveMediaFormatFromContentDispositionHeader() {
+        val streams = getIncompleteAudioStreams(11)
+        val wrapper = StreamInfoWrapper(streams, context)
+        val retrieveMediaFormat = { stream: AudioStream, response: Response ->
+            StreamInfoWrapper.retrieveMediaFormatFromContentDispositionHeader(stream, wrapper, response)
+        }
+        val helper = AssertionHelper(streams, wrapper, retrieveMediaFormat)
+
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("content-length", "mp3"))), 0)
+        helper.assertInvalidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "filename=\"train.png\""))),
+            1
+        )
+        helper.assertInvalidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"data.csv\""))),
+            2
+        )
+        helper.assertInvalidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; filename=\"data.csv\""))),
+            3
+        )
+        helper.assertInvalidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"fieldName\"; filename*=\"filename.jpg\""))),
+            4
+        )
+
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "filename=\"train.ogg\""))),
+            5,
+            MediaFormat.OGG
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "some-form-data; filename=\"audio.mp3\""))),
+            6,
+            MediaFormat.MP3
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"audio.m4a\"; filename=\"audio.m4a\""))),
+            7,
+            MediaFormat.M4A
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"alien?\"; filename*=UTF-8''%CE%B1%CE%BB%CE%B9%CF%B5%CE%BD.m4a"))),
+            8,
+            MediaFormat.M4A
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"audio.mp3\"; filename=\"audio.opus\"; filename*=UTF-8''alien.opus"))),
+            9,
+            MediaFormat.OPUS
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Disposition", "form-data; name=\"audio.mp3\"; filename=\"audio.opus\"; filename*=\"UTF-8''alien.opus\""))),
+            10,
+            MediaFormat.OPUS
+        )
+    }
+
+    @Test
+    fun retrieveMediaFormatFromContentTypeHeader() {
+        val streams = getIncompleteAudioStreams(12)
+        val wrapper = StreamInfoWrapper(streams, context)
+        val retrieveMediaFormat = { stream: AudioStream, response: Response ->
+            StreamInfoWrapper.retrieveMediaFormatFromContentTypeHeader(stream, wrapper, response)
+        }
+        val helper = AssertionHelper(streams, wrapper, retrieveMediaFormat)
+
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("content-length", "984501"))), 0)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("Content-Type", "audio/xyz"))), 1)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("Content-Type", "mp3"))), 2)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("Content-Type", "mp3"))), 3)
+        helper.assertValidResponse(getResponse(mapOf(Pair("Content-Type", "audio/mpeg"))), 4, MediaFormat.MP3)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("Content-Type", "audio/aif"))), 5)
+        helper.assertInvalidResponse(getResponse(mapOf(Pair("Content-Type", "whatever"))), 6)
+        helper.assertInvalidResponse(getResponse(mapOf()), 7)
+
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Type", "audio/mp4"))),
+            8,
+            MediaFormat.M4A
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Type", "audio/ogg"))),
+            9,
+            MediaFormat.OGG
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Type", "audio/opus"))),
+            10,
+            MediaFormat.OPUS
+        )
+        helper.assertValidResponse(
+            getResponse(mapOf(Pair("Content-Type", "audio/webm"))),
+            11,
+            MediaFormat.WEBMA
+        )
+    }
+
     /**
      * @return a list of video streams, in which their video only property mirrors the provided
      * [videoOnly] vararg.
      */
-    private fun getVideoStreams(vararg videoOnly: Boolean) =
-        StreamItemAdapter.StreamSizeWrapper(
-            videoOnly.map {
-                VideoStream.Builder()
-                    .setId(Stream.ID_UNKNOWN)
-                    .setContent("https://example.com", true)
-                    .setMediaFormat(MediaFormat.MPEG_4)
-                    .setResolution("720p")
-                    .setIsVideoOnly(it)
-                    .build()
-            },
-            context
-        )
+    private fun getVideoStreams(vararg videoOnly: Boolean) = StreamInfoWrapper(
+        videoOnly.map {
+            VideoStream.Builder()
+                .setId(Stream.ID_UNKNOWN)
+                .setContent("https://example.com", true)
+                .setMediaFormat(MediaFormat.MPEG_4)
+                .setResolution("720p")
+                .setIsVideoOnly(it)
+                .build()
+        },
+        context
+    )
 
     /**
      * @return a list of audio streams, containing valid and null elements mirroring the provided
      * [shouldBeValid] vararg.
      */
-    private fun getAudioStreams(vararg shouldBeValid: Boolean) =
-        getSecondaryStreamsFromList(
-            shouldBeValid.map {
-                if (it) {
-                    AudioStream.Builder()
-                        .setId(Stream.ID_UNKNOWN)
-                        .setContent("https://example.com", true)
-                        .setMediaFormat(MediaFormat.OPUS)
-                        .setAverageBitrate(192)
-                        .build()
-                } else {
-                    null
-                }
+    private fun getAudioStreams(vararg shouldBeValid: Boolean) = getSecondaryStreamsFromList(
+        shouldBeValid.map {
+            if (it) {
+                AudioStream.Builder()
+                    .setId(Stream.ID_UNKNOWN)
+                    .setContent("https://example.com", true)
+                    .setMediaFormat(MediaFormat.OPUS)
+                    .setAverageBitrate(192)
+                    .build()
+            } else {
+                null
             }
-        )
+        }
+    )
+
+    private fun getIncompleteAudioStreams(size: Int): List<AudioStream> {
+        val list = ArrayList<AudioStream>(size)
+        for (i in 1..size) {
+            list.add(
+                AudioStream.Builder()
+                    .setId(Stream.ID_UNKNOWN)
+                    .setContent("https://example.com/$i", true)
+                    .build()
+            )
+        }
+        return list
+    }
 
     /**
      * Checks whether the item at [position] in the [spinner] has the correct icon visibility when
@@ -176,7 +308,7 @@ class StreamItemAdapterTest {
             Assert.assertEquals(
                 "normal visibility (pos=[$position]) is not correct",
                 findViewById<View>(R.id.wo_sound_icon).visibility,
-                normalVisibility,
+                normalVisibility
             )
         }
         spinner.adapter.getDropDownView(position, null, spinner).run {
@@ -191,16 +323,69 @@ class StreamItemAdapterTest {
     /**
      * Helper function that builds a secondary stream list.
      */
-    private fun <T : Stream> getSecondaryStreamsFromList(streams: List<T?>) =
-        SparseArrayCompat<SecondaryStreamHelper<T>?>(streams.size).apply {
-            streams.forEachIndexed { index, stream ->
-                val secondaryStreamHelper: SecondaryStreamHelper<T>? = stream?.let {
-                    SecondaryStreamHelper(
-                        StreamItemAdapter.StreamSizeWrapper(streams, context),
-                        it
-                    )
-                }
-                put(index, secondaryStreamHelper)
+    private fun <T : Stream> getSecondaryStreamsFromList(streams: List<T?>) = SparseArrayCompat<SecondaryStreamHelper<T>?>(streams.size).apply {
+        streams.forEachIndexed { index, stream ->
+            val secondaryStreamHelper: SecondaryStreamHelper<T>? = stream?.let {
+                SecondaryStreamHelper(
+                    StreamItemAdapter.StreamInfoWrapper(streams, context),
+                    it
+                )
             }
+            put(index, secondaryStreamHelper)
         }
+    }
+
+    private fun getResponse(headers: Map<String, String>): Response {
+        val listHeaders = HashMap<String, List<String>>()
+        headers.forEach { entry ->
+            listHeaders[entry.key] = listOf(entry.value)
+        }
+        val responseConstructor = Response::class.java.constructors
+            .first { it.parameterTypes.size == 6 || it.parameterTypes.size == 5 }
+        val constructorArguments: Array<Any?> = if (responseConstructor.parameterTypes.size == 6) {
+            arrayOf(200, null, listHeaders, "", ByteArray(0), "")
+        } else {
+            arrayOf(200, null, listHeaders, "", "")
+        }
+        return responseConstructor.newInstance(*constructorArguments) as Response
+    }
+
+    /**
+     * Helper class for assertion related to extractions of [MediaFormat]s.
+     */
+    class AssertionHelper<T : Stream>(
+        private val streams: List<T>,
+        private val wrapper: StreamInfoWrapper<T>,
+        private val retrieveMediaFormat: (stream: T, response: Response) -> Boolean
+    ) {
+
+        /**
+         * Assert that an invalid response does not result in wrongly extracted [MediaFormat].
+         */
+        fun assertInvalidResponse(
+            response: Response,
+            index: Int
+        ) {
+            assertFalse(
+                "invalid header returns valid value",
+                retrieveMediaFormat(streams[index], response)
+            )
+            assertNull("Media format extracted although stated otherwise", wrapper.getFormat(index))
+        }
+
+        /**
+         * Assert that a valid response results in correctly extracted and handled [MediaFormat].
+         */
+        fun assertValidResponse(
+            response: Response,
+            index: Int,
+            format: MediaFormat
+        ) {
+            assertTrue(
+                "header was not recognized",
+                retrieveMediaFormat(streams[index], response)
+            )
+            assertEquals("Wrong media format extracted", format, wrapper.getFormat(index))
+        }
+    }
 }

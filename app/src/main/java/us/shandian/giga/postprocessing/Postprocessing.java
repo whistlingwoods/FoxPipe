@@ -4,10 +4,12 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.streams.io.SharpStream;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.Serializable;
 
 import us.shandian.giga.get.DownloadMission;
@@ -28,12 +30,19 @@ public abstract class Postprocessing implements Serializable {
     public transient static final String ALGORITHM_WEBM_MUXER = "webm";
     public transient static final String ALGORITHM_MP4_FROM_DASH_MUXER = "mp4D-mp4";
     public transient static final String ALGORITHM_M4A_NO_DASH = "mp4D-m4a";
+    public transient static final String ALGORITHM_M4A_FROM_MP4_DEMUXER = "mp4-m4a-d";
     public transient static final String ALGORITHM_OGG_FROM_WEBM_DEMUXER = "webm-ogg-d";
+    public transient static final String ALGORITHM_MP3_FROM_AUDIO = "audio-mp3";
+    public transient static final String ALGORITHM_SEGMENTS = "selected-segments";
 
-    public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args) {
+    public static Postprocessing getAlgorithm(@NonNull String algorithmName, String[] args,
+                                              StreamInfo streamInfo) {
         Postprocessing instance;
 
         switch (algorithmName) {
+            case ALGORITHM_SEGMENTS:
+                instance = new SegmentPostprocessing();
+                break;
             case ALGORITHM_TTML_CONVERTER:
                 instance = new TtmlConverter();
                 break;
@@ -46,8 +55,14 @@ public abstract class Postprocessing implements Serializable {
             case ALGORITHM_M4A_NO_DASH:
                 instance = new M4aNoDash();
                 break;
+            case ALGORITHM_M4A_FROM_MP4_DEMUXER:
+                instance = new M4aFromMp4Demuxer();
+                break;
             case ALGORITHM_OGG_FROM_WEBM_DEMUXER:
                 instance = new OggFromWebmDemuxer();
+                break;
+            case ALGORITHM_MP3_FROM_AUDIO:
+                instance = new Mp3FromAudio();
                 break;
             /*case "example-algorithm":
                 instance = new ExampleAlgorithm();*/
@@ -56,6 +71,7 @@ public abstract class Postprocessing implements Serializable {
         }
 
         instance.args = args;
+        instance.streamInfo = streamInfo;
         return instance;
     }
 
@@ -75,12 +91,34 @@ public abstract class Postprocessing implements Serializable {
      */
     private final String name;
 
-
     private String[] args;
+    protected StreamInfo streamInfo;
 
     private transient DownloadMission mission;
 
     private transient File tempFile;
+
+    protected final DownloadMission getMission() {
+        return mission;
+    }
+
+    protected final File getTemporalFile() {
+        return tempFile;
+    }
+
+    protected final boolean isCancellationRequested() {
+        return mission == null || mission.isCancellationRequested();
+    }
+
+    protected final void throwIfCancellationRequested() throws InterruptedIOException {
+        if (isCancellationRequested()) {
+            throw new InterruptedIOException("Post-processing was cancelled");
+        }
+    }
+
+    public final boolean isMp3Conversion() {
+        return ALGORITHM_MP3_FROM_AUDIO.equals(name);
+    }
 
     Postprocessing(boolean reserveSpace, boolean worksOnSameFile, String algorithmName) {
         this.reserveSpace = reserveSpace;
@@ -107,6 +145,7 @@ public abstract class Postprocessing implements Serializable {
 
     public void run(DownloadMission target) throws IOException {
         this.mission = target;
+        throwIfCancellationRequested();
 
         int result;
         long finalLength = -1;
@@ -128,9 +167,11 @@ public abstract class Postprocessing implements Serializable {
                     SharpStream source = mission.storage.getStream();
                     long end = j < sources.length ? mission.offsets[j] : source.length();
 
-                    sources[i] = new ChunkFileInputStream(source, mission.offsets[i], end, readProgress);
+                    sources[i] = new ChunkFileInputStream(source, mission.offsets[i], end,
+                            readProgress, this::isCancellationRequested);
                 }
 
+                throwIfCancellationRequested();
                 if (test(sources)) {
                     for (SharpStream source : sources) source.rewind();
 
@@ -151,7 +192,8 @@ public abstract class Postprocessing implements Serializable {
                     };
 
                     try (CircularFileWriter out = new CircularFileWriter(
-                            mission.storage.getStream(), tempFile, checker)) {
+                            mission.storage.getStream(), tempFile, checker,
+                            this::isCancellationRequested)) {
                         out.onProgress = (long position) -> mission.done = position;
 
                         out.onWriteError = err -> {
@@ -172,6 +214,7 @@ public abstract class Postprocessing implements Serializable {
                         };
 
                         result = process(out, sources);
+                        throwIfCancellationRequested();
 
                         if (result == OK_RESULT)
                             finalLength = out.finalizeFile();
@@ -193,8 +236,10 @@ public abstract class Postprocessing implements Serializable {
             }
         } else {
             result = test() ? process(null) : OK_RESULT;
+            throwIfCancellationRequested();
         }
 
+        throwIfCancellationRequested();
         if (result == OK_RESULT) {
             if (finalLength != -1) {
                 mission.length = finalLength;

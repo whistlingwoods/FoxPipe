@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <item
         android:id="@+id/menu_item_share_playlist"
@@ -9,11 +10,66 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_item_search_content"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
+        android:id="@+id/menu_item_download_playlist"
+        android:icon="@drawable/ic_file_download"
+        android:title="@string/download_playlist"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_shuffle_playlist"
+        android:icon="@drawable/ic_shuffle"
+        android:title="@string/shuffle_playlist"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_delete_playlist"
+        android:title="@string/delete_playlist"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_item_rename_playlist"
         android:title="@string/rename_playlist"
         app:showAsAction="never" />
+
     <item
         android:id="@+id/menu_item_remove_watched"
         android:title="@string/remove_watched"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_remove_duplicates"
+        android:title="@string/remove_duplicates"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_learning_content"
+        android:title="@string/learning_mark_content"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_mark_all_watched"
+        android:title="@string/learning_mark_all_watched"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_reset_learning_progress"
+        android:title="@string/learning_reset_progress"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_item_learning_review"
+        android:title="@string/learning_review_title" android:visible="false"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_item_learning_notes"
+        android:title="@string/learning_playlist_notes"
+        android:visible="false" app:showAsAction="never" />
 </menu>

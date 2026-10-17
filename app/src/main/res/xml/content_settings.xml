@@ -13,6 +13,13 @@
         app:iconSpaceReserved="false"
         app:useSimpleSummaryProvider="true" />
 
+    <Preference
+        android:key="@string/app_language_android_13_and_up_key"
+        android:title="@string/app_language_title"
+        app:isPreferenceVisible="false"
+        app:singleLineTitle="false"
+        app:iconSpaceReserved="false" />
+
     <ListPreference
         android:defaultValue="@string/default_localization_key"
         android:entries="@array/language_names"
@@ -41,6 +48,24 @@
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
 
+    <MultiSelectListPreference
+        android:key="@string/show_channel_tabs_key"
+        android:summary="@string/show_channel_tabs_summary"
+        android:title="@string/show_channel_tabs"
+        android:entries="@array/show_channel_tabs_description_list"
+        android:entryValues="@array/show_channel_tabs_value_list"
+        android:defaultValue="@array/show_channel_tabs_value_list"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/swipe_main_tabs_on_pinned_channels_key"
+        android:summary="@string/swipe_main_tabs_on_pinned_channels_summary"
+        android:title="@string/swipe_main_tabs_on_pinned_channels_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.PeertubeInstanceListFragment"
         android:key="@string/peertube_instance_setup_key"
@@ -57,6 +82,38 @@
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
 
+    <EditTextPreference
+        android:key="@string/invidious_instance_key"
+        android:title="@string/invidious_instance_title"
+        android:summary="@string/invidious_instance_summary"
+        android:defaultValue=""
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <EditTextPreference
+        android:key="@string/invidious_instances_key"
+        android:title="@string/invidious_instances_title"
+        android:summary="@string/invidious_instances_summary"
+        android:defaultValue=""
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <ListPreference
+        android:key="@string/invidious_switch_instance_key"
+        android:title="@string/invidious_switch_instance_title"
+        android:summary="@string/invidious_switch_instance_summary"
+        android:persistent="false"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/invidious_enabled_key"
+        android:title="@string/invidious_enabled_title"
+        android:summary="@string/invidious_enabled_summary"
+        android:defaultValue="false"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
     <SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="@string/youtube_restricted_mode_enabled"
@@ -64,6 +121,14 @@
         android:title="@string/youtube_restricted_mode_enabled_title"
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.ContentBlockingSettingsFragment"
+        android:key="@string/content_blocking_settings_key"
+        android:summary="@string/content_blocking_summary"
+        android:title="@string/content_blocking_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
 
     <MultiSelectListPreference
         android:key="@string/show_search_suggestions_key"
@@ -75,11 +140,24 @@
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
 
-    <SwitchPreferenceCompat
-        android:defaultValue="true"
-        android:key="@string/download_thumbnail_key"
-        android:summary="@string/download_thumbnail_summary"
-        android:title="@string/download_thumbnail_title"
+    <ListPreference
+        android:defaultValue="@string/search_button_behavior_current_tab_value"
+        android:entries="@array/search_button_behavior_entries"
+        android:entryValues="@array/search_button_behavior_values"
+        android:key="@string/search_button_behavior_key"
+        android:summary="@string/search_button_behavior_summary"
+        android:title="@string/search_button_behavior_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false"
+        app:useSimpleSummaryProvider="true" />
+
+    <ListPreference
+        android:defaultValue="@string/image_quality_default"
+        android:entries="@array/image_quality_description"
+        android:entryValues="@array/image_quality_values"
+        android:key="@string/image_quality_key"
+        android:summary="@string/image_quality_summary"
+        android:title="@string/image_quality_title"
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
 
@@ -114,25 +192,27 @@
         app:singleLineTitle="false"
         app:iconSpaceReserved="false" />
 
-    <Preference
-        android:key="@string/import_data"
-        android:summary="@string/import_data_summary"
-        android:title="@string/import_data_title"
-        app:singleLineTitle="false"
-        app:iconSpaceReserved="false" />
-
-    <Preference
-        android:key="@string/export_data"
-        android:summary="@string/export_data_summary"
-        android:title="@string/export_data_title"
-        app:singleLineTitle="false"
-        app:iconSpaceReserved="false" />
-
     <PreferenceCategory
         android:layout="@layout/settings_category_header_layout"
         android:title="@string/settings_category_feed_title"
         app:singleLineTitle="false"
         app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="@string/feed_floating_refresh_key"
+            android:title="@string/feed_floating_refresh_title"
+            android:summary="@string/feed_floating_refresh_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="feed_all_platforms"
+            android:title="@string/feed_all_platforms_title"
+            android:summary="@string/feed_all_platforms_summary"
+            app:singleLineTitle="false"
+            app:iconSpaceReserved="false" />
 
         <org.schabi.newpipe.settings.custom.DurationListPreference
             android:defaultValue="@string/feed_update_threshold_default_value"
@@ -152,5 +232,22 @@
             app:singleLineTitle="false"
             app:iconSpaceReserved="false" />
 
+        <MultiSelectListPreference
+            android:key="@string/feed_fetch_channel_tabs_key"
+            android:summary="@string/feed_fetch_channel_tabs_summary"
+            android:title="@string/feed_fetch_channel_tabs"
+            android:entries="@array/feed_fetch_channel_tabs_description_list"
+            android:entryValues="@array/feed_fetch_channel_tabs_value_list"
+            android:defaultValue="@array/feed_fetch_channel_tabs_value_list"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
     </PreferenceCategory>
+    <SwitchPreferenceCompat
+        android:key="@string/playlist_swipe_remove_key"
+        android:defaultValue="false"
+        android:title="@string/playlist_swipe_remove_title"
+        android:summary="@string/playlist_swipe_remove_summary"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
 </PreferenceScreen>

@@ -25,6 +25,7 @@ import org.schabi.newpipe.MainActivity;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.ActivityRecaptchaBinding;
 import org.schabi.newpipe.extractor.utils.Utils;
+import org.schabi.newpipe.util.EdgeToEdgeHelper;
 import org.schabi.newpipe.util.ThemeHelper;
 
 import java.io.UnsupportedEncodingException;
@@ -72,9 +73,11 @@ public class ReCaptchaActivity extends AppCompatActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         ThemeHelper.setTheme(this);
         super.onCreate(savedInstanceState);
+        EdgeToEdgeHelper.enable(this);
 
         recaptchaBinding = ActivityRecaptchaBinding.inflate(getLayoutInflater());
         setContentView(recaptchaBinding.getRoot());
+        EdgeToEdgeHelper.applySystemBarPadding(recaptchaBinding.getRoot());
         setSupportActionBar(recaptchaBinding.toolbar);
 
         final String url = sanitizeRecaptchaUrl(getIntent().getStringExtra(RECAPTCHA_URL_EXTRA));
@@ -128,6 +131,7 @@ public class ReCaptchaActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressLint("MissingSuperCall") // saveCookiesAndFinish method handles back navigation
     public void onBackPressed() {
         saveCookiesAndFinish();
     }
@@ -187,14 +191,12 @@ public class ReCaptchaActivity extends AppCompatActivity {
             final int abuseEnd = url.indexOf("+path");
 
             try {
-                String abuseCookie = url.substring(abuseStart + 13, abuseEnd);
-                abuseCookie = Utils.decodeUrlUtf8(abuseCookie);
-                handleCookies(abuseCookie);
-            } catch (UnsupportedEncodingException | StringIndexOutOfBoundsException e) {
+                handleCookies(Utils.decodeUrlUtf8(url.substring(abuseStart + 13, abuseEnd)));
+            } catch (final StringIndexOutOfBoundsException
+                    | UnsupportedEncodingException e) {
                 if (MainActivity.DEBUG) {
-                    e.printStackTrace();
-                    Log.d(TAG, "handleCookiesFromUrl: invalid google abuse starting at "
-                            + abuseStart + " and ending at " + abuseEnd + " for url " + url);
+                    Log.e(TAG, "handleCookiesFromUrl: invalid google abuse starting at "
+                            + abuseStart + " and ending at " + abuseEnd + " for url " + url, e);
                 }
             }
         }

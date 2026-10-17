@@ -5,7 +5,9 @@ import static org.schabi.newpipe.util.SparseItemUtil.fetchItemInfoIfSparse;
 import static org.schabi.newpipe.util.SparseItemUtil.fetchStreamInfoAndSaveToDatabase;
 import static org.schabi.newpipe.util.SparseItemUtil.fetchUploaderUrlIfSparse;
 
+import android.content.Context;
 import android.net.Uri;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.StringRes;
@@ -13,12 +15,19 @@ import androidx.annotation.StringRes;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamEntity;
 import org.schabi.newpipe.download.DownloadDialog;
+import org.schabi.newpipe.error.ErrorInfo;
+import org.schabi.newpipe.error.ErrorUtil;
+import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.local.dialog.PlaylistAppendDialog;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
+import org.schabi.newpipe.local.subscription.StreamSubscriptionActions;
+import org.schabi.newpipe.learning.LearningContentManager;
+import org.schabi.newpipe.util.ContentBlockingHelper;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
+import org.schabi.newpipe.util.image.ExtractorImageCompat;
 
 import java.util.List;
 
@@ -46,31 +55,48 @@ public enum StreamDialogDefaultEntry {
                     item.getUploaderUrl(), url -> openChannelFragment(fragment, item, url))
     ),
 
+    SUBSCRIBE_CHANNEL(R.string.subscribe_button_title, (fragment, item) ->
+            fetchUploaderUrlIfSparse(fragment.requireContext(), item.getServiceId(), item.getUrl(),
+                    item.getUploaderUrl(), url -> StreamSubscriptionActions.show(
+                            fragment, item.getServiceId(), url, false))
+    ),
+
+    CHANNEL_GROUPS(R.string.feed_groups_header_title, (fragment, item) ->
+            fetchUploaderUrlIfSparse(fragment.requireContext(), item.getServiceId(), item.getUrl(),
+                    item.getUploaderUrl(), url -> StreamSubscriptionActions.show(
+                            fragment, item.getServiceId(), url, true))
+    ),
+
     /**
      * Enqueues the stream automatically to the current PlayerType.
      */
-    ENQUEUE(R.string.enqueue_stream, (fragment, item) ->
-            fetchItemInfoIfSparse(fragment.requireContext(), item, singlePlayQueue ->
-                NavigationHelper.enqueueOnPlayer(fragment.getContext(), singlePlayQueue))
-    ),
+    ENQUEUE(R.string.enqueue_stream, (fragment, item) -> {
+            final Context ctx = fragment.requireContext().getApplicationContext();
+            fetchItemInfoIfSparse(ctx, item, singlePlayQueue ->
+                NavigationHelper.enqueueOnPlayer(ctx, singlePlayQueue));
+    }),
 
     /**
      * Enqueues the stream automatically to the current PlayerType
      * after the currently playing stream.
      */
-    ENQUEUE_NEXT(R.string.enqueue_next_stream, (fragment, item) ->
-            fetchItemInfoIfSparse(fragment.requireContext(), item, singlePlayQueue ->
-                NavigationHelper.enqueueNextOnPlayer(fragment.getContext(), singlePlayQueue))
-    ),
+    ENQUEUE_NEXT(R.string.enqueue_next_stream, (fragment, item) -> {
+            final Context ctx = fragment.requireContext().getApplicationContext();
+            fetchItemInfoIfSparse(ctx, item, singlePlayQueue ->
+                NavigationHelper.enqueueNextOnPlayer(ctx, singlePlayQueue));
+    }),
 
-    START_HERE_ON_BACKGROUND(R.string.start_here_on_background, (fragment, item) ->
-            fetchItemInfoIfSparse(fragment.requireContext(), item, singlePlayQueue ->
-                NavigationHelper.playOnBackgroundPlayer(
-                        fragment.getContext(), singlePlayQueue, true))),
+    START_HERE_ON_BACKGROUND(R.string.start_here_on_background, (fragment, item) -> {
+            final Context ctx = fragment.requireContext().getApplicationContext();
+            fetchItemInfoIfSparse(ctx, item, singlePlayQueue ->
+                NavigationHelper.playOnBackgroundPlayer(ctx, singlePlayQueue, true));
+    }),
 
-    START_HERE_ON_POPUP(R.string.start_here_on_popup, (fragment, item) ->
-            fetchItemInfoIfSparse(fragment.requireContext(), item, singlePlayQueue ->
-                NavigationHelper.playOnPopupPlayer(fragment.getContext(), singlePlayQueue, true))),
+    START_HERE_ON_POPUP(R.string.start_here_on_popup, (fragment, item) -> {
+            final Context ctx = fragment.requireContext().getApplicationContext();
+            fetchItemInfoIfSparse(ctx, item, singlePlayQueue ->
+                NavigationHelper.playOnPopupPlayer(ctx, singlePlayQueue, true));
+    }),
 
     SET_AS_PLAYLIST_THUMBNAIL(R.string.set_as_playlist_thumbnail, (fragment, item) -> {
         throw new UnsupportedOperationException("This needs to be implemented manually "
@@ -99,18 +125,15 @@ public enum StreamDialogDefaultEntry {
         )
     ),
 
-    PLAY_WITH_KODI(R.string.play_with_kodi_title, (fragment, item) -> {
-        final Uri videoUrl = Uri.parse(item.getUrl());
-        try {
-            NavigationHelper.playWithKore(fragment.requireContext(), videoUrl);
-        } catch (final Exception e) {
-            KoreUtils.showInstallKoreDialog(fragment.requireActivity());
-        }
-    }),
+    PLAY_WITH_KODI(R.string.play_with_kodi_title, (fragment, item) ->
+            KoreUtils.playWithKore(fragment.requireContext(), Uri.parse(item.getUrl()))),
+
+    COPY_TITLE(R.string.copy_video_title, (fragment, item) ->
+            ShareUtils.copyToClipboard(fragment.requireContext(), item.getName())),
 
     SHARE(R.string.share, (fragment, item) ->
             ShareUtils.shareText(fragment.requireContext(), item.getName(), item.getUrl(),
-                    item.getThumbnailUrl())),
+                    ExtractorImageCompat.thumbnailImages(item))),
 
     /**
      * Opens a {@link DownloadDialog} after fetching some stream info.
@@ -119,7 +142,10 @@ public enum StreamDialogDefaultEntry {
     DOWNLOAD(R.string.download, (fragment, item) ->
             fetchStreamInfoAndSaveToDatabase(fragment.requireContext(), item.getServiceId(),
                     item.getUrl(), info -> {
-                        if (fragment.getContext() != null) {
+                        // Ensure the fragment is attached and its state hasn't been saved to avoid
+                        // showing dialog during lifecycle changes or when the activity is paused,
+                        // e.g. by selecting the download option and opening a different fragment.
+                        if (fragment.isAdded() && !fragment.isStateSaved()) {
                             final DownloadDialog downloadDialog =
                                     new DownloadDialog(fragment.requireContext(), info);
                             downloadDialog.show(fragment.getChildFragmentManager(),
@@ -128,13 +154,85 @@ public enum StreamDialogDefaultEntry {
                     })
     ),
 
+    DOWNLOAD_EXTERNALLY(R.string.download_externally, (fragment, item) ->
+            org.schabi.newpipe.download.ExternalDownloader.open(
+                    fragment.requireContext(), item.getUrl())
+    ),
+
+    BLOCK_VIDEO(R.string.block_video, (fragment, item) -> {
+        ContentBlockingHelper.blockVideo(fragment.requireContext(), item);
+        Toast.makeText(fragment.requireContext(), R.string.video_blocked,
+                Toast.LENGTH_SHORT).show();
+    }),
+
+    BLOCK_CHANNEL(R.string.block_channel, (fragment, item) ->
+            fetchUploaderUrlIfSparse(fragment.requireContext(), item.getServiceId(), item.getUrl(),
+                    item.getUploaderUrl(), url -> {
+                        ContentBlockingHelper.blockChannel(fragment.requireContext(), url,
+                                item.getUploaderName());
+                        Toast.makeText(fragment.requireContext(), R.string.channel_blocked,
+                                Toast.LENGTH_SHORT).show();
+                    })),
+
     OPEN_IN_BROWSER(R.string.open_in_browser, (fragment, item) ->
             ShareUtils.openUrlInBrowser(fragment.requireContext(), item.getUrl())),
+
+    MARK_AS_LEARNING(R.string.learning_mark_content, (fragment, item) ->
+        LearningContentManager.getInstance(fragment.requireContext())
+                .setStreamMarked(new StreamEntity(item), true)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> Toast.makeText(fragment.requireContext(),
+                                R.string.learning_content_added, Toast.LENGTH_SHORT).show(),
+                        error -> Toast.makeText(fragment.requireContext(),
+                                R.string.learning_content_update_error,
+                                Toast.LENGTH_SHORT).show()
+                )
+    ),
+
+    REMOVE_FROM_LEARNING(R.string.learning_remove_content, (fragment, item) ->
+        LearningContentManager.getInstance(fragment.requireContext())
+                .setStreamMarked(new StreamEntity(item), false)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        () -> Toast.makeText(fragment.requireContext(),
+                                R.string.learning_content_removed, Toast.LENGTH_SHORT).show(),
+                        error -> Toast.makeText(fragment.requireContext(),
+                                R.string.learning_content_update_error,
+                                Toast.LENGTH_SHORT).show()
+                )
+    ),
 
 
     MARK_AS_WATCHED(R.string.mark_as_watched, (fragment, item) ->
         new HistoryRecordManager(fragment.getContext())
                 .markAsWatched(item)
+                .doOnError(error -> {
+                    ErrorUtil.showSnackbar(
+                            fragment.requireContext(),
+                            new ErrorInfo(
+                                    error,
+                                    UserAction.OPEN_INFO_ITEM_DIALOG,
+                                    "Got an error when trying to mark as watched"
+                            )
+                    );
+                })
+                .onErrorComplete()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+    ),
+
+    MARK_AS_UNWATCHED(R.string.mark_as_unwatched, (fragment, item) ->
+        new HistoryRecordManager(fragment.getContext())
+                .markAsUnwatched(item)
+                .doOnError(error -> ErrorUtil.showSnackbar(
+                        fragment.requireContext(),
+                        new ErrorInfo(
+                                error,
+                                UserAction.OPEN_INFO_ITEM_DIALOG,
+                                "Got an error when trying to mark as unwatched"
+                        )
+                ))
                 .onErrorComplete()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe()

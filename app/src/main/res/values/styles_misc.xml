@@ -1,12 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Widget.WizeStream.SubscribeButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/channel_subscribe_text</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="backgroundTint">@color/channel_subscribe_background</item>
+        <item name="strokeColor">?attr/colorPrimary</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
     <!-- Follows service's primary color -->
     <style name="ServiceColoredButton" parent="Widget.AppCompat.Button.Colored">
         <item name="colorButtonNormal">?attr/colorPrimary</item>
         <item name="android:textColor">@color/subscribe_text_color</item>
         <item name="colorControlHighlight">@color/dark_ripple_color</item>
     </style>
+
+    <style name="EmptyStateKaomoji">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="MaterialStateActionButton" parent="Widget.AppCompat.Button.Borderless.Colored">
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="colorControlHighlight">?attr/colorControlHighlight</item>
+    </style>
+
+    <style name="MaterialStateProgressIndicator" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateTint">?attr/colorPrimary</item>
+        <item name="android:progressTint">?attr/colorPrimary</item>
+    </style>
+
+    <style name="MaterialStateHorizontalProgressIndicator" parent="Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="android:indeterminateTint">?attr/colorPrimary</item>
+        <item name="android:progressTint">?attr/colorPrimary</item>
+    </style>
+
+    <style name="Widget.wizestream.Snackbar" parent="Widget.Material3.Snackbar">
+        <item name="backgroundTint">?attr/colorSurfaceInverse</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.wizestream.Snackbar</item>
+        <item name="elevation">6dp</item>
+    </style>
+
+    <style name="Widget.wizestream.Snackbar.TextView"
+        parent="Widget.Material3.Snackbar.TextView">
+        <item name="android:textColor">?attr/colorOnSurfaceInverse</item>
+    </style>
+
+    <style name="Widget.wizestream.Button.TextButton.Snackbar"
+        parent="Widget.Material3.Button.TextButton.Snackbar">
+        <item name="android:textColor">?attr/colorPrimaryInverse</item>
+    </style>
+
+    <style name="ShapeAppearance.wizestream.Snackbar" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.wizestream" parent="" />
+
+    <style name="ShapeAppearanceOverlay.wizestream.StreamThumbnail">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/stream_thumbnail_corner_radius</item>
+    </style>
+
+    <style name="Widget.WizeStream.SeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:thumbTint">?attr/colorPrimary</item>
+        <item name="android:progressTint">?attr/colorPrimary</item>
+        <item name="android:progressBackgroundTint">?attr/colorSurfaceVariant</item>
+        <item name="android:secondaryProgressTint">?attr/colorPrimaryContainer</item>
+    </style>
+
+    <style name="PlaybackParameterSeekBar" parent="Widget.WizeStream.SeekBar" />
 
 
     <!--File picker styles-->
@@ -16,7 +81,7 @@
         <item name="colorAccent">@color/light_settings_accent_color</item>
 
         <item name="actionColor">@color/white</item>
-        <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
+        <item name="nnf_toolbarTheme">@style/FilePickerToolbarTheme</item>
 
         <item name="android:windowBackground">@color/light_background_color</item>
         <item name="nnf_separator_color">@color/light_separator_color</item>
@@ -30,7 +95,7 @@
         <item name="colorAccent">@color/dark_settings_accent_color</item>
 
         <item name="actionColor">@color/white</item>
-        <item name="nnf_toolbarTheme">@style/ToolbarTheme</item>
+        <item name="nnf_toolbarTheme">@style/FilePickerToolbarTheme</item>
 
         <item name="android:windowBackground">@color/dark_background_color</item>
         <item name="nnf_separator_color">@color/black_separator_color</item>
@@ -50,16 +115,37 @@
         <item name="colorAccent">@color/dark_settings_accent_color</item>
     </style>
 
+    <!--
+        NoNonsense-FilePicker inflates an AppCompat action-bar title inside this overlay. Keep the
+        overlay AppCompat-based and define the framework text colors explicitly so Android 8 can
+        resolve TextView's textColor attributes during inflation.
+    -->
+    <style name="FilePickerToolbarTheme" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white_secondary</item>
+        <item name="actionMenuTextColor">@color/white</item>
+        <item name="android:colorControlNormal">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.WizeStream.QueueThumbnail" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
     <style name="PlayQueueItemTextTheme">
+        <item name="tint">?attr/colorOnSurfaceVariant</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
+        <item name="colorControlNormal">?attr/colorOnSurfaceVariant</item>
         <item name="android:textAppearanceLarge">@style/PlayQueueItemTitle</item>
         <item name="android:textAppearanceSmall">@style/PlayQueueItemSubtitle</item>
     </style>
 
-    <style name="PlayQueueItemTitle" parent="TextAppearance.AppCompat.Large">
-        <item name="android:textColor">@color/white</item>
+    <style name="PlayQueueItemTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
-    <style name="PlayQueueItemSubtitle" parent="TextAppearance.AppCompat.Small">
-        <item name="android:textColor">@color/white_secondary</item>
+    <style name="PlayQueueItemSubtitle" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="FloatingActionButtonTheme" parent="Widget.Design.FloatingActionButton">
@@ -68,23 +154,113 @@
 
     <style name="DarkPopupMenu" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="ToolbarTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">?attr/actionColor</item>
-        <item name="android:textColorSecondary">?attr/actionColor</item>
-        <item name="tint">?attr/actionColor</item>
-        <item name="iconTint">?attr/actionColor</item>
+    <style name="WizeStreamPopupMenu" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="android:colorBackground">?attr/colorSurfaceContainer</item>
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+        <item name="android:popupElevation">6dp</item>
+        <item name="android:popupMenuStyle">@style/Widget.WizeStream.PopupMenu</item>
+        <item name="popupMenuStyle">@style/Widget.WizeStream.PopupMenu</item>
+        <item name="listPopupWindowStyle">@style/Widget.WizeStream.ListPopupWindow</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Primary</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Secondary</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Primary</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Secondary</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="android:colorControlNormal">?attr/colorOnSurfaceVariant</item>
+        <item name="colorControlNormal">?attr/colorOnSurfaceVariant</item>
+        <item name="tint">?attr/colorOnSurfaceVariant</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
     </style>
-    <style name="ToolbarPopupTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
-        <item name="tint">@color/contrastColor</item>
+
+    <style name="Widget.WizeStream.PopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Primary</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Secondary</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Primary</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PopupMenu.Secondary</item>
     </style>
-    <style name="ContrastToolbarTheme" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
+
+    <style name="Widget.WizeStream.ListPopupWindow" parent="Widget.AppCompat.ListPopupWindow">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
+    </style>
+
+    <style name="TextAppearance.WizeStream.PopupMenu.Primary"
+        parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.WizeStream.PopupMenu.Secondary"
+        parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="PlayerOverlayPopupMenu" parent="DarkPopupMenu">
+        <item name="android:colorBackground">@color/player_overlay_popup_background_color</item>
+        <item name="android:popupBackground">@drawable/player_overlay_popup_background</item>
+        <item name="android:popupMenuStyle">@style/Widget.WizeStream.PlayerOverlay.PopupMenu</item>
+        <item name="popupMenuStyle">@style/Widget.WizeStream.PlayerOverlay.PopupMenu</item>
+        <item name="panelMenuListTheme">@style/ThemeOverlay.WizeStream.PlayerOverlay.PopupMenu.List</item>
+        <item name="listPopupWindowStyle">@style/Widget.WizeStream.PlayerOverlay.ListPopupWindow</item>
+        <item name="android:textColorPrimary">@color/player_overlay_popup_text_primary</item>
+        <item name="android:textColorSecondary">@color/player_overlay_popup_text_secondary</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+        <item name="android:colorControlNormal">@color/player_overlay_popup_text_secondary</item>
+        <item name="colorControlNormal">@color/player_overlay_popup_text_secondary</item>
+    </style>
+
+    <style name="Widget.WizeStream.PlayerOverlay.PopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/player_overlay_popup_background</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+    </style>
+
+    <style name="Widget.WizeStream.PlayerOverlay.ListPopupWindow" parent="Widget.AppCompat.ListPopupWindow">
+        <item name="android:popupBackground">@drawable/player_overlay_popup_background</item>
+    </style>
+
+    <style name="ThemeOverlay.WizeStream.PlayerOverlay.PopupMenu.List" parent="DarkPopupMenu">
+        <item name="android:textColorPrimary">@color/player_overlay_popup_text_primary</item>
+        <item name="android:textColorSecondary">@color/player_overlay_popup_text_secondary</item>
+        <item name="android:textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary</item>
+    </style>
+
+    <style name="TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Primary"
+        parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/player_overlay_popup_text_primary</item>
+    </style>
+
+    <style name="TextAppearance.WizeStream.PlayerOverlay.PopupMenu.Secondary"
+        parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/player_overlay_popup_text_secondary</item>
+    </style>
+
+    <style name="ToolbarTheme" parent="ThemeOverlay.Material3.ActionBar">
         <item name="popupTheme">@style/ToolbarPopupTheme</item>
-        <item name="android:textColorPrimary">@color/contrastColor</item>
-        <item name="android:textColorSecondary">@color/contrastColor</item>
-        <item name="tint">@color/contrastColor</item>
-        <item name="iconTint">@color/contrastColor</item>
-        <item name="toolbarSearchColor">@color/contrastColor</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="actionMenuTextColor">?attr/colorOnSurface</item>
+        <item name="android:colorControlNormal">?attr/colorOnSurface</item>
+        <item name="colorControlNormal">?attr/colorOnSurface</item>
+        <item name="tint">?attr/colorOnSurface</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+        <item name="toolbarSearchColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="ToolbarPopupTheme" parent="WizeStreamPopupMenu" />
+    <style name="ContrastToolbarTheme" parent="ToolbarTheme">
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="tint">?attr/colorOnSurface</item>
+        <item name="iconTint">?attr/colorOnSurface</item>
+        <item name="toolbarSearchColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="WhiteTintTheme">
@@ -97,9 +273,23 @@
     </style>
 
     <style name="ToolbarSearchInputTheme">
-        <item name="colorPrimary">?attr/toolbarSearchColor</item>
-        <item name="colorPrimaryDark">?attr/toolbarSearchColor</item>
-        <item name="colorAccent">?attr/toolbarSearchColor</item>
+        <!-- Inherit colorPrimary: referencing itself prevents legacy copy toasts resolving it. -->
+        <item name="colorPrimaryDark">?attr/colorPrimary</item>
+        <item name="colorAccent">?attr/colorPrimary</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+    </style>
+
+    <style name="SearchSuggestionTheme">
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="tint">?attr/colorOnSurfaceVariant</item>
+        <item name="iconTint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+
+    <style name="VideoDetailActionText">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+        <item name="android:drawableTint">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="CircularImageView">

@@ -1,0 +1,9 @@
+• Cyan theme for light, dark and AMOLED.
+• Auto list mode uses Card view outside large landscape grids.
+• Monthly search with a shared page limit.
+• Two-pane Settings and Learning on wide windows.
+• Reduced YouTube loading overhead.
+• Fixed lesson restoration and DeX player dialogs.
+• Added recovery for sustained live HLS stalls.
+• Fixed response timing races and live metadata timing.
+• Removed the Keep Android Open dialog.

@@ -1,97 +1,242 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<org.schabi.newpipe.views.FeedFocusLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
 
-    <RelativeLayout
-        android:id="@+id/refresh_root_view"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/feed_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:paddingTop="8dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
 
+        <!-- Keep the update status, refresh progress and filters in one collapsible header. -->
         <LinearLayout
-            android:id="@+id/refresh_info_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_toStartOf="@+id/refreshIcon"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_scrollFlags="scroll|enterAlways">
 
-            <org.schabi.newpipe.views.NewPipeTextView
-                android:id="@+id/refresh_text"
+            <RelativeLayout
+                android:id="@+id/refresh_root_view"
+                android:descendantFocusability="afterDescendants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="start|center_vertical"
-                android:maxLines="2"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textSize="14sp"
-                tools:text="@tools:sample/lorem/random" />
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingTop="8dp"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-            <org.schabi.newpipe.views.NewPipeTextView
-                android:id="@+id/refresh_subtitle_text"
+                <LinearLayout
+                    android:id="@+id/refresh_info_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_toStartOf="@+id/refreshIcon"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
+                    <org.schabi.newpipe.views.NewPipeTextView
+                        android:id="@+id/refresh_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:gravity="start|center_vertical"
+                        android:maxLines="2"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textSize="14sp"
+                        tools:text="@tools:sample/lorem/random" />
+
+                    <org.schabi.newpipe.views.NewPipeTextView
+                        android:id="@+id/refresh_subtitle_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:gravity="start|center_vertical"
+                        android:maxLines="1"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="12sp"
+                        tools:text="@tools:sample/lorem/random" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/refreshIcon"
+                    android:foreground="@drawable/tv_focus_ring"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@+id/refresh_info_container"
+                    android:layout_alignBottom="@+id/refresh_info_container"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:scaleType="center"
+                    android:src="@drawable/ic_refresh"
+                    android:tint="?attr/colorPrimary"
+                    tools:ignore="ContentDescription" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@+id/refresh_info_container"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="?attr/colorSurfaceVariant" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/feed_controls_row"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="start|center_vertical"
-                android:maxLines="1"
-                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                android:textSize="12sp"
-                tools:text="@tools:sample/lorem/random" />
+                android:layout_height="48dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/refresh_progress_container"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:visibility="gone"
+                    android:orientation="vertical"
+                    tools:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <org.schabi.newpipe.views.NewPipeTextView
+                            android:id="@+id/loading_progress_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            tools:text="38 / 100" />
+
+                        <org.schabi.newpipe.views.NewPipeTextView
+                            android:id="@+id/loading_channel_text"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:gravity="end"
+                            android:maxLines="1"
+                            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            tools:text="Example Human" />
+                    </LinearLayout>
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/loading_progress_bar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:accessibilityLiveRegion="polite"
+                        android:indeterminate="false"
+                        android:max="1"
+                        android:progress="0"
+                        app:indicatorColor="?attr/colorPrimary"
+                        app:trackColor="?attr/colorSurfaceVariant"
+                        app:trackCornerRadius="2dp"
+                        app:trackThickness="4dp" />
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/loading_indeterminate_progress_bar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:accessibilityLiveRegion="polite"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        app:indicatorColor="?attr/colorPrimary"
+                        app:trackColor="?attr/colorSurfaceVariant"
+                        app:trackCornerRadius="2dp"
+                        app:trackThickness="4dp" />
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/stream_filter_chips"
+                    layout="@layout/list_stream_filter_chips"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:id="@+id/cancel_refresh_button"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/cancel_refresh"
+                    android:padding="14dp"
+                    android:src="@drawable/ic_close"
+                    android:visibility="gone"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    tools:visibility="visible" />
+            </LinearLayout>
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/refreshIcon"
-            android:layout_width="24dp"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/refresh_info_container"
-            android:layout_alignBottom="@+id/refresh_info_container"
-            android:layout_alignParentEnd="true"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="12dp"
-            android:src="@drawable/ic_refresh"
-            tools:ignore="ContentDescription" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@+id/refresh_info_container"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginRight="8dp"
-            android:background="?attr/separator_color" />
-    </RelativeLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/refresh_root_view">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/items_list"
+        <FrameLayout
+            android:id="@+id/feed_content_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical"
-            android:visibility="gone"
-            tools:listitem="@layout/list_stream_item"
-            tools:visibility="visible" />
+            android:layout_height="match_parent">
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/items_list"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="0dp"
+                android:scrollbars="vertical"
+                android:visibility="gone"
+                tools:listitem="@layout/list_stream_item"
+                tools:visibility="visible" />
+        </FrameLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/feed_floating_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/local_media_refresh"
+        android:focusable="true"
+        android:nextFocusDown="@id/items_list"
+        android:nextFocusLeft="@id/items_list"
+        android:src="@drawable/ic_refresh"
+        android:visibility="gone"
+        app:backgroundTint="?attr/colorPrimary"
+        app:tint="?attr/colorOnPrimary"
+        app:fabSize="normal" />
 
     <Button
         android:id="@+id/new_items_loaded_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@id/swipeRefreshLayout"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="5sp"
         android:text="@string/feed_new_items"
         android:textSize="12sp"
@@ -99,44 +244,13 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <ProgressBar
-            android:id="@+id/loading_progress_bar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:indeterminate="true"
-            android:minWidth="128dp"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:id="@+id/loading_progress_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="∞/∞"
-            android:textAppearance="@style/TextAppearance.AppCompat.Title"
-            android:textSize="16sp"
-            android:visibility="gone"
-            tools:text="1/120"
-            tools:visibility="visible" />
-    </LinearLayout>
-
     <!--ERROR PANEL-->
     <include
         android:id="@+id/error_panel"
         layout="@layout/error_panel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_gravity="center"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -145,7 +259,7 @@
         layout="@layout/list_empty_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_gravity="center"
         android:layout_marginTop="50dp"
         android:visibility="gone"
         tools:visibility="visible" />
@@ -153,6 +267,6 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="4dp"
-        android:layout_alignParentTop="true"
+        android:layout_gravity="top"
         android:background="?attr/toolbar_shadow" />
-</RelativeLayout>
+</org.schabi.newpipe.views.FeedFocusLayout>

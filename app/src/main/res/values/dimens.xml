@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Common dimensions -->
+    <dimen name="margin_normal">16dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="spacing_mid">12dp</dimen>
+    <dimen name="spacing_micro">4dp</dimen>
+    <dimen name="spacing_nano">2dp</dimen>
+
+    <!-- Settings card dimensions -->
+    <dimen name="settings_card_margin_horizontal">16dp</dimen>
+    <dimen name="settings_card_margin_top">8dp</dimen>
+    <dimen name="settings_card_margin_bottom">16dp</dimen>
+    <dimen name="settings_card_corner_radius">24dp</dimen>
+    <dimen name="settings_category_spacing_top">8dp</dimen>
+
     <!-- Menu Drawer Dimensions -->
     <dimen name="drawer_header_content_min_height">120dp</dimen>
     <dimen name="drawer_header_padding_top">16dp</dimen>
-    <dimen name="drawer_header_newpipe_icon_size">48dp</dimen>
-    <dimen name="drawer_header_newpipe_icon_title_space">12dp</dimen>
-    <dimen name="drawer_header_newpipe_title_default_width">130dp</dimen>
-    <dimen name="drawer_header_newpipe_title_max_width">200dp</dimen>
-    <dimen name="drawer_header_newpipe_title_min_text_size">18sp</dimen>
-    <dimen name="drawer_header_newpipe_title_max_text_size">32sp</dimen>
+    <dimen name="drawer_header_wizestream_icon_size">48dp</dimen>
+    <dimen name="drawer_header_wizestream_icon_title_space">12dp</dimen>
+    <dimen name="drawer_header_wizestream_title_default_width">130dp</dimen>
+    <dimen name="drawer_header_wizestream_title_max_width">200dp</dimen>
+    <dimen name="drawer_header_wizestream_title_min_text_size">18sp</dimen>
+    <dimen name="drawer_header_wizestream_title_max_text_size">32sp</dimen>
     <dimen name="drawer_header_service_icon_size">16dp</dimen>
     <dimen name="drawer_header_service_title_text_size">14sp</dimen>
 
@@ -29,8 +43,15 @@
     <dimen name="video_item_search_avatar_right_margin">33dp</dimen>
     <dimen name="video_item_grid_thumbnail_image_width">164dp</dimen>
     <dimen name="video_item_grid_thumbnail_image_height">92dp</dimen>
+    <dimen name="stream_thumbnail_corner_radius">12dp</dimen>
+    <dimen name="stream_thumbnail_progress_height">3dp</dimen>
+    <dimen name="feed_progress_counter_text_size">14sp</dimen>
+    <dimen name="stream_thumbnail_duration_margin_with_progress">20dp</dimen>
+    <dimen name="stream_card_horizontal_margin">12dp</dimen>
+    <dimen name="stream_item_uploader_touch_target">48dp</dimen>
 
-    <dimen name="channel_item_grid_thumbnail_image_size">42dp</dimen>
+    <dimen name="channel_item_card_thumbnail_image_size">100dp</dimen>
+    <dimen name="channel_item_grid_thumbnail_image_size">92dp</dimen>
     <dimen name="channel_item_grid_min_width">128dp</dimen>
     <!-- Calculated: 2*video_item_search_padding + video_item_search_thumbnail_image_height -->
     <dimen name="video_item_search_height">96dp</dimen>
@@ -49,9 +70,17 @@
     <dimen name="player_popup_controls_padding">6dp</dimen>
     <dimen name="player_main_top_padding">4dp</dimen>
     <dimen name="player_main_buttons_padding">6dp</dimen>
+    <dimen name="player_main_icon_buttons_padding">12dp</dimen>
+    <dimen name="player_main_controls_text_size">14sp</dimen>
+    <dimen name="player_audio_track_max_width">160dp</dimen>
+    <dimen name="player_seek_gesture_horizontal_padding">14dp</dimen>
+    <dimen name="player_seek_gesture_vertical_padding">8dp</dimen>
+    <dimen name="player_seek_gesture_text_size">16sp</dimen>
+    <dimen name="player_seek_gesture_corner_radius">12dp</dimen>
     <dimen name="player_popup_buttons_padding">1dp</dimen>
     <dimen name="player_main_buttons_min_width">40dp</dimen>
     <dimen name="player_notification_thumbnail_width">200dp</dimen>
+    <dimen name="sponsor_block_marker_height">4dp</dimen>
 
     <!-- Miscellaneous -->
     <dimen name="popup_default_width">180dp</dimen>
@@ -67,7 +96,7 @@
     <dimen name="video_item_detail_sub_channel_text_size">14sp</dimen>
     <dimen name="video_item_detail_upload_date_text_size">13sp</dimen>
     <dimen name="video_item_detail_description_text_size">13sp</dimen>
-    <dimen name="channel_subscribers_text_size">12sp</dimen>
+    <dimen name="subscription_split_button_corner_radius">24dp</dimen>
     <dimen name="channel_rss_title_size">12sp</dimen>
     <!-- Elements Size -->
     <dimen name="video_item_detail_uploader_image_size">32dp</dimen>
@@ -121,12 +150,23 @@
 
     <!-- Text Size -->
     <dimen name="comment_item_title_text_size">12sp</dimen>
-    <dimen name="comment_item_content_text_size">12sp</dimen>
+    <dimen name="comment_item_content_text_size">14sp</dimen>
 
     <!-- Feed Groups dimensions-->
-    <dimen name="feed_group_carousel_start_end_margin">12dp</dimen>
-    <dimen name="feed_group_carousel_top_bottom_margin">6dp</dimen>
-    <dimen name="feed_group_carousel_between_items_margin">4dp</dimen>
 
     <dimen name="search_suggestion_text_size">16sp</dimen>
+
+    <!-- Main Material bottom navigation -->
+    <dimen name="main_bottom_navigation_height">64dp</dimen>
+    <dimen name="main_navigation_rail_width">80dp</dimen>
+    <dimen name="main_compact_navigation_rail_width">64dp</dimen>
+    <dimen name="main_compact_toolbar_height">48dp</dimen>
+    <dimen name="main_bottom_navigation_item_padding_top">6dp</dimen>
+    <dimen name="main_bottom_navigation_item_padding_bottom">6dp</dimen>
+
+    <!-- Video detail Material bottom navigation -->
+    <dimen name="video_detail_navigation_height">64dp</dimen>
+    <dimen name="video_detail_navigation_item_padding">6dp</dimen>
+
+    <dimen name="feed_floating_refresh_bottom_padding">80dp</dimen>
 </resources>

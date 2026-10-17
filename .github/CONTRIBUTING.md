@@ -1,86 +1,262 @@
-NewPipe contribution guidelines
-===============================
+# Contributing to WizeStream
 
-## Crash reporting
+Thank you for your interest in contributing to WizeStream.
 
-Report crashes through the **automated crash report system** of NewPipe.
-This way all the data needed for debugging is included in your bugreport for GitHub.
-You'll see *exactly* what is sent, be able to add **your comments**, and then send it.
+WizeStream is an independent, NewPipe-based streaming client for Android. It combines Material 3
+Expressive design with privacy-friendly playback, local-first features, multiple streaming
+platforms, and its own integrated extractor changes while preserving the strengths of the core
+NewPipe experience.
 
-## Issue reporting/feature requests
+This project welcomes focused contributions, but changes must respect the project direction and avoid unnecessary behavior changes.
 
-* **Already reported**? Browse the [existing issues](https://github.com/TeamNewPipe/NewPipe/issues) to make sure your issue/feature hasn't been reported/requested.
-* **Already fixed**? Check whether your issue/feature is already fixed/implemented.
-* **Still relevant**? Check if the issue still exists in the latest release/beta version.
-* **Can you fix it**? If you are an Android/Java developer, you are always welcome to fix an issue or implement a feature yourself. PRs welcome! See [Code contribution](#code-contribution) for more info.
-* **Is it in English**? Issues in other languages will be ignored unless someone translates them.
-* **Is it one issue**? Multiple issues require multiple reports, that can be linked to track their statuses.
-* **The template**: Fill it out, everyone wins. Your issue has a chance of getting fixed.
+---
 
+## Project direction
 
-## Translation
+WizeStream focuses on:
 
-* NewPipe is translated via [Weblate](https://hosted.weblate.org/projects/newpipe/strings/). Log in there with your GitHub account, or register.
-* Add the language you want to translate if it is not there already: see [How to add a new language](https://github.com/TeamNewPipe/NewPipe/wiki/How-to-add-a-new-language-to-NewPipe) in the wiki.
-* NewPipe uses the [PrettyTime](https://github.com/ocpsoft/prettytime) library to display localized versions of dates and times. It needs to be translated, too. Read [these instructions to add a new language](https://www.ocpsoft.org/prettytime/#section-14) and [this issue](https://github.com/TeamNewPipe/NewPipe/issues/9134) for more info.
+* Material 3 visual polish
+* Dynamic and manual theme colors
+* WizeStream app identity
+* Privacy-friendly playback and downloads
+* Useful local-first features
+* Reliable support for multiple streaming platforms
+* Maintained, integrated extractor and service compatibility
+* Release-ready signed builds
+* Clear fork attribution
+* Preserving compatible NewPipe behavior and data migration where practical
+* Safe, reviewable, well-scoped changes
 
-## Code contribution
+WizeStream is not affiliated with, sponsored by, or endorsed by the official NewPipe project, TeamNewPipe, or NewPipe e.V.
 
-### Guidelines
+---
 
-* Stick to NewPipe's *style conventions* of [checkStyle](https://github.com/checkstyle/checkstyle) and [ktlint](https://github.com/pinterest/ktlint). They run each time you build the project.
-* Stick to [F-Droid contribution guidelines](https://f-droid.org/wiki/page/Inclusion_Policy).
-* In particular **do not bring non-free software** (e.g. binary blobs) into the project. Make sure you do not introduce any closed-source library from Google.
+## Maintainer policy
 
-### Before starting development
+This repository is maintained by Wisso.
 
-* If you want to help out with an existing bug report or feature request, **leave a comment** on that issue saying you want to try your hand at it.
-* If there is no existing issue for what you want to work on, **open a new one**  describing the changes you are planning to introduce. This gives the team and the community a chance to give **feedback** before you spend time on something that is already in development, should be done differently, or should be avoided completely.
-* Please show **intention to maintain your features** and code after you contribute a PR. Unmaintained code is a hassle for core developers. If you do not intend to maintain features you plan to contribute, please rethink your submission, or clearly state that in the PR description.
-* Create PRs that cover only **one specific issue/solution/bug**. Do not create PRs that are huge monoliths and could have been split into multiple independent contributions.
-* NewPipe uses [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) to fetch data from services. If you need to change something there, you must test your changes in NewPipe. Telling NewPipe to use your extractor version can be accomplished by editing the `app/build.gradle` file: the comments under the "NewPipe libraries" section of `dependencies` will help you out.
+All contributions are reviewed according to the goals of WizeStream. The maintainer may accept, request changes, delay, or reject contributions based on project direction, quality, risk, maintainability, or release timing.
 
-### Kotlin in NewPipe
-* NewPipe will remain mostly Java for time being
-* Contributions containing a simple conversion from Java to Kotlin should be avoided. Conversions to Kotlin should only be done if Kotlin actually brings improvements like bug fixes or better performance which are not, or only with much more effort, implementable in Java. The core team sees Java as an easier to learn and generally well adopted programming language.
+Please do not treat an opened issue or pull request as approval to implement broad changes. Large changes should be discussed first.
 
-### Creating a Pull Request (PR)
+---
 
-* Make changes on a **separate branch** with a meaningful name, not on the _master_ branch or the _dev_ branch. This is commonly known as *feature branch workflow*. You may then send your changes as a pull request (PR) on GitHub.
-* Please **test** (compile and run) your code before submitting changes! Ideally, provide test feedback in the PR description. Untested code will **not** be merged!
-* Respond if someone requests changes or otherwise raises issues about your PRs.
-* Try to figure out yourself why builds on our CI fail.
-* Make sure your PR is **up-to-date** with the rest of the code. Often, a simple click on "Update branch" will do the job, but if not, you must *rebase* your branch on the `dev` branch manually and resolve the conflicts on your own. You can find help [on the wiki](https://github.com/TeamNewPipe/NewPipe/wiki/How-to-merge-a-PR). Doing this makes the maintainers' job way easier.
+## What contributions are welcome?
 
-## IDE setup & building the app
+Good contribution types include:
 
-### Basic setup
+* Focused Material 3 UI polish
+* Bug fixes
+* Playback, download, and service-compatibility fixes
+* Focused local-first feature improvements
+* Documentation improvements
+* Translation improvements
+* Release-readiness fixes
+* Accessibility improvements
+* Build, CI, and signing workflow fixes
+* Small refactors that reduce risk or improve maintainability
+* QA reports with screenshots, device info, and reproduction steps
 
-NewPipe is developed using [Android Studio](https://developer.android.com/studio/). Learn more about how to install it and how it works in the [official documentation](https://developer.android.com/studio/intro). In particular, make sure you have accepted Android Studio's SDK licences. Once Android Studio is ready, setting up the NewPipe project is fairly simple:
-- Clone the NewPipe repository with `git clone https://github.com/TeamNewPipe/NewPipe.git` (or use the link from your own fork, if you want to open a PR).
-- Open the folder you just cloned with Android Studio.
-- Build and run it just like you would do with any other app, with the green triangle in the top bar.
+---
 
-You may find [SonarLint](https://www.sonarlint.org/intellij)'s **inspections** useful in helping you to write good code and prevent bugs.
+## Changes that need prior discussion
 
-### checkStyle setup
+Please open an issue or discussion before working on:
 
-The [checkStyle](https://github.com/checkstyle/checkstyle) plugin verifies that Java code abides by the project style. It runs automatically each time you build the project. If you want to view errors directly in the editor, instead of having to skim through the build output, you can install an Android Studio plugin:
-- Go to `File -> Settings -> Plugins`, search for `checkstyle` and install `CheckStyle-IDEA`.
-- Go to `File -> Settings -> Tools -> Checkstyle`.
-- Add NewPipe's configuration file by clicking the `+` in the right toolbar of the "Configuration File" list.
-- Under the "Use a local Checkstyle file" bullet, click on `Browse` and, enter `checkstyle` folder under the project's root path and pick the file named `checkstyle.xml`.
-- Enable "Store relative to project location" so that moving the directory around does not create issues.
-- Insert a description in the top bar, then click `Next` and then `Finish`.
-- Activate the configuration file you just added by enabling the checkbox on the left.
-- Click `Ok` and you are done.
+* Player overlay redesigns
+* Queue overlay changes
+* Seekbar, gesture, or fast-seek visual changes
+* Playback behavior changes
+* Download behavior changes
+* Extractor or service logic changes
+* Database or migration changes
+* Import/export behavior changes
+* Notification behavior changes
+* File-picker behavior changes
+* Large theme rewrites
+* Large refactors
+* New features that affect user workflows
 
-### ktlint setup
+These areas are sensitive and require dedicated QA.
 
-The [ktlint](https://github.com/pinterest/ktlint) plugin does the same job as checkStyle for Kotlin files. Installing the related plugin is as simple as going to `File -> Settings -> Plugins`, searching for `ktlint` and installing `Ktlint (unofficial)`.
+---
 
-## Communication
+## Pull request rules
 
-* The #newpipe channel on Libera Chat (`ircs://irc.libera.chat:6697/newpipe`) has the core team and other developers in it. [Click here for webchat](https://web.libera.chat/#newpipe)!
-* You can also use a Matrix account to join the NewPipe channel at [#newpipe:libera.chat](https://matrix.to/#/#newpipe:libera.chat). Some convenient clients, available both for phone and desktop, are listed at that link.
-* You can post your suggestions, changes, ideas etc. on either GitHub or IRC.
+Please keep pull requests focused.
+
+A good pull request should:
+
+* Solve one clear problem
+* Explain the root cause or polish reason
+* List the exact files changed
+* Preserve behavior unless behavior change is explicitly intended
+* Avoid unrelated formatting changes
+* Avoid broad rewrites
+* Avoid hard-coded colors when Material theme roles can be used
+* Include screenshots for UI changes when possible
+* Include test results
+
+Do not bundle unrelated changes into one pull request.
+
+Examples of good PR scope:
+
+* “Polish settings row colors”
+* “Fix README repository links”
+* “Add release signing validation”
+* “Retheme one dialog surface safely”
+
+Examples of poor PR scope:
+
+* “Modernize everything”
+* “Refactor app UI”
+* “Change player, downloads, settings, and README together”
+* “Replace all colors globally”
+
+---
+
+## Material 3 UI contribution rules
+
+For UI changes:
+
+* Prefer existing Material theme roles such as `colorSurface`, `colorOnSurface`, `colorOnSurfaceVariant`, `colorPrimary`, `colorPrimaryContainer`, and related role colors.
+* Avoid hard-coded colors unless they are intentional overlay, artwork, badge, or compatibility values.
+* Keep player overlays and media controls separate from normal app surfaces.
+* Preserve readable contrast in Light, Dark, Black, dynamic color, App default, and manual theme palettes.
+* Do not change IDs, listeners, adapters, or behavior for visual-only work.
+* Document any intentional exceptions.
+
+Player overlays, queue overlays, notification templates, and file-picker surfaces are high-risk and need real-device QA before visual changes.
+
+---
+
+## Behavior-change rule
+
+WizeStream is broader than a visual or identity redesign, but every behavior change must solve a
+clear, approved problem and remain focused, testable, and maintainable.
+
+Do not change behavior incidentally. A pull request that changes behavior must identify that
+behavior explicitly and explain the intended user impact.
+
+Behavior-sensitive areas include:
+
+* Playback
+* Background playback
+* Popup playback
+* Downloads
+* Queue handling
+* Extractor/service logic
+* Subscriptions
+* Import/export
+* Database migrations
+* Notifications
+* File picker and storage flows
+* Settings defaults
+* Navigation
+
+When behavior changes are necessary, explain why and provide testing details.
+
+---
+
+## Testing requirements
+
+Before opening a pull request, run:
+
+```bash
+git diff --check
+./gradlew runCheckstyle -DskipFormatKtlint
+./gradlew assembleDebug lintDebug testDebugUnitTest --stacktrace -DskipFormatKtlint
+```
+
+For Android/device-sensitive changes, also run or request device QA.
+
+Recommended manual QA for UI changes:
+
+* Light theme
+* Dark theme
+* Black theme
+* Follow system / dynamic color
+* App default theme color
+* At least one manual color such as Orange or Purple
+* Rotation
+* Relevant screen navigation
+* Relevant dialogs, menus, and empty states
+
+For release-related changes, verify APK identity, signing, artifact upload, install behavior, and About screen version display.
+
+---
+
+## Screenshots and QA reports
+
+For visual changes, include screenshots when possible.
+
+A useful QA report includes:
+
+* Device model
+* Android version
+* App build type
+* Theme mode
+* Theme color
+* Steps to reproduce
+* Expected result
+* Actual result
+* Screenshot or screen recording
+
+---
+
+## Translations
+
+Translation contributions are welcome.
+
+Please keep translations faithful to the English source and avoid changing technical meaning. New fork-specific strings may be marked with `tools:ignore="MissingTranslation"` temporarily, but proper translations are preferred over time.
+
+---
+
+## Issues
+
+When opening an issue, include:
+
+* Clear title
+* App version
+* Device and Android version
+* Steps to reproduce
+* Expected behavior
+* Actual behavior
+* Screenshots or logs if relevant
+
+Report service and extractor breakages observed in WizeStream to WizeStream first. Reproducing the
+problem in official NewPipe is useful for identifying shared upstream defects, but is not a reason
+to reject a WizeStream report. WizeStream owns defects caused by its integrated extractor changes.
+
+---
+
+## Respect upstream NewPipe
+
+WizeStream is based on NewPipe and preserves upstream credits and license notices.
+
+Please respect upstream NewPipe, TeamNewPipe, NewPipe e.V., and the NewPipe community. Problems
+observed in WizeStream belong in this repository first. Upstream issues should be reported upstream
+only when they are reproducible in the official upstream project, are not caused by WizeStream's
+changes, and follow the upstream project's reporting rules.
+
+---
+
+## License
+
+By contributing to WizeStream, you agree that your contribution will be distributed under the same license as the project.
+
+WizeStream is free software based on NewPipe and is distributed under the GNU General Public License version 3 or later.
+
+## Maintaining the in-app changelog
+
+- Keep cumulative release notes in `docs/changelogs.md`, newest first. Use
+  ``## WizeStream X.Y.Z (`VERSION_CODE`)`` for release headings and `## Unreleased` for work that
+  has not shipped yet. Preserve the existing older release entries.
+- When bumping the version in `buildSrc/src/main/kotlin/ProjectConfig.kt`, move the relevant
+  Unreleased notes into a release section with the matching version name and code.
+- Run `python3 scripts/generate-changelog.py` and commit `app/src/main/assets/changelog.html`
+  together with the Markdown changes. CI runs the generator with `--check` to reject stale assets
+  and missing current-release notes. The generator uses only Python standard-library modules.
+- The first-run dialog shows the installed release when no previous acknowledgement exists.
+  Subsequent upgrades show releases newer than the last acknowledged version, up to the installed
+  release. Nightly suffixes use their named base release; Unreleased notes remain in the full history.

@@ -1,24 +1,37 @@
 package org.schabi.newpipe.views;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.SurfaceView;
 
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.AspectRatioFrameLayout;
 
-import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
-import static com.google.android.exoplayer2.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
+import static androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT;
+import static androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM;
 
 public class ExpandableSurfaceView extends SurfaceView {
+    public static final float MIN_USER_ZOOM = 1.0f;
+    public static final float MAX_USER_ZOOM = 4.0f;
+
     private int resizeMode = RESIZE_MODE_FIT;
     private int baseHeight = 0;
     private int maxHeight = 0;
     private float videoAspectRatio = 0.0f;
     private float scaleX = 1.0f;
     private float scaleY = 1.0f;
+    private float userZoomScale = MIN_USER_ZOOM;
+    private float userTranslationX;
+    private float userTranslationY;
 
     public ExpandableSurfaceView(final Context context, final AttributeSet attrs) {
         super(context, attrs);
+        // Media3's PlayerView uses this lifecycle from Android 14 onward. WizeStream uses its
+        // SurfaceView directly, so keep the decoder surface alive while the player remains attached
+        // even when visibility changes during fullscreen, PiP, or bottom-sheet transitions.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            setSurfaceLifecycle(SURFACE_LIFECYCLE_FOLLOWS_ATTACHMENT);
+        }
     }
 
     @Override
@@ -35,12 +48,12 @@ public class ExpandableSurfaceView extends SurfaceView {
                 && resizeMode != RESIZE_MODE_FIT
                 && verticalVideo ? maxHeight : baseHeight;
 
-        if (height == 0) {
+        if (width == 0 || height == 0) {
             return;
         }
 
         final float viewAspectRatio = width / ((float) height);
-        final float aspectDeformation = videoAspectRatio / viewAspectRatio - 1;
+        final float aspectDeformation = (videoAspectRatio / viewAspectRatio) - 1;
         scaleX = 1.0f;
         scaleY = 1.0f;
 
@@ -68,8 +81,27 @@ public class ExpandableSurfaceView extends SurfaceView {
     @Override
     protected void onLayout(final boolean changed,
                             final int left, final int top, final int right, final int bottom) {
-        setScaleX(scaleX);
-        setScaleY(scaleY);
+        applyUserTransform();
+    }
+
+    private void applyUserTransform() {
+        final float effectiveScaleX = scaleX * userZoomScale;
+        final float effectiveScaleY = scaleY * userZoomScale;
+        setPivotX(getWidth() / 2.0f);
+        setPivotY(getHeight() / 2.0f);
+        setScaleX(effectiveScaleX);
+        setScaleY(effectiveScaleY);
+
+        final float maxTranslationX = Math.max(0.0f,
+                getWidth() * (effectiveScaleX - 1.0f) / 2.0f);
+        final float maxTranslationY = Math.max(0.0f,
+                getHeight() * (effectiveScaleY - 1.0f) / 2.0f);
+        userTranslationX = Math.max(-maxTranslationX,
+                Math.min(userTranslationX, maxTranslationX));
+        userTranslationY = Math.max(-maxTranslationY,
+                Math.min(userTranslationY, maxTranslationY));
+        setTranslationX(userTranslationX);
+        setTranslationY(userTranslationY);
     }
 
     /**
@@ -99,8 +131,50 @@ public class ExpandableSurfaceView extends SurfaceView {
         return resizeMode;
     }
 
+    public void setUserTransform(final float zoomScale,
+                                 final float translationX,
+                                 final float translationY) {
+        userZoomScale = Math.max(MIN_USER_ZOOM, Math.min(zoomScale, MAX_USER_ZOOM));
+        userTranslationX = userZoomScale == MIN_USER_ZOOM ? 0.0f : translationX;
+        userTranslationY = userZoomScale == MIN_USER_ZOOM ? 0.0f : translationY;
+        applyUserTransform();
+    }
+
+    public void resetUserTransform() {
+        setUserTransform(MIN_USER_ZOOM, 0.0f, 0.0f);
+    }
+
+    public float getUserZoomScale() {
+        return userZoomScale;
+    }
+
+    public float getUserTranslationX() {
+        return userTranslationX;
+    }
+
+    public float getUserTranslationY() {
+        return userTranslationY;
+    }
+
+    public float getVideoAspectRatio() {
+        return videoAspectRatio;
+    }
+
+    /**
+     * Clears geometry left by the previous video while a new video size is not available yet.
+     * The surface temporarily fills its parent until {@link #setAspectRatio(float)} receives the
+     * new stream dimensions.
+     */
+    public void clearAspectRatio() {
+        videoAspectRatio = 0.0f;
+        scaleX = 1.0f;
+        scaleY = 1.0f;
+        resetUserTransform();
+        requestLayout();
+    }
+
     public void setAspectRatio(final float aspectRatio) {
-        if (videoAspectRatio == aspectRatio) {
+        if (videoAspectRatio == aspectRatio || aspectRatio == 0 || !Float.isFinite(aspectRatio)) {
             return;
         }
 

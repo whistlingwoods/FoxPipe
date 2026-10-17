@@ -9,6 +9,7 @@ import android.view.View
 import androidx.core.os.postDelayed
 import org.schabi.newpipe.databinding.PlayerBinding
 import org.schabi.newpipe.player.Player
+import org.schabi.newpipe.player.helper.PlayerHelper
 import org.schabi.newpipe.player.ui.VideoPlayerUi
 
 /**
@@ -18,14 +19,20 @@ import org.schabi.newpipe.player.ui.VideoPlayerUi
  * and provides some abstract methods to make it easier separating the logic from the UI.
  */
 abstract class BasePlayerGestureListener(
-    private val playerUi: VideoPlayerUi,
+    private val playerUi: VideoPlayerUi
 ) : GestureDetector.SimpleOnGestureListener(), View.OnTouchListener {
 
     protected val player: Player = playerUi.player
     protected val binding: PlayerBinding = playerUi.binding
 
+    private var isHoldToSpeedActive = false
+    private var previousPlaybackSpeed = 1.0f
+
     override fun onTouch(v: View, event: MotionEvent): Boolean {
         playerUi.gestureDetector.onTouchEvent(event)
+        if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+            restoreHoldToSpeed()
+        }
         return false
     }
 
@@ -47,6 +54,9 @@ abstract class BasePlayerGestureListener(
             startMultiDoubleTap(event)
         } else if (portion === DisplayPortion.MIDDLE) {
             player.playPause()
+            if (player.isPlaying) {
+                playerUi.hideControls(0, 0)
+            }
         }
     }
 
@@ -86,8 +96,9 @@ abstract class BasePlayerGestureListener(
     // ///////////////////////////////////////////////////////////////////
 
     override fun onDown(e: MotionEvent): Boolean {
-        if (DEBUG)
+        if (DEBUG) {
             Log.d(TAG, "onDown called with e = [$e]")
+        }
 
         if (isDoubleTapping && isDoubleTapEnabled) {
             doubleTapControls?.onDoubleTapProgressDown(getDisplayPortion(e))
@@ -108,11 +119,33 @@ abstract class BasePlayerGestureListener(
     }
 
     override fun onDoubleTap(e: MotionEvent): Boolean {
-        if (DEBUG)
+        if (DEBUG) {
             Log.d(TAG, "onDoubleTap called with e = [$e]")
+        }
 
         onDoubleTap(e, getDisplayPortion(e))
         return true
+    }
+
+    override fun onLongPress(e: MotionEvent) {
+        if (isHoldToSpeedActive || !PlayerHelper.isHoldToSpeedEnabled(player.context) ||
+            player.exoPlayerIsNull()
+        ) {
+            return
+        }
+
+        previousPlaybackSpeed = player.playbackSpeed
+        player.setPlaybackSpeedTemporarily(PlayerHelper.getHoldToSpeedValue(player.context))
+        isHoldToSpeedActive = true
+    }
+
+    protected fun restoreHoldToSpeed() {
+        if (!isHoldToSpeedActive) {
+            return
+        }
+
+        player.setPlaybackSpeedTemporarily(previousPlaybackSpeed)
+        isHoldToSpeedActive = false
     }
 
     // ///////////////////////////////////////////////////////////////////
@@ -136,8 +169,9 @@ abstract class BasePlayerGestureListener(
 
     private fun startMultiDoubleTap(e: MotionEvent) {
         if (!isDoubleTapping) {
-            if (DEBUG)
+            if (DEBUG) {
                 Log.d(TAG, "startMultiDoubleTap called with e = [$e]")
+            }
 
             keepInDoubleTapMode()
             doubleTapControls?.onDoubleTapStarted(getDisplayPortion(e))
@@ -145,8 +179,9 @@ abstract class BasePlayerGestureListener(
     }
 
     fun keepInDoubleTapMode() {
-        if (DEBUG)
+        if (DEBUG) {
             Log.d(TAG, "keepInDoubleTapMode called")
+        }
 
         isDoubleTapping = true
         doubleTapHandler.removeCallbacksAndMessages(DOUBLE_TAP)
@@ -161,8 +196,9 @@ abstract class BasePlayerGestureListener(
     }
 
     fun endMultiDoubleTap() {
-        if (DEBUG)
+        if (DEBUG) {
             Log.d(TAG, "endMultiDoubleTap called")
+        }
 
         isDoubleTapping = false
         doubleTapHandler.removeCallbacksAndMessages(DOUBLE_TAP)

@@ -1,6 +1,7 @@
 package org.schabi.newpipe.about
 
 import android.os.Parcelable
+import java.io.Serializable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -13,4 +14,4 @@ constructor(
     val link: String,
     val license: License,
     val version: String? = null
-) : Parcelable
+) : Parcelable, Serializable

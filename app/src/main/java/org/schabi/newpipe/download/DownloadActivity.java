@@ -2,25 +2,23 @@ package org.schabi.newpipe.download;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.ActivityDownloaderBinding;
 import org.schabi.newpipe.util.DeviceUtils;
+import org.schabi.newpipe.util.EdgeToEdgeHelper;
 import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.views.FocusOverlayView;
 
 import us.shandian.giga.service.DownloadManagerService;
 import us.shandian.giga.ui.fragment.MissionsFragment;
-
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
 
 public class DownloadActivity extends AppCompatActivity {
 
@@ -33,14 +31,15 @@ public class DownloadActivity extends AppCompatActivity {
         i.setClass(this, DownloadManagerService.class);
         startService(i);
 
-        assureCorrectAppLanguage(this);
         ThemeHelper.setTheme(this);
 
         super.onCreate(savedInstanceState);
+        EdgeToEdgeHelper.enable(this);
 
         final ActivityDownloaderBinding downloaderBinding =
                 ActivityDownloaderBinding.inflate(getLayoutInflater());
         setContentView(downloaderBinding.getRoot());
+        EdgeToEdgeHelper.applySystemBarPadding(downloaderBinding.getRoot());
 
         setSupportActionBar(downloaderBinding.toolbarLayout.toolbar);
 
@@ -66,22 +65,18 @@ public class DownloadActivity extends AppCompatActivity {
     }
 
     private void updateFragments() {
+        final Fragment currentFragment = getSupportFragmentManager()
+                .findFragmentByTag(MISSIONS_FRAGMENT_TAG);
+        if (currentFragment instanceof MissionsFragment) {
+            return;
+        }
+
         final MissionsFragment fragment = new MissionsFragment();
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.frame, fragment, MISSIONS_FRAGMENT_TAG)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                 .commit();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        final MenuInflater inflater = getMenuInflater();
-
-        inflater.inflate(R.menu.download_menu, menu);
-
-        return true;
     }
 
     @Override

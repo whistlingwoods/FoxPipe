@@ -10,23 +10,32 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
+
+import com.google.android.material.chip.ChipGroup;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.comments.CommentsInfo;
+import org.schabi.newpipe.extractor.comments.CommentSortOrder;
+import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.comments.CommentsInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
+import org.schabi.newpipe.info_list.ItemViewMode;
 import org.schabi.newpipe.ktx.ViewUtils;
+import org.schabi.newpipe.util.ContentBlockingHelper;
 import org.schabi.newpipe.util.ExtractorHelper;
 
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, CommentsInfo> {
+    private static final String SORT_PREFERENCE = "comment_sort_newest";
     private final CompositeDisposable disposables = new CompositeDisposable();
 
     private TextView emptyStateDesc;
+    private CommentSortOrder sortOrder = CommentSortOrder.TOP;
 
     public static CommentsFragment getInstance(final int serviceId, final String url,
                                                final String name) {
@@ -39,11 +48,41 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, Com
         super(UserAction.REQUESTED_COMMENTS);
     }
 
+    @NonNull
+    @Override
+    protected ContentBlockingHelper.Target getContentBlockingTarget() {
+        return ContentBlockingHelper.Target.COMMENTS;
+    }
+
     @Override
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
 
         emptyStateDesc = rootView.findViewById(R.id.empty_state_desc);
+        final boolean supportsSorting = serviceId == ServiceList.YouTube.getServiceId();
+        final boolean newest = savedInstanceState != null
+                ? savedInstanceState.getBoolean("comments_newest", false)
+                : PreferenceManager.getDefaultSharedPreferences(requireContext())
+                        .getBoolean(SORT_PREFERENCE, false);
+        sortOrder = supportsSorting
+                ? currentInfo != null ? currentInfo.getSortOrder()
+                        : newest ? CommentSortOrder.NEWEST : CommentSortOrder.TOP
+                : CommentSortOrder.TOP;
+        final ChipGroup sorting = rootView.findViewById(R.id.comment_sort);
+        sorting.setVisibility(supportsSorting ? View.VISIBLE : View.GONE);
+        sorting.check(sortOrder == CommentSortOrder.NEWEST
+                ? R.id.comments_newest : R.id.comments_top);
+        sorting.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            final CommentSortOrder selected = checkedIds.contains(R.id.comments_newest)
+                    ? CommentSortOrder.NEWEST : CommentSortOrder.TOP;
+            if (sortOrder != selected) {
+                sortOrder = selected;
+                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
+                        .putBoolean(SORT_PREFERENCE, selected == CommentSortOrder.NEWEST).apply();
+                currentNextPage = null;
+                startLoading(true);
+            }
+        });
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -63,6 +102,12 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, Com
         disposables.clear();
     }
 
+    @Override
+    public void onSaveInstanceState(@NonNull final Bundle state) {
+        super.onSaveInstanceState(state);
+        state.putBoolean("comments_newest", sortOrder == CommentSortOrder.NEWEST);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
     // Load and handle
     //////////////////////////////////////////////////////////////////////////*/
@@ -74,7 +119,7 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, Com
 
     @Override
     protected Single<CommentsInfo> loadResult(final boolean forceLoad) {
-        return ExtractorHelper.getCommentsInfo(serviceId, url, forceLoad);
+        return ExtractorHelper.getCommentsInfo(serviceId, url, forceLoad, sortOrder);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -106,7 +151,21 @@ public class CommentsFragment extends BaseListInfoFragment<CommentsInfoItem, Com
                                     @NonNull final MenuInflater inflater) { }
 
     @Override
-    protected boolean isGridLayout() {
-        return false;
+    protected ItemViewMode getItemViewMode() {
+        return ItemViewMode.LIST;
+    }
+
+    public boolean scrollToComment(final CommentsInfoItem comment) {
+        if (infoListAdapter == null || itemsList == null) {
+            return false;
+        }
+
+        final int position = infoListAdapter.getItemsList().indexOf(comment);
+        if (position < 0) {
+            return false;
+        }
+
+        itemsList.scrollToPosition(position);
+        return true;
     }
 }

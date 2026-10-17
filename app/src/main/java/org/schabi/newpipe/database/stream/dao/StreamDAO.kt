@@ -8,12 +8,13 @@ import androidx.room.Query
 import androidx.room.Transaction
 import io.reactivex.rxjava3.core.Completable
 import io.reactivex.rxjava3.core.Flowable
+import java.time.OffsetDateTime
 import org.schabi.newpipe.database.BasicDAO
+import org.schabi.newpipe.database.stream.StreamUploadDate
 import org.schabi.newpipe.database.stream.model.StreamEntity
 import org.schabi.newpipe.database.stream.model.StreamEntity.Companion.STREAM_ID
 import org.schabi.newpipe.extractor.stream.StreamType
 import org.schabi.newpipe.util.StreamTypeUtil
-import java.time.OffsetDateTime
 
 @Dao
 abstract class StreamDAO : BasicDAO<StreamEntity> {
@@ -29,8 +30,41 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
     @Query("SELECT * FROM streams WHERE url = :url AND service_id = :serviceId")
     abstract fun getStream(serviceId: Long, url: String): Flowable<List<StreamEntity>>
 
+    @Query("SELECT * FROM streams WHERE uid = :streamId")
+    abstract fun getStreamDirect(streamId: Long): StreamEntity?
+
+    @Query("SELECT * FROM streams WHERE service_id = :serviceId AND url = :url")
+    abstract fun getStreamDirect(serviceId: Int, url: String): StreamEntity?
+
     @Query("UPDATE streams SET uploader_url = :uploaderUrl WHERE url = :url AND service_id = :serviceId")
     abstract fun setUploaderUrl(serviceId: Long, url: String, uploaderUrl: String): Completable
+
+    @Query(
+        """
+        SELECT uploader_avatar_url FROM streams
+        WHERE service_id = :serviceId
+        AND uploader_url = :uploaderUrl
+        AND uploader_avatar_url IS NOT NULL
+        AND TRIM(uploader_avatar_url) != ''
+        ORDER BY uid ASC
+        LIMIT 1
+        """
+    )
+    abstract fun findKnownUploaderAvatar(serviceId: Int, uploaderUrl: String): String?
+
+    @Query(
+        """
+        UPDATE streams SET uploader_avatar_url = :avatarUrl
+        WHERE service_id = :serviceId
+        AND uploader_url = :uploaderUrl
+        AND (uploader_avatar_url IS NULL OR TRIM(uploader_avatar_url) = '')
+        """
+    )
+    abstract fun backfillMissingUploaderAvatar(
+        serviceId: Int,
+        uploaderUrl: String,
+        avatarUrl: String
+    ): Int
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     internal abstract fun silentInsertInternal(stream: StreamEntity): Long
@@ -43,7 +77,8 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
 
     @Query(
         """
-        SELECT uid, stream_type, textual_upload_date, upload_date, is_upload_date_approximation, duration 
+        SELECT uid, stream_type, textual_upload_date, upload_date,
+        is_upload_date_approximation, duration, uploader_avatar_url, is_short_form_content
         FROM streams WHERE url = :url AND service_id = :serviceId
         """
     )
@@ -87,15 +122,22 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
 
     private fun compareAndUpdateStream(newerStream: StreamEntity) {
         val existentMinimalStream = getMinimalStreamForCompare(newerStream.serviceId, newerStream.url)
-            ?: throw IllegalStateException("Stream cannot be null just after insertion.")
+            ?: error("Stream cannot be null just after insertion.")
         newerStream.uid = existentMinimalStream.uid
 
         if (!StreamTypeUtil.isLiveStream(newerStream.streamType)) {
-
-            // Use the existent upload date if the newer stream does not have a better precision
-            // (i.e. is an approximation). This is done to prevent unnecessary changes.
-            val hasBetterPrecision =
-                newerStream.uploadDate != null && newerStream.isUploadDateApproximation != true
+            // Preserve stable source dates and first-seen timestamps. A source-provided
+            // relative date is still better than the synthetic timestamp of an undated Short.
+            val existingDateIsSynthetic = StreamUploadDate.isSynthetic(
+                newerStream.serviceId,
+                existentMinimalStream.isUploadDateApproximation,
+                existentMinimalStream.textualUploadDate
+            )
+            val hasBetterPrecision = newerStream.uploadDate != null &&
+                (
+                    newerStream.isUploadDateApproximation != true ||
+                        (existingDateIsSynthetic && !newerStream.hasSyntheticUploadDate)
+                    )
             if (existentMinimalStream.uploadDate != null && !hasBetterPrecision) {
                 newerStream.uploadDate = existentMinimalStream.uploadDate
                 newerStream.textualUploadDate = existentMinimalStream.textualUploadDate
@@ -106,6 +148,15 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
                 newerStream.duration = existentMinimalStream.duration
             }
         }
+
+        if (newerStream.uploaderAvatarUrl.isNullOrBlank()) {
+            newerStream.uploaderAvatarUrl = existentMinimalStream.uploaderAvatarUrl
+        }
+
+        // Some endpoints cannot identify Shorts reliably. Once an extractor has positively
+        // identified an item as short-form content, do not erase that information on refresh.
+        newerStream.isShortFormContent =
+            newerStream.isShortFormContent || existentMinimalStream.isShortFormContent
     }
 
     @Query(
@@ -115,11 +166,26 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
         NOT EXISTS (SELECT 1 FROM stream_history sh
         WHERE sh.stream_id = streams.uid)
 
+        AND NOT EXISTS (SELECT 1 FROM stream_state ss
+        WHERE ss.stream_id = streams.uid)
+
         AND NOT EXISTS (SELECT 1 FROM playlist_stream_join ps
         WHERE ps.stream_id = streams.uid)
 
         AND NOT EXISTS (SELECT 1 FROM feed f
         WHERE f.stream_id = streams.uid)
+
+        AND NOT EXISTS (SELECT 1 FROM saved_search_feed_stream ssf
+        WHERE ssf.stream_id = streams.uid)
+
+        AND NOT EXISTS (SELECT 1 FROM learning_notes ln
+        WHERE ln.stream_id = streams.uid)
+
+        AND NOT EXISTS (SELECT 1 FROM learning_sessions ls
+        WHERE ls.stream_id = streams.uid)
+
+        AND NOT EXISTS (SELECT 1 FROM learning_content_streams lcs
+        WHERE lcs.stream_id = streams.uid)
         """
     )
     abstract fun deleteOrphans(): Int
@@ -144,6 +210,12 @@ abstract class StreamDAO : BasicDAO<StreamEntity> {
         var isUploadDateApproximation: Boolean? = null,
 
         @ColumnInfo(name = StreamEntity.STREAM_DURATION)
-        var duration: Long
+        var duration: Long,
+
+        @ColumnInfo(name = StreamEntity.STREAM_UPLOADER_AVATAR_URL)
+        var uploaderAvatarUrl: String? = null,
+
+        @ColumnInfo(name = StreamEntity.STREAM_IS_SHORT_FORM_CONTENT)
+        var isShortFormContent: Boolean = false
     )
 }

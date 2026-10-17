@@ -1,8 +1,5 @@
 package org.schabi.newpipe.player.helper;
 
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ALL;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_OFF;
-import static com.google.android.exoplayer2.Player.REPEAT_MODE_ONE;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_ALWAYS;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_NEVER;
 import static org.schabi.newpipe.player.helper.PlayerHelper.AutoplayType.AUTOPLAY_TYPE_WIFI;
@@ -14,6 +11,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.provider.Settings;
 import android.view.accessibility.CaptioningManager;
 
@@ -23,20 +21,17 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player.RepeatMode;
-import com.google.android.exoplayer2.SeekParameters;
-import com.google.android.exoplayer2.source.ProgressiveMediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.ExoTrackSelection;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout.ResizeMode;
-import com.google.android.exoplayer2.ui.CaptionStyleCompat;
-import com.google.android.exoplayer2.util.MimeTypes;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.exoplayer.SeekParameters;
+import androidx.media3.exoplayer.source.ProgressiveMediaSource;
+import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection;
+import androidx.media3.exoplayer.trackselection.ExoTrackSelection;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.AspectRatioFrameLayout.ResizeMode;
+import androidx.media3.ui.CaptionStyleCompat;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.InfoItem;
-import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.extractor.stream.SubtitlesStream;
@@ -46,26 +41,23 @@ import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
 import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
 import org.schabi.newpipe.util.ListHelper;
+import org.schabi.newpipe.util.Localization;
 
 import java.lang.annotation.Retention;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public final class PlayerHelper {
-    private static final StringBuilder STRING_BUILDER = new StringBuilder();
-    private static final Formatter STRING_FORMATTER =
-            new Formatter(STRING_BUILDER, Locale.getDefault());
-    private static final NumberFormat SPEED_FORMATTER = new DecimalFormat("0.##x");
-    private static final NumberFormat PITCH_FORMATTER = new DecimalFormat("##%");
+    private static final FormattersProvider FORMATTERS_PROVIDER = new FormattersProvider();
 
     @Retention(SOURCE)
     @IntDef({AUTOPLAY_TYPE_ALWAYS, AUTOPLAY_TYPE_WIFI,
@@ -88,46 +80,37 @@ public final class PlayerHelper {
     private PlayerHelper() {
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Exposed helpers
-    ////////////////////////////////////////////////////////////////////////////
+    // region Exposed helpers
+
+    public static void resetFormat() {
+        FORMATTERS_PROVIDER.reset();
+    }
 
     @NonNull
-    public static String getTimeString(final int milliSeconds) {
-        final int seconds = (milliSeconds % 60000) / 1000;
-        final int minutes = (milliSeconds % 3600000) / 60000;
-        final int hours = (milliSeconds % 86400000) / 3600000;
-        final int days = (milliSeconds % (86400000 * 7)) / 86400000;
+    public static String getTimeString(final long milliSeconds) {
+        final long seconds = (milliSeconds % 60000) / 1000;
+        final long minutes = (milliSeconds % 3600000) / 60000;
+        final long hours = (milliSeconds % 86400000) / 3600000;
+        final long days = (milliSeconds % (86400000 * 7)) / 86400000;
 
-        STRING_BUILDER.setLength(0);
-        return (days > 0
-                ? STRING_FORMATTER.format("%d:%02d:%02d:%02d", days, hours, minutes, seconds)
-                : hours > 0
-                ? STRING_FORMATTER.format("%d:%02d:%02d", hours, minutes, seconds)
-                : STRING_FORMATTER.format("%02d:%02d", minutes, seconds)
-        ).toString();
+        final Formatters formatters = FORMATTERS_PROVIDER.formatters();
+        if (days > 0) {
+            return formatters.stringFormat("%d:%02d:%02d:%02d", days, hours, minutes, seconds);
+        }
+
+        return hours > 0
+            ? formatters.stringFormat("%d:%02d:%02d", hours, minutes, seconds)
+            : formatters.stringFormat("%02d:%02d", minutes, seconds);
     }
 
     @NonNull
     public static String formatSpeed(final double speed) {
-        return SPEED_FORMATTER.format(speed);
+        return FORMATTERS_PROVIDER.formatters().speed().format(speed);
     }
 
     @NonNull
     public static String formatPitch(final double pitch) {
-        return PITCH_FORMATTER.format(pitch);
-    }
-
-    @NonNull
-    public static String subtitleMimeTypesOf(@NonNull final MediaFormat format) {
-        switch (format) {
-            case VTT:
-                return MimeTypes.TEXT_VTT;
-            case TTML:
-                return MimeTypes.APPLICATION_TTML;
-            default:
-                throw new IllegalArgumentException("Unrecognized mime type: " + format.name());
-        }
+        return FORMATTERS_PROVIDER.formatters().pitch().format(pitch);
     }
 
     @NonNull
@@ -156,17 +139,14 @@ public final class PlayerHelper {
     @NonNull
     public static String resizeTypeOf(@NonNull final Context context,
                                       @ResizeMode final int resizeMode) {
-        switch (resizeMode) {
-            case AspectRatioFrameLayout.RESIZE_MODE_FIT:
-                return context.getResources().getString(R.string.resize_fit);
+        switch (sanitizeResizeMode(resizeMode)) {
             case AspectRatioFrameLayout.RESIZE_MODE_FILL:
-                return context.getResources().getString(R.string.resize_fill);
+                return context.getString(R.string.resize_fill);
             case AspectRatioFrameLayout.RESIZE_MODE_ZOOM:
-                return context.getResources().getString(R.string.resize_zoom);
-            case AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT:
-            case AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH:
+                return context.getString(R.string.resize_zoom);
+            case AspectRatioFrameLayout.RESIZE_MODE_FIT:
             default:
-                throw new IllegalArgumentException("Unrecognized resize mode: " + resizeMode);
+                return context.getString(R.string.resize_fit);
         }
     }
 
@@ -178,26 +158,38 @@ public final class PlayerHelper {
      * if a candidate next video's url already exists in the existing items.
      * </p>
      * <p>
-     * The first item in {@link StreamInfo#getRelatedItems()} is checked first.
-     * If it is non-null and is not part of the existing items, it will be used as the next stream.
-     * Otherwise, a random stream with non-repeating url will be selected
-     * from the {@link StreamInfo#getRelatedItems()}. Non-stream items are ignored.
+     * For short-form playback, only a non-repeating short-form related stream is returned. If none
+     * is available, auto-queueing stops instead of switching into regular video playback. For
+     * regular playback, the first related stream is checked before selecting a random
+     * non-repeating stream. Non-stream items are ignored.
      * </p>
      *
-     * @param info          currently playing stream
-     * @param existingItems existing items in the queue
+     * @param info                   currently playing stream
+     * @param existingItems          existing items in the queue
+     * @param preferShortFormContent whether short-form related streams should be preferred
      * @return {@link SinglePlayQueue} with the next stream to queue
      */
     @Nullable
     public static PlayQueue autoQueueOf(@NonNull final StreamInfo info,
-                                        @NonNull final List<PlayQueueItem> existingItems) {
-        final Set<String> urls = new HashSet<>(existingItems.size());
-        for (final PlayQueueItem item : existingItems) {
-            urls.add(item.getUrl());
-        }
+                                        @NonNull final List<PlayQueueItem> existingItems,
+                                        final boolean preferShortFormContent) {
+        final Set<String> urls = existingItems.stream()
+                .map(PlayQueueItem::getUrl)
+                .collect(Collectors.toUnmodifiableSet());
 
         final List<InfoItem> relatedItems = info.getRelatedItems();
         if (Utils.isNullOrEmpty(relatedItems)) {
+            return null;
+        }
+
+        if (preferShortFormContent) {
+            for (final InfoItem item : relatedItems) {
+                if (item instanceof StreamInfoItem
+                        && ((StreamInfoItem) item).isShortFormContent()
+                        && !urls.contains(item.getUrl())) {
+                    return getAutoQueuedSinglePlayQueue((StreamInfoItem) item);
+                }
+            }
             return null;
         }
 
@@ -218,23 +210,71 @@ public final class PlayerHelper {
                 ? null : getAutoQueuedSinglePlayQueue(autoQueueItems.get(0));
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Settings Resolution
-    ////////////////////////////////////////////////////////////////////////////
+    @Nullable
+    public static PlayQueue autoQueueOf(@NonNull final StreamInfo info,
+                                        @NonNull final List<PlayQueueItem> existingItems) {
+        return autoQueueOf(info, existingItems, info.isShortFormContent());
+    }
+
+    // endregion
+    // region Resolution
 
     public static boolean isResumeAfterAudioFocusGain(@NonNull final Context context) {
         return getPreferences(context)
                 .getBoolean(context.getString(R.string.resume_on_audio_focus_gain_key), false);
     }
 
-    public static boolean isVolumeGestureEnabled(@NonNull final Context context) {
+    public static String getActionForRightGestureSide(@NonNull final Context context) {
         return getPreferences(context)
-                .getBoolean(context.getString(R.string.volume_gesture_control_key), true);
+                .getString(context.getString(R.string.right_gesture_control_key),
+                        context.getString(R.string.default_right_gesture_control_value));
     }
 
-    public static boolean isBrightnessGestureEnabled(@NonNull final Context context) {
+    public static String getActionForLeftGestureSide(@NonNull final Context context) {
         return getPreferences(context)
-                .getBoolean(context.getString(R.string.brightness_gesture_control_key), true);
+                .getString(context.getString(R.string.left_gesture_control_key),
+                        context.getString(R.string.default_left_gesture_control_value));
+    }
+
+    public static boolean isSwipeSeekGestureEnabled(@NonNull final Context context) {
+        return getPreferences(context)
+                .getBoolean(context.getString(R.string.swipe_seek_gesture_control_key), true);
+    }
+
+    public static boolean isFullscreenGestureEnabled(@NonNull final Context context) {
+        return getPreferences(context)
+                .getBoolean(context.getString(R.string.fullscreen_gesture_control_key), true);
+    }
+
+    public static boolean isPinchToZoomGestureEnabled(@NonNull final Context context) {
+        return getPreferences(context)
+                .getBoolean(context.getString(R.string.pinch_to_zoom_gesture_control_key), true);
+    }
+
+    public static boolean isTwoFingerSpeedGestureEnabled(@NonNull final Context context) {
+        return getPreferences(context).getBoolean(
+                context.getString(R.string.two_finger_speed_gesture_control_key), false);
+    }
+
+    public static boolean isHoldToSpeedEnabled(@NonNull final Context context) {
+        return !context.getString(R.string.hold_to_speed_off_value)
+                .equals(getPreferences(context).getString(
+                        context.getString(R.string.hold_to_speed_key),
+                        context.getString(R.string.hold_to_speed_default_value)));
+    }
+
+    public static float getHoldToSpeedValue(@NonNull final Context context) {
+        final String value = getPreferences(context).getString(
+                context.getString(R.string.hold_to_speed_key),
+                context.getString(R.string.hold_to_speed_default_value));
+        if (context.getString(R.string.hold_to_speed_off_value).equals(value)) {
+            return 1.0f;
+        }
+        try {
+            return Float.parseFloat(value);
+        } catch (final NullPointerException | NumberFormatException e) {
+            return Float.parseFloat(context.getString(R.string.hold_to_speed_default_value));
+        }
     }
 
     public static boolean isStartMainPlayerFullscreenEnabled(@NonNull final Context context) {
@@ -312,10 +352,6 @@ public final class PlayerHelper {
                 AdaptiveTrackSelection.DEFAULT_BANDWIDTH_FRACTION);
     }
 
-    public static boolean isUsingDSP() {
-        return true;
-    }
-
     @NonNull
     public static CaptionStyleCompat getCaptionStyle(@NonNull final Context context) {
         final CaptioningManager captioningManager = ContextCompat.getSystemService(context,
@@ -382,8 +418,11 @@ public final class PlayerHelper {
     public static boolean globalScreenOrientationLocked(final Context context) {
         // 1: Screen orientation changes using accelerometer
         // 0: Screen orientation is locked
+        // if the accelerometer sensor is missing completely, assume locked orientation
         return android.provider.Settings.System.getInt(
-                context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 0;
+                context.getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 0
+                    || !context.getPackageManager()
+                        .hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER);
     }
 
     public static int getProgressiveLoadIntervalBytes(@NonNull final Context context) {
@@ -399,9 +438,8 @@ public final class PlayerHelper {
         return Integer.parseInt(preferredIntervalBytes) * 1024;
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Private helpers
-    ////////////////////////////////////////////////////////////////////////////
+    // endregion
+    // region Private helpers
 
     @NonNull
     private static SharedPreferences getPreferences(@NonNull final Context context) {
@@ -420,38 +458,44 @@ public final class PlayerHelper {
         return singlePlayQueue;
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Utils used by player
-    ////////////////////////////////////////////////////////////////////////////
-
-    public static boolean isPlaybackResumeEnabled(final Player player) {
-        return player.getPrefs().getBoolean(
-                player.getContext().getString(R.string.enable_watch_history_key), true)
-                && player.getPrefs().getBoolean(
-                player.getContext().getString(R.string.enable_playback_resume_key), true);
-    }
-
-    @RepeatMode
-    public static int nextRepeatMode(@RepeatMode final int repeatMode) {
-        switch (repeatMode) {
-            case REPEAT_MODE_OFF:
-                return REPEAT_MODE_ONE;
-            case REPEAT_MODE_ONE:
-                return REPEAT_MODE_ALL;
-            case REPEAT_MODE_ALL:
-            default:
-                return REPEAT_MODE_OFF;
-        }
-    }
+    // endregion
+    // region Utils used by player
 
     @ResizeMode
     public static int retrieveResizeModeFromPrefs(final Player player) {
-        return player.getPrefs().getInt(player.getContext().getString(R.string.last_resize_mode),
-                AspectRatioFrameLayout.RESIZE_MODE_FIT);
+        return retrieveResizeModeFromPrefs(
+                player.getPrefs(),
+                player.getContext().getString(R.string.last_resize_mode));
     }
 
-    @SuppressLint("SwitchIntDef") // only fit, fill and zoom are supported by NewPipe
+    @ResizeMode
+    static int retrieveResizeModeFromPrefs(@NonNull final SharedPreferences preferences,
+                                           @NonNull final String preferenceKey) {
+        final int storedResizeMode = preferences.getInt(preferenceKey,
+                AspectRatioFrameLayout.RESIZE_MODE_FIT);
+        final int resizeMode = sanitizeResizeMode(storedResizeMode);
+        if (resizeMode != storedResizeMode) {
+            preferences.edit().putInt(preferenceKey, resizeMode).apply();
+        }
+        return resizeMode;
+    }
+
+    @SuppressLint("SwitchIntDef")
+    @ResizeMode
+    static int sanitizeResizeMode(final int resizeMode) {
+        switch (resizeMode) {
+            case AspectRatioFrameLayout.RESIZE_MODE_FIT:
+            case AspectRatioFrameLayout.RESIZE_MODE_FILL:
+            case AspectRatioFrameLayout.RESIZE_MODE_ZOOM:
+                return resizeMode;
+            case AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT:
+            case AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH:
+            default:
+                return AspectRatioFrameLayout.RESIZE_MODE_FIT;
+        }
+    }
+
+    @SuppressLint("SwitchIntDef") // only fit, fill and zoom are supported by WizeStream
     @ResizeMode
     public static int nextResizeModeAndSaveToPrefs(final Player player,
                                                    @ResizeMode final int resizeMode) {
@@ -504,4 +548,43 @@ public final class PlayerHelper {
                 player.getContext().getString(R.string.seek_duration_key),
                 player.getContext().getString(R.string.seek_duration_default_value))));
     }
+
+    // endregion
+    // region Format
+
+    static class FormattersProvider {
+        private Formatters formatters;
+
+        public Formatters formatters() {
+            if (formatters == null) {
+                formatters = Formatters.create();
+            }
+            return formatters;
+        }
+
+        public void reset() {
+            formatters = null;
+        }
+    }
+
+    record Formatters(
+        Locale locale,
+        NumberFormat speed,
+        NumberFormat pitch) {
+
+        static Formatters create() {
+            final Locale locale = Localization.getAppLocale();
+            final DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance(locale);
+            return new Formatters(
+                locale,
+                new DecimalFormat("0.##x", dfs),
+                new DecimalFormat("##%", dfs));
+        }
+
+        String stringFormat(final String format, final Object... args) {
+            return String.format(locale, format, args);
+        }
+    }
+
+    // endregion
 }

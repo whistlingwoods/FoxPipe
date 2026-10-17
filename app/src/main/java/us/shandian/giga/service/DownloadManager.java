@@ -13,26 +13,32 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import us.shandian.giga.get.DownloadMission;
 import us.shandian.giga.get.FinishedMission;
+import us.shandian.giga.get.MetadataOnlyFinishedMission;
 import us.shandian.giga.get.Mission;
 import us.shandian.giga.get.sqlite.FinishedMissionStore;
+import org.schabi.newpipe.local.search.ContextualSearchHelper;
 import org.schabi.newpipe.streams.io.StoredDirectoryHelper;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
 import us.shandian.giga.util.Utility;
 
 import static org.schabi.newpipe.BuildConfig.DEBUG;
+import static us.shandian.giga.get.DownloadMission.ERROR_NOTHING;
+import static us.shandian.giga.get.DownloadMission.ERROR_PROGRESS_LOST;
 
 public class DownloadManager {
     private static final String TAG = DownloadManager.class.getSimpleName();
 
     enum NetworkState {Unavailable, Operating, MeteredOperating}
 
-    public final static int SPECIAL_NOTHING = 0;
-    public final static int SPECIAL_PENDING = 1;
-    public final static int SPECIAL_FINISHED = 2;
+    public static final int SPECIAL_NOTHING = 0;
+    public static final int SPECIAL_PENDING = 1;
+    public static final int SPECIAL_FINISHED = 2;
 
     public static final String TAG_AUDIO = "audio";
     public static final String TAG_VIDEO = "video";
@@ -149,10 +155,29 @@ public class DownloadManager {
             if (sub.getName().equals(".tmp")) continue;
 
             DownloadMission mis = Utility.readFromFile(sub);
-            if (mis == null || mis.isFinished() || mis.hasInvalidStorage()) {
+            if (mis == null) {
                 //noinspection ResultOfMethodCallIgnored
                 sub.delete();
                 continue;
+            }
+
+            // DON'T delete missions that are truly finished - let them be moved to finished list
+            if (mis.isFinished()) {
+                // Move to finished missions instead of deleting
+                setFinished(mis);
+                //noinspection ResultOfMethodCallIgnored
+                sub.delete();
+                continue;
+            }
+
+            // DON'T delete missions with storage issues - try to recover them
+            if (mis.hasInvalidStorage() && mis.errCode != ERROR_PROGRESS_LOST) {
+                // Only delete if it's truly unrecoverable (not just progress lost)
+                if (mis.storage == null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    sub.delete();
+                    continue;
+                }
             }
 
             mis.threads = new Thread[0];
@@ -163,16 +188,13 @@ public class DownloadManager {
                 exists = !mis.storage.isInvalid() && mis.storage.existsAsFile();
             } catch (Exception ex) {
                 Log.e(TAG, "Failed to load the file source of " + mis.storage.toString(), ex);
-                mis.storage.invalidate();
+                // Don't invalidate storage immediately - try to recover first
                 exists = false;
             }
 
             if (mis.isPsRunning()) {
                 if (mis.psAlgorithm.worksOnSameFile) {
                     // Incomplete post-processing results in a corrupted download file
-                    // because the selected algorithm works on the same file to save space.
-                    // the file will be deleted if the storage API
-                    // is Java IO (avoid showing the "Save as..." dialog)
                     if (exists && mis.storage.isDirect() && !mis.storage.delete())
                         Log.w(TAG, "Unable to delete incomplete download file: " + sub.getPath());
                 }
@@ -181,10 +203,11 @@ public class DownloadManager {
                 mis.errCode = DownloadMission.ERROR_POSTPROCESSING_STOPPED;
             } else if (!exists) {
                 tryRecover(mis);
-
-                // the progress is lost, reset mission state
-                if (mis.isInitialized())
-                    mis.resetState(true, true, DownloadMission.ERROR_PROGRESS_LOST);
+                // Keep the mission even if recovery fails - don't reset to ERROR_PROGRESS_LOST
+                // This allows user to see the failed download and potentially retry
+                if (mis.isInitialized() && mis.errCode == ERROR_NOTHING) {
+                    mis.resetState(true, true, ERROR_PROGRESS_LOST);
+                }
             }
 
             if (mis.psAlgorithm != null) {
@@ -245,7 +268,7 @@ public class DownloadManager {
 
             boolean start = !mPrefQueueLimit || getRunningMissionsCount() < 1;
 
-            if (canDownloadInCurrentNetwork() && start) {
+            if (canDownloadInCurrentNetwork(mission) && start) {
                 mission.start();
             }
         }
@@ -253,9 +276,21 @@ public class DownloadManager {
 
 
     public void resumeMission(DownloadMission mission) {
-        if (!mission.running) {
+        if (!mission.running && (!mission.requiresUnmeteredNetwork
+                || canDownloadInCurrentNetwork(mission))) {
             mission.start();
         }
+    }
+
+    public synchronized boolean hasMissionForSource(final String source, final char kind) {
+        for (final DownloadMission mission : mMissionsPending) {
+            if (kind == mission.kind && source.equals(mission.source)) return true;
+        }
+        for (final FinishedMission mission : mMissionsFinished) {
+            if (kind == mission.kind && source.equals(mission.source)
+                    && mission.storage != null && mission.storage.existsAsFile()) return true;
+        }
+        return false;
     }
 
     public void pauseMission(DownloadMission mission) {
@@ -265,16 +300,20 @@ public class DownloadManager {
         }
     }
 
-    public void deleteMission(Mission mission) {
+    public void deleteMission(Mission mission, boolean alsoDeleteFile) {
         synchronized (this) {
             if (mission instanceof DownloadMission) {
                 mMissionsPending.remove(mission);
+                ((DownloadMission) mission).cancel(alsoDeleteFile);
             } else if (mission instanceof FinishedMission) {
                 mMissionsFinished.remove(mission);
                 mFinishedMissionStore.deleteMission(mission);
+                if (alsoDeleteFile) {
+                    mission.delete();
+                }
+            } else if (alsoDeleteFile) {
+                mission.delete();
             }
-
-            mission.delete();
         }
     }
 
@@ -420,8 +459,9 @@ public class DownloadManager {
     void setFinished(DownloadMission mission) {
         synchronized (this) {
             mMissionsPending.remove(mission);
-            mMissionsFinished.add(0, new FinishedMission(mission));
-            mFinishedMissionStore.addFinishedMission(mission);
+            FinishedMission finishedMission = new FinishedMission(mission);
+            mMissionsFinished.add(0, finishedMission);
+            mFinishedMissionStore.addFinishedMission(finishedMission);
         }
     }
 
@@ -442,11 +482,12 @@ public class DownloadManager {
 
             boolean flag = false;
             for (DownloadMission mission : mMissionsPending) {
-                if (mission.running || !mission.enqueued || mission.isFinished())
+                if (mission.running || !mission.enqueued || mission.isFinished()
+                        || !canDownloadInCurrentNetwork(mission))
                     continue;
 
                 resumeMission(mission);
-                if (mission.errCode != DownloadMission.ERROR_NOTHING) continue;
+                if (mission.errCode != ERROR_NOTHING) continue;
 
                 if (mPrefQueueLimit) return true;
                 flag = true;
@@ -478,6 +519,11 @@ public class DownloadManager {
         return !(mPrefMeteredDownloads && mLastNetworkStatus == NetworkState.MeteredOperating);
     }
 
+    private boolean canDownloadInCurrentNetwork(final DownloadMission mission) {
+        return canDownloadInCurrentNetwork() && !(mission.requiresUnmeteredNetwork
+                && mLastNetworkStatus == NetworkState.MeteredOperating);
+    }
+
     void handleConnectivityState(NetworkState currentStatus, boolean updateOnly) {
         if (currentStatus == mLastNetworkStatus) return;
 
@@ -488,15 +534,13 @@ public class DownloadManager {
             return;// don't touch anything without the user interaction
         }
 
-        boolean isMetered = mPrefMeteredDownloads && mLastNetworkStatus == NetworkState.MeteredOperating;
-
         synchronized (this) {
             for (DownloadMission mission : mMissionsPending) {
                 if (mission.isCorrupt() || mission.isPsRunning()) continue;
-
-                if (mission.running && isMetered) {
+                if (mission.running && !canDownloadInCurrentNetwork(mission)) {
                     mission.pause();
-                } else if (!mission.running && !isMetered && mission.enqueued) {
+                } else if (!mission.running && canDownloadInCurrentNetwork(mission)
+                        && mission.enqueued) {
                     mission.start();
                     if (mPrefQueueLimit) break;
                 }
@@ -508,6 +552,15 @@ public class DownloadManager {
         synchronized (this) {
             for (DownloadMission mission : mMissionsPending) mission.maxRetry = mPrefMaxRetry;
         }
+    }
+
+    public boolean canRecoverMission(DownloadMission mission) {
+        if (mission == null) return false;
+
+        // Can recover missions with progress lost or storage issues
+        return mission.errCode == ERROR_PROGRESS_LOST ||
+                mission.storage == null ||
+                !mission.storage.existsAsFile();
     }
 
     public MissionState checkForExistingMission(StoredFileHelper storage) {
@@ -569,6 +622,9 @@ public class DownloadManager {
         ArrayList<Mission> hidden;
 
         boolean hasFinished = false;
+        boolean hasLocalFinished = false;
+        String searchQuery = "";
+        private final ArrayList<FinishedMission> additionalFinished = new ArrayList<>();
 
         private MissionIterator() {
             hidden = new ArrayList<>(2);
@@ -582,8 +638,26 @@ public class DownloadManager {
                 ArrayList<Mission> finished = new ArrayList<>(mMissionsFinished);
                 List<Mission> remove = new ArrayList<>(hidden);
 
-                // hide missions (if required)
-                remove.removeIf(mission -> pending.remove(mission) || finished.remove(mission));
+                // Don't hide recoverable missions
+                remove.removeIf(mission -> {
+                    if (mission instanceof DownloadMission dm && canRecoverMission(dm)) {
+                        return false; // Don't remove recoverable missions
+                    }
+                    return pending.remove(mission) || finished.remove(mission);
+                });
+
+                if (ContextualSearchHelper.isActive(searchQuery)) {
+                    pending.removeIf(mission -> !matchesSearchQuery(mission));
+                    finished.removeIf(mission -> !matchesSearchQuery(mission));
+                }
+
+                hasLocalFinished = finished.size() > 0;
+                final List<FinishedMission> visibleMetadata =
+                        new ArrayList<>(additionalFinished);
+                if (ContextualSearchHelper.isActive(searchQuery)) {
+                    visibleMetadata.removeIf(mission -> !matchesSearchQuery(mission));
+                }
+                addMissingCompletedDownloadMetadata(pending, finished, visibleMetadata);
 
                 int fakeTotal = pending.size();
                 if (fakeTotal > 0) fakeTotal++;
@@ -604,6 +678,23 @@ public class DownloadManager {
                 hasFinished = finished.size() > 0;
 
                 return list;
+            }
+        }
+
+        private boolean matchesSearchQuery(@NonNull final Mission mission) {
+            return ContextualSearchHelper.matches(searchQuery,
+                    mission.storage == null ? null : mission.storage.getName());
+        }
+
+        public void setAdditionalFinishedMissions(
+                @NonNull final List<? extends FinishedMission> missions
+        ) {
+            synchronized (DownloadManager.this) {
+                additionalFinished.clear();
+                additionalFinished.addAll(missions);
+                additionalFinished.sort(
+                        Comparator.comparingLong(Mission::getTimestamp).reversed()
+                );
             }
         }
 
@@ -643,8 +734,25 @@ public class DownloadManager {
             hidden.remove(mission);
         }
 
+        public boolean setSearchQuery(@NonNull final String query) {
+            final String normalizedQuery = ContextualSearchHelper.normalizeQuery(query);
+            if (searchQuery.equals(normalizedQuery)) {
+                return false;
+            }
+            searchQuery = normalizedQuery;
+            return true;
+        }
+
+        public boolean isSearchActive() {
+            return ContextualSearchHelper.isActive(searchQuery);
+        }
+
         public boolean hasFinishedMissions() {
             return hasFinished;
+        }
+
+        public boolean hasLocalFinishedMissions() {
+            return hasLocalFinished;
         }
 
         /**
@@ -686,7 +794,15 @@ public class DownloadManager {
 
         @Override
         public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return snapshot.get(oldItemPosition) == current.get(newItemPosition);
+            final Object oldItem = snapshot.get(oldItemPosition);
+            final Object newItem = current.get(newItemPosition);
+            if (oldItem instanceof MetadataOnlyFinishedMission
+                    && newItem instanceof MetadataOnlyFinishedMission) {
+                return ((MetadataOnlyFinishedMission) oldItem).syncId.equals(
+                        ((MetadataOnlyFinishedMission) newItem).syncId
+                );
+            }
+            return oldItem == newItem;
         }
 
         @Override
@@ -694,12 +810,50 @@ public class DownloadManager {
             Object x = snapshot.get(oldItemPosition);
             Object y = current.get(newItemPosition);
 
+            if (x instanceof MetadataOnlyFinishedMission
+                    && y instanceof MetadataOnlyFinishedMission) {
+                final MetadataOnlyFinishedMission oldMission =
+                        (MetadataOnlyFinishedMission) x;
+                final MetadataOnlyFinishedMission newMission =
+                        (MetadataOnlyFinishedMission) y;
+                return oldMission.source.equals(newMission.source)
+                        && oldMission.displayName.equals(newMission.displayName)
+                        && oldMission.mimeType.equals(newMission.mimeType)
+                        && oldMission.length == newMission.length
+                        && oldMission.timestamp == newMission.timestamp
+                        && oldMission.kind == newMission.kind;
+            }
             if (x instanceof Mission && y instanceof Mission) {
                 return ((Mission) x).storage.equals(((Mission) y).storage);
             }
 
             return false;
         }
+    }
+
+    static void addMissingCompletedDownloadMetadata(
+            @NonNull final List<? extends Mission> pending,
+            @NonNull final List<Mission> finished,
+            @NonNull final List<? extends FinishedMission> metadata
+    ) {
+        final Set<String> localDownloadIdentities = new HashSet<>();
+        pending.forEach(mission ->
+                localDownloadIdentities.add(downloadIdentity(mission)));
+        finished.forEach(mission ->
+                localDownloadIdentities.add(downloadIdentity(mission)));
+
+        final Set<String> addedMetadataIdentities = new HashSet<>();
+        metadata.stream()
+                .filter(mission ->
+                        !localDownloadIdentities.contains(downloadIdentity(mission)))
+                .filter(mission ->
+                        addedMetadataIdentities.add(downloadIdentity(mission)))
+                .forEach(finished::add);
+        finished.sort(Comparator.comparingLong(Mission::getTimestamp).reversed());
+    }
+
+    private static String downloadIdentity(@NonNull final Mission mission) {
+        return mission.source.trim() + '\u0000' + mission.kind;
     }
 
     public static class MissionItem {

@@ -11,6 +11,7 @@ import com.grack.nanojson.JsonParser;
 import com.grack.nanojson.JsonParserException;
 
 import org.junit.Test;
+import org.schabi.newpipe.R;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,6 +79,22 @@ public class TabsJsonHelperTest {
         assertTrue(isTabsArrayEmpty(returnedJson));
     }
 
+    @Test
+    public void testFeedGroupTabReadZeroIconFallsBackToAsterisk()
+            throws JsonParserException {
+        final JsonObject jsonObject = JsonParser.object().from("{\"tab_id\":"
+                + Tab.FeedGroupTab.ID
+                + ",\"feed_group_id\":1"
+                + ",\"feed_group_name\":\"Test group\""
+                + ",\"feed_group_icon\":0}");
+
+        final Tab.FeedGroupTab feedGroupTab = requireNonNull(
+                (Tab.FeedGroupTab) Tab.from(jsonObject));
+
+        assertEquals(R.drawable.ic_asterisk, feedGroupTab.getIconId());
+        assertEquals(R.drawable.ic_asterisk, feedGroupTab.getTabIconRes(null));
+    }
+
     private boolean isTabsArrayEmpty(final String returnedJson) throws JsonParserException {
         final JsonObject jsonObject = JsonParser.object().from(returnedJson);
         assertTrue(jsonObject.containsKey(JSON_TABS_ARRAY_KEY));
@@ -93,9 +110,11 @@ public class TabsJsonHelperTest {
         final Tab.ChannelTab channelTab = new Tab.ChannelTab(
                 666, "https://example.org", "testName");
         final Tab.KioskTab kioskTab = new Tab.KioskTab(123, "trending_key");
+        final Tab.FeedGroupTab feedGroupTab = new Tab.FeedGroupTab(
+                1L, "x", 123);
 
         final List<Tab> tabs = Arrays.asList(
-                blankTab, defaultKioskTab, subscriptionsTab, channelTab, kioskTab);
+                blankTab, defaultKioskTab, subscriptionsTab, channelTab, kioskTab, feedGroupTab);
         final String returnedJson = TabsJsonHelper.getJsonToSave(tabs);
 
         // Reading
@@ -130,5 +149,13 @@ public class TabsJsonHelperTest {
         assertEquals(kioskTab.getTabId(), kioskTabFromReturnedJson.getTabId());
         assertEquals(kioskTab.getKioskServiceId(), kioskTabFromReturnedJson.getKioskServiceId());
         assertEquals(kioskTab.getKioskId(), kioskTabFromReturnedJson.getKioskId());
+
+        final Tab.FeedGroupTab grpTabFromReturnedJson = requireNonNull(
+                (Tab.FeedGroupTab) Tab.from((JsonObject) tabsFromArray.get(5)
+                ));
+        assertEquals(feedGroupTab.getTabId(), grpTabFromReturnedJson.getTabId());
+        assertEquals(feedGroupTab.getFeedGroupId(), grpTabFromReturnedJson.getFeedGroupId());
+        assertEquals(feedGroupTab.getIconId(), grpTabFromReturnedJson.getIconId());
+        assertEquals(feedGroupTab.getFeedGroupName(), grpTabFromReturnedJson.getFeedGroupName());
     }
 }

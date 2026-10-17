@@ -45,7 +45,7 @@ class NotificationModeConfigFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentChannelsNotificationsBinding.inflate(inflater, container, false)
         return binding.root
@@ -53,11 +53,7 @@ class NotificationModeConfigFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = NotificationModeConfigAdapter { position, mode ->
-            // Notification mode has been changed via the UI.
-            // Now change it in the database.
-            updateNotificationMode(adapter.currentList[position], mode)
-        }
+        adapter = NotificationModeConfigAdapter(::showNotificationConfigDialog)
         binding.recyclerView.adapter = adapter
         loader?.dispose()
         loader = subscriptionManager.subscriptions()
@@ -88,6 +84,7 @@ class NotificationModeConfigFragment : Fragment() {
                 toggleAll()
                 true
             }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -104,6 +101,33 @@ class NotificationModeConfigFragment : Fragment() {
     private fun updateNotificationMode(item: SubscriptionItem, @NotificationMode mode: Int) {
         disposables.add(
             subscriptionManager.updateNotificationMode(item.serviceId, item.url, mode)
+                .subscribeOn(Schedulers.io())
+                .subscribe()
+        )
+    }
+
+    private fun showNotificationConfigDialog(item: SubscriptionItem) {
+        NotificationConfigDialog.show(
+            this,
+            item.title,
+            item.notificationMode,
+            item.notificationKeywords
+        ) { mode, keywords ->
+            updateNotificationSettings(item, mode, keywords)
+        }
+    }
+    private fun updateNotificationSettings(
+        item: SubscriptionItem,
+        @NotificationMode mode: Int,
+        keywords: String
+    ) {
+        disposables.add(
+            subscriptionManager.updateNotificationSettings(
+                item.serviceId,
+                item.url,
+                mode,
+                keywords
+            )
                 .subscribeOn(Schedulers.io())
                 .subscribe()
         )

@@ -33,13 +33,25 @@ public final class SettingsResourceRegistry {
 
         add(AppearanceSettingsFragment.class, R.xml.appearance_settings);
         add(ContentSettingsFragment.class, R.xml.content_settings);
+        add(ContentBlockingSettingsFragment.class, R.xml.content_blocking_settings);
         add(DebugSettingsFragment.class, R.xml.debug_settings).setSearchable(false);
         add(DownloadSettingsFragment.class, R.xml.download_settings);
+        add(DeviceSyncSettingsFragment.class, R.xml.device_sync_settings);
         add(HistorySettingsFragment.class, R.xml.history_settings);
-        add(NotificationSettingsFragment.class, R.xml.notifications_settings);
+        add(HistoryPortabilitySettingsFragment.class, R.xml.history_portability_settings);
+        add(LearningSettingsFragment.class, R.xml.learning_settings);
+        add(LocalMediaSettingsFragment.class, R.xml.local_media_settings);
+        add(NotificationsSettingsFragment.class, R.xml.notifications_settings);
         add(PlayerNotificationSettingsFragment.class, R.xml.player_notification_settings);
+        add(ProxySettingsFragment.class, R.xml.proxy_settings);
+        add(ProfilesSettingsFragment.class, R.xml.profiles_settings);
         add(UpdateSettingsFragment.class, R.xml.update_settings);
+        add(SponsorBlockSettingsFragment.class, R.xml.sponsor_block_settings);
+        add(SponsorBlockCategoriesSettingsFragment.class, R.xml.sponsor_block_categories_settings);
+        add(TvRemoteSettingsFragment.class, R.xml.tv_remote_settings);
         add(VideoAudioSettingsFragment.class, R.xml.video_audio_settings);
+        add(ExoPlayerSettingsFragment.class, R.xml.exoplayer_settings);
+        add(BackupRestoreSettingsFragment.class, R.xml.backup_restore_settings);
     }
 
     private SettingRegistryEntry add(

@@ -18,6 +18,14 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_item_search_content"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
         android:id="@+id/menu_item_notify"
         android:checkable="true"
         android:orderInCategory="1"
@@ -27,14 +35,34 @@
         tools:visible="true" />
 
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/menu_item_notification_keywords"
         android:orderInCategory="2"
+        android:title="@string/notification_keywords_title"
+        android:visible="false"
+        app:showAsAction="never"
+        tools:visible="true" />
+
+    <item
+        android:id="@+id/menu_item_subscribe_profile"
+        android:orderInCategory="3"
+        android:title="@string/channel_subscribe_to_profile"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="4"
         android:title="@string/settings"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/menu_item_openInBrowser"
-        android:orderInCategory="3"
+        android:orderInCategory="5"
         android:title="@string/open_in_browser"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_item_automatic_downloads"
+        android:title="@string/automatic_downloads"
+        android:visible="false"
         app:showAsAction="never" />
 </menu>

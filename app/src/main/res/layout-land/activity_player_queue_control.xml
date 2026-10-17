@@ -3,32 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_content"
+    android:background="?attr/colorSurface"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context="org.schabi.newpipe.player.PlayQueueActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight.ActionBar">
+        android:background="?attr/colorSurface"
+        android:theme="@style/ToolbarTheme"
+        app:popupTheme="@style/ToolbarTheme">
 
-        <androidx.appcompat.widget.Toolbar
+        <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_weight="1"
-            android:background="?attr/colorPrimary"
+            android:background="?attr/colorSurface"
             android:theme="@style/ToolbarTheme"
             app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:subtitleTextColor="?attr/colorOnSurfaceVariant"
+            app:titleTextColor="?attr/colorOnSurface"
             app:title="@string/app_name" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/play_queue"
+        android:paddingVertical="8dp"
+        android:clipToPadding="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/progress_bar"
@@ -38,6 +44,19 @@
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
         tools:listitem="@layout/play_queue_item" />
+
+    <org.schabi.newpipe.views.AudioVisualizerView
+        android:id="@+id/audio_visualizer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/progress_bar"
+        android:layout_below="@id/appbar"
+        android:layout_toStartOf="@id/control_pane"
+        android:layout_toLeftOf="@id/control_pane"
+        android:background="?attr/colorSurface"
+        android:contentDescription="@string/audio_visualizer"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
     <RelativeLayout
         android:id="@+id/control_pane"
@@ -62,18 +81,18 @@
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/song_name"
-                style="@android:style/TextAppearance.StatusBar.EventContent.Title"
+                style="@style/TextAppearance.Material3.TitleSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="4"
-                android:textColor="?attr/colorAccent"
+                android:textColor="?attr/colorPrimary"
                 android:textSize="14sp"
                 tools:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nec aliquam augue, eget cursus est. Ut id tristique enim, ut scelerisque tellus. Sed ultricies ipsum non mauris ultricies, commodo malesuada velit porta." />
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/artist_name"
-                style="@android:style/TextAppearance.StatusBar.EventContent"
+                style="@style/TextAppearance.Material3.BodySmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -112,8 +131,8 @@
 
             <ImageButton
                 android:id="@+id/control_fast_rewind"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_toLeftOf="@+id/control_play_pause"
@@ -121,9 +140,9 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:scaleType="fitCenter"
-                android:src="@drawable/exo_controls_rewind"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:src="@drawable/exo_legacy_controls_rewind"
+                android:contentDescription="@string/rewind"
+                app:tint="?attr/colorPrimary" />
 
             <ImageButton
                 android:id="@+id/control_play_pause"
@@ -139,8 +158,8 @@
                 android:focusable="true"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_pause"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:contentDescription="@string/pause"
+                app:tint="?attr/colorPrimary" />
 
             <ProgressBar
                 android:id="@+id/control_progress_bar"
@@ -157,13 +176,13 @@
                 android:indeterminate="true"
                 android:padding="2dp"
                 android:scaleType="fitCenter"
-                android:tint="?attr/colorAccent"
+                android:tint="?attr/colorPrimary"
                 android:visibility="invisible" />
 
             <ImageButton
                 android:id="@+id/control_fast_forward"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@+id/control_play_pause"
@@ -171,9 +190,9 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:scaleType="fitCenter"
-                android:src="@drawable/exo_controls_fastforward"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:src="@drawable/exo_legacy_controls_fastforward"
+                android:contentDescription="@string/forward"
+                app:tint="?attr/colorPrimary" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -188,7 +207,7 @@
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/control_backward"
                 android:layout_width="wrap_content"
-                android:layout_height="35dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
@@ -200,13 +219,13 @@
                 android:minWidth="50dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_previous"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:tint="?attr/colorPrimary"
+                android:contentDescription="@string/previous_stream" />
 
             <ImageButton
                 android:id="@+id/control_repeat"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_toLeftOf="@+id/anchor"
@@ -215,8 +234,8 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_repeat"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:contentDescription="@string/notification_action_repeat"
+                app:tint="?attr/colorPrimary" />
 
             <View
                 android:id="@+id/anchor"
@@ -226,8 +245,8 @@
 
             <ImageButton
                 android:id="@+id/control_shuffle"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginRight="5dp"
                 android:layout_toRightOf="@+id/anchor"
@@ -236,13 +255,13 @@
                 android:focusable="true"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_shuffle"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:contentDescription="@string/notification_action_shuffle"
+                app:tint="?attr/colorPrimary" />
 
             <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/control_forward"
                 android:layout_width="wrap_content"
-                android:layout_height="35dp"
+                android:layout_height="48dp"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
@@ -254,8 +273,8 @@
                 android:minWidth="50dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_next"
-                android:tint="?attr/colorAccent"
-                tools:ignore="ContentDescription" />
+                android:tint="?attr/colorPrimary"
+                android:contentDescription="@string/next_stream" />
         </RelativeLayout>
     </RelativeLayout>
 
@@ -276,13 +295,13 @@
             android:gravity="center"
             android:minHeight="40dp"
             android:text="-:--:--"
-            android:textColor="?attr/colorAccent"
+            android:textColor="?attr/colorPrimary"
             tools:ignore="HardcodedText"
             tools:text="1:06:29" />
 
         <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/seek_bar"
-            style="@style/Widget.AppCompat.SeekBar"
+            style="@style/Widget.WizeStream.SeekBar"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -297,7 +316,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="-:--:--"
-            android:textColor="?attr/colorAccent"
+            android:textColor="?attr/colorPrimary"
             tools:ignore="HardcodedText"
             tools:text="1:23:49" />
 
@@ -311,7 +330,7 @@
             android:paddingRight="4dp"
             android:text="@string/duration_live"
             android:textAllCaps="true"
-            android:textColor="?attr/colorAccent"
+            android:textColor="?attr/colorPrimary"
             android:visibility="gone" />
     </LinearLayout>
 </RelativeLayout>

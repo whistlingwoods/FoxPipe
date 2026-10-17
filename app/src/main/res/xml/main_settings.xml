@@ -4,40 +4,81 @@
     android:key="general_preferences"
     android:title="@string/settings">
 
+    <Preference
+        android:key="settings_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/settings_search_title"
+        android:summary="@string/settings_search_summary"
+        app:iconSpaceReserved="false" />
+
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.VideoAudioSettingsFragment"
         android:icon="@drawable/ic_headset"
         android:title="@string/settings_category_video_audio_title"
+        android:summary="@string/settings_category_video_audio_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.TvRemoteSettingsFragment"
+        android:icon="@drawable/ic_tv"
+        android:title="@string/remote_keys_title"
+        android:summary="@string/remote_keys_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.DownloadSettingsFragment"
         android:icon="@drawable/ic_file_download"
         android:title="@string/settings_category_downloads_title"
+        android:summary="@string/settings_category_downloads_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.AppearanceSettingsFragment"
         android:icon="@drawable/ic_palette"
         android:title="@string/settings_category_appearance_title"
+        android:summary="@string/settings_category_appearance_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.ProfilesSettingsFragment"
+        android:icon="@drawable/ic_person"
+        android:title="@string/profiles_title"
+        android:summary="@string/profiles_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.HistorySettingsFragment"
         android:icon="@drawable/ic_history"
         android:title="@string/settings_category_history_title"
+        android:summary="@string/settings_category_history_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.LocalMediaSettingsFragment"
+        android:icon="@drawable/ic_music_note"
+        android:title="@string/local_media"
+        android:summary="@string/local_media_settings_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.ContentSettingsFragment"
         android:icon="@drawable/ic_language"
         android:title="@string/content"
+        android:summary="@string/settings_category_content_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.ProxySettingsFragment"
+        android:icon="@drawable/ic_public"
+        android:summary="@string/proxy_settings_summary"
+        android:title="@string/proxy_settings_title"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
         android:fragment="org.schabi.newpipe.settings.NotificationsSettingsFragment"
         android:icon="@drawable/ic_notifications"
         android:title="@string/notifications"
+        android:summary="@string/settings_category_notification_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen
@@ -45,6 +86,36 @@
         android:icon="@drawable/ic_cloud_download"
         android:key="update_pref_screen_key"
         android:title="@string/settings_category_updates_title"
+        android:summary="@string/settings_category_updates_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.SponsorBlockSettingsFragment"
+        android:icon="@drawable/ic_sponsor_block_enable"
+        android:key="@string/sponsor_block_settings_key"
+        android:title="@string/sponsor_block_settings_title"
+        android:summary="@string/sponsor_block_settings_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.BackupRestoreSettingsFragment"
+        android:icon="@drawable/ic_settings_backup_restore"
+        android:title="@string/settings_category_backup_restore_title"
+        android:summary="@string/settings_category_backup_restore_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.DeviceSyncSettingsFragment"
+        android:icon="@drawable/ic_devices"
+        android:title="@string/settings_category_device_sync_title"
+        android:summary="@string/settings_category_device_sync_summary"
+        app:iconSpaceReserved="false" />
+
+    <PreferenceScreen
+        android:fragment="org.schabi.newpipe.settings.LearningSettingsFragment"
+        android:icon="@drawable/ic_menu_book"
+        android:title="@string/settings_category_learning_title"
+        android:summary="@string/settings_category_learning_summary"
         app:iconSpaceReserved="false" />
 
     <PreferenceScreen

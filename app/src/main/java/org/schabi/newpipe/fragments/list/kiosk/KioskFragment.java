@@ -1,6 +1,12 @@
+/*
+ * SPDX-FileCopyrightText: 2017-2024 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package org.schabi.newpipe.fragments.list.kiosk;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,11 +17,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 
+import com.evernote.android.state.State;
+
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.error.ErrorInfo;
 import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.ServiceList;
 import org.schabi.newpipe.extractor.StreamingService;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.kiosk.KioskInfo;
@@ -23,36 +32,14 @@ import org.schabi.newpipe.extractor.linkhandler.ListLinkHandlerFactory;
 import org.schabi.newpipe.extractor.localization.ContentCountry;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
+import org.schabi.newpipe.util.ContentBlockingHelper;
 import org.schabi.newpipe.util.ExtractorHelper;
 import org.schabi.newpipe.util.KioskTranslator;
 import org.schabi.newpipe.util.Localization;
 
-import icepick.State;
-import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 
-/**
- * Created by Christian Schabesberger on 23.09.17.
- * <p>
- * Copyright (C) Christian Schabesberger 2017 <chris.schabesberger@mailbox.org>
- * KioskFragment.java is part of NewPipe.
- * </p>
- * <p>
- * NewPipe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * </p>
- * <p>
- * NewPipe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * </p>
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with NewPipe. If not, see <http://www.gnu.org/licenses/>.
- * </p>
- */
+import io.reactivex.rxjava3.core.Single;
 
 public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInfo> {
     @State
@@ -60,6 +47,8 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
     String kioskTranslatedName;
     @State
     ContentCountry contentCountry;
+
+    private DiscoveryPersonalization personalization;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Views
@@ -86,6 +75,12 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
         super(UserAction.REQUESTED_KIOSK);
     }
 
+    @NonNull
+    @Override
+    protected ContentBlockingHelper.Target getContentBlockingTarget() {
+        return ContentBlockingHelper.Target.KIOSKS;
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
     // LifeCycle
     //////////////////////////////////////////////////////////////////////////*/
@@ -102,7 +97,8 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
     @Override
     public void onResume() {
         super.onResume();
-        if (!Localization.getPreferredContentCountry(requireContext()).equals(contentCountry)) {
+        if (!Localization.getPreferredContentCountry(requireContext()).equals(contentCountry)
+                || (currentInfo != null && personalization == null && !isLoading.get())) {
             reloadContent();
         }
         if (useAsFrontPage && activity != null) {
@@ -129,6 +125,12 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
     public void onCreateOptionsMenu(@NonNull final Menu menu,
                                     @NonNull final MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        if (!TextUtils.isEmpty(kioskId)) {
+            menu.add(R.string.discovery_personalize).setOnMenuItemClickListener(item -> {
+                DiscoveryPersonalization.configure(requireContext(), this::reloadContent);
+                return true;
+            });
+        }
         final ActionBar supportActionBar = activity.getSupportActionBar();
         if (supportActionBar != null && useAsFrontPage) {
             supportActionBar.setDisplayHomeAsUpEnabled(false);
@@ -142,12 +144,16 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
     @Override
     public Single<KioskInfo> loadResult(final boolean forceReload) {
         contentCountry = Localization.getPreferredContentCountry(requireContext());
-        return ExtractorHelper.getKioskInfo(serviceId, url, forceReload);
+        final android.content.Context context = requireContext().getApplicationContext();
+        return ExtractorHelper.getKioskInfo(serviceId, url, forceReload)
+                .doOnSuccess(info -> personalization = DiscoveryPersonalization.load(context));
     }
 
     @Override
     public Single<ListExtractor.InfoItemsPage<StreamInfoItem>> loadMoreItemsLogic() {
-        return ExtractorHelper.getMoreKioskItems(serviceId, url, currentNextPage);
+        final android.content.Context context = requireContext().getApplicationContext();
+        return ExtractorHelper.getMoreKioskItems(serviceId, url, currentNextPage)
+                .doOnSuccess(info -> personalization = DiscoveryPersonalization.load(context));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -155,10 +161,25 @@ public class KioskFragment extends BaseListInfoFragment<StreamInfoItem, KioskInf
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
+    protected List<StreamInfoItem> getDisplayItems(final List<StreamInfoItem> items) {
+        return personalization == null ? items : personalization.apply(items);
+    }
+
+    @Override
     public void handleResult(@NonNull final KioskInfo result) {
         super.handleResult(result);
 
         name = kioskTranslatedName;
         setTitle(kioskTranslatedName);
+    }
+
+    @Override
+    public void showEmptyState() {
+        // show "no live streams" for live stream kiosk
+        super.showEmptyState();
+        if (currentInfo != null && "live".equals(currentInfo.getId())
+                && ServiceList.MediaCCC.getServiceId() == currentInfo.getServiceId()) {
+            setEmptyStateMessage(R.string.no_live_streams);
+        }
     }
 }

@@ -30,8 +30,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.math.MathUtils;
 
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
-import com.google.android.exoplayer2.ui.SubtitleView;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.SubtitleView;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.PlayerBinding;
@@ -40,13 +40,14 @@ import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.player.gesture.BasePlayerGestureListener;
 import org.schabi.newpipe.player.gesture.PopupPlayerGestureListener;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.util.DeviceUtils;
 
 public final class PopupPlayerUi extends VideoPlayerUi {
     private static final String TAG = PopupPlayerUi.class.getSimpleName();
 
     /**
      * Maximum opacity allowed for Android 12 and higher to allow touches on other apps when using
-     * NewPipe's popup player.
+     * WizeStream's popup player.
      *
      * <p>
      * This value is hardcoded instead of being get dynamically with the method linked of the
@@ -152,6 +153,14 @@ public final class PopupPlayerUi extends VideoPlayerUi {
     }
 
     @Override
+    public void initPlayback() {
+        super.initPlayback();
+        // Make sure video and text tracks are enabled if the screen is turned on (which should
+        // always be the case), in the case user switched from background player to popup player
+        player.useVideoAndSubtitles(player.isScreenOn());
+    }
+
+    @Override
     protected void setupElementsVisibility() {
         binding.fullScreenButton.setVisibility(View.VISIBLE);
         binding.screenRotationButton.setVisibility(View.GONE);
@@ -168,12 +177,18 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         binding.share.setVisibility(View.GONE);
         binding.playWithKodi.setVisibility(View.GONE);
         binding.openInBrowser.setVisibility(View.GONE);
+        binding.sleepTimerButton.setVisibility(View.GONE);
+        binding.equalizerButton.setVisibility(View.GONE);
+        binding.videoAdjustmentsButton.setVisibility(View.GONE);
+        binding.sleepTimerCountdown.setVisibility(View.GONE);
         binding.switchMute.setVisibility(View.GONE);
         binding.playerCloseButton.setVisibility(View.GONE);
         binding.topControls.bringToFront();
         binding.topControls.setClickable(false);
         binding.topControls.setFocusable(false);
         binding.bottomControls.bringToFront();
+        // Workaround that UI elements are pushed off screen
+        binding.audioTrackTextView.setMaxWidth(DeviceUtils.dpToPx(48, context));
         super.setupElementsVisibility();
     }
 
@@ -183,6 +198,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
                 0,
                 0,
                 resources.getDimensionPixelSize(R.dimen.player_popup_controls_padding),
+                resources.getDimensionPixelSize(R.dimen.player_popup_buttons_padding),
                 resources.getDimensionPixelSize(R.dimen.player_popup_buttons_padding)
         );
     }
@@ -216,10 +232,10 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         } else if (player.isPlaying() || player.isLoading()) {
             if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
                 // Use only audio source when screen turns off while popup player is playing
-                player.useVideoSource(false);
+                player.useVideoAndSubtitles(false);
             } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
                 // Restore video source when screen turns on and user was watching video in popup
-                player.useVideoSource(true);
+                player.useVideoAndSubtitles(true);
             }
         }
     }
@@ -382,7 +398,7 @@ public final class PopupPlayerUi extends VideoPlayerUi {
                     private void end() {
                         windowManager.removeView(closeOverlayBinding.getRoot());
                         closeOverlayBinding = null;
-                        player.getService().stopService();
+                        player.getService().destroyPlayerAndStopService();
                     }
                 }).start();
     }
@@ -424,15 +440,13 @@ public final class PopupPlayerUi extends VideoPlayerUi {
 
     @Override
     protected void setupSubtitleView(final float captionScale) {
-        final float captionRatio = (captionScale - 1.0f) / 5.0f + 1.0f;
         binding.subtitleView.setFractionalTextSize(
-                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * captionRatio);
+                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * captionScale);
     }
 
     @Override
     protected void onPlaybackSpeedClicked() {
-        playbackSpeedPopupMenu.show();
-        isSomePopupMenuVisible = true;
+        showPopupMenu(playbackSpeedPopupMenu, binding.playbackSpeed);
     }
     //endregion
 

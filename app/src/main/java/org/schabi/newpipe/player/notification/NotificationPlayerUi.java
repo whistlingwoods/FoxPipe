@@ -9,29 +9,20 @@ import android.graphics.Bitmap;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.Player.RepeatMode;
+import androidx.media3.common.Player.RepeatMode;
 
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.ui.PlayerUi;
 
 public final class NotificationPlayerUi extends PlayerUi {
-    private boolean foregroundNotificationAlreadyCreated = false;
     private final NotificationUtil notificationUtil;
 
     public NotificationPlayerUi(@NonNull final Player player) {
         super(player);
         notificationUtil = new NotificationUtil(player);
-    }
-
-    @Override
-    public void initPlayer() {
-        super.initPlayer();
-        if (!foregroundNotificationAlreadyCreated) {
-            notificationUtil.createNotificationAndStartForeground();
-            foregroundNotificationAlreadyCreated = true;
-        }
     }
 
     @Override
@@ -118,8 +109,18 @@ public final class NotificationPlayerUi extends PlayerUi {
     }
 
     @Override
+    public void onMetadataChanged(@NonNull final MediaItemTag tag) {
+        super.onMetadataChanged(tag);
+        notificationUtil.createNotificationIfNeededAndUpdate(true);
+    }
+
+    @Override
     public void onPlayQueueEdited() {
         super.onPlayQueueEdited();
         notificationUtil.createNotificationIfNeededAndUpdate(false);
+    }
+
+    public void createNotificationAndStartForeground() {
+        notificationUtil.createNotificationAndStartForeground();
     }
 }

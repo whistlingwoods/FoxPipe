@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DiffUtil;
@@ -29,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.grack.nanojson.JsonStringWriter;
 import com.grack.nanojson.JsonWriter;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.DialogEditTextBinding;
 import org.schabi.newpipe.databinding.FragmentInstanceListBinding;
@@ -36,10 +36,14 @@ import org.schabi.newpipe.databinding.ItemInstanceBinding;
 import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance;
 import org.schabi.newpipe.util.Constants;
 import org.schabi.newpipe.util.PeertubeHelper;
+import org.schabi.newpipe.util.PeertubeInstanceUrl;
 import org.schabi.newpipe.util.ThemeHelper;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import javax.net.ssl.SSLException;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
@@ -169,7 +173,7 @@ public class PeertubeInstanceListFragment extends Fragment {
 
     private void restoreDefaults() {
         final Context context = requireContext();
-        new AlertDialog.Builder(context)
+        new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.restore_defaults)
                 .setMessage(R.string.restore_defaults_confirmation)
                 .setNegativeButton(R.string.cancel, null)
@@ -187,7 +191,7 @@ public class PeertubeInstanceListFragment extends Fragment {
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         dialogBinding.dialogEditText.setHint(R.string.peertube_instance_add_help);
 
-        new AlertDialog.Builder(c)
+        new MaterialAlertDialogBuilder(c)
                 .setTitle(R.string.peertube_instance_add_title)
                 .setIcon(R.drawable.ic_placeholder_peertube)
                 .setView(dialogBinding.getRoot())
@@ -214,8 +218,11 @@ public class PeertubeInstanceListFragment extends Fragment {
                     binding.loadingProgressBar.setVisibility(View.GONE);
                     add(instance);
                 }, e -> {
+                    if (binding == null) {
+                        return;
+                    }
                     binding.loadingProgressBar.setVisibility(View.GONE);
-                    Toast.makeText(getActivity(), R.string.peertube_instance_add_fail,
+                    Toast.makeText(getActivity(), validationErrorMessage(e),
                             Toast.LENGTH_SHORT).show();
                 });
         disposables.add(disposable);
@@ -223,19 +230,19 @@ public class PeertubeInstanceListFragment extends Fragment {
 
     @Nullable
     private String cleanUrl(final String url) {
-        String cleanUrl = url.trim();
-        // if protocol not present, add https
-        if (!cleanUrl.startsWith("http")) {
-            cleanUrl = "https://" + cleanUrl;
-        }
-        // remove trailing slash
-        cleanUrl = cleanUrl.replaceAll("/$", "");
-        // only allow https
-        if (!cleanUrl.startsWith("https://")) {
+        if (PeertubeInstanceUrl.hasInsecureHttpScheme(url)) {
             Toast.makeText(getActivity(), R.string.peertube_instance_add_https_only,
                     Toast.LENGTH_SHORT).show();
             return null;
         }
+
+        final String cleanUrl = PeertubeInstanceUrl.normalize(url);
+        if (cleanUrl == null) {
+            Toast.makeText(getActivity(), R.string.peertube_instance_add_invalid_url,
+                    Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
         // only allow if not already exists
         for (final PeertubeInstance instance : instanceListAdapter.getCurrentList()) {
             if (instance.getUrl().equals(cleanUrl)) {
@@ -245,6 +252,20 @@ public class PeertubeInstanceListFragment extends Fragment {
             }
         }
         return cleanUrl;
+    }
+
+    private int validationErrorMessage(@NonNull final Throwable error) {
+        Throwable cause = error;
+        while (cause != null) {
+            if (cause instanceof SSLException) {
+                return R.string.peertube_instance_add_tls_fail;
+            }
+            if (cause instanceof IOException) {
+                return R.string.peertube_instance_add_network_fail;
+            }
+            cause = cause.getCause();
+        }
+        return R.string.peertube_instance_add_fail;
     }
 
     private void add(final PeertubeInstance instance) {
@@ -396,7 +417,8 @@ public class PeertubeInstanceListFragment extends Fragment {
         }
     }
 
-    private static class PeertubeInstanceCallback extends DiffUtil.ItemCallback<PeertubeInstance> {
+    private static final class PeertubeInstanceCallback
+            extends DiffUtil.ItemCallback<PeertubeInstance> {
         @Override
         public boolean areItemsTheSame(@NonNull final PeertubeInstance oldItem,
                                        @NonNull final PeertubeInstance newItem) {

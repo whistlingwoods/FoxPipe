@@ -1,5 +1,8 @@
 package org.schabi.newpipe.fragments.list.videos;
 
+import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
+import org.schabi.newpipe.learning.LearningPlaylistPanel;
+import io.reactivex.rxjava3.disposables.Disposable;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -10,6 +13,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
 import org.schabi.newpipe.R;
@@ -18,35 +22,82 @@ import org.schabi.newpipe.error.UserAction;
 import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.list.BaseListInfoFragment;
+import org.schabi.newpipe.info_list.ItemViewMode;
+import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
 import org.schabi.newpipe.ktx.ViewUtils;
-import org.schabi.newpipe.util.RelatedItemInfo;
+import org.schabi.newpipe.util.ContentBlockingHelper;
 
 import java.io.Serializable;
 import java.util.function.Supplier;
 
 import io.reactivex.rxjava3.core.Single;
 
-public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, RelatedItemInfo>
+public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, RelatedItemsInfo>
         implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String INFO_KEY = "related_info_key";
+    private static final String WIDE_DETAIL_LAYOUT_KEY = "wide_detail_layout_key";
 
-    private RelatedItemInfo relatedItemInfo;
+    private RelatedItemsInfo relatedItemsInfo;
 
     /*//////////////////////////////////////////////////////////////////////////
     // Views
     //////////////////////////////////////////////////////////////////////////*/
 
     private RelatedItemsHeaderBinding headerBinding;
+    private Disposable learningPanelSubscription;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        observeLearningPlaylist();
+    }
+
+    @Override
+    public void onStop() {
+        clearLearningPlaylistObserver();
+        super.onStop();
+    }
+
+    private void clearLearningPlaylistObserver() {
+        if (learningPanelSubscription != null) {
+            learningPanelSubscription.dispose();
+            learningPanelSubscription = null;
+        }
+    }
+
+    private void observeLearningPlaylist() {
+        clearLearningPlaylistObserver();
+        if (headerBinding != null && getParentFragment()
+                instanceof VideoDetailFragment detail) {
+            learningPanelSubscription = LearningPlaylistPanel.observe(
+                    detail, headerBinding.learningPlaylistPanel, serviceId, url, true);
+        }
+    }
 
     public static RelatedItemsFragment getInstance(final StreamInfo info) {
+        return getInstance(info, false);
+    }
+
+    public static RelatedItemsFragment getInstance(final StreamInfo info,
+                                                   final boolean wideDetailLayout) {
         final RelatedItemsFragment instance = new RelatedItemsFragment();
+        final Bundle arguments = new Bundle();
+        arguments.putBoolean(WIDE_DETAIL_LAYOUT_KEY, wideDetailLayout);
+        instance.setArguments(arguments);
         instance.setInitialData(info);
         return instance;
     }
 
     public RelatedItemsFragment() {
         super(UserAction.REQUESTED_STREAM);
+    }
+
+    @NonNull
+    @Override
+    protected ContentBlockingHelper.Target getContentBlockingTarget() {
+        return ContentBlockingHelper.Target.RELATED_ITEMS;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -61,17 +112,22 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
     }
 
     @Override
+    protected void initViews(final View rootView, final Bundle savedInstanceState) {
+        final Bundle arguments = getArguments();
+        infoListAdapter.setUseWideRelatedVariant(
+                arguments != null && arguments.getBoolean(WIDE_DETAIL_LAYOUT_KEY, false));
+        super.initViews(rootView, savedInstanceState);
+    }
+
+    @Override
     public void onDestroyView() {
+        clearLearningPlaylistObserver();
         headerBinding = null;
         super.onDestroyView();
     }
 
     @Override
     protected Supplier<View> getListHeaderSupplier() {
-        if (relatedItemInfo == null || relatedItemInfo.getRelatedItems() == null) {
-            return null;
-        }
-
         headerBinding = RelatedItemsHeaderBinding
                 .inflate(activity.getLayoutInflater(), itemsList, false);
 
@@ -83,6 +139,7 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
                 PreferenceManager.getDefaultSharedPreferences(requireContext()).edit()
                         .putBoolean(getString(R.string.auto_queue_key), b).apply());
 
+        observeLearningPlaylist();
         return headerBinding::getRoot;
     }
 
@@ -96,8 +153,8 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
     //////////////////////////////////////////////////////////////////////////*/
 
     @Override
-    protected Single<RelatedItemInfo> loadResult(final boolean forceLoad) {
-        return Single.fromCallable(() -> relatedItemInfo);
+    protected Single<RelatedItemsInfo> loadResult(final boolean forceLoad) {
+        return Single.fromCallable(() -> relatedItemsInfo);
     }
 
     @Override
@@ -109,7 +166,19 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
     }
 
     @Override
-    public void handleResult(@NonNull final RelatedItemInfo result) {
+    public void showEmptyState() {
+        if (getParentFragment()
+                instanceof VideoDetailFragment detail
+                && detail.hasLearningPlaylist(serviceId, url)) {
+            hideLoading();
+            showListFooter(false);
+        } else {
+            super.showEmptyState();
+        }
+    }
+
+    @Override
+    public void handleResult(@NonNull final RelatedItemsInfo result) {
         super.handleResult(result);
 
         if (headerBinding != null) {
@@ -136,38 +205,65 @@ public class RelatedItemsFragment extends BaseListInfoFragment<InfoItem, Related
 
     private void setInitialData(final StreamInfo info) {
         super.setInitialData(info.getServiceId(), info.getUrl(), info.getName());
-        if (this.relatedItemInfo == null) {
-            this.relatedItemInfo = RelatedItemInfo.getInfo(info);
+        if (this.relatedItemsInfo == null) {
+            this.relatedItemsInfo = new RelatedItemsInfo(info);
         }
     }
 
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(INFO_KEY, relatedItemInfo);
+        outState.putSerializable(INFO_KEY, relatedItemsInfo);
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull final Bundle savedState) {
         super.onRestoreInstanceState(savedState);
         final Serializable serializable = savedState.getSerializable(INFO_KEY);
-        if (serializable instanceof RelatedItemInfo) {
-            this.relatedItemInfo = (RelatedItemInfo) serializable;
+        if (serializable instanceof RelatedItemsInfo) {
+            this.relatedItemsInfo = (RelatedItemsInfo) serializable;
         }
     }
 
     @Override
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences,
-                                          final String s) {
-        if (headerBinding != null) {
-            headerBinding.autoplaySwitch.setChecked(
-                    sharedPreferences.getBoolean(
-                            getString(R.string.auto_queue_key), false));
+                                          final String key) {
+        if (headerBinding != null && getString(R.string.auto_queue_key).equals(key)) {
+            headerBinding.autoplaySwitch.setChecked(sharedPreferences.getBoolean(key, false));
         }
+        super.onSharedPreferenceChanged(sharedPreferences, key);
     }
 
     @Override
-    protected boolean isGridLayout() {
-        return false;
+    protected ItemViewMode getItemViewMode() {
+        ItemViewMode mode = super.getItemViewMode();
+        // Only list mode is supported. Either List or card will be used.
+        if (mode != ItemViewMode.LIST && mode != ItemViewMode.CARD) {
+            mode = ItemViewMode.LIST;
+        }
+        return mode;
     }
+
+    @Override
+    protected void showInfoItemDialog(final StreamInfoItem item) {
+        // Try and attach the InfoItemDialog to the parent fragment of the RelatedItemsFragment
+        // so that its context is not lost when the RelatedItemsFragment is reinitialized,
+        // e.g. when a new stream is loaded in a parent VideoDetailFragment.
+        final Fragment parentFragment = getParentFragment();
+        if (parentFragment != null) {
+            try {
+                new InfoItemDialog.Builder(
+                        parentFragment.getActivity(),
+                        parentFragment.getContext(),
+                        parentFragment,
+                        item
+                ).create().show();
+            } catch (final IllegalArgumentException e) {
+                InfoItemDialog.Builder.reportErrorDuringInitialization(e, item);
+            }
+        } else {
+            super.showInfoItemDialog(item);
+        }
+    }
+
 }

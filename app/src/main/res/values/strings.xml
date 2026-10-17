@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="history_portability_title">Import and export history</string>
+    <string name="history_portability_summary">Watch history uses the profile selected when you open the file picker. Search history is shared across profiles. JSON imports merge without deleting existing entries or adding duplicates. CSV is for reading in a spreadsheet. Local media files and their access permissions are not transferred.</string>
+    <string name="history_export_json">Export history as JSON</string>
+    <string name="history_export_csv">Export history as CSV</string>
+    <string name="history_import_json">Merge history from JSON</string>
+    <string name="history_transfer_running">Processing history…</string>
+    <string name="history_transfer_complete">Done: %1$d entries exported or added.</string>
+    <string name="history_transfer_failed">History operation failed: %1$s</string>
+
     <string name="main_bg_subtitle">Tap the magnifying glass to get started.</string>
     <string name="upload_date_text">Published on %1$s</string>
     <string name="no_player_found">No stream player found. Install VLC?</string>
@@ -7,14 +16,156 @@
     <string name="install">Install</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="open_in_browser">Open in browser</string>
+    <string name="open_channel">Open channel %1$s</string>
     <string name="mark_as_watched">Mark as watched</string>
+    <string name="mark_as_unwatched">Mark as unwatched</string>
+    <string name="settings_category_learning_title">Learning Mode</string>
+    <string name="settings_category_learning_summary">Optional notes, progress, dashboard, and study statistics</string>
+    <string name="learning_mode_key" translatable="false">learning_mode_enabled</string>
+    <string name="learning_profile_included_key" translatable="false">learning_profile_included</string>
+    <string name="learning_reminders_key" translatable="false">learning_daily_reminders</string>
+    <string name="learning_reminder_time_key" translatable="false">learning_daily_reminder_time</string>
+    <string name="learning_profile_included_title">Include this profile in Learning</string>
+    <string name="learning_profile_included_summary">Allow Learning tools and streak tracking for %1$s when Learning Mode is enabled</string>
+    <string name="learning_reminders_title">Daily learning reminder</string>
+    <string name="learning_reminders_summary">Remind this profile to watch or review a lesson each day when it has learning playlists, regardless of time already studied. Android may delay reminders to save battery.</string>
+    <string name="learning_reminder_time_title">Reminder time</string>
+    <string name="learning_reminder_notification_title">Continue learning · %1$s</string>
+    <string name="learning_reminder_notification_text">Take a moment to watch or review a lesson today. Tap to open Learning.</string>
+    <string name="learning_notes_key" translatable="false">learning_notes_enabled</string>
+    <string name="learning_playlist_progress_key" translatable="false">learning_playlist_progress_enabled</string>
+    <string name="learning_count_background_key" translatable="false">learning_count_background_playback</string>
+    <string name="learning_mode_title">Enable Learning Mode</string>
+    <string name="learning_mode_summary">Show optional learning tools without changing the normal WizeStream experience</string>
+    <string name="learning_notes_title">Timestamped notes</string>
+    <string name="learning_notes_summary">Create notes linked to exact positions in videos</string>
+    <string name="learning_playlist_progress_title">Playlist progress</string>
+    <string name="learning_playlist_progress_summary">Show completion progress and learning controls in local playlists</string>
+    <string name="learning_count_background_title">Count background playback</string>
+    <string name="learning_count_background_summary">Include time listened to in the background in study statistics</string>
+    <string name="learning_note_add">Add timestamped note</string>
+    <string name="learning_note_edit">Edit note</string>
+    <string name="learning_note_timestamp">Timestamp</string>
+    <string name="learning_note_text">Note</string>
+    <string name="learning_note_timestamp_error">Use M:SS or H:MM:SS</string>
+    <string name="learning_note_empty_error">Enter a note</string>
+    <string name="learning_note_too_long_error">Notes can contain up to %1$d characters</string>
+    <string name="learning_notes_tab_description">Notes</string>
+    <string name="learning_notes_empty">No notes yet. Expand the player controls and tap the pencil button to add a timestamped note.</string>
+    <string name="learning_note_delete_confirm">Delete this note?</string>
+    <string name="learning_note_saved">Note saved</string>
+    <string name="learning_note_deleted">Note deleted</string>
+    <string name="learning_note_save_error">Could not save the note</string>
+    <string name="learning_note_live_unavailable">Timestamped notes are not available for live streams</string>
+    <string name="save">Save</string>
+    <string name="device_sync_learning_notes_key" translatable="false">device_sync_learning_notes</string>
+    <string name="device_sync_learning_notes_title">Synchronize learning notes</string>
+    <string name="device_sync_learning_notes_summary">Private by default. Enable on both trusted devices to exchange timestamped notes.</string>
+    <string name="learning_progress_format">%1$d of %2$d completed · %3$d%%</string>
+    <string name="learning_progress_completed">Completed</string>
+    <string name="learning_progress_unavailable">Progress unavailable for streams with unknown duration</string>
+    <string name="learning_mark_all_watched">Mark all as watched</string>
+    <string name="learning_mark_all_watched_confirm">Mark every video in this playlist as completed?</string>
+    <string name="learning_mark_all_watched_done">Playlist marked as watched</string>
+    <string name="learning_reset_progress">Reset learning progress</string>
+    <string name="learning_reset_progress_confirm">Reset watch history and playback progress for the videos in this playlist?</string>
+    <string name="learning_reset_progress_done">Playlist progress reset</string>
+    <string name="learning_dashboard_title">Learning</string>
+    <string name="learning_dashboard_summary_title">Learning progress</string>
+    <string name="learning_dashboard_summary_format">%1$d of %2$d videos completed · %3$d%%</string>
+    <string name="learning_dashboard_playlists_format">%1$d active · %2$d completed</string>
+    <string name="learning_dashboard_continue">Continue learning</string>
+    <string name="learning_dashboard_content">Learning content</string>
+    <string name="learning_mark_content">Mark as Learning</string>
+    <string name="learning_remove_content">Remove from Learning</string>
+    <string name="learning_content_added">Added to Learning</string>
+    <string name="learning_content_removed">Removed from Learning</string>
+    <string name="learning_content_update_error">Could not update Learning content</string>
+    <string name="learning_dashboard_active_playlists">Active playlists</string>
+    <string name="learning_dashboard_completed_playlists">Completed playlists</string>
+    <string name="learning_dashboard_recent_notes">Recently annotated</string>
+    <string name="learning_dashboard_untitled_playlist">Untitled playlist</string>
+    <string name="learning_dashboard_empty">Mark a video or playlist as Learning to build your learning dashboard.</string>
+    <string name="learning_dashboard_video_progress">%1$s of %2$s · %3$d%%</string>
+    <string name="learning_statistics_title">Study activity</string>
+    <string name="learning_statistics_today">Today\n%1$s</string>
+    <string name="learning_statistics_week">This week\n%1$s</string>
+    <string name="learning_statistics_all_time">All time\n%1$s</string>
+    <string name="learning_statistics_streak">Current streak: %1$d days · Longest: %2$d days</string>
+    <string name="learning_activity_calendar">Last 28 days</string>
+    <string name="learning_activity_day_description">%1$s: %2$s study time</string>
+    <plurals name="learning_dashboard_note_count">
+        <item quantity="one">%d note</item>
+        <item quantity="other">%d notes</item>
+    </plurals>
     <string name="open_in_popup_mode">Open in popup mode</string>
     <string name="open_with">Open with</string>
     <string name="share">Share</string>
+    <string name="copy_video_title">Copy title</string>
     <string name="download">Download</string>
+    <string name="bulk_download_title">Bulk download</string>
+    <string name="download_playlist">Download playlist</string>
+    <string name="shuffle_playlist">Shuffle playlist</string>
+    <string name="download_queue">Download loaded queue</string>
+    <string name="bulk_download_number_files">Add track numbers to filenames</string>
+    <plurals name="bulk_download_summary">
+        <item quantity="one">Queue %d item using the default quality for each stream.</item>
+        <item quantity="other">Queue %d items using the default quality for each stream.</item>
+    </plurals>
+    <string name="bulk_download_progress">%1$d/%2$d</string>
+    <plurals name="bulk_download_queued">
+        <item quantity="one">Queued %d download</item>
+        <item quantity="other">Queued %d downloads</item>
+    </plurals>
+    <string name="bulk_download_partial_result">Queued %1$d downloads; %2$d failed</string>
+    <string name="bulk_download_loading_playlist">Loading the complete playlist before downloading…</string>
+    <string name="bulk_download_empty">There are no downloadable streams in this list</string>
+    <string name="bulk_download_ask_path_error">Bulk download needs a default download folder. Turn off “Ask where to download” in Download settings.</string>
+    <string name="bulk_download_folder_error">Choose a valid default download folder in Download settings first.</string>
     <string name="controls_download_desc">Download stream file</string>
     <string name="search">Search</string>
+    <string name="search_filters">Search filters</string>
+    <string name="search_filter_content_type">Content type</string>
+    <string name="search_filter_apply">Apply</string>
+    <string name="search_filter_relevance">Relevance</string>
+    <string name="search_filter_rating">Rating</string>
+    <string name="search_filter_view_count">View count</string>
+    <string name="search_filter_upload_date">Upload date</string>
+    <string name="sort_order">Sort order</string>
+    <string name="sort_bookmarks">Bookmarks</string>
+    <string name="sort_likes">Likes</string>
+    <string name="sort_comments">Comments</string>
+    <string name="sort_bullet_comments">Bullet comments</string>
+    <string name="sort_last_comment_time">Last commented</string>
+    <string name="sort_video_count">Video count</string>
+    <string name="sort_overall">Overall</string>
+    <string name="sort_ascending">Ascending</string>
+    <string name="search_filter_past_hour">Past hour</string>
+    <string name="search_filter_past_day">Past day</string>
+    <string name="search_filter_past_week">Past week</string>
+    <string name="search_filter_past_month">Past month</string>
+    <string name="search_filter_past_year">Past year</string>
+    <string name="search_filter_short">Short</string>
+    <string name="search_filter_medium">Medium</string>
+    <string name="search_filter_long">Long</string>
+    <string name="search_filter_extra_long">Extra long</string>
+    <string name="search_filter_features">Features</string>
+    <string name="search_filter_subtitles">Subtitles</string>
+    <string name="search_filter_creative_commons">Creative Commons</string>
+    <string name="search_filter_live">Live</string>
+    <string name="search_filter_purchased">Purchased</string>
+    <string name="search_filter_location">Location</string>
+    <string name="search_filter_hdr">HDR</string>
+    <string name="lives">Live streams</string>
+    <string name="animes">Anime</string>
+    <string name="movies_and_tv">Movies and TV</string>
+    <string name="contextual_search_hint">Search in %1$s</string>
+    <string name="search_service_instead">Search %1$s instead</string>
+    <string name="search_with_service_name">Search %1$s</string>
+    <string name="search_with_service_name_and_filter">Search %1$s (%2$s)</string>
     <string name="settings">Settings</string>
     <string name="did_you_mean">Did you mean \"%1$s\"?</string>
     <string name="search_showing_result_for">Showing results for: %s</string>
@@ -31,6 +182,8 @@
     <string name="show_info">Show info</string>
     <string name="tab_subscriptions">Subscriptions</string>
     <string name="tab_bookmarks">Bookmarked Playlists</string>
+    <string name="tab_bookmarks_short">Playlists</string>
+    <string name="bottom_navigation_tab_bookmarks">Bookmarks</string>
     <string name="tab_choose">Choose Tab</string>
     <string name="controls_background_title">Background</string>
     <string name="controls_popup_title">Popup</string>
@@ -46,7 +199,7 @@
     <string name="show_higher_resolutions_title">Show higher resolutions</string>
     <string name="show_higher_resolutions_summary">Only some devices can play 2K/4K videos</string>
     <string name="play_with_kodi_title">Play with Kodi</string>
-    <string name="kore_not_found">Install missing Kore app?</string>
+    <string name="kore_not_found">Install missing Kore app\?</string>
     <string name="show_play_with_kodi_title">Show \"Play with Kodi\" option</string>
     <string name="show_play_with_kodi_summary">Display an option to play a video via Kodi media center</string>
     <string name="crash_the_player">Crash the player</string>
@@ -57,7 +210,8 @@
     <string name="notification_action_2_title">Third action button</string>
     <string name="notification_action_3_title">Fourth action button</string>
     <string name="notification_action_4_title">Fifth action button</string>
-    <string name="notification_actions_summary">Edit each notification action below by tapping on it. Select up to three of them to be shown in the compact notification by using the checkboxes on the right</string>
+    <string name="notification_actions_summary">Edit each notification action below by tapping on it. Select up to three of them to be shown in the compact notification by using the checkboxes on the right.</string>
+    <string name="notification_actions_summary_android13">Edit each notification action below by tapping on it. The first three actions (play/pause, previous and next) are set by the system and cannot be customized.</string>
     <string name="notification_actions_at_most_three">You can select at most three actions to show in the compact notification!</string>
     <string name="notification_action_repeat">Repeat</string>
     <string name="notification_action_shuffle">Shuffle</string>
@@ -69,22 +223,45 @@
     <string name="default_audio_format_title">Default audio format</string>
     <string name="default_video_format_title">Default video format</string>
     <string name="theme_title">Theme</string>
-    <string name="night_theme_title">Night Theme</string>
+    <string name="theme_color_title">Theme color</string>
+    <string name="theme_color_summary">Choose app accent color style</string>
+    <string name="theme_color_follow_system_title">Follow system</string>
+    <string name="theme_color_wizestream_title">App default</string>
+    <string name="theme_color_neutral_title">Neutral</string>
+    <string name="theme_color_green_title">Green</string>
+    <string name="theme_color_blue_title">Blue</string>
+    <string name="theme_color_cyan_title">Cyan</string>
+    <string name="theme_color_purple_title">Purple</string>
+    <string name="theme_color_orange_title">Orange</string>
+    <string name="theme_color_pink_title">Pink</string>
+    <string name="theme_color_red_title">Red</string>
+    <string name="theme_color_restart_dialog_title">Apply theme color?</string>
+    <string name="theme_color_restart_dialog_message">The selected theme color has been saved. Apply it to this screen now, restart the app to apply it app-wide, or apply it later after reopening screens.</string>
+    <string name="theme_color_restart_apply_now">Apply now</string>
+    <string name="theme_color_restart_later">Later</string>
+    <string name="night_theme_title">Night theme</string>
     <string name="light_theme_title">Light</string>
     <string name="dark_theme_title">Dark</string>
     <string name="black_theme_title">Black</string>
     <string name="popup_remember_size_pos_title">Remember popup properties</string>
     <string name="popup_remember_size_pos_summary">Remember last size and position of popup</string>
+    <string name="native_pip_title">Android picture-in-picture</string>
+    <string name="native_pip_summary">Keep visible video playback in the system picture-in-picture window when leaving WizeStream</string>
+    <string name="primary_floating_player_action_title">Primary floating player action</string>
+    <string-array name="primary_floating_player_action_entries">
+        <item>@string/controls_pip_title</item>
+        <item>@string/controls_popup_title</item>
+    </string-array>
     <string name="use_inexact_seek_title">Use fast inexact seek</string>
     <string name="use_inexact_seek_summary">Inexact seek allows the player to seek to positions faster with reduced precision. Seeking for 5, 15 or 25 seconds doesn\'t work with this</string>
     <string name="seek_duration_title">Fast-forward/-rewind seek duration</string>
     <string name="progressive_load_interval_title">Playback load interval size</string>
-    <string name="progressive_load_interval_summary">Change the load interval size (currently %s). A lower value may speed up initial video loading. Changes require a player restart</string>
+    <string name="progressive_load_interval_summary">Change the load interval size on progressive contents (currently %s). A lower value may speed up their initial loading</string>
     <string name="clear_queue_confirmation_title">Ask for confirmation before clearing a queue</string>
     <string name="clear_queue_confirmation_summary">Switching from one player to another may replace your queue</string>
     <string name="clear_queue_confirmation_description">The active player queue will be replaced</string>
-    <string name="download_thumbnail_title">Load thumbnails</string>
-    <string name="download_thumbnail_summary">Turn off to prevent loading thumbnails, saving data and memory usage. Changes clear both in-memory and on-disk image cache</string>
+    <string name="ignore_hardware_media_buttons_title">Ignore hardware media button events</string>
+    <string name="ignore_hardware_media_buttons_summary">Useful, for instance, if you are using a headset with broken physical buttons</string>
     <string name="show_comments_title">Show comments</string>
     <string name="show_comments_summary">Turn off to hide comments</string>
     <string name="show_next_and_similar_title">Show \'Next\' and \'Similar\' videos</string>
@@ -92,6 +269,10 @@
     <string name="show_description_summary">Turn off to hide video description and additional information</string>
     <string name="show_meta_info_title">Show meta info</string>
     <string name="show_meta_info_summary">Turn off to hide meta info boxes with additional information about the stream creator, stream content or a search request</string>
+    <string name="prefer_original_audio_title">Prefer original audio</string>
+    <string name="prefer_original_audio_summary">Select the original audio track regardless of the language</string>
+    <string name="prefer_descriptive_audio_title">Prefer descriptive audio</string>
+    <string name="prefer_descriptive_audio_summary">Select an audio track with descriptions for visually impaired people if available</string>
     <string name="thumbnail_cache_wipe_complete_notice">Image cache wiped</string>
     <string name="metadata_cache_wipe_title">Wipe cached metadata</string>
     <string name="metadata_cache_wipe_summary">Remove all cached webpage data</string>
@@ -99,10 +280,17 @@
     <string name="auto_queue_title">Auto-enqueue next stream</string>
     <string name="auto_queue_summary">Continue ending (non-repeating) playback queue by appending a related stream</string>
     <string name="auto_queue_toggle">Auto-enqueuing</string>
-    <string name="volume_gesture_control_title">Volume gesture control</string>
-    <string name="volume_gesture_control_summary">Use gestures to control player volume</string>
-    <string name="brightness_gesture_control_title">Brightness gesture control</string>
-    <string name="brightness_gesture_control_summary">Use gestures to control player brightness</string>
+    <string name="left_gesture_control_summary">Choose gesture for left half of player screen</string>
+    <string name="left_gesture_control_title">Left gesture action</string>
+    <string name="right_gesture_control_summary">Choose gesture for right half of player screen</string>
+    <string name="right_gesture_control_title">Right gesture action</string>
+    <string name="pinch_to_zoom_gesture_title">Pinch to zoom</string>
+    <string name="pinch_to_zoom_gesture_summary">Pinch with two fingers to zoom and pan the video</string>
+    <string name="two_finger_speed_gesture_title">Two-finger speed gesture</string>
+    <string name="two_finger_speed_gesture_summary">Swipe vertically with two fingers to change playback speed</string>
+    <string name="brightness">Brightness</string>
+    <string name="volume">Volume</string>
+    <string name="none">None</string>
     <string name="show_search_suggestions_title">Search suggestions</string>
     <string name="show_search_suggestions_summary">Choose the suggestions to show when searching</string>
     <string name="local_search_suggestions">Local search suggestions</string>
@@ -119,6 +307,13 @@
     <string name="resume_on_audio_focus_gain_title">Resume playing</string>
     <string name="resume_on_audio_focus_gain_summary">Continue playing after interruptions (e.g. phonecalls)</string>
     <string name="download_dialog_title">Download</string>
+    <string name="playback_dimming_title">Dim screen during playback</string>
+    <string name="playback_dimming_summary">Blank the fullscreen picture after inactivity while audio keeps playing. Tap the screen or press a remote key to wake it.</string>
+    <string name="playback_dimming_delay_title">Screen dimming delay</string>
+    <string name="playback_dimming_one_minute">1 minute</string>
+    <string name="playback_dimming_five_minutes">5 minutes</string>
+    <string name="playback_dimming_ten_minutes">10 minutes</string>
+    <string name="playback_dimming_wake">Screen dimmed. Activate to restore the picture.</string>
     <string name="start_main_player_fullscreen_title">Start main player in fullscreen</string>
     <string name="start_main_player_fullscreen_summary">Do not start videos in the mini player, but turn to fullscreen mode directly, if auto rotation is locked. You can still access the mini player by exiting fullscreen</string>
     <string name="autoplay_title">Autoplay</string>
@@ -134,30 +329,237 @@
     <string name="peertube_instance_add_title">Add instance</string>
     <string name="peertube_instance_add_help">Enter instance URL</string>
     <string name="peertube_instance_add_fail">Could not validate instance</string>
+    <string name="peertube_instance_add_network_fail">Could not connect to this instance</string>
+    <string name="peertube_instance_add_tls_fail">Could not establish a secure connection to this instance</string>
+    <string name="peertube_instance_add_invalid_url">Enter a valid PeerTube HTTPS URL</string>
     <string name="peertube_instance_add_https_only">Only HTTPS URLs are supported</string>
     <string name="peertube_instance_add_exists">Instance already exists</string>
     <string name="settings_category_player_title">Player</string>
     <string name="settings_category_player_behavior_title">Behavior</string>
+    <string name="per_channel_playback_profiles_title">Remember playback settings per channel</string>
+    <string name="per_channel_playback_profiles_summary">Remember playback speed, video quality, and subtitle preference separately for each channel</string>
+    <string name="pin_video_while_scrolling_key">pin_video_while_scrolling</string>
+    <string name="pin_video_while_scrolling_title">Keep video visible while scrolling</string>
+    <string name="pin_video_while_scrolling_summary">Pin the playing video above comments, related videos, and the description.</string>
     <string name="settings_category_video_audio_title">Video and audio</string>
+    <string name="settings_category_video_audio_summary">Playback, resolution, formats, and audio behavior</string>
+    <string name="settings_category_downloads_summary">Download folders, file names, and download options</string>
+    <string name="settings_category_appearance_summary">Theme, colors, tabs, and layout</string>
+    <string name="settings_category_history_summary">Watch history, search history, and cached data</string>
+    <string name="settings_category_content_summary">Services, languages, regions, and content filters</string>
+    <string name="settings_category_notification_summary">Notification actions, alerts, and update messages</string>
+    <string name="settings_category_backup_restore_summary">Export, import, and restore app data</string>
+    <string name="settings_category_device_sync_summary">Securely pair trusted devices for private synchronization</string>
     <string name="settings_category_history_title">History and cache</string>
     <string name="settings_category_appearance_title">Appearance</string>
     <string name="settings_category_debug_title">Debug</string>
     <string name="settings_category_updates_title">Updates</string>
+    <string name="settings_category_updates_summary">Version, changelog, and update checks</string>
     <string name="settings_category_player_notification_title">Player notification</string>
     <string name="settings_category_player_notification_summary">Configure current playing stream notification</string>
+    <string name="settings_category_backup_restore_title">Backup and restore</string>
+    <string name="settings_category_device_sync_title">Device synchronization</string>
+    <string name="device_sync_status_key" translatable="false">device_sync_status</string>
+    <string name="device_sync_sync_now_key" translatable="false">device_sync_sync_now</string>
+    <string name="device_sync_log_key" translatable="false">device_sync_log</string>
+    <string name="device_sync_background_key" translatable="false">device_sync_background</string>
+    <string name="device_sync_identity_key" translatable="false">device_sync_identity</string>
+    <string name="device_sync_show_code_key" translatable="false">device_sync_show_pairing_code</string>
+    <string name="device_sync_scan_code_key" translatable="false">device_sync_scan_pairing_code</string>
+    <string name="device_sync_trusted_devices_category_key" translatable="false">device_sync_trusted_devices_category</string>
+    <string name="device_sync_clear_devices_key" translatable="false">device_sync_clear_trusted_devices</string>
+    <string name="device_sync_search_history_key" translatable="false">device_sync_search_history</string>
+    <string name="device_sync_status_title">Current status</string>
+    <string name="device_sync_status_no_devices">Pair another device to synchronize your data</string>
+    <string name="device_sync_status_ready">Ready to synchronize. Trusted devices: %1$d</string>
+    <string name="device_sync_status_last_sync">Last successful synchronization: %1$s</string>
+    <string name="device_sync_status_errors">Trusted devices needing attention: %1$d</string>
+    <string name="device_sync_sync_now_title">Sync now</string>
+    <string name="device_sync_sync_now_summary">Exchange subscriptions, playlists, histories, and structured preferences with trusted devices</string>
+    <string name="device_sync_log_title">Synchronization log</string>
+    <string name="device_sync_log_empty">No synchronization attempts recorded</string>
+    <string name="device_sync_log_summary">%1$d attempts recorded · latest %2$s</string>
+    <string name="device_sync_log_manual">Manual synchronization</string>
+    <string name="device_sync_log_background">Automatic background synchronization</string>
+    <string name="device_sync_log_local_addresses">This device addresses: %1$s</string>
+    <string name="device_sync_log_no_local_addresses">No current address reported for this device</string>
+    <string name="device_sync_log_addresses">Saved addresses: %1$s</string>
+    <string name="device_sync_log_no_addresses">No saved network addresses</string>
+    <string name="device_sync_log_fatal_error">Could not start: %1$s</string>
+    <string name="device_sync_log_copy">Copy log</string>
+    <string name="device_sync_log_copied">Synchronization log copied</string>
+    <string name="device_sync_log_clear">Clear log</string>
+    <string name="device_sync_background_title">Automatic background synchronization</string>
+    <string name="device_sync_background_summary">Keep this device reachable for trusted devices and attempt synchronization about once per hour on local Wi-Fi or Ethernet. A low-priority notification is shown while listening.</string>
+    <string name="device_sync_listener_channel_name">Device synchronization</string>
+    <string name="device_sync_listener_channel_description">Keeps paired devices reachable for local background synchronization</string>
+    <string name="device_sync_listener_notification_title">Device sync is ready</string>
+    <string name="device_sync_listener_notification_text">Listening for trusted WizeStream devices on the local network</string>
+    <string name="device_sync_sync_in_progress">Synchronizing data…</string>
+    <string name="device_sync_sync_complete_title">Synchronization complete</string>
+    <string name="device_sync_report_overview">Overview</string>
+    <string name="device_sync_report_devices">Successful devices: %1$d · Failed devices: %2$d</string>
+    <string name="device_sync_report_changes">Changes sent: %1$d · Received: %2$d</string>
+    <string name="device_sync_report_sent_received">Sent %1$d · Received %2$d</string>
+    <string name="device_sync_report_failed">Failed: %1$s</string>
+    <string name="device_sync_report_disabled">Disabled on this device</string>
+    <string name="device_sync_sync_peer_succeeded">%1$s — sent %2$d, received %3$d</string>
+    <string name="device_sync_sync_peer_failed">%1$s — failed: %2$s</string>
+    <string name="device_sync_category_profiles">Profiles</string>
+    <string name="device_sync_category_subscriptions">Subscriptions</string>
+    <string name="device_sync_category_playlists">Playlists</string>
+    <string name="device_sync_category_watch_history">Watch history and playback progress</string>
+    <string name="device_sync_category_search_history">Search history</string>
+    <string name="device_sync_category_learning_notes">Learning notes</string>
+    <string name="device_sync_category_feed_groups">Feed groups</string>
+    <string name="device_sync_category_home_tabs">Home tabs</string>
+    <string name="device_sync_category_channel_profiles">Channel playback profiles</string>
+    <string name="device_sync_category_filters">Content filter selections</string>
+    <string name="device_sync_category_blocked_content">Blocked content</string>
+    <string name="device_sync_category_settings">Allowlisted settings</string>
+    <string name="device_sync_category_completed_downloads">Completed download metadata</string>
+    <string name="device_sync_categories_title">Sync categories</string>
+    <string name="device_sync_profiles_required_summary">Required so synchronized data stays assigned to the correct profile.</string>
+    <string name="device_sync_watch_history_summary">Synchronizes only when watch history is enabled in History settings.</string>
+    <string name="device_sync_subscriptions_key" translatable="false">device_sync_subscriptions</string>
+    <string name="device_sync_playlists_key" translatable="false">device_sync_playlists</string>
+    <string name="device_sync_watch_history_key" translatable="false">device_sync_watch_history</string>
+    <string name="device_sync_feed_groups_key" translatable="false">device_sync_feed_groups</string>
+    <string name="device_sync_home_tabs_key" translatable="false">device_sync_home_tabs</string>
+    <string name="device_sync_channel_profiles_key" translatable="false">device_sync_channel_profiles</string>
+    <string name="device_sync_filters_key" translatable="false">device_sync_filters</string>
+    <string name="device_sync_content_blocking_key" translatable="false">device_sync_content_blocking</string>
+    <string name="device_sync_settings_key" translatable="false">device_sync_settings</string>
+    <string name="device_sync_completed_downloads_key" translatable="false">device_sync_completed_downloads</string>
+    <string name="device_sync_search_history_title">Synchronize search history</string>
+    <string name="device_sync_search_history_summary">Private by default. Enable to exchange search history with trusted devices; the other device must also enable it.</string>
+    <string name="device_sync_sync_failed">Synchronization failed</string>
+    <string name="device_sync_android_version_unsupported">Secure device synchronization requires Android 7.0 or newer on this device</string>
+    <string name="device_sync_identity_title">This device PeerID</string>
+    <string name="device_sync_show_code_title">Show pairing code</string>
+    <string name="device_sync_show_code_summary">Let another WizeStream device scan this one-time QR code</string>
+    <string name="device_sync_scan_code_title">Scan pairing code</string>
+    <string name="device_sync_scan_code_summary">Scan the QR code displayed by another WizeStream device</string>
+    <string name="device_sync_scan_prompt">Scan the WizeStream pairing QR code</string>
+    <string name="device_sync_pairing_in_progress">Establishing an encrypted connection…</string>
+    <string name="device_sync_pairing_succeeded">Paired securely with %1$s</string>
+    <string name="device_sync_pairing_failed">Pairing failed</string>
+    <string name="device_sync_pairing_qr_description">One-time device pairing QR code</string>
+    <string name="device_sync_pairing_peer_id">PeerID: %1$s</string>
+    <string name="device_sync_pairing_code_expiry">Keep this screen open while the other device scans. This code expires after five minutes and can be used only once.</string>
+    <string name="device_sync_trusted_devices_title">Trusted devices</string>
+    <string name="device_sync_no_trusted_devices">No trusted devices</string>
+    <string name="device_sync_clear_devices_title">Clear trusted devices</string>
+    <string name="device_sync_clear_devices_summary">Require every device to pair again</string>
+    <string name="device_sync_clear_devices_confirmation">Remove all trusted devices? This device’s PeerID will not change.</string>
+    <string name="device_sync_clear_devices_failed">Could not clear trusted devices</string>
     <string name="background_player_playing_toast">Playing in background</string>
     <string name="popup_playing_toast">Playing in popup mode</string>
     <string name="content">Content</string>
+    <string name="content_blocking_settings_key" translatable="false">content_blocking_settings</string>
+    <string name="content_blocking_enabled_key" translatable="false">content_blocking_enabled</string>
+    <string name="content_blocking_targets_key" translatable="false">content_blocking_targets</string>
+    <string name="blocked_videos_key" translatable="false">blocked_videos</string>
+    <string name="blocked_channels_key" translatable="false">blocked_channels</string>
+    <string name="blocked_keywords_key" translatable="false">blocked_keywords</string>
+    <string name="blocked_keywords_channel_names_key" translatable="false">blocked_keywords_channel_names</string>
+    <string name="manage_blocked_channels_key" translatable="false">manage_blocked_channels</string>
+    <string name="manage_blocked_videos_key" translatable="false">manage_blocked_videos</string>
+    <string name="clear_blocked_content_key" translatable="false">clear_blocked_content</string>
+    <string name="aislist_enabled_key" translatable="false">aislist_enabled</string>
+    <string name="aislist_update_key" translatable="false">aislist_update</string>
+    <string name="aislist_status_key" translatable="false">aislist_status</string>
+    <string name="aislist_about_key" translatable="false">aislist_about</string>
+    <string name="aislist_warn_behavior_key" translatable="false">aislist_warn_behavior</string>
+    <string name="aislist_warn_behavior_ignore_value" translatable="false">ignore</string>
+    <string name="aislist_warn_behavior_label_value" translatable="false">label</string>
+    <string name="aislist_warn_behavior_warn_value" translatable="false">warn</string>
+    <string name="aislist_warn_behavior_hide_value" translatable="false">hide</string>
+    <string name="content_blocking_title">Blocked content</string>
+    <string name="content_blocking_summary">Hide videos, channels, and posts using your blocking rules</string>
+    <string name="content_blocking_enabled_title">Enable content blocking</string>
+    <string name="content_blocking_enabled_summary">Apply blocked videos, channels, and keywords to remote content lists</string>
+    <string name="content_blocking_targets_title">Apply blocking to</string>
+    <string name="content_blocking_targets_summary">Choose which remote content lists use your blocking rules</string>
+    <string name="content_blocking_target_search">Search results</string>
+    <string name="content_blocking_target_kiosks">Kiosks and What’s New</string>
+    <string name="content_blocking_target_related_items">Related items</string>
+    <string name="content_blocking_target_channel_pages">Channel pages</string>
+    <string name="content_blocking_target_subscriptions">Subscriptions and channel groups</string>
+    <string name="content_blocking_target_remote_playlists">Remote playlists</string>
+    <string name="content_blocking_target_comments">Comments</string>
+    <string name="aislist_category_title">AiSList</string>
+    <string name="aislist_enabled_title">Enable AiSList filtering</string>
+    <string name="aislist_enabled_summary">Download the AiSList blocklist and warnlist directly from upstream and apply matching entirely on-device</string>
+    <string name="aislist_warn_behavior_title">Warnlist behavior</string>
+    <string name="aislist_warn_behavior_summary">Choose how medium-confidence AiSList channels are handled</string>
+    <string-array name="aislist_warn_behavior_entries">
+        <item>Ignore</item>
+        <item>Label only</item>
+        <item>Warn before playback</item>
+        <item>Hide</item>
+    </string-array>
+    <string-array name="aislist_warn_behavior_values">
+        <item>@string/aislist_warn_behavior_ignore_value</item>
+        <item>@string/aislist_warn_behavior_label_value</item>
+        <item>@string/aislist_warn_behavior_warn_value</item>
+        <item>@string/aislist_warn_behavior_hide_value</item>
+    </string-array>
+    <string name="aislist_update_title">Update AiSList now</string>
+    <string name="aislist_update_summary">Refresh the locally cached blocklist</string>
+    <string name="aislist_status_title">AiSList status</string>
+    <string name="aislist_not_downloaded">Not downloaded yet</string>
+    <string name="aislist_status_format">%1$d blocked • %2$d warning • Updated %3$s</string>
+    <string name="aislist_updating">Updating…</string>
+    <string name="aislist_updated">AiSList updated: %1$d blocked, %2$d warning</string>
+    <string name="aislist_update_failed">Could not update AiSList</string>
+    <string name="aislist_about_title">About AiSList</string>
+    <string name="aislist_about_summary">Community-maintained by Override92 and contributors • CC BY-NC 4.0</string>
+    <string name="aislist_possible_ai_badge">Possible AI</string>
+    <string name="aislist_possible_ai_title">Possible AI-generated content</string>
+    <string name="aislist_warnlist_channel_fallback">This channel</string>
+    <string name="aislist_warnlist_playback_message">%1$s appears on the AiSList community warnlist as possibly using AI-generated content.</string>
+    <string name="aislist_play_anyway">Play anyway</string>
+    <string name="blocked_keywords_title">Blocked keywords</string>
+    <string name="blocked_keywords_channel_names_title">Also match channel names</string>
+    <string name="blocked_keywords_channel_names_summary">Apply blocked keywords to uploader and channel names as well as content titles</string>
+    <string name="manage_blocked_channels_title">Blocked channels</string>
+    <string name="manage_blocked_videos_title">Blocked videos</string>
+    <string name="clear_blocked_content_title">Clear all blocking rules</string>
+    <string name="clear_blocked_content_summary">Remove every blocked video, channel, and keyword</string>
+    <string name="clear_blocked_content_confirmation">Remove all content-blocking rules?</string>
+    <string name="block_video">Block this video</string>
+    <string name="block_channel">Block this channel</string>
+    <string name="video_blocked">Video blocked</string>
+    <string name="channel_blocked">Channel blocked</string>
+    <string name="blocked_content_empty">Nothing is blocked in this list</string>
+    <plurals name="blocked_channels_count">
+        <item quantity="one">%d blocked channel</item>
+        <item quantity="other">%d blocked channels</item>
+    </plurals>
+    <plurals name="blocked_videos_count">
+        <item quantity="one">%d blocked video</item>
+        <item quantity="other">%d blocked videos</item>
+    </plurals>
+    <plurals name="blocked_keywords_count">
+        <item quantity="one">%d blocked keyword</item>
+        <item quantity="other">%d blocked keywords</item>
+    </plurals>
     <string name="show_age_restricted_content_title">Show age restricted content</string>
     <string name="show_age_restricted_content_summary">Show content possibly unsuitable for children because it has an age limit (like 18+)</string>
     <string name="youtube_restricted_mode_enabled_title">Turn on YouTube\'s \"Restricted Mode\"</string>
     <string name="youtube_restricted_mode_enabled_summary">YouTube provides a \"Restricted Mode\" which hides potentially mature content</string>
+    <string name="members_only">Members only</string>
+    <string name="members_only_explanation">WizeStream uses anonymous native playback and cannot verify your YouTube channel membership. Members-only videos cannot be played in WizeStream.</string>
+    <string name="hide_members_only_videos_title">Hide members-only videos</string>
+    <string name="hide_members_only_videos_summary">Hide videos that require a paid YouTube channel membership</string>
     <string name="restricted_video">This video is age restricted.\n\nTurn on \"%1$s\" in the settings if you want to see it.</string>
     <string name="restricted_video_no_stream">This video is age-restricted.
-\nDue to new YouTube policies with age-restricted videos, NewPipe cannot access any of its video streams and thus is unable to play it.</string>
+\nDue to new YouTube policies with age-restricted videos, WizeStream cannot access any of its video streams and thus is unable to play it.</string>
     <string name="duration_live">Live</string>
     <string name="downloads">Downloads</string>
     <string name="downloads_title">Downloads</string>
+    <string name="loading_metadata_title">Loading Metadata…</string>
     <string name="error_report_title">Error report</string>
     <string name="all">All</string>
     <string name="channels">Channels</string>
@@ -179,10 +581,10 @@
     <string name="just_once">Just Once</string>
     <string name="file">File</string>
     <string name="notifications">Notifications</string>
-    <string name="notification_channel_name">NewPipe notification</string>
-    <string name="notification_channel_description">Notifications for NewPipe\'s player</string>
+    <string name="notification_channel_name">WizeStream notification</string>
+    <string name="notification_channel_description">Notifications for WizeStream\'s player</string>
     <string name="app_update_notification_channel_name">App update notification</string>
-    <string name="app_update_notification_channel_description">Notifications for new NewPipe versions</string>
+    <string name="app_update_notification_channel_description">Notifications for new WizeStream versions</string>
     <string name="hash_channel_name">Video hash notification</string>
     <string name="hash_channel_description">Notifications for video hashing progress</string>
     <string name="streams_notification_channel_name">New streams</string>
@@ -193,16 +595,53 @@
     <string name="switch_to_background">Switch to Background</string>
     <string name="switch_to_popup">Switch to Popup</string>
     <string name="switch_to_main">Switch to Main</string>
-    <string name="import_data_title">Import database</string>
-    <string name="export_data_title">Export database</string>
+    <string name="import_data_title">Import full backup</string>
+    <string name="import_compatible_data_key" translatable="false">import_compatible_data</string>
+    <string name="import_compatible_data_title">Import from NewPipe or compatible app</string>
+    <string name="import_compatible_data_summary">Merge subscriptions, watch history, playback positions, and local playlists from a NewPipe-style ZIP backup into the active profile without replacing existing WizeStream data. Compatible settings and PipePipe SponsorBlock settings remain app-wide.</string>
+    <string name="export_data_title">Export full backup</string>
+    <string name="export_compatible_data_key" translatable="false">export_compatible_data</string>
+    <string name="export_compatible_data_title">Export for NewPipe</string>
+    <string name="export_compatible_data_summary">Create a NewPipe-compatible ZIP from the active profile containing subscriptions and channel groups, local and bookmarked playlists, watch history, playback positions, and the app-wide search history. WizeStream settings and app-specific data are excluded.</string>
+    <string name="export_compatible_data_complete_title">NewPipe backup exported</string>
+    <string name="export_compatible_data_complete_message">Exported %1$d subscriptions, %8$d channel groups with %9$d memberships, %5$d local playlists with %7$d videos, %6$d bookmarked playlists, %2$d watched items, %10$d searches, and %3$d playback positions. Skipped %4$d records that NewPipe cannot use. Import this ZIP using NewPipe’s backup restore screen.</string>
     <string name="clear_cookie_title">Clear reCAPTCHA cookies</string>
     <string name="recaptcha_cookies_cleared">reCAPTCHA cookies have been cleared</string>
-    <string name="import_data_summary">Overrides your current history, subscriptions, playlists and (optionally) settings</string>
-    <string name="export_data_summary">Export history, subscriptions, playlists and settings</string>
-    <string name="clear_cookie_summary">Clear cookies that NewPipe stores when you solve a reCAPTCHA</string>
+    <string name="import_data_summary">Restore subscriptions, playlists, app settings, SponsorBlock settings, and local data from a ZIP backup.</string>
+    <string name="export_data_summary">Create a ZIP backup with subscriptions, playlists, app settings, SponsorBlock settings, and local data.</string>
+    <string name="clear_cookie_summary">Clear cookies that WizeStream stores when you solve a reCAPTCHA</string>
+    <string name="full_backup_includes_title">What full backup includes</string>
+    <string name="full_backup_includes_summary">Full backup preserves all local profiles and their subscriptions, playlists, history, app settings, SponsorBlock settings, and other local data.</string>
+    <string name="import_full_backup_title">Import full backup?</string>
+    <string name="import_full_backup_button">Import</string>
+    <string name="import_full_backup_detected_contents">Detected contents: %s</string>
+    <string name="backup_contents_database">database/local data</string>
+    <string name="backup_contents_json_preferences">app settings</string>
+    <string name="backup_contents_legacy_preferences">legacy settings</string>
+    <string name="backup_contents_manifest">backup manifest</string>
+    <string name="backup_contents_none">no recognizable backup contents</string>
+    <string name="backup_invalid_or_empty">This ZIP does not contain recognizable WizeStream backup data.</string>
+    <string name="backup_incompatible_title">Backup cannot be restored</string>
+    <string name="backup_incompatible_message">Full restore accepts only backups created by a supported version of WizeStream. This archive may be from another app, an older unverified format, or an incompatible WizeStream version. Nothing on this device was changed.</string>
+    <string name="migration_invalid_backup">This backup does not contain compatible NewPipe data or settings.</string>
+    <string name="migration_choose_data_title">Choose data to merge</string>
+    <string name="migration_subscriptions_option">Subscriptions: %1$d</string>
+    <string name="migration_history_option">Watch history: %1$d entries and %2$d playback positions</string>
+    <string name="migration_playlists_option">Local playlists: %1$d playlists and %2$d items</string>
+    <string name="migration_settings_option">Compatible app settings: %1$d</string>
+    <string name="migration_sponsor_block_option">PipePipe SponsorBlock settings: %1$d</string>
+    <string name="migration_import_button">Merge data</string>
+    <string name="migration_nothing_selected">Select at least one data category.</string>
+    <string name="migration_complete_title">Migration complete</string>
+    <string name="migration_complete_message">Merged %1$d history entries, %2$d playback positions, %3$d playlists, %4$d playlist items, %5$d subscriptions, %6$d compatible settings, and %7$d SponsorBlock settings. Skipped %8$d incompatible or existing items.</string>
+    <string name="backup_exported_with_file">Backup exported: %s</string>
+    <string name="backup_import_succeeded_restart">Import succeeded. WizeStream will restart to finish loading the backup.</string>
+    <string name="restart">Restart</string>
     <string name="clear_views_history_title">Clear watch history</string>
     <string name="clear_views_history_summary">Deletes the history of played streams and the playback positions</string>
     <string name="delete_view_history_alert">Delete entire watch history?</string>
+    <string name="delete_watch_history_warning">This permanently deletes watch history and playback positions for the current profile. This cannot be undone.</string>
+    <string name="delete_item_watch_history">Delete this video from watch history and remove its saved playback position? This cannot be undone.</string>
     <string name="watch_history_deleted">Watch history deleted</string>
     <string name="clear_playback_states_title">Delete playback positions</string>
     <string name="clear_playback_states_summary">Deletes all playback positions</string>
@@ -211,15 +650,28 @@
     <string name="clear_search_history_title">Clear search history</string>
     <string name="clear_search_history_summary">Deletes history of search keywords</string>
     <string name="delete_search_history_alert">Delete entire search history?</string>
+    <string name="delete_search_history_warning">This permanently deletes search history for all services and profiles. This cannot be undone.</string>
     <string name="search_history_deleted">Search history deleted</string>
     <string name="fast_mode">Fast mode</string>
+    <string name="main_tabs_position_summary">Move main tab selector to the bottom</string>
+    <string name="main_tabs_position_title">Main tabs position</string>
+    <string name="tablet_navigation_portrait_position_title">Large-screen navigation in portrait</string>
+    <string name="tablet_navigation_landscape_position_title">Large-screen navigation in landscape</string>
+    <string name="tablet_navigation_position_automatic">Automatic</string>
+    <string name="tablet_navigation_position_bottom">Bottom</string>
+    <string name="tablet_navigation_position_left">Left</string>
+    <string name="bottom_navigation_labels_title">Bottom navigation labels</string>
+    <string name="bottom_navigation_labels_always">Always visible</string>
+    <string name="bottom_navigation_labels_active">Active only</string>
+    <string name="bottom_navigation_labels_hidden">Hidden</string>
+    <string name="compact_large_screen_navigation_title">Compact large-screen navigation</string>
+    <string name="compact_large_screen_navigation_summary">Use a narrower side navigation rail and shorter top bar on tablets and TVs</string>
     <!-- error strings -->
     <string name="general_error">Error</string>
     <string name="download_to_sdcard_error_title">External storage unavailable</string>
     <string name="download_to_sdcard_error_message">Downloading to external SD card not possible. Reset download folder location?</string>
     <string name="network_error">Network error</string>
     <string name="could_not_load_thumbnails">Could not load all thumbnails</string>
-    <string name="youtube_signature_deobfuscation_error">Could not deobfuscate video URL signature</string>
     <string name="parsing_error">Could not parse website</string>
     <string name="content_not_available">Content unavailable</string>
     <string name="could_not_setup_download_menu">Could not set up download menu</string>
@@ -231,6 +683,8 @@
     <string name="video_streams_empty">No video streams found</string>
     <string name="audio_streams_empty">No audio streams found</string>
     <string name="missing_file">File moved or deleted</string>
+    <string name="download_remote_status">Not local</string>
+    <string name="download_on_this_device">Download on this device</string>
     <string name="invalid_directory">No such folder</string>
     <string name="invalid_source">No such file/content source</string>
     <string name="invalid_file">The file doesn\'t exist or permission to read or write to it is lacking</string>
@@ -241,11 +695,13 @@
     <string name="restore_defaults">Restore defaults</string>
     <string name="restore_defaults_confirmation">Do you want to restore defaults?</string>
     <string name="permission_display_over_apps">Give permission to display over other apps</string>
+    <string name="permission_display_over_apps_message">In order to use the Popup Player, please select %1$s in the following Android settings menu and enable %2$s.</string>
+    <string name="permission_display_over_apps_permission_name">“Allow display over other apps”</string>
     <!-- error activity -->
-    <string name="error_report_notification_title">NewPipe encountered an error, tap to report</string>
+    <string name="error_report_notification_title">WizeStream encountered an error, tap to report</string>
     <string name="error_report_notification_toast">An error occurred, see the notification</string>
     <string name="sorry_string">Sorry, that should not have happened.</string>
-    <string name="error_report_button_text">Report this error via e-mail</string>
+    <string name="error_report_button_text">Report via e-mail</string>
     <string name="copy_for_github">Copy formatted report</string>
     <string name="error_report_open_issue_button_text">Report on GitHub</string>
     <string name="error_report_open_github_notice">Please check whether an issue discussing your crash already exists. When creating duplicate tickets, you take time from us which we could spend with fixing the actual bug.</string>
@@ -253,7 +709,7 @@
     <string name="error_snackbar_action">Report</string>
     <string name="what_device_headline">Info:</string>
     <string name="what_happened_headline">What happened:</string>
-    <string name="info_labels">What:\\nRequest:\\nContent Language:\\nContent Country:\\nApp Language:\\nService:\\nGMT Time:\\nPackage:\\nVersion:\\nOS version:</string>
+    <string name="info_labels">What:\nRequest:\nContent Language:\nContent Country:\nApp Language:\nService:\nTimestamp:\nPackage:\nVersion:\nOS version:</string>
     <string name="your_comment">Your comment (in English):</string>
     <string name="error_details_headline">Details:</string>
     <!-- Content descriptions (for better accessibility) -->
@@ -261,19 +717,22 @@
     <string name="detail_uploader_thumbnail_view_description">Uploader\'s avatar thumbnail</string>
     <string name="detail_likes_img_view_description">Likes</string>
     <string name="detail_dislikes_img_view_description">Dislikes</string>
+    <string name="show_dislikes_title">Show dislikes</string>
+    <string name="show_dislikes_summary">Show dislike counts when available</string>
     <string name="comments_tab_description">Comments</string>
     <string name="related_items_tab_description">Related items</string>
     <string name="description_tab_description">Description</string>
     <string name="search_no_results">No results</string>
     <string name="empty_list_subtitle">Nothing here but crickets</string>
+    <string name="empty_list_message">No items to show</string>
     <string name="import_subscriptions_hint">Import or export subscriptions from the 3-dot menu</string>
     <string name="detail_drag_description">Drag to reorder</string>
     <string name="video">Video</string>
     <string name="audio">Audio</string>
     <string name="retry">Retry</string>
-    <string name="short_thousand">k</string>
-    <string name="short_million">M</string>
-    <string name="short_billion">B</string>
+    <string name="short_thousand">%sK</string>
+    <string name="short_million">%sM</string>
+    <string name="short_billion">%sB</string>
     <string name="drawer_header_description">Toggle service, currently selected:</string>
     <!--Zero don't get selected (in some languages) as it is not a "special case" for android-->
     <string name="no_subscribers">No subscribers</string>
@@ -306,6 +765,10 @@
     </plurals>
     <string name="no_comments">No comments</string>
     <string name="comments_are_disabled">Comments are disabled</string>
+    <string name="no_streams">No streams</string>
+    <string name="no_live_streams">No live streams</string>
+    <string name="live_stream_not_started_title">Live stream has not started</string>
+    <string name="live_stream_not_started_message">This live stream has not started yet. Please try again when it begins.</string>
     <plurals name="new_streams">
         <item quantity="one">%s new stream</item>
         <item quantity="other">%s new streams</item>
@@ -315,6 +778,8 @@
     <string name="pause">Pause</string>
     <string name="create">Create</string>
     <string name="delete">Delete</string>
+    <string name="delete_file">Delete file</string>
+    <string name="delete_entry">Delete entry</string>
     <string name="checksum">Checksum</string>
     <string name="dismiss">Dismiss</string>
     <string name="rename">Rename</string>
@@ -322,21 +787,24 @@
     <string name="msg_name">Filename</string>
     <string name="msg_threads">Threads</string>
     <string name="msg_error">Error</string>
-    <string name="msg_running">NewPipe Downloading</string>
+    <string name="msg_running">WizeStream Downloading</string>
     <string name="msg_running_detail">Tap for details</string>
     <string name="msg_calculating_hash">Calculating hash</string>
     <string name="msg_wait">Please wait…</string>
     <string name="msg_copied">Copied to clipboard</string>
+    <string name="msg_failed_to_copy">Failed to copy to clipboard</string>
     <string name="no_available_dir">Please define a download folder later in settings</string>
     <string name="no_dir_yet">No download folder set yet, choose the default download folder now</string>
     <string name="msg_popup_permission">This permission is needed to\nopen in popup mode</string>
     <string name="one_item_deleted">1 item deleted.</string>
+    <string name="playlist_item_removed">Removed from playlist</string>
     <!-- reCAPTCHA -->
     <string name="title_activity_recaptcha">reCAPTCHA challenge</string>
     <string name="subtitle_activity_recaptcha">Press \"Done\" when solved</string>
     <string name="recaptcha_request_toast">reCAPTCHA challenge requested</string>
     <string name="recaptcha_solve">Solve</string>
-    <string name="recaptcha_done_button">Done</string>
+    <string name="done">Done</string>
+    <string name="back">Back</string>
     <!-- Downloads -->
     <string name="settings_category_downloads_title">Download</string>
     <string name="settings_file_charset_title">Allowed characters in filenames</string>
@@ -344,27 +812,27 @@
     <string name="settings_file_replacement_character_title">Replacement character</string>
     <string name="charset_letters_and_digits">Letters and digits</string>
     <string name="charset_most_special_characters">Most special characters</string>
-    <string name="toast_no_player">No app installed to play this file</string>
     <!-- About -->
-    <string name="title_activity_about">About NewPipe</string>
+    <string name="title_activity_about">About WizeStream</string>
     <string name="title_licenses">Third-party Licenses</string>
     <string name="copyright">© %1$s by %2$s under %3$s</string>
     <string name="tab_about">About \u0026 FAQ</string>
     <string name="tab_licenses">Licenses</string>
     <string name="app_description">Libre lightweight streaming on Android.</string>
-    <string name="contribution_title">Contribute</string>
-    <string name="contribution_encouragement">Whether you have ideas of; translation, design changes, code cleaning, or real heavy code changes—help is always welcome. The more is done the better it gets!</string>
+    <string name="contribution_title">Contribute to WizeStream</string>
+    <string name="contribution_encouragement">Report issues, review code, or contribute to the WizeStream fork on GitHub.</string>
     <string name="view_on_github">View on GitHub</string>
-    <string name="donation_title">Donate</string>
-    <string name="donation_encouragement">NewPipe is developed by volunteers spending their free time bringing you the best user experience. Give back to help developers make NewPipe even better while they enjoy a cup of coffee.</string>
-    <string name="give_back">Give back</string>
+    <string name="github_star_prompt_title">Enjoying WizeStream?</string>
+    <string name="github_star_prompt_message">If WizeStream is useful to you, consider giving the project a star on GitHub. It helps others discover the project. WizeStream does not sign you in or track whether you star it.</string>
+    <string name="github_star_prompt_action">Star on GitHub</string>
+    <string name="github_star_prompt_never">Don’t ask again</string>
     <string name="website_title">Website</string>
-    <string name="website_encouragement">Visit the NewPipe Website for more info and news.</string>
-    <string name="privacy_policy_title">NewPipe\'s Privacy Policy</string>
-    <string name="privacy_policy_encouragement">The NewPipe project takes your privacy very seriously. Therefore, the app does not collect any data without your consent.\nNewPipe\'s privacy policy explains in detail what data is sent and stored when you send a crash report.</string>
+    <string name="website_encouragement">Visit the WizeStream Website for more info and news.</string>
+    <string name="privacy_policy_title">WizeStream\'s Privacy Policy</string>
+    <string name="privacy_policy_encouragement">The WizeStream project takes your privacy very seriously. Therefore, the app does not collect any data without your consent.\nWizeStream\'s privacy policy explains in detail what data is sent and stored when you send a crash report.</string>
     <string name="read_privacy_policy">Read privacy policy</string>
-    <string name="app_license_title">NewPipe\'s License</string>
-    <string name="app_license">NewPipe is copyleft libre software: You can use, study, share, and improve it at will. Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</string>
+    <string name="app_license_title">WizeStream\'s License</string>
+    <string name="app_license">WizeStream is copyleft libre software: You can use, study, share, and improve it at will. Specifically you can redistribute and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</string>
     <string name="read_full_license">Read license</string>
     <string name="faq_title">Frequently asked questions</string>
     <string name="faq_description">If you are having trouble using the app, be sure to check out these answers to common questions!</string>
@@ -375,27 +843,39 @@
     <string name="delete_item_search_history">Do you want to delete this item from search history?</string>
     <string name="title_last_played">Last Played</string>
     <string name="title_most_played">Most Played</string>
+    <string name="history_jump_to_date">Jump to date</string>
+    <string name="history_date_fast_scroll">Scroll through history by date</string>
+    <string name="history_date_fast_scroll_description">History date: %1$s</string>
     <!-- Content -->
-    <string name="main_page_content">Content of main page</string>
-    <string name="main_page_content_summary">What tabs are shown on the main page</string>
-    <string name="main_page_content_swipe_remove">Swipe items to remove them</string>
-    <string name="blank_page_summary">Blank Page</string>
-    <string name="kiosk_page_summary">Kiosk Page</string>
+    <string name="main_page_content">Customize home</string>
+    <string name="main_page_content_summary">Choose which sections appear on your home screen</string>
+    <string name="main_page_content_swipe_remove">Choose which sections appear on your home screen and drag them to change their order. Up to five sections use the bottom navigation bar; additional sections use the scrollable tab bar.</string>
+    <string name="remove_home_section">Remove home section</string>
+    <string name="drag_home_section">Drag home section</string>
+    <string name="downloads_permission_required">Storage permission is required to show downloads.</string>
+    <string name="grant_permission">Grant permission</string>
+    <string name="default_kiosk_follows_selected_service">Follows selected service</string>
+    <string name="add_tab_local_sections">Local sections</string>
+    <string name="add_tab_current_service">Current service</string>
+    <string name="add_tab_custom_content">Custom content</string>
+    <string name="blank_page_summary">Blank page</string>
+    <string name="kiosk_page_summary">Kiosk page</string>
     <string name="default_kiosk_page_summary">Default Kiosk</string>
-    <string name="channel_page_summary">Channel Page</string>
+    <string name="channel_page_summary">Channel page</string>
     <string name="select_a_channel">Select a channel</string>
     <string name="no_channel_subscribed_yet">No channel subscriptions yet</string>
     <string name="select_a_playlist">Select a playlist</string>
     <string name="no_playlist_bookmarked_yet">No playlist bookmarks yet</string>
     <string name="select_a_kiosk">Select a kiosk</string>
-    <string name="export_complete_toast">Exported</string>
-    <string name="import_complete_toast">Imported</string>
+    <string name="export_complete_toast">Backup exported</string>
+    <string name="import_complete_toast">Import succeeded. The app will restart.</string>
     <string name="no_valid_zip_file">No valid ZIP file</string>
     <string name="could_not_import_all_files">Warning: Could not import all files.</string>
-    <string name="override_current_data">This will override your current setup.</string>
+    <string name="override_current_data">Current local data and settings may be replaced.</string>
     <string name="import_settings">Do you want to also import settings?</string>
     <string name="error_unable_to_load_comments">Could not load comments</string>
-    <string name="localization_changes_requires_app_restart">The language will change once the app is restarted</string>
+    <string name="select_a_feed_group">Select a feed group</string>
+    <string name="no_feed_group_created_yet">No feed group created yet</string>
     <!-- Kiosk Names -->
     <string name="trending">Trending</string>
     <string name="top_50">Top 50</string>
@@ -404,11 +884,14 @@
     <string name="recently_added">Recently added</string>
     <string name="most_liked">Most liked</string>
     <string name="conferences">Conferences</string>
+    <string name="recommended_lives">Recommended Lives</string>
     <!-- Play Queue -->
     <string name="title_activity_play_queue">Play queue</string>
     <string name="play_queue_remove">Remove</string>
     <string name="play_queue_stream_detail">Details</string>
     <string name="play_queue_audio_settings">Audio Settings</string>
+    <string name="play_queue_audio_track">Audio: %s</string>
+    <string name="audio_track">Audio track</string>
     <string name="hold_to_append">Hold to enqueue</string>
     <string name="show_channel_details">Show channel details</string>
     <string name="enqueue_stream">Enqueue</string>
@@ -418,6 +901,30 @@
     <string name="start_here_on_background">Start playing in the background</string>
     <string name="start_here_on_popup">Start playing in a popup</string>
     <string name="loading_stream_details">Loading stream details…</string>
+    <!-- Sleep timer -->
+    <string name="sleep_timer">Sleep timer</string>
+    <string name="sleep_timer_15_minutes">15 minutes</string>
+    <string name="sleep_timer_30_minutes">30 minutes</string>
+    <string name="sleep_timer_45_minutes">45 minutes</string>
+    <string name="sleep_timer_60_minutes">60 minutes</string>
+    <string name="sleep_timer_end_current">End of current video</string>
+    <string name="sleep_timer_end_queue">End of queue</string>
+    <string name="sleep_timer_custom">Custom duration</string>
+    <string name="sleep_timer_custom_minutes">Minutes (1–1440)</string>
+    <string name="sleep_timer_fade_out">Fade out during the final 30 seconds</string>
+    <string name="sleep_timer_turn_off">Turn off</string>
+    <string name="sleep_timer_invalid_duration">Enter a duration from 1 to 1440 minutes</string>
+    <string name="sleep_timer_unavailable">A playable item is required for this option</string>
+    <string name="sleep_timer_active_status">Active · %1$s</string>
+    <string name="sleep_timer_remaining">%1$s remaining</string>
+    <string name="sleep_timer_end_current_status">Ends after the current video</string>
+    <string name="sleep_timer_end_current_remaining">Ends after the current video · %1$s remaining</string>
+    <string name="sleep_timer_end_queue_status">Ends after the queue</string>
+    <string name="sleep_timer_end_queue_remaining">Ends after the queue · %1$s remaining</string>
+    <string name="sleep_timer_active_description">Sleep timer active: %1$s</string>
+    <string name="sleep_timer_menu_active">Sleep timer · %1$s</string>
+    <string name="sleep_timer_on_short">On</string>
+    <string name="sleep_timer_finished">Sleep timer finished</string>
     <!-- Drawer -->
     <string name="drawer_open">Open Drawer</string>
     <string name="drawer_close">Close Drawer</string>
@@ -432,6 +939,7 @@
     <string name="preferred_player_fetcher_notification_message">"Loading requested content"</string>
     <!-- Local Playlist -->
     <string name="create_playlist">New Playlist</string>
+    <string name="duplicate_in_playlist">The playlists that are grayed out already contain this item.</string>
     <string name="rename_playlist">Rename</string>
     <string name="name">Name</string>
     <string name="add_to_playlist">Add to playlist</string>
@@ -442,9 +950,11 @@
     <string name="unset_playlist_thumbnail">Unset permanent thumbnail</string>
     <string name="bookmark_playlist">Bookmark Playlist</string>
     <string name="unbookmark_playlist">Remove Bookmark</string>
+    <string name="delete_playlist">Delete playlist</string>
     <string name="delete_playlist_prompt">Delete this playlist\?</string>
     <string name="playlist_creation_success">Playlist created</string>
     <string name="playlist_add_stream_success">Playlisted</string>
+    <string name="playlist_add_stream_success_duplicate">Duplicate added %d time(s)</string>
     <string name="playlist_thumbnail_change_success">Playlist thumbnail changed.</string>
     <string name="playlist_no_uploader">Auto-generated (no uploader found)</string>
     <!-- Players -->
@@ -465,9 +975,8 @@
     <string name="show_original_time_ago_title">Show original time ago on items</string>
     <string name="show_original_time_ago_summary">Original texts from services will be visible in stream items</string>
     <string name="disable_media_tunneling_title">Disable media tunneling</string>
-    <string name="disable_media_tunneling_summary">Disable media tunneling if you experience a black screen or stuttering on video playback</string>
-    <string name="show_image_indicators_title">Show image indicators</string>
-    <string name="show_image_indicators_summary">Show Picasso colored ribbons on top of images indicating their source: red for network, blue for disk and green for memory</string>
+    <string name="disable_media_tunneling_summary">Disable media tunneling if you experience a black screen or stuttering on video playback.</string>
+    <string name="disable_media_tunneling_automatic_info">Media tunneling was disabled by default on your device because your device model is known to not support it.</string>
     <string name="show_crash_the_player_title">Show \"Crash the player\"</string>
     <string name="show_crash_the_player_summary">Shows a crash option when using the player</string>
     <string name="check_new_streams">Run check for new streams</string>
@@ -475,6 +984,18 @@
     <string name="show_error_snackbar">Show an error snackbar</string>
     <string name="create_error_notification">Create an error notification</string>
     <!-- Subscriptions import/export -->
+    <plurals name="export_subscriptions">
+        <item quantity="one">Exporting %d subscription…</item>
+        <item quantity="other">Exporting %d subscriptions…</item>
+    </plurals>
+    <plurals name="load_subscriptions">
+        <item quantity="one">Loading %d subscription…</item>
+        <item quantity="other">Loading %d subscriptions…</item>
+    </plurals>
+    <plurals name="import_subscriptions">
+        <item quantity="one">Importing %d subscription…</item>
+        <item quantity="other">Importing %d subscriptions…</item>
+    </plurals>
     <string name="import_title">Import</string>
     <string name="import_from">Import from</string>
     <string name="export_to">Export to</string>
@@ -482,7 +1003,13 @@
     <string name="export_ongoing">Exporting…</string>
     <string name="import_file_title">Import file</string>
     <string name="previous_export">Previous export</string>
+    <string name="import_subscriptions_title">Import subscriptions only</string>
+    <string name="export_subscriptions_title">Export subscriptions only</string>
+    <string name="import_subscriptions_summary">Use this for OPML/JSON subscription migration only. Full backup already includes subscriptions.</string>
+    <string name="export_subscriptions_summary">Use this for OPML/JSON subscription migration only. Full backup already includes subscriptions.</string>
+    <string name="import_from_previous_export">Import from previous export</string>
     <string name="subscriptions_import_unsuccessful">Could not import subscriptions</string>
+    <string name="subscriptions_import_complete_summary">Import completed: %1$d imported, %2$d skipped</string>
     <string name="subscriptions_export_unsuccessful">Could not export subscriptions</string>
     <string name="import_youtube_instructions">Import YouTube subscriptions from Google takeout:
 \n
@@ -502,12 +1029,13 @@
     <string name="playback_pitch">Pitch</string>
     <string name="unhook_checkbox">Unhook (may cause distortion)</string>
     <string name="skip_silence_checkbox">Fast-forward during silence</string>
+    <string name="skip_silence_unavailable_live">Fast-forward during silence (unavailable during live streams)</string>
     <string name="playback_step">Step</string>
     <string name="playback_reset">Reset</string>
     <string name="percent">Percent</string>
     <string name="semitone">Semitone</string>
     <!-- GDPR dialog -->
-    <string name="start_accept_privacy_policy">In order to comply with the European General Data Protection Regulation (GDPR), we hereby draw your attention to NewPipe\'s privacy policy. Please read it carefully.
+    <string name="start_accept_privacy_policy">In order to comply with the European General Data Protection Regulation (GDPR), we hereby draw your attention to WizeStream\'s privacy policy. Please read it carefully.
 \nYou must accept it to send us the bug report.</string>
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
@@ -525,17 +1053,33 @@
         <item>240p</item>
         <item>144p</item>
     </string-array>
+    <string-array name="high_resolution_limit_data_usage_description_list">
+        <item>2160p</item>
+        <item>1440p</item>
+    </string-array>
     <!-- Notifications settings -->
     <string name="enable_streams_notifications_title">New streams notifications</string>
     <string name="enable_streams_notifications_summary">Notify about new streams from subscriptions</string>
+    <string name="edit_notification_filter">Edit notification filter</string>
+    <string name="notification_keywords_title">Notification keywords</string>
+    <string name="notification_mode_disabled">Notifications disabled</string>
+    <string name="notification_mode_all_uploads">All uploads</string>
+    <string name="notification_mode_keywords_only">Matching keywords only</string>
+    <string name="notification_keywords_hint">Keywords or phrases</string>
+    <string name="notification_keywords_help">Enter one keyword or phrase per line. A title matching any line will notify you.</string>
+    <string name="notification_keywords_invalid">Enter between 1 and 25 keywords or phrases, with no line longer than 100 characters.</string>
+    <string name="notification_keywords_summary">Matching keywords only · %1$s</string>
     <string name="streams_notifications_interval_title">Checking frequency</string>
     <string name="streams_notifications_network_title">Required network connection</string>
     <string name="any_network">Any network</string>
     <!-- Updates Settings -->
-    <string name="updates_setting_title">Updates</string>
-    <string name="updates_setting_description">Show a notification to prompt app update when a new version is available</string>
-    <string name="manual_update_title">Check for updates</string>
-    <string name="manual_update_description">Manually check for new versions</string>
+    <string name="updates_setting_title">Auto check for new version</string>
+    <string name="updates_setting_description">Check for updates in the background when the app opens</string>
+    <string name="check_for_updates">Check for updates</string>
+    <string name="manual_update_title">Check for Updates</string>
+    <string name="manual_update_description">Check GitHub Releases for a new WizeStream version</string>
+    <string name="auto_update_check_description">WizeStream can automatically check GitHub Releases for new versions from time to time and notify you once they are available.\nDo you want to enable this?</string>
+
     <!-- Minimize to exit action -->
     <string name="minimize_on_exit_title">Minimize on app switch</string>
     <string name="minimize_on_exit_summary">Action when switching to other app from main video player — %s</string>
@@ -547,33 +1091,106 @@
     <string name="wifi_only">Only on Wi-Fi</string>
     <string name="never">Never</string>
     <string name="list_view_mode">List view mode</string>
+    <string name="grid_columns_title">Grid columns</string>
+    <string name="grid_columns_two">2 columns</string>
+    <string name="grid_columns_three">3 columns</string>
+    <string name="grid_columns_four">4 columns</string>
+    <string name="grid_columns_five">5 columns</string>
+    <string name="grid_columns_six">6 columns</string>
+    <string name="grid_columns_seven">7 columns</string>
+    <string name="show_full_grid_titles_title">Show full video titles</string>
+    <string name="show_full_grid_titles_summary">Display complete titles in grids and while watching videos</string>
+    <string name="comment_text_size_title">Comment text size</string>
+    <string name="comment_text_size_small">Small (12 sp)</string>
+    <string name="comment_text_size_medium">Medium (14 sp)</string>
+    <string name="comment_text_size_large">Large (16 sp)</string>
+    <string name="comment_text_size_extra_large">Extra large (18 sp)</string>
+    <string name="show_service_sections_title">Show service sections in navigation drawer</string>
+    <string name="show_service_sections_summary">Show service-provided sections such as Trending, Shorts, Podcasts, and Recommended Lives</string>
     <string name="list">List</string>
     <string name="grid">Grid</string>
+    <string name="card">Card</string>
     <string name="auto">Auto</string>
+    <string name="grid_columns">Grid columns</string>
     <!-- Seekbar Preview Thumbnail-->
     <string name="seekbar_preview_thumbnail_title">Seekbar thumbnail preview</string>
     <string name="high_quality_larger">High quality (larger)</string>
     <string name="low_quality_smaller">Low quality (smaller)</string>
     <string name="dont_show">Don\'t show</string>
     <!-- App update notification -->
-    <string name="app_update_unavailable_toast">You are running the latest version of NewPipe</string>
-    <string name="app_update_available_notification_title">NewPipe update is available!</string>
-    <string name="app_update_available_notification_text">Tap to download %s</string>
+    <string name="app_update_unavailable_toast">WizeStream is up to date</string>
+    <string name="app_update_available_notification_title">WizeStream update is available!</string>
+    <string name="app_update_available_notification_text">Tap to view %s</string>
     <string name="missions_header_finished">Finished</string>
     <string name="missions_header_pending">Pending</string>
     <string name="paused">paused</string>
     <string name="queued">queued</string>
     <string name="post_processing">post-processing</string>
+    <string name="converting_to_mp3">converting to MP3</string>
+    <string name="audio_output_format">Output format</string>
+    <string name="original_format_recommended">Original format (recommended)</string>
+    <string name="mp3_format">MP3</string>
+    <string name="mp3_quality">MP3 quality</string>
+    <string-array name="audio_output_format_entries">
+        <item>@string/original_format_recommended</item>
+        <item>@string/mp3_format</item>
+    </string-array>
+    <string-array name="mp3_bitrate_entries" translatable="false">
+        <item>128 kbps</item>
+        <item>192 kbps</item>
+        <item>256 kbps</item>
+        <item>320 kbps</item>
+    </string-array>
     <string name="recovering">recovering</string>
     <string name="enqueue">Enqueue</string>
     <string name="permission_denied">Action denied by the system</string>
     <string name="checking_updates_toast">Checking for updates…</string>
+    <string name="current_version_title">Latest available version</string>
+    <string name="current_version_not_checked">Not checked yet</string>
+    <string name="installed_app_version_title">App version installed</string>
+    <string name="changelog_title">Changelog</string>
+    <string name="changelog_description">Show recent release notes from GitHub Releases</string>
+    <string name="app_update_check_failed">Could not check for updates</string>
+    <string name="app_update_available_dialog_title">Update available</string>
+    <string name="app_update_available_dialog_message">WizeStream %1$s is available. Installed version: %2$s.</string>
+    <string name="app_update_available_notification_text_material">WizeStream %1$s is available. Installed version: %2$s.</string>
+    <string name="app_update_open_release">Open release</string>
+    <string name="app_update_later">Later</string>
+    <string name="app_update_latest_release_dialog_message">Latest WizeStream release: %1$s. Installed version: %2$s.</string>
+    <string name="app_update_download_apk">Download APK</string>
+    <string name="app_update_download_progress_title">Downloading update</string>
+    <string name="app_update_download_progress_message">Downloading… %1$d%%</string>
+    <string name="app_update_download_progress_unknown">Downloading…</string>
+    <string name="app_update_download_failed">Could not download update</string>
+    <string name="app_update_download_complete_title">Update downloaded</string>
+    <string name="app_update_download_complete_message">WizeStream %1$s is ready to install.</string>
+    <string name="app_update_download_complete_message_generic">This update is ready to install.</string>
+    <string name="app_update_install_now">Install now</string>
+    <string name="app_update_install_permission_title">Allow update install</string>
+    <string name="app_update_install_permission_message">Android needs permission before WizeStream can open the package installer. Enable the permission and return to WizeStream; installation will resume automatically.</string>
+    <string name="app_update_open_install_settings">Open settings</string>
+    <string name="app_update_install_permission_unavailable">Android could not open the install permission settings.</string>
+    <string name="app_update_missing_checksum">Direct download is unavailable because this release does not provide a valid SHA-256 checksum.</string>
+    <string name="app_update_verification_failed">The downloaded update failed security verification and will not be installed.</string>
+    <string name="app_update_apk_size_format">APK size: %1$s</string>
+    <string name="app_update_changelog_preview_title">What is new</string>
+    <string name="app_update_full_changelog">Full changelog</string>
+    <string name="app_update_release_page">Release page</string>
+    <string name="app_update_downloaded_size_format">%1$s / %2$s</string>
+    <string name="changelog_empty">No changelog provided.</string>
+    <string name="changelog_load_failed">Could not load changelog</string>
+    <string name="latest_version_summary_format">Latest available: %1$s</string>
+    <string name="installed_version_summary_format">Installed: %1$s</string>
     <!-- download notifications -->
     <string name="download_failed">Download failed</string>
     <plurals name="download_finished_notification">
         <item quantity="one">Download finished</item>
         <item quantity="other">%s downloads finished</item>
     </plurals>
+    <string name="reset_settings_title">Reset settings</string>
+    <string name="reset_settings_summary">Reset all settings to their default values</string>
+    <!-- dialog about resetting settings -->
+    <string name="reset_all_settings">Resetting all settings will discard all of your preferred settings and restarts the app.\n\nAre you sure you want to proceed?</string>
     <!-- dialog about existing downloads -->
     <string name="generate_unique_name">Generate unique name</string>
     <string name="overwrite">Overwrite</string>
@@ -593,8 +1210,9 @@
     <string name="error_http_unsupported_range">The server does not accept multi-threaded downloads, retry with @string/msg_threads = 1</string>
     <string name="error_http_not_found">Not found</string>
     <string name="error_postprocessing_failed">Post-processing failed</string>
-    <string name="error_postprocessing_stopped">NewPipe was closed while working on the file</string>
-    <string name="error_insufficient_storage">No space left on device</string>
+    <string name="error_postprocessing_stopped">WizeStream was closed while working on the file</string>
+    <string name="error_insufficient_storage">Not enough free space on device</string>
+    <string name="error_insufficient_storage_left">No space left on device</string>
     <string name="error_progress_lost">Progress lost, because the file was deleted</string>
     <string name="error_timeout">Connection timeout</string>
     <string name="error_download_resource_gone">Cannot recover this download</string>
@@ -626,10 +1244,13 @@
     <string name="app_language_title">App language</string>
     <string name="systems_language">System default</string>
     <string name="remove_watched">Remove watched</string>
-    <string name="remove_watched_popup_title">Remove watched videos?</string>
-    <string name="remove_watched_popup_warning">Videos that have been watched before and after being added to the playlist will be removed.
-\nAre you sure\? This cannot be undone!</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">Yes, and partially watched videos</string>
+    <string name="remove_watched_popup_title">Remove watched streams?</string>
+    <string name="remove_duplicates">Remove duplicates</string>
+    <string name="remove_duplicates_title">Remove duplicates?</string>
+    <string name="remove_duplicates_message">Do you want to remove all duplicate streams in this playlist?</string>
+    <string name="remove_watched_popup_warning">Streams that have been watched before and after being added to the playlist will be removed.
+\nAre you sure\?</string>
+    <string name="remove_watched_popup_partially_watched_streams">Remove partially watched streams</string>
     <string name="new_seek_duration_toast">Due to ExoPlayer constraints the seek duration was set to %d seconds</string>
     <!-- Time duration plurals -->
     <plurals name="seconds">
@@ -650,13 +1271,26 @@
     </plurals>
     <!-- Feed -->
     <string name="fragment_feed_title">What\'s New</string>
+    <string name="feed_group_page_summary">Channel group page</string>
     <string name="feed_groups_header_title">Channel groups</string>
     <string name="feed_oldest_subscription_update">Feed last updated: %s</string>
     <string name="feed_subscription_not_loaded_count">Not loaded: %d</string>
+    <string name="feed_subscription_not_loaded_count_details">Not loaded: %d · Tap for details</string>
+    <string name="feed_not_loaded_details_title">Subscriptions not loaded</string>
+    <string name="feed_not_loaded_details_unavailable">The feed reported subscriptions that were not loaded, but no channel details are available for this refresh.</string>
     <string name="feed_notification_loading">Loading feed…</string>
+    <string name="cancel_refresh">Cancel refresh</string>
     <string name="feed_processing_message">Processing feed…</string>
     <string name="feed_new_items">New feed items</string>
     <string name="feed_group_dialog_select_subscriptions">Select subscriptions</string>
+    <string name="feed_group_dialog_create_title">Create channel group</string>
+    <string name="feed_group_dialog_edit_title">Edit channel group</string>
+    <string name="feed_group_dialog_create_description">Give the group a name, choose an icon, and select at least one subscription.</string>
+    <string name="feed_group_dialog_edit_description">Update the group name, icon, or included subscriptions.</string>
+    <string name="feed_group_dialog_name_hint">Group name</string>
+    <string name="feed_group_dialog_choose_icon">Choose group icon</string>
+    <string name="feed_group_dialog_choose_icon_title">Choose an icon</string>
+    <string name="feed_group_dialog_delete_title">Delete channel group</string>
     <string name="feed_group_dialog_empty_selection">No subscription selected</string>
     <plurals name="feed_group_dialog_selection_count">
         <item quantity="one">%d selected</item>
@@ -668,11 +1302,11 @@
     <string name="feed_group_show_only_ungrouped_subscriptions">Show only ungrouped subscriptions</string>
     <string name="settings_category_feed_title">Feed</string>
     <string name="feed_update_threshold_title">Feed update threshold</string>
-    <string name="feed_update_threshold_summary">Time after last update before a subscription is considered outdated — %s</string>
+    <string name="feed_update_threshold_summary">Minimum time between normal refreshes of each subscription — %s. This does not schedule automatic updates. Use “Refresh all now” in the feed menu to bypass the wait.</string>
     <string name="feed_update_threshold_option_always_update">Always update</string>
     <string name="feed_load_error">Error loading feed</string>
     <string name="feed_load_error_account_info">Could not load feed for \'%s\'.</string>
-    <string name="feed_load_error_terminated">The author\'s account has been terminated.\nNewPipe will not be able to load this feed in the future.\nDo you want to unsubscribe from this channel?</string>
+    <string name="feed_load_error_terminated">The author\'s account has been terminated.\nWizeStream will not be able to load this feed in the future.\nDo you want to unsubscribe from this channel?</string>
     <string name="feed_load_error_fast_unknown">The fast feed mode does not provide more info on this.</string>
     <string name="feed_use_dedicated_fetch_method_title">Fetch from dedicated feed when available</string>
     <string name="feed_use_dedicated_fetch_method_summary">Available in some services, it is usually much faster but may return a limited amount of items and often incomplete information (e.g. no duration, item type, no live status)</string>
@@ -680,7 +1314,7 @@
     <string name="feed_use_dedicated_fetch_method_disable_button">Disable fast mode</string>
     <string name="feed_use_dedicated_fetch_method_help_text">Do you think feed loading is too slow\? If so, try enabling fast loading (you can change it in settings or by pressing the button below).
 \n
-\nNewPipe offers two feed loading strategies:
+\nWizeStream offers two feed loading strategies:
 \n• Fetching the whole subscription channel, which is slow but complete.
 \n• Using a dedicated service endpoint, which is fast but usually not complete.
 \n
@@ -689,9 +1323,11 @@
 \nYouTube is an example of a service that offers this fast method with its RSS feed.
 \n
 \nSo the choice boils down to what you prefer: speed or precise information.</string>
-    <string name="feed_toggle_show_played_items">Show watched items</string>
-    <string name="feed_toggle_hide_played_items">Hide watched items</string>
-    <string name="content_not_supported">This content is not yet supported by NewPipe.\n\nIt will hopefully be supported in a future version.</string>
+    <string name="feed_hide_streams_title">Show the following streams</string>
+    <string name="feed_show_hide_streams">Show/Hide streams</string>
+    <string name="feed_fetch_channel_tabs">Fetch channel tabs</string>
+    <string name="feed_fetch_channel_tabs_summary">Tabs to fetch when updating the feed. This option has no effect if a channel is updated using fast mode.</string>
+    <string name="content_not_supported">This content is not yet supported by WizeStream.\n\nIt will hopefully be supported in a future version.</string>
     <string name="detail_sub_channel_thumbnail_view_description">Channel\'s avatar thumbnail</string>
     <string name="channel_created_by">Created by %s</string>
     <string name="video_detail_by">By %s</string>
@@ -699,6 +1335,7 @@
     <string name="show_thumbnail_title">Show thumbnail</string>
     <string name="show_thumbnail_summary">Use thumbnail for both lock screen background and notifications</string>
     <string name="recent">Recent</string>
+    <string name="continue_listening">Continue listening</string>
     <string name="chapters">Chapters</string>
     <string name="no_app_to_open_intent">No app on your device can open this</string>
     <string name="no_appropriate_file_manager_message">No appropriate file manager was found for this action.
@@ -706,12 +1343,13 @@
     <string name="no_appropriate_file_manager_message_android_10">No appropriate file manager was found for this action.
 \nPlease install a Storage Access Framework compatible file manager</string>
     <string name="georestricted_content">This content is not available in your country.</string>
-    <string name="soundcloud_go_plus_content">This is a SoundCloud Go+ track, at least in your country, so it cannot be streamed or downloaded by NewPipe.</string>
-    <string name="private_content">This content is private, so it cannot be streamed or downloaded by NewPipe.</string>
-    <string name="youtube_music_premium_content">This video is available only to YouTube Music Premium members, so it cannot be streamed or downloaded by NewPipe.</string>
+    <string name="soundcloud_go_plus_content">This is a SoundCloud Go+ track, at least in your country, so it cannot be streamed or downloaded by WizeStream.</string>
+    <string name="private_content">This content is private, so it cannot be streamed or downloaded by WizeStream.</string>
+    <string name="youtube_music">YouTube Music</string>
+    <string name="youtube_music_premium_content">This video is available only to YouTube Music Premium members, so it cannot be streamed or downloaded by WizeStream.</string>
     <string name="account_terminated">Account terminated</string>
-    <string name="service_provides_reason">%s provides this reason:</string>
-    <string name="paid_content">This content is only available to users who have paid, so it cannot be streamed or downloaded by NewPipe.</string>
+    <string name="account_terminated_service_provides_reason">Account terminated\n\n%1$s provides this reason: %2$s</string>
+    <string name="paid_content">This content is only available to users who have paid, so it cannot be streamed or downloaded by WizeStream.</string>
     <string name="featured">Featured</string>
     <string name="radio">Radio</string>
     <string name="auto_device_theme_title">Automatic (device theme)</string>
@@ -730,11 +1368,16 @@
     <string name="metadata_language">Language</string>
     <string name="metadata_support">Support</string>
     <string name="metadata_host">Host</string>
-    <string name="metadata_thumbnail_url">Thumbnail URL</string>
+    <string name="metadata_thumbnails">Thumbnails</string>
+    <string name="metadata_uploader_avatars">Uploader avatars</string>
+    <string name="metadata_subchannel_avatars">Sub-channel avatars</string>
+    <string name="metadata_avatars">Avatars</string>
+    <string name="metadata_banners">Banners</string>
     <string name="metadata_privacy_public">Public</string>
     <string name="metadata_privacy_unlisted">Unlisted</string>
     <string name="metadata_privacy_private">Private</string>
     <string name="metadata_privacy_internal">Internal</string>
+    <string name="metadata_subscribers">Subscribers</string>
     <string name="detail_pinned_comment_view_description">Pinned comment</string>
     <string name="detail_heart_img_view_description">Hearted by creator</string>
     <string name="open_website_license">Open website</string>
@@ -750,13 +1393,447 @@
     <string name="enumeration_comma">,</string>
     <string name="toggle_all">Toggle all</string>
     <string name="streams_not_yet_supported_removed">Streams which are not yet supported by the downloader are not shown</string>
+    <string name="audio_track_present_in_video">An audio track should be already present in this stream</string>
+    <string name="audio_extracted_from_video_notice">Audio will be extracted from the smallest compatible video stream</string>
     <string name="selected_stream_external_player_not_supported">The selected stream is not supported by external players</string>
     <string name="no_audio_streams_available_for_external_players">No audio streams are available for external players</string>
     <string name="no_video_streams_available_for_external_players">No video streams are available for external players</string>
     <string name="select_quality_external_players">Select quality for external players</string>
+    <string name="select_audio_track_external_players">Select audio track for external players</string>
     <string name="unknown_format">Unknown format</string>
     <string name="unknown_quality">Unknown quality</string>
-    <string name="feed_toggle_show_future_items">Show future items</string>
-    <string name="feed_toggle_hide_future_items">Hide future items</string>
+    <string name="unknown_audio_track">Unknown</string>
+    <string name="feed_show_watched">Fully watched</string>
+    <string name="feed_show_partially_watched">Partially watched</string>
+    <string name="feed_show_upcoming">Upcoming</string>
     <string name="sort">Sort</string>
+    <string name="channel_video_sort_latest">Latest</string>
+    <string name="channel_video_sort_popular">Popular</string>
+    <string name="channel_video_sort_oldest">Oldest</string>
+    <string name="playlist_sort_order">Playlist order</string>
+    <string name="playlist_sort_content_description">Sort playlist: %1$s</string>
+    <string name="channel_video_sort_content_description">Sort channel videos: %1$s</string>
+    <string name="settings_category_exoplayer_title">ExoPlayer settings</string>
+    <string name="settings_category_exoplayer_summary">Manage some ExoPlayer settings. These changes require a player restart to take effect</string>
+    <string name="use_exoplayer_decoder_fallback_title">Use ExoPlayer\'s decoder fallback feature</string>
+    <string name="use_exoplayer_decoder_fallback_summary">Enable this option if you have decoder initialization issues, which falls back to lower-priority decoders if primary decoders initialization fail. This may result in poor playback performance than when using primary decoders</string>
+    <string name="always_use_exoplayer_set_output_surface_workaround_title">Always use ExoPlayer\'s video output surface setting workaround</string>
+    <string name="always_use_exoplayer_set_output_surface_workaround_summary">This workaround releases and re-instantiates video codecs when a surface change occurs, instead of setting the surface to the codec directly. Already used by ExoPlayer on some devices with this issue, this setting has only an effect on Android 6 and higher\n\nEnabling this option may prevent playback errors when switching the current video player or switching to fullscreen</string>
+    <string name="audio_track_name">%1$s %2$s</string>
+    <string name="audio_track_type_original">original</string>
+    <string name="audio_track_type_dubbed">dubbed</string>
+    <string name="audio_track_type_descriptive">descriptive</string>
+    <string name="audio_track_type_secondary">secondary</string>
+    <string name="channel_tab_videos">Videos</string>
+    <string name="channel_tab_tracks">Tracks</string>
+    <string name="channel_tab_shorts">Shorts</string>
+    <string name="channel_tab_livestreams">Live</string>
+    <string name="filter_unwatched">Unwatched</string>
+    <string name="channel_tab_channels">Channels</string>
+    <string name="channel_tab_playlists">Playlists</string>
+    <string name="channel_tab_albums">Albums</string>
+    <string name="channel_tab_podcasts">Podcasts</string>
+    <string name="channel_tab_posts">Posts</string>
+    <string name="post_author_avatar_content_description">Post author avatar</string>
+    <string name="post_pinned_content_description">Pinned post</string>
+    <string name="post_attachment_thumbnail_content_description">Post attachment thumbnail</string>
+    <string name="post_image_content_description">Post image %1$d of %2$d</string>
+    <string name="post_edited">%1$s · edited</string>
+    <string name="post_stats">%1$s · %2$s</string>
+    <string name="post_likes_count">%1$s likes</string>
+    <string name="post_comments_count">%1$s comments</string>
+    <string name="post_poll_choice">%1$s — %2$s</string>
+    <string name="open_original_post">Open original</string>
+    <string name="unknown_count">—</string>
+    <string name="channel_tab_likes">Likes</string>
+    <string name="channel_tab_about">About</string>
+    <string name="show_channel_tabs">Channel tabs</string>
+    <string name="show_channel_tabs_summary">What tabs are shown on the channel pages</string>
+    <string name="swipe_main_tabs_on_pinned_channels_title">Swipe between main tabs on pinned channels</string>
+    <string name="swipe_main_tabs_on_pinned_channels_summary">On pinned channel pages, horizontal swipes change the main tab; tap Videos, Shorts, Live, or other channel sub-tabs to open them</string>
+    <string name="open_play_queue">Open play queue</string>
+    <string name="toggle_fullscreen">Toggle fullscreen</string>
+    <string name="toggle_screen_orientation">Toggle screen orientation</string>
+    <string name="previous_stream">Previous stream</string>
+    <string name="next_stream">Next stream</string>
+    <string name="play">Play</string>
+    <string name="replay">Replay</string>
+    <string name="more_options">More options</string>
+    <string name="duration">Duration</string>
+    <string name="rewind">Rewind</string>
+    <string name="forward">Forward</string>
+    <string name="image_quality_title">Image quality</string>
+    <string name="image_quality_summary">Choose the quality of images and whether to load images at all, to reduce data and memory usage. Changes clear both in-memory and on-disk image cache — %s</string>
+    <string name="image_quality_none">Do not load images</string>
+    <string name="image_quality_low">Low quality</string>
+    <string name="image_quality_medium">Medium quality</string>
+    <string name="image_quality_high">High quality</string>
+    <string name="question_mark">\?</string>
+    <string name="share_playlist">Share Playlist</string>
+    <string name="share_playlist_with_titles">Share with Titles</string>
+    <string name="share_playlist_with_list">Share URL list</string>
+    <string name="share_playlist_as_youtube_temporary_playlist">Share as YouTube temporary playlist</string>
+    <string name="video_details_list_item">- %1$s: %2$s</string>
+    <string name="share_playlist_content_details">%1$s\n%2$s</string>
+    <plurals name="replies">
+        <item quantity="one">%s reply</item>
+        <item quantity="other">%s replies</item>
+    </plurals>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
+    <string name="import_settings_vulnerable_format">The settings in the export being imported use a vulnerable format that was deprecated since NewPipe 0.27.0. Make sure the export being imported is from a trusted source, and prefer using only exports obtained from NewPipe 0.27.0 or newer in the future. Support for importing settings in this vulnerable format will soon be removed completely, and then old versions of NewPipe will not be able to import settings of exports from new versions anymore.</string>
+    <string name="migration_info_6_7_title">SoundCloud Top 50 page removed</string>
+    <string name="migration_info_6_7_message">SoundCloud has discontinued the original Top 50 charts. The corresponding tab has been removed from your main page.</string>
+    <string name="migration_info_7_8_title">YouTube combined trending removed</string>
+    <string name="migration_info_7_8_message">YouTube has discontinued the combined trending page as of 21st July 2025. WizeStream replaced the default trending page with the trending livestreams.\n\nYou can also select different trending pages in \"Settings > Content > Content of main page\".</string>
+    <string name="trending_gaming">Gaming trends</string>
+    <string name="trending_podcasts">Trending podcasts</string>
+    <string name="trending_movies">Trending movies and shows</string>
+    <string name="trending_music">Trending music</string>
+    <string name="youtube_shorts">YouTube Shorts</string>
+    <string name="entry_deleted">Entry deleted</string>
+    <string name="player_http_403">HTTP error 403 received from server while playing, likely caused by streaming URL expiration or an IP ban</string>
+    <string name="player_http_invalid_status">HTTP error %1$s received from server while playing</string>
+    <string name="youtube_player_http_403">HTTP error 403 received from server while playing, likely caused by an IP ban or streaming URL deobfuscation issues</string>
+    <string name="sign_in_confirm_not_bot_error">%1$s refused to provide data, asking for a login to confirm the requester is not a bot.\n\nYour IP might have been temporarily banned by %1$s, you can wait some time or switch to a different IP (for example by turning on/off a VPN, or by switching from WiFi to mobile data).\n\nPlease see <a href="%2$s">this FAQ entry</a> for more information.</string>
+    <string name="service_temporary_block">%1$s temporarily blocked requests from this network. Wait and try again, or switch to another network.</string>
+    <string name="unsupported_content_in_country">This content is not available for the currently selected content country.\n\nChange your selection from \"Settings > Content > Default content country\".</string>
+    <string name="api23_requirement_dialog_title">WizeStream is dropping support for Android 5</string>
+    <string name="api23_requirement_dialog_message">Unfortunately WizeStream depends on a few libraries that dropped support for Android 5.0 and 5.1. The next WizeStream release will therefore only work on devices with Android 6 or higher, sadly. Read more in the blogpost.</string>
+    <string name="api23_requirement_dialog_blogpost">Blogpost</string>
+    <string name="swipe_seek_title">Swipe seek</string>
+    <string name="swipe_seek_summary">Swipe left or right on the video to seek</string>
+    <string name="fullscreen_swipe_title">Fullscreen swipe</string>
+    <string name="fullscreen_swipe_summary">Swipe up or down on the video to enter or exit fullscreen</string>
+    <string name="hold_to_speed_title">Hold to speed up</string>
+    <string name="hold_to_speed_summary">Temporarily speed up playback while holding the video</string>
+    <string name="hold_to_speed_off">Off</string>
+
+    <!-- TV casting -->
+    <string name="cast">Cast</string>
+    <string name="cast_to_tv">Cast to TV</string>
+    <string name="cast_searching">Searching for TVs…</string>
+    <string name="cast_receiver_help">Get receiver</string>
+    <string name="cast_connecting">Connecting to %1$s…</string>
+    <string name="cast_connected">Casting to %1$s</string>
+    <string name="casting_to">Casting to %1$s</string>
+    <string name="stop_casting">Stop casting</string>
+    <string name="change_tv">Change TV</string>
+    <string name="cast_failed">Could not connect to %1$s</string>
+    <string name="cast_playback_failed">The TV could not play this stream</string>
+    <string name="cast_no_compatible_stream">No TV-compatible stream is available for this video</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsor_block_settings_title">SponsorBlock</string>
+    <string name="sponsor_block_settings_summary">Skip sponsored segments and configure categories</string>
+    <string name="sponsor_block_home_page_title">SponsorBlock website</string>
+    <string name="sponsor_block_home_page_summary">Open SponsorBlock project website</string>
+    <string name="sponsor_block_privacy_title">Privacy policy</string>
+    <string name="sponsor_block_privacy_summary">Open SponsorBlock privacy policy</string>
+    <string name="sponsor_block_homepage_url" translatable="false">https://sponsor.ajay.app</string>
+    <string name="sponsor_block_privacy_policy_url" translatable="false">https://wiki.sponsor.ajay.app/w/Privacy_Policy</string>
+    <string name="sponsor_block_settings_category_title">Settings</string>
+    <string name="sponsor_block_enable_title">Enable SponsorBlock</string>
+    <string name="sponsor_block_enable_summary">Skip or show controls for sponsored segments</string>
+    <string name="sponsor_block_show_manual_skip_title">Show manual skip button</string>
+    <string name="sponsor_block_show_manual_skip_summary">Show a button when a skippable segment starts</string>
+    <string name="sponsor_block_graced_rewind_title">Rewind after manual seek</string>
+    <string name="sponsor_block_graced_rewind_summary">Allow skipped segments to play if you manually seek back into them</string>
+    <string name="sponsor_block_notifications_title">Skip notifications</string>
+    <string name="sponsor_block_notifications_summary">Show a short message when a segment is skipped</string>
+    <string name="sponsor_block_categories_title">Categories</string>
+    <string name="sponsor_block_categories_summary">Choose categories, colors and skip behavior</string>
+    <string name="sponsor_block_category_sponsor_title">Sponsor</string>
+    <string name="sponsor_block_category_sponsor_summary">Paid promotions and sponsor messages</string>
+    <string name="sponsor_block_category_intro_title">Intro</string>
+    <string name="sponsor_block_category_intro_summary">Opening sequences and repeated intro sections</string>
+    <string name="sponsor_block_category_outro_title">Outro</string>
+    <string name="sponsor_block_category_outro_summary">End cards and closing sections</string>
+    <string name="sponsor_block_category_interaction_title">Interaction reminder</string>
+    <string name="sponsor_block_category_interaction_summary">Reminders to like, subscribe, or comment</string>
+    <string name="sponsor_block_category_self_promo_title">Self-promotion</string>
+    <string name="sponsor_block_category_self_promo_summary">Creator promotion of their own content</string>
+    <string name="sponsor_block_category_non_music_title">Non-music section</string>
+    <string name="sponsor_block_category_non_music_summary">Non-music or off-topic parts in music videos</string>
+    <string name="sponsor_block_category_preview_title">Preview/recap</string>
+    <string name="sponsor_block_category_preview_summary">Previews, recaps, and teasers</string>
+    <string name="sponsor_block_category_filler_title">Filler</string>
+    <string name="sponsor_block_category_filler_summary">Filler tangents and repeated material</string>
+    <string name="sponsor_block_category_highlight_title">Highlight</string>
+    <string name="sponsor_block_category_highlight_summary">Point-of-interest markers; not skipped automatically</string>
+
+    <!-- DeArrow -->
+    <string name="dearrow_settings_category_title">DeArrow</string>
+    <string name="dearrow_enable_title">Enable DeArrow</string>
+    <string name="dearrow_enable_summary">Use community-contributed titles and thumbnails for YouTube videos</string>
+    <string name="dearrow_titles_title">Replace titles</string>
+    <string name="dearrow_titles_summary">Show approved descriptive titles instead of sensational titles</string>
+    <string name="dearrow_thumbnails_title">Replace thumbnails</string>
+    <string name="dearrow_thumbnails_summary">Show approved thumbnail frames instead of original thumbnails</string>
+
+    <string name="sponsor_block_category_presets_title">Category presets</string>
+    <string name="sponsor_block_categories_group_title">Categories</string>
+    <string name="sponsor_block_activate_all_title">Activate all</string>
+    <string name="sponsor_block_deactivate_all_title">Deactivate all</string>
+    <string name="sponsor_block_reset_defaults_title">Reset to defaults</string>
+    <string name="sponsor_block_reset_categories_dialog_title">Reset SponsorBlock categories?</string>
+    <string name="sponsor_block_reset_categories_dialog_message">This will restore the default enabled categories, colors and behaviors.</string>
+    <string name="reset">Reset</string>
+    <string name="sponsor_block_configure_category_content_description">Configure %1$s</string>
+    <string name="sponsor_block_category_color_title">Color</string>
+    <string name="sponsor_block_category_color_summary">Color used for this category on the seek bar</string>
+    <string name="sponsor_block_category_behavior_title">Behavior</string>
+    <string name="sponsor_block_behavior_skip_title">Skip</string>
+    <string name="sponsor_block_behavior_manual_title">Manual</string>
+    <string name="sponsor_block_behavior_dont_skip_title">Don’t skip</string>
+    <string name="sponsor_block_behavior_skip_summary">Automatically skip this category</string>
+    <string name="sponsor_block_behavior_manual_summary">Show a button and let me choose when to skip</string>
+    <string name="sponsor_block_behavior_dont_skip_summary">Show the segment on the seek bar without skipping it</string>
+    <string name="sponsor_block_color_hex_label">Hex color</string>
+    <string name="sponsor_block_color_default">Default</string>
+    <string name="sponsor_block_behavior_highlight_summary">Don’t skip\nHighlights are point markers and are never skipped</string>
+    <string name="sponsor_block_color_invalid">Enter a valid RRGGBB hex color</string>
+    <string name="sponsor_block_color_preview">Color preview</string>
+    <string name="sponsor_block_color_blue">Blue</string>
+    <string name="sponsor_block_color_green">Green</string>
+    <string name="sponsor_block_color_red">Red</string>
+    <string name="sponsor_block_skipped_segment">Skipped %1$s</string>
+    <string name="sponsor_block_skipped_segment_fallback">segment</string>
+    <string name="sponsor_block_skip_sponsor">Skip sponsor</string>
+    <string name="sponsor_block_skip_segment">Skip segment</string>
+    <string name="sponsor_block_skip_button_content_description">Skip SponsorBlock segment</string>
+    <!-- Equalizer -->
+    <string name="equalizer">Equalizer</string>
+    <string name="audio_visualizer">Audio visualizer</string>
+    <string name="show_visualizer">Show visualizer</string>
+    <string name="show_play_queue">Show play queue</string>
+    <string name="enter_listen_mode">Listen without video</string>
+    <string name="exit_listen_mode">Return to video</string>
+    <string name="visualizer_style_title">Visualizer style</string>
+    <string name="visualizer_style_centered_bars">Centered spectrum</string>
+    <string name="visualizer_style_classic_bars">Classic bars</string>
+    <string name="visualizer_style_mirrored_bars">Mirrored bars</string>
+    <string name="visualizer_style_waveform">Waveform</string>
+    <string name="visualizer_style_filled_waveform">Filled waveform</string>
+    <string name="visualizer_style_oscilloscope">Oscilloscope</string>
+    <string name="visualizer_style_spectrum_line">Spectrum line</string>
+    <string name="visualizer_style_mountain">Mountain</string>
+    <string name="visualizer_style_circular_spectrum">Circular spectrum</string>
+    <string name="visualizer_style_radial_waveform">Radial waveform</string>
+    <string name="visualizer_style_equalizer_blocks">Equalizer blocks</string>
+    <string name="visualizer_style_particles">Particles</string>
+    <string name="visualizer_style_pulse_rings">Pulse rings</string>
+    <string name="visualizer_style_vu_meters">VU meters</string>
+    <string name="visualizer_style_neon_dots">Neon dots</string>
+    <string name="equalizer_settings_key" translatable="false">equalizer_settings</string>
+    <string name="equalizer_enable">Enable equalizer</string>
+    <string name="equalizer_preset">Preset</string>
+    <string name="equalizer_preset_flat">Flat</string>
+    <string name="equalizer_preset_bass_boost">Bass boost</string>
+    <string name="equalizer_preset_vocal">Vocal</string>
+    <string name="equalizer_preset_acoustic">Acoustic</string>
+    <string name="equalizer_preset_rock">Rock</string>
+    <string name="equalizer_preset_custom">Custom</string>
+    <string name="equalizer_curve_description">The fixed 10-band curve is adapted to the audio bands supported by this device.</string>
+    <string name="equalizer_unavailable">The Android equalizer effect is unavailable on this device.</string>
+    <string name="equalizer_disabled">Equalizer is off.</string>
+    <string name="equalizer_active">Active for this playback session.</string>
+    <string name="equalizer_waiting_for_audio_session">Waiting for a playback audio session.</string>
+    <string name="equalizer_applies_next_playback">Changes apply to the next playback session.</string>
+    <string name="equalizer_headroom">Automatic clipping headroom: −%1$.1f dB</string>
+    <string name="equalizer_frequency_hz">%1$d Hz</string>
+    <string name="equalizer_frequency_khz">%1$d kHz</string>
+    <string name="equalizer_settings_summary_disabled">Off · Five presets and one custom curve</string>
+    <string name="equalizer_settings_summary_enabled">On · %1$s</string>
+    <!-- Local media -->
+    <string name="local_media">Local media</string>
+    <string name="local_media_browse_all_songs">Browse all songs</string>
+    <string name="local_media_on_device">On this device</string>
+    <string name="local_media_permission_description">Allow WizeStream to find music and videos stored on this device. Access is requested only when you open Local media.</string>
+    <string name="local_media_grant_access">Allow media access</string>
+    <string name="local_media_empty">No matching music or videos were found on this device.</string>
+    <string name="local_media_search_hint">Search title, artist, album, or folder</string>
+    <string name="local_media_sort">Sort local media</string>
+    <string name="local_media_sort_title">Title</string>
+    <string name="local_media_sort_artist">Artist</string>
+    <string name="local_media_sort_album">Album</string>
+    <string name="local_media_sort_folder">Folder</string>
+    <string name="local_media_sort_recent">Recently added</string>
+    <string name="local_media_play_background">Play in background</string>
+    <string name="local_media_enqueue_next">Enqueue next</string>
+    <string name="local_media_metadata_format">Format</string>
+    <string name="local_media_metadata_resolution">Resolution</string>
+    <string name="local_media_metadata_length">Length</string>
+    <string name="local_media_metadata_captured_on">Captured on</string>
+    <string name="local_media_metadata_audio_quality">Audio quality</string>
+    <string name="local_media_sample_rate">%1$s kHz</string>
+    <string name="local_media_audio_mono">Mono</string>
+    <string name="local_media_audio_stereo">Stereo</string>
+    <string name="local_media_audio_channels">%1$d channels</string>
+    <string name="local_media_audio_bitrate">%1$d kbps</string>
+
+    <string name="local_media_settings_summary">Control local library exclusions and on-device media behavior</string>
+    <string name="local_media_group_all_by_folder_key" translatable="false">local_media_group_all_by_folder</string>
+    <string name="local_media_group_all_by_folder_title">Group All media by folder</string>
+    <string name="local_media_group_all_by_folder_summary">Show audio and video together in filesystem folders in the All view</string>
+    <plurals name="local_media_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="local_media_ignore_item">Ignore this media</string>
+    <string name="local_media_ignore_folder">Ignore this folder</string>
+    <string name="local_media_ignored_confirmation">Hidden from Local media</string>
+    <string name="local_media_ignored_status_key" translatable="false">local_media_ignored_status</string>
+    <string name="local_media_clear_ignored_key" translatable="false">local_media_clear_ignored</string>
+    <string name="local_media_ignored_status_title">Ignored media</string>
+    <string name="local_media_ignored_none">No files or folders are ignored</string>
+    <plurals name="local_media_ignored_count">
+        <item quantity="one">%d ignored item or folder</item>
+        <item quantity="other">%d ignored items or folders</item>
+    </plurals>
+    <string name="local_media_clear_ignored_title">Clear ignored media</string>
+    <string name="local_media_clear_ignored_summary">Show all ignored local files and folders again</string>
+    <string name="local_media_clear_ignored_confirmation">Clear all ignored local media and folders?</string>
+
+    <!-- Proxy -->
+    <string name="proxy_settings_title">Proxy</string>
+    <string name="proxy_settings_summary">Route remote network requests through an HTTP or SOCKS5 proxy</string>
+    <string name="proxy_mode_title">Proxy type</string>
+    <string name="proxy_disabled">Disabled</string>
+    <string name="proxy_http">HTTP</string>
+    <string name="proxy_socks">SOCKS5</string>
+    <string-array name="proxy_mode_entries">
+        <item>@string/proxy_disabled</item>
+        <item>@string/proxy_http</item>
+        <item>@string/proxy_socks</item>
+    </string-array>
+    <string name="proxy_host_title">Proxy host</string>
+    <string name="proxy_port_title">Proxy port</string>
+    <string name="proxy_username_title">Proxy username (optional)</string>
+    <string name="proxy_password_title">Proxy password (optional)</string>
+    <string name="proxy_password_dialog_message">Enter a new password, or leave it blank to clear the saved password.</string>
+    <string name="proxy_password_configured">Password saved securely</string>
+    <string name="proxy_password_not_configured">No password saved</string>
+    <string name="proxy_password_save_error">Could not securely save the proxy password</string>
+    <string name="proxy_invalid_host">Enter a host name or IP address without a URL scheme</string>
+    <string name="proxy_invalid_port">Enter a port from 1 to 65535</string>
+    <string name="proxy_privacy_notice">Changes apply to new connections. Local and LAN addresses bypass the proxy. Passwords are encrypted with Android Keystore and excluded from backup. HTTP Basic and SOCKS5 username/password authentication are supported.</string>
+
+    <string name="saved_search_feeds">Saved search feeds</string>
+    <string name="save_search_as_feed">Save search as feed</string>
+    <string name="saved_search_feed_name">Choose a name for this feed.</string>
+    <string name="saved_search_feed_name_required">A feed name is required</string>
+    <string name="saved_search_feed_saved">Search feed saved</string>
+    <string name="saved_search_feed_save_failed">Could not save this search feed. It may already exist.</string>
+    <string name="saved_search_feed_load_failed">Could not load saved search feeds</string>
+    <string name="saved_search_feed_item">%1$s\n%2$s</string>
+    <string name="no_saved_search_feeds">No saved search feeds yet. Save one from a search results screen.</string>
+    <string name="refresh_saved_search_feed">Refresh saved search feed</string>
+    <string name="delete_saved_search_feed">Delete saved search feed</string>
+    <string name="delete_saved_search_feed_confirmation">Delete this saved search feed and its cached results?</string>
+    <string name="saved_search_feed_delete_failed">Could not delete this saved search feed</string>
+
+    <string name="search_button_behavior_title">Search button behavior</string>
+    <string name="search_button_behavior_summary">Choose whether Search filters the current tab first or opens search for the current service</string>
+    <string name="search_button_behavior_current_tab">Search current tab</string>
+    <string name="search_button_behavior_current_service">Search current service</string>
+
+    <!-- Danmaku / bullet comments -->
+    <string name="danmaku_settings_title">Danmaku / bullet comments</string>
+    <string name="danmaku_enabled_title">Show danmaku</string>
+    <string name="danmaku_enabled_summary">Overlay time-synchronized comments on supported videos and live streams</string>
+    <string name="danmaku_enable">Show danmaku</string>
+    <string name="danmaku_disable">Hide danmaku</string>
+    <string name="danmaku_opacity_title">Danmaku opacity</string>
+    <string name="danmaku_text_size_title">Danmaku text size</string>
+    <string name="danmaku_max_rows_title">Maximum danmaku rows</string>
+    <string name="danmaku_duration_title">Danmaku display duration</string>
+
+    <!-- Video color adjustments (issue #546) -->
+    <string name="video_adjustments" tools:ignore="MissingTranslation">Video adjustments</string>
+    <string name="video_adjustments_enable" tools:ignore="MissingTranslation">Enable adjustments</string>
+    <string name="video_adjustments_remember" tools:ignore="MissingTranslation">Remember adjustments</string>
+    <string name="video_adjustments_brightness" tools:ignore="MissingTranslation">Brightness</string>
+    <string name="video_adjustments_contrast" tools:ignore="MissingTranslation">Contrast</string>
+    <string name="video_adjustments_saturation" tools:ignore="MissingTranslation">Saturation</string>
+    <string name="video_adjustments_value" tools:ignore="MissingTranslation">%1$s: %2$d%%</string>
+    <string name="video_adjustments_percent" tools:ignore="MissingTranslation">%1$d%%</string>
+    <string name="video_adjustments_active" tools:ignore="MissingTranslation">Previewing adjustments</string>
+    <string name="video_adjustments_disabled" tools:ignore="MissingTranslation">Adjustments are off</string>
+    <string name="video_adjustments_hdr" tools:ignore="MissingTranslation">HDR video: adjustments are bypassed</string>
+    <string name="video_adjustments_failed" tools:ignore="MissingTranslation">Video adjustments could not run on this video or device. Continuing with adjustments off.</string>
+    <string name="video_adjustments_description" tools:ignore="MissingTranslation">Applies to SDR videos in this player, including downloaded videos. Screen brightness is separate. Remember adjustments to use them in future playback sessions.</string>
+    <string name="remote_keys_title">Remote control keys</string>
+    <string name="remote_keys_summary">Assign buttons for playback and app navigation</string>
+    <string name="remote_keys_help">Choose an action, then press a color, number, letter, function, media, channel, Menu, Guide, Info, Search, Bookmark, or Captions button. Shortcuts work while browsing, playing, or in settings, except when typing. Choose D-pad shortcut in an unassigned action to bind a direction during fullscreen playback with hidden controls. D-pad navigation in menus and visible controls, OK, Back, volume, and system buttons keep their usual functions. Some buttons are reserved by the TV and cannot be assigned.</string>
+    <string name="remote_playback">Playback controls</string>
+    <string name="remote_navigation">App navigation</string>
+    <string name="remote_play_pause">Play / pause</string>
+    <string name="remote_mute">Mute / unmute</string>
+    <string name="remote_home">Home</string>
+    <string name="remote_feed">What’s New</string>
+    <string name="remote_unassigned">Not assigned</string>
+    <string name="remote_capture">Press the button you want to assign, then select Assign. Use D-pad shortcut to choose a direction for fullscreen playback. Remove an existing assignment first to choose a direction. OK, Back, volume, and system buttons cannot be assigned.</string>
+    <string name="remote_selected">Selected button: %1$s</string>
+    <string name="remote_conflict">%1$s is assigned to “%2$s”. Select Assign to replace that assignment.</string>
+    <string name="remote_assign">Assign</string>
+    <string name="remote_remove">Remove assignment</string>
+    <string name="remote_reset">Reset remote keys</string>
+    <string name="remote_reset_message">Remove all custom button assignments and restore the default controls?</string>
+    <string name="learning_playlist_adding">Adding playlist to Learning…</string>
+    <string name="learning_playlist_navigation_title">Course navigation</string>
+    <string name="learning_playlist_navigation_summary">Show the course, lesson position, and next video when opening a Learning playlist.</string>
+    <string name="learning_course_format">Learning playlist: %1$s</string>
+    <string name="learning_lesson_position">Video %1$d of %2$d</string>
+    <string name="learning_lesson_position_partial">Video %1$d · More videos may be available</string>
+    <string name="learning_next_lesson">Up next in this playlist</string>
+    <string name="learning_playlist_end">You have reached the end of the learning playlist.</string>
+    <string name="learning_load_next_lesson">Load next video</string>
+    <string name="learning_next_lesson_error">Could not load the next video. Reopen the playlist to try again.</string>
+    <string name="video_title_text_size_title">Video title text size</string>
+    <string name="channel_name_text_size_title">Channel name text size</string>
+    <string name="media_text_size_default">Default (100%)</string>
+    <string name="tv_related_sidebar_width_title">TV recommendations sidebar width</string>
+    <string name="tv_related_sidebar_compact">Compact (25%)</string>
+    <string name="tv_related_sidebar_balanced">Balanced (33%)</string>
+    <string name="tv_related_sidebar_wide">Wide (44%)</string>
+
+    <string name="learning_show_all_playlists">Show all courses</string>
+    <string name="learning_for_learning">For learning</string>
+    <string name="learning_choose_course">Choose a course</string>
+    <string name="learning_all_lessons">All lessons</string>
+    <string name="subscription_arrange">Arrange subscriptions</string>
+    <string name="subscription_sort_enable">Enable subscription sorting</string>
+    <string name="subscription_sort_help">Drag handles to reorder. Tap or hold channels to select them, then move them under a separator. Changes save automatically; hidden channels stay in your list.</string>
+    <string name="subscription_sort_selected">%1$d selected · Tap to clear selection</string>
+    <string name="subscription_sort_select_visible">Select/deselect visible</string>
+    <string name="subscription_sort_select_channel">Select %1$s</string>
+    <string name="subscription_sort_move">Move selected</string>
+    <string name="subscription_sort_up">Move up</string>
+    <string name="subscription_sort_down">Move down</string>
+    <string name="subscription_arrange_help">Drag channels and separators to change their order. Tap a separator to rename or remove it.</string>
+    <string name="list_separator_add">Add separator above</string>
+    <string name="subscription_separator_add">Add separator</string>
+    <string name="subscription_separator_name">Separator name</string>
+    <string name="subscription_order_reset">Reset to alphabetical order</string>
+    <string name="subscription_order_load_failed">Could not load subscriptions</string>
+    <string name="subscription_order_drag">Drag to reorder</string>
+    <string name="blocked_content_search_hint">Search this blocklist</string>
+    <string name="blocked_content_search_help">Uncheck entries to unblock them. Search filters the list without changing your blocks.</string>
+    <string name="blocked_content_clear_all">Clear entire list</string>
+    <string name="blocked_keywords_edit">Add or edit keywords</string>
+    <string name="independent_player_volume_title">Independent player volume</string>
+    <string name="independent_player_volume_summary">Volume gestures adjust WizeStream independently of device volume, allowing quieter playback on earbuds</string>
+    <string name="orientation_default">Use default</string>
+    <string name="portrait_video_layout">Portrait layout</string>
+    <string name="landscape_video_layout">Landscape layout</string>
+    <string name="portrait_grid_columns">Portrait grid columns</string>
+    <string name="landscape_grid_columns">Landscape grid columns</string>
+    <string name="live_auto_quality_changed">Auto quality changed from %1$s to %2$s</string>
+    <string name="learning_notes_copy_all">Copy all notes</string>
+    <string name="default_live_mode_title">Live playback mode</string>
+    <string name="live_mode_normal">Normal live (10 sec, no rewind)</string>
+    <string name="live_mode_full">Full live (rewind when available)</string>
+    <string name="feed_floating_refresh_title">Floating feed refresh button</string>
+    <string name="feed_floating_refresh_summary">Show a floating Refresh/Cancel button instead of pull-to-refresh and the upper refresh controls.</string>
 </resources>

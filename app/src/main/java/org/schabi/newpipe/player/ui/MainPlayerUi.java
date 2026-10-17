@@ -5,8 +5,6 @@ import static org.schabi.newpipe.MainActivity.DEBUG;
 import static org.schabi.newpipe.QueueItemMenuUtil.openPopupMenu;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 import static org.schabi.newpipe.ktx.ViewUtils.animate;
-import static org.schabi.newpipe.player.Player.STATE_COMPLETED;
-import static org.schabi.newpipe.player.Player.STATE_PAUSED;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_BACKGROUND;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_NONE;
 import static org.schabi.newpipe.player.helper.PlayerHelper.MinimizeMode.MINIMIZE_ON_EXIT_MODE_POPUP;
@@ -15,26 +13,24 @@ import static org.schabi.newpipe.player.helper.PlayerHelper.getTimeString;
 import static org.schabi.newpipe.player.helper.PlayerHelper.globalScreenOrientationLocked;
 import static org.schabi.newpipe.player.notification.NotificationConstants.ACTION_PLAY_PAUSE;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
-import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,24 +40,39 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.exoplayer2.video.VideoSize;
+import androidx.media3.ui.SubtitleView;
+import androidx.media3.common.VideoSize;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.PlayerBinding;
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
+import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.StreamSegment;
 import org.schabi.newpipe.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipe.fragments.detail.VideoDetailFragment;
 import org.schabi.newpipe.info_list.StreamSegmentAdapter;
 import org.schabi.newpipe.info_list.StreamSegmentItem;
 import org.schabi.newpipe.ktx.AnimationType;
+import org.schabi.newpipe.learning.LearningMode;
+import org.schabi.newpipe.learning.LearningNoteDialog;
+import org.schabi.newpipe.learning.LearningNoteManager;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.player.Player;
+import org.schabi.newpipe.player.PlaybackPresentationMode;
+import org.schabi.newpipe.player.equalizer.EqualizerDialog;
+import org.schabi.newpipe.player.equalizer.EqualizerState;
+import org.schabi.newpipe.player.video.VideoAdjustmentDialog;
 import org.schabi.newpipe.player.event.PlayerServiceEventListener;
 import org.schabi.newpipe.player.gesture.BasePlayerGestureListener;
 import org.schabi.newpipe.player.gesture.MainPlayerGestureListener;
+import org.schabi.newpipe.player.helper.ChannelSkipDialog;
+import org.schabi.newpipe.player.helper.ChannelSkipPreferences;
 import org.schabi.newpipe.player.helper.PlaybackParameterDialog;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.player.helper.PlayerRotationMode;
+import org.schabi.newpipe.player.helper.SleepTimer;
+import org.schabi.newpipe.player.helper.SleepTimerDialog;
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueAdapter;
@@ -70,14 +81,21 @@ import org.schabi.newpipe.player.playqueue.PlayQueueItemBuilder;
 import org.schabi.newpipe.player.playqueue.PlayQueueItemHolder;
 import org.schabi.newpipe.player.playqueue.PlayQueueItemTouchCallback;
 import org.schabi.newpipe.util.DeviceUtils;
+import org.schabi.newpipe.util.EdgeToEdgeHelper;
+import org.schabi.newpipe.util.Localization;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.external_communication.KoreUtils;
 import org.schabi.newpipe.util.external_communication.ShareUtils;
+import org.schabi.newpipe.util.image.ExtractorImageCompat;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutChangeListener {
     private static final String TAG = MainPlayerUi.class.getSimpleName();
@@ -88,7 +106,11 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     private static final int DETAIL_TITLE_TEXT_SIZE_TABLET = 15; // sp
 
     private boolean isFullscreen = false;
-    private boolean isVerticalVideo = false;
+    private boolean touchLocked;
+    private FullscreenOrientationPolicy.VideoContentOrientation videoContentOrientation =
+            FullscreenOrientationPolicy.VideoContentOrientation.UNKNOWN;
+    @Nullable
+    private String videoOrientationStreamKey;
     private boolean fragmentIsVisible = false;
 
     private ContentObserver settingsContentObserver;
@@ -100,6 +122,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     // fullscreen player
     private ItemTouchHelper itemTouchHelper;
+    private final CompositeDisposable learningNoteDisposables = new CompositeDisposable();
 
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -110,6 +133,11 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     public MainPlayerUi(@NonNull final Player player,
                         @NonNull final PlayerBinding playerBinding) {
         super(player, playerBinding);
+        binding.touchLockButton.setOnClickListener(view -> setTouchLocked(true));
+        binding.touchUnlockButton.setOnClickListener(view -> {
+            setTouchLocked(false);
+            showControlsThenHide();
+        });
     }
 
     /**
@@ -119,24 +147,32 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
      * enough for phones, but not for tablets since the mini player can be also shown in landscape.
      */
     private void directlyOpenFullscreenIfNeeded() {
+        if (DeviceUtils.isTv(context)
+                && player.getPlaybackPresentationMode().rendersVideo()) {
+            // TV cannot rotate, and replay can reuse an already-expanded bottom sheet.
+            // Apply fullscreen for each video intent rather than relying on a sheet callback.
+            setFullscreen(true);
+            return;
+        }
         if (PlayerHelper.isStartMainPlayerFullscreenEnabled(player.getService())
                 && DeviceUtils.isTablet(player.getService())
                 && PlayerHelper.globalScreenOrientationLocked(player.getService())) {
             player.getFragmentListener().ifPresent(
-                    PlayerServiceEventListener::onScreenRotationButtonClicked);
+                    listener -> listener.onScreenRotationButtonClicked(true));
         }
     }
 
     @Override
     public void setupAfterIntent() {
-        // needed for tablets, check the function for a better explanation
-        directlyOpenFullscreenIfNeeded();
-
         super.setupAfterIntent();
 
         initVideoPlayer();
-        // Android TV: without it focus will frame the whole player
-        binding.playPauseButton.requestFocus();
+        directlyOpenFullscreenIfNeeded();
+        // Replaying the current item can reuse the engine and its retained SurfaceView.
+        restoreVideoSurfaceAfterLayoutTransition();
+        if (shouldRequestPlaybackButtonFocus()) {
+            binding.playPauseButton.requestFocus();
+        }
 
         // Note: This is for automatically playing (when "Resume playback" is off), see #6179
         if (player.getPlayWhenReady()) {
@@ -151,22 +187,41 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         return new MainPlayerGestureListener(this);
     }
 
+    private androidx.appcompat.app.AlertDialog videoAdjustmentDialog;
+
     @Override
     protected void initListeners() {
         super.initListeners();
 
-        binding.screenRotationButton.setOnClickListener(makeOnClickListener(() -> {
-            // Only if it's not a vertical video or vertical video but in landscape with locked
-            // orientation a screen orientation can be changed automatically
-            if (!isVerticalVideo || (isLandscape() && globalScreenOrientationLocked(context))) {
-                player.getFragmentListener()
-                        .ifPresent(PlayerServiceEventListener::onScreenRotationButtonClicked);
-            } else {
-                toggleFullscreen();
-            }
-        }));
+        binding.screenRotationButton.setOnClickListener(
+                makeOnClickListener(this::toggleFullscreenWithOrientation));
         binding.queueButton.setOnClickListener(v -> onQueueClicked());
+        binding.commentsButton.setOnClickListener(v -> onCommentsClicked());
         binding.segmentsButton.setOnClickListener(v -> onSegmentsClicked());
+        binding.sleepTimerButton.setOnClickListener(v ->
+                getParentActivity().ifPresent(activity -> SleepTimerDialog.show(activity, player)));
+        binding.equalizerButton.setOnClickListener(v ->
+                getParentActivity().ifPresent(activity -> EqualizerDialog.show(
+                        activity, EqualizerDialog.forPlayer(player))));
+        binding.videoAdjustmentsButton.setOnClickListener(v ->
+                getParentActivity().ifPresent(activity -> {
+                    if (videoAdjustmentDialog == null || !videoAdjustmentDialog.isShowing()) {
+                        videoAdjustmentDialog = VideoAdjustmentDialog.show(
+                                activity, player.getVideoAdjustments());
+                    }
+                }));
+        binding.listenModeButton.setOnClickListener(v -> {
+            final boolean listening = player.getPlaybackPresentationMode()
+                    == PlaybackPresentationMode.LISTEN_VISUALIZER;
+            player.setPlaybackPresentationMode(listening
+                    ? PlaybackPresentationMode.VIDEO
+                    : PlaybackPresentationMode.LISTEN_VISUALIZER);
+        });
+        binding.learningNoteButton.setOnClickListener(v -> showVideoNotes());
+        binding.learningNoteButton.setOnLongClickListener(v -> {
+            showLearningNoteDialog();
+            return true;
+        });
 
         binding.addToPlaylistButton.setOnClickListener(v ->
                 getParentActivity().map(FragmentActivity::getSupportFragmentManager)
@@ -194,13 +249,62 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         });
     }
 
+
+    @Override
+    public void onEqualizerStateChanged(@NonNull final EqualizerState state,
+                                        final boolean operational) {
+        binding.equalizerButton.setActivated(state.isEnabled());
+        binding.equalizerButton.setAlpha(state.isEnabled() && operational ? 1.0f : 0.7f);
+    }
+
+    @Override
+    public void showSponsorBlockSkipButton(@NonNull final String label,
+                                           @NonNull final Runnable onClick) {
+        binding.sponsorBlockSkipButton.setText(label);
+        binding.sponsorBlockSkipButton.setOnClickListener(v -> onClick.run());
+        binding.sponsorBlockSkipButton.setVisibility(View.VISIBLE);
+        binding.sponsorBlockSkipButton.bringToFront();
+    }
+
+    @Override
+    public void hideSponsorBlockSkipButton() {
+        binding.sponsorBlockSkipButton.setVisibility(View.GONE);
+        binding.sponsorBlockSkipButton.setOnClickListener(null);
+    }
+
+    @Override
+    public void updateSponsorBlockSeekBarMarkers(
+            @NonNull final List<SponsorBlockSegment> segments,
+            final long durationMillis) {
+        binding.sponsorBlockSeekBarMarkers.setPadding(
+                binding.playbackSeekBar.getPaddingLeft(),
+                0,
+                binding.playbackSeekBar.getPaddingRight(),
+                0);
+        binding.sponsorBlockSeekBarMarkers.setSegments(segments, durationMillis);
+    }
+
+    @Override
+    public void clearSponsorBlockSeekBarMarkers() {
+        binding.sponsorBlockSeekBarMarkers.clearSegments();
+    }
+
     @Override
     protected void deinitListeners() {
         super.deinitListeners();
 
         binding.queueButton.setOnClickListener(null);
+        binding.commentsButton.setOnClickListener(null);
         binding.segmentsButton.setOnClickListener(null);
+        binding.sleepTimerButton.setOnClickListener(null);
+        binding.equalizerButton.setOnClickListener(null);
+        binding.videoAdjustmentsButton.setOnClickListener(null);
+        binding.listenModeButton.setOnClickListener(null);
         binding.addToPlaylistButton.setOnClickListener(null);
+        binding.learningNoteButton.setOnClickListener(null);
+        binding.learningNoteButton.setOnLongClickListener(null);
+        hideSponsorBlockSkipButton();
+        clearSponsorBlockSeekBarMarkers();
 
         context.getContentResolver().unregisterContentObserver(settingsContentObserver);
 
@@ -217,6 +321,13 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         playQueueAdapter = new PlayQueueAdapter(context,
                 Objects.requireNonNull(player.getPlayQueue()));
         segmentAdapter = new StreamSegmentAdapter(getStreamSegmentListener());
+
+        // Make sure video and text tracks are enabled if the user is in the app, in the case user
+        // switched from background player to main player
+        player.useVideoAndSubtitles(fragmentIsVisible);
+        if (DeviceUtils.isTv(context)) {
+            directlyOpenFullscreenIfNeeded();
+        }
     }
 
     @Override
@@ -230,6 +341,13 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     @Override
     public void destroy() {
+        binding.getRoot().configure(false, 60_000);
+        getParentActivity().ifPresent(FullscreenCommentsSidebar::hide);
+        if (videoAdjustmentDialog != null) {
+            videoAdjustmentDialog.dismiss();
+            videoAdjustmentDialog = null;
+        }
+        setTouchLocked(false);
         super.destroy();
 
         // Exit from fullscreen when user closes the player via notification
@@ -242,7 +360,10 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     @Override
     public void destroyPlayer() {
+        binding.getRoot().configure(false, 60_000);
         super.destroyPlayer();
+
+        learningNoteDisposables.clear();
 
         if (playQueueAdapter != null) {
             playQueueAdapter.unsetSelectedListener();
@@ -252,6 +373,9 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     @Override
     public void smoothStopForImmediateReusing() {
+        binding.getRoot().configure(false, 60_000);
+        getParentActivity().ifPresent(FullscreenCommentsSidebar::hide);
+        setTouchLocked(false);
         super.smoothStopForImmediateReusing();
         // Android TV will handle back button in case controls will be visible
         // (one more additional unneeded click while the player is hidden)
@@ -268,6 +392,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     @Override
     protected void setupElementsVisibility() {
         super.setupElementsVisibility();
+        binding.touchLockButton.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
 
         closeItemsList();
         showHideKodiButton();
@@ -283,6 +408,14 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 R.drawable.ic_expand_more));
         binding.share.setVisibility(View.VISIBLE);
         binding.openInBrowser.setVisibility(View.VISIBLE);
+        binding.sleepTimerButton.setVisibility(View.VISIBLE);
+        binding.equalizerButton.setVisibility(View.VISIBLE);
+        binding.videoAdjustmentsButton.setVisibility(View.VISIBLE);
+        binding.equalizerButton.setActivated(player.getEqualizerState().isEnabled());
+        binding.listenModeButton.setVisibility(View.VISIBLE);
+        binding.audioVisualizer.setAudioProcessor(player.getVisualizerAudioProcessor());
+        updateListenModeUi(player.getPlaybackPresentationMode());
+        updateLearningNoteButtonVisibility(player.getCurrentStreamInfo().orElse(null));
         binding.switchMute.setVisibility(View.VISIBLE);
         binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
         // Top controls have a large minHeight which is allows to drag the player
@@ -290,8 +423,34 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         binding.topControls.setClickable(true);
         binding.topControls.setFocusable(true);
 
-        binding.titleTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
-        binding.channelTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
+        binding.metadataView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
+
+        // Reset workaround changes from popup player
+        binding.audioTrackTextView.setMaxWidth(context.getResources().getDimensionPixelSize(
+                R.dimen.player_audio_track_max_width));
+        updateSleepTimerButton(player.getSleepTimerMode(),
+                player.getSleepTimerRemainingMillis());
+    }
+
+    @Override
+    public void onPlaybackPresentationModeChanged(
+            @NonNull final PlaybackPresentationMode mode) {
+        updateListenModeUi(mode);
+        updateStreamRelatedViews();
+        if (mode.rendersVideo()) {
+            setupVideoSurfaceIfNeeded();
+        }
+    }
+
+    private void updateListenModeUi(@NonNull final PlaybackPresentationMode mode) {
+        final boolean listening = mode == PlaybackPresentationMode.LISTEN_VISUALIZER;
+        binding.listenModeButton.setActivated(listening);
+        binding.audioVisualizer.setVisibility(listening ? View.VISIBLE : View.GONE);
+        if (listening) {
+            binding.endScreen.setVisibility(View.GONE);
+        }
+        binding.listenModeButton.setContentDescription(context.getString(listening
+                ? R.string.exit_listen_mode : R.string.enter_listen_mode));
     }
 
     @Override
@@ -300,7 +459,8 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 resources.getDimensionPixelSize(R.dimen.player_main_buttons_min_width),
                 resources.getDimensionPixelSize(R.dimen.player_main_top_padding),
                 resources.getDimensionPixelSize(R.dimen.player_main_controls_padding),
-                resources.getDimensionPixelSize(R.dimen.player_main_buttons_padding)
+                resources.getDimensionPixelSize(R.dimen.player_main_buttons_padding),
+                resources.getDimensionPixelSize(R.dimen.player_main_icon_buttons_padding)
         );
     }
     //endregion
@@ -326,17 +486,26 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
             }
         } else if (VideoDetailFragment.ACTION_VIDEO_FRAGMENT_STOPPED.equals(intent.getAction())) {
             fragmentIsVisible = false;
+            binding.getRoot().configure(false, 60_000);
             onFragmentStopped();
         } else if (VideoDetailFragment.ACTION_VIDEO_FRAGMENT_RESUMED.equals(intent.getAction())) {
             // Restore video source when user returns to the fragment
             fragmentIsVisible = true;
-            player.useVideoSource(true);
+            player.useVideoAndSubtitles(true);
+            // The fragment's first resumed frame can precede this asynchronous broadcast.
+            // Reconcile fullscreen after leaving temporary audio-only playback, before hiding
+            // system bars or restoring the surface with the previous fullscreen dimensions.
+            player.getFragmentListener().ifPresent(
+                    PlayerServiceEventListener::onVideoPlaybackResumed);
+            restoreVideoSurfaceAfterResume();
 
             // When a user returns from background, the system UI will always be shown even if
             // controls are invisible: hide it in that case
             if (!isControlsVisible()) {
                 hideSystemUIIfNeeded();
             }
+        } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction()) && fragmentIsVisible) {
+            restoreVideoSurfaceAfterResume();
         }
     }
     //endregion
@@ -369,7 +538,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         if (player.isPlaying() || player.isLoading()) {
             switch (getMinimizeOnExitAction(context)) {
                 case MINIMIZE_ON_EXIT_MODE_BACKGROUND:
-                    player.useVideoSource(false);
+                    player.useVideoAndSubtitlesForTemporaryBackground();
                     break;
                 case MINIMIZE_ON_EXIT_MODE_POPUP:
                     getParentActivity().ifPresent(activity -> {
@@ -396,6 +565,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                                  final int duration,
                                  final int bufferPercent) {
         super.onUpdateProgress(currentProgress, duration, bufferPercent);
+        updateScreenDimming();
 
         if (areSegmentsVisible) {
             segmentAdapter.selectSegmentAt(getNearestStreamSegmentPosition(currentProgress));
@@ -406,13 +576,75 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     }
 
     @Override
+    public void onSleepTimerChanged(@NonNull final SleepTimer.Mode mode,
+                                    final long remainingMillis,
+                                    final boolean fadeOutEnabled) {
+        super.onSleepTimerChanged(mode, remainingMillis, fadeOutEnabled);
+        updateSleepTimerButton(mode, remainingMillis);
+    }
+
+    private void updateSleepTimerButton(@NonNull final SleepTimer.Mode mode,
+                                        final long remainingMillis) {
+        if (mode == SleepTimer.Mode.NONE) {
+            binding.sleepTimerButton.setContentDescription(context.getString(R.string.sleep_timer));
+            binding.sleepTimerButton.setActivated(false);
+            binding.sleepTimerCountdown.setVisibility(View.GONE);
+            return;
+        }
+
+        if (remainingMillis == SleepTimer.REMAINING_TIME_UNSET) {
+            binding.sleepTimerCountdown.setText(R.string.sleep_timer_on_short);
+        } else {
+            binding.sleepTimerCountdown.setText(Localization.getDurationString(
+                    (remainingMillis + 999L) / 1_000L));
+        }
+        final String status = SleepTimerDialog.getStatusText(context, mode, remainingMillis);
+        binding.sleepTimerButton.setContentDescription(context.getString(
+                R.string.sleep_timer_active_description, status));
+        binding.sleepTimerButton.setActivated(true);
+        binding.sleepTimerCountdown.setVisibility(View.VISIBLE);
+    }
+
+    @Override
     public void onPlaying() {
         super.onPlaying();
         checkLandscape();
+        updateScreenDimming();
+    }
+
+    private void updateScreenDimming() {
+        final var preferences = androidx.preference.PreferenceManager
+                .getDefaultSharedPreferences(context);
+        long delaySeconds = 60;
+        try {
+            delaySeconds = Long.parseLong(preferences.getString(
+                    context.getString(R.string.playback_dimming_delay_key), "60"));
+        } catch (final NumberFormatException ignored) {
+            // Retain the default if a restored preference is invalid.
+        }
+        final boolean enabled = preferences.getBoolean(
+                context.getString(R.string.playback_dimming_key), false);
+        binding.getRoot().configure(enabled && isFullscreen && fragmentIsVisible
+                && player.isPlaying() && player.getPlaybackPresentationMode().rendersVideo()
+                && !isAnyListViewOpen() && !isControlsVisible(),
+                Math.min(600, Math.max(60, delaySeconds)) * 1000);
+    }
+
+    @Override
+    public void onPaused() {
+        binding.getRoot().configure(false, 60_000);
+        super.onPaused();
+    }
+
+    @Override
+    public void onBlocked() {
+        binding.getRoot().configure(false, 60_000);
+        super.onBlocked();
     }
 
     @Override
     public void onCompleted() {
+        binding.getRoot().configure(false, 60_000);
         super.onCompleted();
         if (isFullscreen) {
             toggleFullscreen();
@@ -434,7 +666,7 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
             return;
         }
 
-        final boolean showQueue = playQueue.getStreams().size() > 1;
+        final boolean showQueue = !playQueue.getStreams().isEmpty();
         final boolean showSegment = !player.getCurrentStreamInfo()
                 .map(StreamInfo::getStreamSegments)
                 .map(List::isEmpty)
@@ -449,14 +681,10 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     @Override
     public void showSystemUIPartially() {
         if (isFullscreen) {
-            getParentActivity().map(Activity::getWindow).ifPresent(window -> {
-                window.setStatusBarColor(Color.TRANSPARENT);
-                window.setNavigationBarColor(Color.TRANSPARENT);
-                final int visibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-                window.getDecorView().setSystemUiVisibility(visibility);
-                window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            getParentActivity().ifPresent(activity -> {
+                EdgeToEdgeHelper.showSystemBars(activity);
+                EdgeToEdgeHelper.setLightSystemBars(activity, false);
+                binding.getRoot().post(this::updateFullscreenOverlayInsets);
             });
         }
     }
@@ -522,11 +750,8 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     @Override
     protected void setupSubtitleView(final float captionScale) {
-        final DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        final int minimumLength = Math.min(metrics.heightPixels, metrics.widthPixels);
-        final float captionRatioInverse = 20f + 4f * (1.0f - captionScale);
-        binding.subtitleView.setFixedTextSize(
-                TypedValue.COMPLEX_UNIT_PX, minimumLength / captionRatioInverse);
+        binding.subtitleView.setFractionalTextSize(
+                SubtitleView.DEFAULT_TEXT_SIZE_FRACTION * captionScale);
     }
     //endregion
 
@@ -564,8 +789,10 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
 
     private void setInitialGestureValues() {
         if (player.getAudioReactor() != null) {
-            final float currentVolumeNormalized = (float) player.getAudioReactor().getVolume()
-                    / player.getAudioReactor().getMaxVolume();
+            final float currentVolumeNormalized = player.isIndependentPlayerVolumeEnabled()
+                    ? player.getIndependentPlayerVolume()
+                    : (float) player.getAudioReactor().getVolume()
+                            / player.getAudioReactor().getMaxVolume();
             binding.volumeProgressBar.setProgress(
                     (int) (binding.volumeProgressBar.getMax() * currentVolumeNormalized));
         }
@@ -581,7 +808,10 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     @Override
     public void onMetadataChanged(@NonNull final StreamInfo info) {
         super.onMetadataChanged(info);
+        updateVideoContentIdentity(info.getServiceId(), info.getUrl());
+        binding.openInBrowser.setVisibility(View.VISIBLE);
         showHideKodiButton();
+        updateLearningNoteButtonVisibility(info);
         if (areSegmentsVisible) {
             if (segmentAdapter.setItems(info)) {
                 final int adapterPosition = getNearestStreamSegmentPosition(
@@ -592,6 +822,15 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                 closeItemsList();
             }
         }
+    }
+
+    @Override
+    public void onMetadataChanged(@NonNull final MediaItemTag tag) {
+        super.onMetadataChanged(tag);
+        updateVideoContentIdentity(tag.getServiceId(), tag.getStreamUrl());
+        binding.openInBrowser.setVisibility(View.GONE);
+        binding.playWithKodi.setVisibility(View.GONE);
+        binding.learningNoteButton.setVisibility(View.GONE);
     }
 
     @Override
@@ -740,20 +979,20 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
                     String videoUrl = player.getVideoUrl();
                     videoUrl += ("&t=" + seconds);
                     ShareUtils.shareText(context, currentItem.getTitle(),
-                            videoUrl, currentItem.getThumbnailUrl());
+                            videoUrl, ExtractorImageCompat.thumbnailImages(currentItem));
                 }
             }
         };
     }
 
     private int getNearestStreamSegmentPosition(final long playbackPosition) {
-        int nearestPosition = 0;
         final List<StreamSegment> segments = player.getCurrentStreamInfo()
                 .map(StreamInfo::getStreamSegments)
                 .orElse(Collections.emptyList());
 
-        for (int i = 0; i < segments.size(); i++) {
-            if (segments.get(i).getStartTimeSeconds() * 1000L > playbackPosition) {
+        int nearestPosition = 0;
+        for (final var segment : segments) {
+            if (segment.getStartTimeSeconds() * 1000L > playbackPosition) {
                 break;
             }
             nearestPosition++;
@@ -814,22 +1053,13 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         }
 
         final int currentStream = playQueue.getIndex();
-        int before = 0;
-        int after = 0;
-
         final List<PlayQueueItem> streams = playQueue.getStreams();
-        final int nStreams = streams.size();
 
-        for (int i = 0; i < nStreams; i++) {
-            if (i < currentStream) {
-                before += streams.get(i).getDuration();
-            } else {
-                after += streams.get(i).getDuration();
-            }
-        }
+        final long before = streams.subList(0, currentStream).stream()
+                .collect(Collectors.summingLong(PlayQueueItem::getDuration)) * 1000;
 
-        before *= 1000;
-        after *= 1000;
+        final long after = streams.subList(currentStream, streams.size()).stream()
+                .collect(Collectors.summingLong(PlayQueueItem::getDuration)) * 1000;
 
         binding.itemsListHeaderDuration.setText(
                 String.format("%s/%s",
@@ -849,7 +1079,12 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     }
 
     public boolean isVerticalVideo() {
-        return isVerticalVideo;
+        return videoContentOrientation
+                == FullscreenOrientationPolicy.VideoContentOrientation.PORTRAIT;
+    }
+
+    public FullscreenOrientationPolicy.VideoContentOrientation getVideoContentOrientation() {
+        return videoContentOrientation;
     }
 
     //endregion
@@ -865,12 +1100,73 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         getParentActivity().ifPresent(activity ->
                 PlaybackParameterDialog.newInstance(player.getPlaybackSpeed(),
                                 player.getPlaybackPitch(), player.getPlaybackSkipSilence(),
+                                player.getPlaybackSkipSilenceAvailable(),
                                 player::setPlaybackParameters)
+                        .withChannelSkippingAction(player.getCurrentStreamInfo()
+                                .filter(info -> info.getStreamType() == StreamType.VIDEO_STREAM
+                                        && ChannelSkipPreferences.isAvailable(info))
+                                .<Runnable>map(info -> () -> ChannelSkipDialog.show(activity, info,
+                                        () -> player.onChannelSkipSettingsChanged(info)))
+                                .orElse(null))
                         .show(activity.getSupportFragmentManager(), null));
     }
 
     @Override
     public boolean onKeyDown(final int keyCode) {
+        resetTvSeekOnNavigation(keyCode);
+        if (binding.getRoot().wakeOnInteraction()) {
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isFullscreen && DeviceUtils.isTv(context)
+                && binding.getRoot().isShown() && !binding.getRoot().hasFocus()
+                && getParentActivity().map(activity -> activity.hasWindowFocus()).orElse(false)) {
+            showControls(0);
+            if (binding.playPauseButton.requestFocus()) {
+                return true;
+            }
+        }
+        if (keyCode == KeyEvent.KEYCODE_DPAD_UP && isFullscreen && DeviceUtils.isTv(context)
+                && binding.getRoot().hasFocus() && !isControlsVisible()
+                && !isAnyListViewOpen() && player.getCurrentMetadata() != null) {
+            final boolean opened = getParentActivity().map(activity ->
+                    player.getCurrentMetadata().getMaybeStreamInfo().map(info ->
+                            TvRecommendations.show(activity, info)).orElse(false)).orElse(false);
+            if (opened) {
+                return true;
+            }
+        }
+        if (TvPlayerFocusPolicy.shouldMoveToActions(
+                keyCode, isFullscreen, DeviceUtils.isTv(context))
+                && binding.playbackControlRoot.isShown()
+                && (binding.playPauseButton.hasFocus() || binding.playPreviousButton.hasFocus()
+                || binding.playNextButton.hasFocus())) {
+            if (binding.commentsButton.getVisibility() == View.VISIBLE
+                    && binding.commentsButton.requestFocus()) {
+                return true;
+            }
+            if (binding.queueButton.getVisibility() == View.VISIBLE
+                    && binding.queueButton.requestFocus()) {
+                return true;
+            }
+            if (binding.moreOptionsButton.getVisibility() == View.VISIBLE
+                    && binding.moreOptionsButton.requestFocus()) {
+                return true;
+            }
+            if (binding.qualityTextView.getVisibility() == View.VISIBLE
+                    && binding.qualityTextView.requestFocus()) {
+                return true;
+            }
+        }
+        if (keyCode == KeyEvent.KEYCODE_BACK && isFullscreen) {
+            if (DeviceUtils.isTv(context) && isAnyListViewOpen()) {
+                closeItemsList();
+            } else if (DeviceUtils.isTv(context) && isControlsVisible()) {
+                hideControls(0, 0);
+            } else {
+                toggleFullscreenWithOrientation();
+            }
+            return true;
+        }
         if (keyCode == KeyEvent.KEYCODE_SPACE && isFullscreen) {
             player.playPause();
             if (player.isPlaying()) {
@@ -880,6 +1176,64 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         }
         return super.onKeyDown(keyCode);
     }
+
+    public boolean canUseDirectionalShortcuts() {
+        return isFullscreen && binding.getRoot().isShown()
+                && !isControlsVisible() && !isAnyListViewOpen() && !touchLocked
+                && getParentActivity().map(activity -> activity.hasWindowFocus()
+                        && (activity.getCurrentFocus() == null || binding.getRoot().hasFocus()))
+                        .orElse(false);
+    }
+
+    public boolean isTouchLocked() {
+        return touchLocked;
+    }
+
+    private void setTouchLocked(final boolean locked) {
+        touchLocked = locked && isFullscreen;
+        binding.touchLockOverlay.setVisibility(touchLocked ? View.VISIBLE : View.GONE);
+        binding.playbackControlRoot.setImportantForAccessibility(touchLocked
+                ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                : View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        if (touchLocked) {
+            closeItemsList();
+            hideControls(0, 0);
+            binding.touchUnlockButton.requestFocus();
+        }
+    }
+
+    @Override
+    public void showControls(final long duration) {
+        if (canShowControls()) {
+            super.showControls(duration);
+        }
+    }
+
+    @Override
+    public void showControlsThenHide() {
+        if (canShowControls()) {
+            super.showControlsThenHide();
+        }
+    }
+
+    private boolean canShowControls() {
+        return !touchLocked && getParentActivity().map(activity ->
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+                        || !activity.isInPictureInPictureMode()).orElse(true);
+    }
+
+    /** @return the decoder's display ratio, falling back to the last measured surface ratio */
+    public float getVideoAspectRatio() {
+        if (player.getExoPlayer() != null) {
+            final VideoSize size = player.getExoPlayer().getVideoSize();
+            final float ratio = calculateDisplayAspectRatio(size.width, size.height,
+                    size.unappliedRotationDegrees, size.pixelWidthHeightRatio);
+            if (ratio > 0.0f) {
+                return ratio;
+            }
+        }
+        return binding.surfaceView.getVideoAspectRatio();
+    }
     //endregion
 
 
@@ -888,44 +1242,136 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
     //////////////////////////////////////////////////////////////////////////*/
     //region Video size, orientation, fullscreen
 
+
+    private void onCommentsClicked() {
+        if (!isFullscreen) {
+            return;
+        }
+        player.getCurrentStreamInfo().ifPresent(info ->
+                getParentActivity().ifPresent(activity -> {
+                    FullscreenCommentsSidebar.show(
+                            activity,
+                            info.getServiceId(),
+                            info.getUrl(),
+                            info.getName());
+                    hideControls(0, 0);
+                }));
+    }
+
     private void setupScreenRotationButton() {
-        binding.screenRotationButton.setVisibility(globalScreenOrientationLocked(context)
-                || isVerticalVideo || DeviceUtils.isTablet(context)
-                ? View.VISIBLE : View.GONE);
+        binding.screenRotationButton.setVisibility(View.VISIBLE);
         binding.screenRotationButton.setImageDrawable(AppCompatResources.getDrawable(context,
                 isFullscreen ? R.drawable.ic_fullscreen_exit
                         : R.drawable.ic_fullscreen));
     }
 
+    private void updateVideoContentIdentity(final int serviceId,
+                                            @Nullable final String streamUrl) {
+        final String streamKey = serviceId + ":" + String.valueOf(streamUrl);
+        if (Objects.equals(videoOrientationStreamKey, streamKey)) {
+            return;
+        }
+        getParentActivity().ifPresent(FullscreenCommentsSidebar::hide);
+        videoOrientationStreamKey = streamKey;
+        videoContentOrientation = FullscreenOrientationPolicy.VideoContentOrientation.UNKNOWN;
+        setupScreenRotationButton();
+    }
+
+    private void updateVideoContentIdentityFromCurrentItem() {
+        final PlayQueueItem currentItem = player.getCurrentItem();
+        if (currentItem != null) {
+            updateVideoContentIdentity(currentItem.getServiceId(), currentItem.getUrl());
+        }
+    }
+
     @Override
     public void onVideoSizeChanged(@NonNull final VideoSize videoSize) {
         super.onVideoSizeChanged(videoSize);
-        isVerticalVideo = videoSize.width < videoSize.height;
+        if (videoSize.width <= 0 || videoSize.height <= 0) {
+            // Disabling the renderer on screen-off reports 0x0. Keep the last known orientation
+            // until valid metadata returns, especially for portrait fullscreen videos.
+            return;
+        }
 
-        if (globalScreenOrientationLocked(context)
+        updateVideoContentIdentityFromCurrentItem();
+        final FullscreenOrientationPolicy.VideoContentOrientation previousContentOrientation =
+                videoContentOrientation;
+        videoContentOrientation =
+                FullscreenOrientationPolicy.classifyVideoContentOrientation(
+                        videoSize.width,
+                        videoSize.height,
+                        videoSize.pixelWidthHeightRatio);
+
+        final boolean portraitVideo = videoContentOrientation
+                == FullscreenOrientationPolicy.VideoContentOrientation.PORTRAIT;
+        final boolean orientationSpecificContent =
+                videoContentOrientation
+                        == FullscreenOrientationPolicy.VideoContentOrientation.PORTRAIT
+                        || videoContentOrientation
+                        == FullscreenOrientationPolicy.VideoContentOrientation.LANDSCAPE;
+        if (FullscreenOrientationPolicy.shouldAlignFullscreenToKnownContent(
+                isFullscreen,
+                previousContentOrientation,
+                videoContentOrientation)
+                && !DeviceUtils.isTv(context)
+                && !DeviceUtils.isTablet(context)) {
+            // Fullscreen can be entered before Media3 reports a valid size. Once the
+            // content orientation becomes known, align and lock the requested orientation.
+            player.getFragmentListener().ifPresent(
+                    listener -> listener.onScreenRotationButtonClicked(true));
+        } else if (globalScreenOrientationLocked(context)
+                && PlayerRotationMode.get(context) != PlayerRotationMode.FIXED
                 && isFullscreen
-                && isLandscape() == isVerticalVideo
+                && orientationSpecificContent
+                && isLandscape() == portraitVideo
                 && !DeviceUtils.isTv(context)
                 && !DeviceUtils.isTablet(context)) {
             // set correct orientation
             player.getFragmentListener().ifPresent(
-                    PlayerServiceEventListener::onScreenRotationButtonClicked);
+                    listener -> listener.onScreenRotationButtonClicked(true));
         }
 
         setupScreenRotationButton();
+        if (player.isPlaying()) {
+            checkLandscape();
+        }
     }
 
     public void toggleFullscreen() {
         if (DEBUG) {
             Log.d(TAG, "toggleFullscreen() called");
         }
+        setFullscreen(!isFullscreen);
+    }
+
+    /**
+     * Applies the requested fullscreen state without toggling an already-correct state.
+     * Configuration changes may deliver more than one callback, so orientation-driven
+     * fullscreen synchronization must be idempotent.
+     *
+     * @param fullscreen whether the player should be fullscreen
+     */
+    public void setFullscreen(final boolean fullscreen) {
+        if (isFullscreen == fullscreen) {
+            return;
+        }
+
         final PlayerServiceEventListener fragmentListener = player.getFragmentListener()
                 .orElse(null);
         if (fragmentListener == null || player.exoPlayerIsNull()) {
             return;
         }
 
-        isFullscreen = !isFullscreen;
+        isFullscreen = fullscreen;
+        updateScreenDimming();
+        if (!fullscreen) {
+            setTouchLocked(false);
+        }
+        binding.touchLockButton.setVisibility(fullscreen ? View.VISIBLE : View.GONE);
+        binding.commentsButton.setVisibility(fullscreen ? View.VISIBLE : View.GONE);
+        if (!fullscreen) {
+            getParentActivity().ifPresent(FullscreenCommentsSidebar::hide);
+        }
         if (isFullscreen) {
             // Android needs tens milliseconds to send new insets but a user is able to see
             // how controls changes it's position from `0` to `nav bar height` padding.
@@ -938,26 +1384,63 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         }
         fragmentListener.onFullscreenStateChanged(isFullscreen);
 
-        binding.titleTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
-        binding.channelTextView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
+        binding.metadataView.setVisibility(isFullscreen ? View.VISIBLE : View.GONE);
         binding.playerCloseButton.setVisibility(isFullscreen ? View.GONE : View.VISIBLE);
+        updateFullscreenOverlayInsets();
         setupScreenRotationButton();
     }
 
-    public void checkLandscape() {
-        // check if landscape is correct
-        final boolean videoInLandscapeButNotInFullscreen = isLandscape()
-                && !isFullscreen
-                && !player.isAudioOnly();
-        final boolean notPaused = player.getCurrentState() != STATE_COMPLETED
-                && player.getCurrentState() != STATE_PAUSED;
-
-        if (videoInLandscapeButNotInFullscreen
-                && notPaused
-                && !DeviceUtils.isTablet(context)) {
-            toggleFullscreen();
+    /**
+     * Applies explicit fullscreen intent while preserving the video's content orientation.
+     * Exiting fullscreen returns phones to portrait.
+     */
+    public void toggleFullscreenWithOrientation() {
+        final boolean targetFullscreen = !isFullscreen();
+        final PlayerServiceEventListener listener = player.getFragmentListener().orElse(null);
+        if (listener != null) {
+            listener.onManualFullscreenButtonClicked(targetFullscreen);
+        } else {
+            setFullscreen(targetFullscreen);
         }
     }
+
+    static boolean shouldUseScreenRotationAction(
+            final FullscreenOrientationPolicy.VideoContentOrientation contentOrientation,
+            final boolean landscape,
+            final boolean targetFullscreen) {
+        return FullscreenOrientationPolicy.shouldUseOrientationAction(
+                contentOrientation, landscape, targetFullscreen);
+    }
+
+
+    public void checkLandscape() {
+        updateVideoContentIdentityFromCurrentItem();
+        final Context playerContext = getParentContext().orElse(player.getService());
+        final int orientation = playerContext.getResources().getConfiguration().orientation;
+        if (shouldEnterFullscreenForConfiguration(
+                orientation,
+                isFullscreen,
+                player.isAudioOnly(),
+                DeviceUtils.isTablet(playerContext) || DeviceUtils.isDesktopMode(playerContext)
+                        || getParentActivity().map(DeviceUtils::isInMultiWindow).orElse(false),
+                videoContentOrientation)) {
+            setFullscreen(true);
+        }
+    }
+
+    static boolean shouldEnterFullscreenForConfiguration(
+            final int orientation,
+            final boolean fullscreen,
+            final boolean audioOnly,
+            final boolean tablet,
+            final FullscreenOrientationPolicy.VideoContentOrientation contentOrientation) {
+        return orientation == Configuration.ORIENTATION_LANDSCAPE
+                && !fullscreen
+                && !audioOnly
+                && !tablet
+                && FullscreenOrientationPolicy.supportsAutomaticFullscreen(contentOrientation);
+    }
+
     //endregion
 
 
@@ -982,6 +1465,73 @@ public final class MainPlayerUi extends VideoPlayerUi implements View.OnLayoutCh
         // DisplayMetrics from activity context knows about MultiWindow feature
         // while DisplayMetrics from app context doesn't
         return DeviceUtils.isLandscape(getParentContext().orElse(player.getService()));
+    }
+
+    private void showLearningNoteDialog() {
+        player.getCurrentStreamInfo().ifPresent(info -> {
+            if (org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.getStreamType())) {
+                Toast.makeText(context, R.string.learning_note_live_unavailable,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            final long timestampMillis = player.getExoPlayer() == null
+                    ? 0L : player.getExoPlayer().getCurrentPosition();
+            getParentActivity().ifPresent(activity -> LearningNoteDialog.showWithSeek(
+                    activity,
+                    timestampMillis,
+                    null,
+                    position -> player.getCurrentStreamInfo()
+                            .filter(current -> current.getServiceId() == info.getServiceId()
+                                    && current.getUrl().equals(info.getUrl()))
+                            .ifPresent(current -> player.seekTo(position)),
+                    (timestamp, text) -> learningNoteDisposables.add(
+                            new LearningNoteManager(context).create(info, timestamp, text)
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(
+                                            note -> Toast.makeText(
+                                                    context,
+                                                    R.string.learning_note_saved,
+                                                    Toast.LENGTH_SHORT
+                                            ).show(),
+                                            error -> Toast.makeText(
+                                                    context,
+                                                    R.string.learning_note_save_error,
+                                                    Toast.LENGTH_SHORT
+                                            ).show()
+                                    )
+                    )
+            ));
+        });
+    }
+
+    private void showVideoNotes() {
+        player.getCurrentStreamInfo().ifPresent(info -> {
+            final long timestamp = player.exoPlayerIsNull()
+                    ? 0L : player.getExoPlayer().getCurrentPosition();
+            learningNoteDisposables.add(new LearningNoteManager(context).ensureStream(info)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(streamId -> player.getCurrentStreamInfo()
+                                    .filter(current -> current.getServiceId() == info.getServiceId()
+                                            && current.getUrl().equals(info.getUrl()))
+                                    .ifPresent(current -> getParentActivity().ifPresent(activity ->
+                                            org.schabi.newpipe.learning.VideoNotesDialog.show(
+                                                    activity.getSupportFragmentManager(), streamId,
+                                                    info.getName(), timestamp))),
+                            error -> Toast.makeText(context, R.string.learning_note_save_error,
+                                    Toast.LENGTH_SHORT).show()));
+        });
+    }
+
+    private void updateLearningNoteButtonVisibility(@Nullable final StreamInfo info) {
+        binding.learningNoteButton.setVisibility(shouldShowLearningNoteButton(
+                LearningMode.areNotesEnabled(context),
+                info) ? View.VISIBLE : View.GONE);
+    }
+
+    static boolean shouldShowLearningNoteButton(final boolean notesEnabled,
+                                                @Nullable final StreamInfo info) {
+        return notesEnabled && info != null
+                && !org.schabi.newpipe.util.StreamTypeUtil.isLiveStream(info.getStreamType());
     }
     //endregion
 }

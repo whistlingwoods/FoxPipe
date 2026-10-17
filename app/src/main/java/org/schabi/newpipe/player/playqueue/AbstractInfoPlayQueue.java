@@ -3,7 +3,9 @@ package org.schabi.newpipe.player.playqueue;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import org.schabi.newpipe.extractor.InfoItem;
 import org.schabi.newpipe.extractor.ListExtractor;
 import org.schabi.newpipe.extractor.ListInfo;
 import org.schabi.newpipe.extractor.Page;
@@ -15,19 +17,31 @@ import java.util.stream.Collectors;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.Disposable;
 
-abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
+abstract class AbstractInfoPlayQueue<T extends ListInfo<? extends InfoItem>>
         extends PlayQueue {
     boolean isInitial;
     private boolean isComplete;
+    private boolean loadError;
 
     final int serviceId;
     final String baseUrl;
+    @Nullable
     Page nextPage;
 
     private transient Disposable fetchReactor;
 
     protected AbstractInfoPlayQueue(final T info) {
-        this(info.getServiceId(), info.getUrl(), info.getNextPage(), info.getRelatedItems(), 0);
+        this(info, 0);
+    }
+
+    protected AbstractInfoPlayQueue(final T info, final int index) {
+        this(info.getServiceId(), info.getUrl(), info.getNextPage(),
+                info.getRelatedItems()
+                        .stream()
+                        .filter(StreamInfoItem.class::isInstance)
+                        .map(StreamInfoItem.class::cast)
+                        .collect(Collectors.toList()),
+                index);
     }
 
     protected AbstractInfoPlayQueue(final int serviceId,
@@ -52,6 +66,11 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
         return isComplete;
     }
 
+    @Override
+    public boolean hasLoadError() {
+        return loadError;
+    }
+
     SingleObserver<T> getHeadListObserver() {
         return new SingleObserver<>() {
             @Override
@@ -72,7 +91,11 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
                 }
                 nextPage = result.getNextPage();
 
-                append(extractListItems(result.getRelatedItems()));
+                appendFromSource(extractListItems(result.getRelatedItems()
+                        .stream()
+                        .filter(StreamInfoItem.class::isInstance)
+                        .map(StreamInfoItem.class::cast)
+                        .collect(Collectors.toList())));
 
                 fetchReactor.dispose();
                 fetchReactor = null;
@@ -82,12 +105,13 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
             public void onError(@NonNull final Throwable e) {
                 Log.e(getTag(), "Error fetching more playlist, marking playlist as complete.", e);
                 isComplete = true;
+                loadError = true;
                 notifyChange();
             }
         };
     }
 
-    SingleObserver<ListExtractor.InfoItemsPage<StreamInfoItem>> getNextPageObserver() {
+    SingleObserver<ListExtractor.InfoItemsPage<? extends InfoItem>> getNextPageObserver() {
         return new SingleObserver<>() {
             @Override
             public void onSubscribe(@NonNull final Disposable d) {
@@ -101,13 +125,17 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
 
             @Override
             public void onSuccess(
-                    @NonNull final ListExtractor.InfoItemsPage<StreamInfoItem> result) {
+                    @NonNull final ListExtractor.InfoItemsPage<? extends InfoItem> result) {
                 if (!result.hasNextPage()) {
                     isComplete = true;
                 }
                 nextPage = result.getNextPage();
 
-                append(extractListItems(result.getItems()));
+                appendFromSource(extractListItems(result.getItems()
+                        .stream()
+                        .filter(StreamInfoItem.class::isInstance)
+                        .map(StreamInfoItem.class::cast)
+                        .collect(Collectors.toList())));
 
                 fetchReactor.dispose();
                 fetchReactor = null;
@@ -117,6 +145,7 @@ abstract class AbstractInfoPlayQueue<T extends ListInfo<StreamInfoItem>>
             public void onError(@NonNull final Throwable e) {
                 Log.e(getTag(), "Error fetching more playlist, marking playlist as complete.", e);
                 isComplete = true;
+                loadError = true;
                 notifyChange();
             }
         };

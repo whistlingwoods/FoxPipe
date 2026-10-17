@@ -1,0 +1,11 @@
+WizeStream 0.28.7-m3
+
+Highlights:
+- Added localized Fastlane metadata and store assets.
+- Updated screenshots and feature artwork.
+- Improved player popup readability.
+- Improved comment reply contrast.
+- Expanded contribution and release QA docs.
+- Cleaned up README release links.
+
+Based on NewPipe 0.28.7.

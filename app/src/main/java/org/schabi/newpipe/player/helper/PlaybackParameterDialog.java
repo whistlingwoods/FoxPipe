@@ -2,32 +2,31 @@ package org.schabi.newpipe.player.helper;
 
 import static org.schabi.newpipe.ktx.ViewUtils.animateRotation;
 import static org.schabi.newpipe.player.Player.DEBUG;
-import static org.schabi.newpipe.util.Localization.assureCorrectAppLanguage;
-import static org.schabi.newpipe.util.ThemeHelper.resolveDrawable;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.math.MathUtils;
 import androidx.fragment.app.DialogFragment;
 import androidx.preference.PreferenceManager;
 
+import com.evernote.android.state.State;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.slider.Slider;
+import com.livefront.bridge.Bridge;
+
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.DialogPlaybackParameterBinding;
 import org.schabi.newpipe.player.ui.VideoPlayerUi;
-import org.schabi.newpipe.util.SimpleOnSeekBarChangeListener;
 import org.schabi.newpipe.util.SliderStrategy;
 
 import java.util.Map;
@@ -36,9 +35,6 @@ import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
 import java.util.function.DoubleSupplier;
-
-import icepick.Icepick;
-import icepick.State;
 
 public class PlaybackParameterDialog extends DialogFragment {
     private static final String TAG = "PlaybackParameterDialog";
@@ -50,15 +46,8 @@ public class PlaybackParameterDialog extends DialogFragment {
     private static final boolean PITCH_CTRL_MODE_PERCENT = false;
     private static final boolean PITCH_CTRL_MODE_SEMITONE = true;
 
-    private static final double STEP_1_PERCENT_VALUE = 0.01f;
-    private static final double STEP_5_PERCENT_VALUE = 0.05f;
-    private static final double STEP_10_PERCENT_VALUE = 0.10f;
-    private static final double STEP_25_PERCENT_VALUE = 0.25f;
-    private static final double STEP_100_PERCENT_VALUE = 1.00f;
-
     private static final double DEFAULT_TEMPO = 1.00f;
     private static final double DEFAULT_PITCH_PERCENT = 1.00f;
-    private static final double DEFAULT_STEP = STEP_25_PERCENT_VALUE;
     private static final boolean DEFAULT_SKIP_SILENCE = false;
 
     private static final SliderStrategy QUADRATIC_STRATEGY = new SliderStrategy.Quadratic(
@@ -82,6 +71,9 @@ public class PlaybackParameterDialog extends DialogFragment {
     @Nullable
     private Callback callback;
 
+    @Nullable
+    private Runnable channelSkippingAction;
+
     @State
     double initialTempo = DEFAULT_TEMPO;
     @State
@@ -96,16 +88,21 @@ public class PlaybackParameterDialog extends DialogFragment {
     @State
     boolean skipSilence = DEFAULT_SKIP_SILENCE;
 
+    @State
+    boolean skipSilenceAvailable = true;
+
     private DialogPlaybackParameterBinding binding;
 
     public static PlaybackParameterDialog newInstance(
             final double playbackTempo,
             final double playbackPitch,
             final boolean playbackSkipSilence,
+            final boolean skipSilenceAvailable,
             final Callback callback
     ) {
         final PlaybackParameterDialog dialog = new PlaybackParameterDialog();
         dialog.callback = callback;
+        dialog.skipSilenceAvailable = skipSilenceAvailable;
 
         dialog.initialTempo = playbackTempo;
         dialog.initialPitchPercent = playbackPitch;
@@ -116,6 +113,12 @@ public class PlaybackParameterDialog extends DialogFragment {
         dialog.skipSilence = dialog.initialSkipSilence;
 
         return dialog;
+    }
+
+    public PlaybackParameterDialog withChannelSkippingAction(
+            @Nullable final Runnable action) {
+        channelSkippingAction = action;
+        return this;
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -135,7 +138,7 @@ public class PlaybackParameterDialog extends DialogFragment {
     @Override
     public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
-        Icepick.saveInstanceState(this, outState);
+        Bridge.saveInstanceState(this, outState);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -145,14 +148,15 @@ public class PlaybackParameterDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
-        assureCorrectAppLanguage(getContext());
-        Icepick.restoreInstanceState(this, savedInstanceState);
+        Bridge.restoreInstanceState(this, savedInstanceState);
 
-        binding = DialogPlaybackParameterBinding.inflate(getLayoutInflater());
+        final MaterialAlertDialogBuilder dialogBuilder =
+                new MaterialAlertDialogBuilder(requireActivity());
+        binding = DialogPlaybackParameterBinding.inflate(
+                android.view.LayoutInflater.from(dialogBuilder.getContext()));
         initUI();
 
-        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireActivity())
-                .setView(binding.getRoot())
+        dialogBuilder.setView(binding.getRoot())
                 .setCancelable(true)
                 .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
                     setAndUpdateTempo(initialTempo);
@@ -176,13 +180,25 @@ public class PlaybackParameterDialog extends DialogFragment {
     //////////////////////////////////////////////////////////////////////////*/
 
     private void initUI() {
+        binding.channelSkipButton.setVisibility(channelSkippingAction == null
+                ? View.GONE : View.VISIBLE);
+        binding.channelSkipButton.setOnClickListener(view -> {
+            if (channelSkippingAction != null) {
+                updateCallback();
+                dismiss();
+                channelSkippingAction.run();
+            }
+        });
+
         // Tempo
         setText(binding.tempoMinimumText, PlayerHelper::formatSpeed, MIN_PITCH_OR_SPEED);
         setText(binding.tempoMaximumText, PlayerHelper::formatSpeed, MAX_PITCH_OR_SPEED);
 
-        binding.tempoSeekbar.setMax(QUADRATIC_STRATEGY.progressOf(MAX_PITCH_OR_SPEED));
+        binding.tempoSeekbar.setValueTo(QUADRATIC_STRATEGY.progressOf(MAX_PITCH_OR_SPEED));
+        binding.tempoSeekbar.setLabelFormatter(value ->
+                PlayerHelper.formatSpeed(QUADRATIC_STRATEGY.valueOf(Math.round(value))));
         setAndUpdateTempo(tempo);
-        binding.tempoSeekbar.setOnSeekBarChangeListener(
+        binding.tempoSeekbar.addOnChangeListener(
                 getTempoOrPitchSeekbarChangeListener(
                         QUADRATIC_STRATEGY,
                         this::onTempoSliderUpdated));
@@ -218,9 +234,14 @@ public class PlaybackParameterDialog extends DialogFragment {
         setText(binding.pitchPercentMinimumText, PlayerHelper::formatPitch, MIN_PITCH_OR_SPEED);
         setText(binding.pitchPercentMaximumText, PlayerHelper::formatPitch, MAX_PITCH_OR_SPEED);
 
-        binding.pitchPercentSeekbar.setMax(QUADRATIC_STRATEGY.progressOf(MAX_PITCH_OR_SPEED));
+        binding.pitchPercentSeekbar.setValueTo(QUADRATIC_STRATEGY.progressOf(MAX_PITCH_OR_SPEED));
+        binding.pitchPercentSeekbar.setLabelFormatter(value ->
+                PlayerHelper.formatPitch(QUADRATIC_STRATEGY.valueOf(Math.round(value))));
+        binding.pitchSemitoneSeekbar.setLabelFormatter(value ->
+                PlayerSemitoneHelper.formatPitchSemitones(
+                        SEMITONE_STRATEGY.valueOf(Math.round(value))));
         setAndUpdatePitch(pitchPercent);
-        binding.pitchPercentSeekbar.setOnSeekBarChangeListener(
+        binding.pitchPercentSeekbar.addOnChangeListener(
                 getTempoOrPitchSeekbarChangeListener(
                         QUADRATIC_STRATEGY,
                         this::onPitchPercentSliderUpdated));
@@ -237,7 +258,7 @@ public class PlaybackParameterDialog extends DialogFragment {
                 this::onPitchPercentSliderUpdated);
 
         // Pitch - Semitone
-        binding.pitchSemitoneSeekbar.setOnSeekBarChangeListener(
+        binding.pitchSemitoneSeekbar.addOnChangeListener(
                 getTempoOrPitchSeekbarChangeListener(
                         SEMITONE_STRATEGY,
                         this::onPitchPercentSliderUpdated));
@@ -270,6 +291,9 @@ public class PlaybackParameterDialog extends DialogFragment {
                 });
 
         setAndUpdateSkipSilence(skipSilence);
+        binding.skipSilenceCheckbox.setEnabled(skipSilenceAvailable);
+        binding.skipSilenceCheckbox.setText(skipSilenceAvailable
+                ? R.string.skip_silence_checkbox : R.string.skip_silence_unavailable_live);
         binding.skipSilenceCheckbox.setOnCheckedChangeListener((compoundButton, isChecked) -> {
             skipSilence = isChecked;
             updateCallback();
@@ -341,17 +365,8 @@ public class PlaybackParameterDialog extends DialogFragment {
         // Bring all textviews into a normal state
         final Map<Boolean, TextView> pitchCtrlModeComponentMapping =
                 getPitchControlModeComponentMappings();
-        pitchCtrlModeComponentMapping.forEach((v, textView) -> textView.setBackground(
-                resolveDrawable(requireContext(), R.attr.selectableItemBackground)));
-
-        // Mark the selected textview
-        final TextView textView = pitchCtrlModeComponentMapping.get(semitones);
-        if (textView != null) {
-            textView.setBackground(new LayerDrawable(new Drawable[]{
-                    resolveDrawable(requireContext(), R.attr.dashed_border),
-                    resolveDrawable(requireContext(), R.attr.selectableItemBackground)
-            }));
-        }
+        pitchCtrlModeComponentMapping.forEach((value, view) ->
+                ((Chip) view).setChecked(value == semitones));
 
         // Show or hide component
         binding.pitchPercentControl.setVisibility(semitones ? View.GONE : View.VISIBLE);
@@ -389,42 +404,36 @@ public class PlaybackParameterDialog extends DialogFragment {
     // -- Steps (Set) --
 
     private void setupStepTextView(
-            final double stepSizeValue,
+            final float stepSizeValue,
             final TextView textView
     ) {
         setText(textView, PlaybackParameterDialog::getPercentString, stepSizeValue);
         textView.setOnClickListener(view -> {
             PreferenceManager.getDefaultSharedPreferences(requireContext())
                     .edit()
-                    .putFloat(getString(R.string.adjustment_step_key), (float) stepSizeValue)
+                    .putFloat(getString(R.string.adjustment_step_key), stepSizeValue)
                     .apply();
 
             setStepSizeToUI(stepSizeValue);
         });
     }
 
-    private Map<Double, TextView> getStepSizeComponentMappings() {
-        return Map.of(STEP_1_PERCENT_VALUE, binding.stepSizeOnePercent,
-                STEP_5_PERCENT_VALUE, binding.stepSizeFivePercent,
-                STEP_10_PERCENT_VALUE, binding.stepSizeTenPercent,
-                STEP_25_PERCENT_VALUE, binding.stepSizeTwentyFivePercent,
-                STEP_100_PERCENT_VALUE, binding.stepSizeOneHundredPercent);
+    private Map<Float, TextView> getStepSizeComponentMappings() {
+        return Map.of(PlaybackParameterPreferences.STEP_1_PERCENT,
+                binding.stepSizeOnePercent,
+                PlaybackParameterPreferences.STEP_5_PERCENT,
+                binding.stepSizeFivePercent,
+                PlaybackParameterPreferences.STEP_10_PERCENT,
+                binding.stepSizeTenPercent,
+                PlaybackParameterPreferences.STEP_25_PERCENT,
+                binding.stepSizeTwentyFivePercent);
     }
 
-    private void setStepSizeToUI(final double newStepSize) {
+    private void setStepSizeToUI(final float newStepSize) {
         // Bring all textviews into a normal state
-        final Map<Double, TextView> stepSiteComponentMapping = getStepSizeComponentMappings();
-        stepSiteComponentMapping.forEach((v, textView) -> textView.setBackground(
-                resolveDrawable(requireContext(), R.attr.selectableItemBackground)));
-
-        // Mark the selected textview
-        final TextView textView = stepSiteComponentMapping.get(newStepSize);
-        if (textView != null) {
-            textView.setBackground(new LayerDrawable(new Drawable[]{
-                    resolveDrawable(requireContext(), R.attr.dashed_border),
-                    resolveDrawable(requireContext(), R.attr.selectableItemBackground)
-            }));
-        }
+        final Map<Float, TextView> stepSiteComponentMapping = getStepSizeComponentMappings();
+        stepSiteComponentMapping.forEach((value, view) ->
+                ((Chip) view).setChecked(value == newStepSize));
 
         // Bind to the corresponding control components
         binding.tempoStepUp.setText(getStepUpPercentString(newStepSize));
@@ -434,16 +443,15 @@ public class PlaybackParameterDialog extends DialogFragment {
         binding.pitchPercentStepDown.setText(getStepDownPercentString(newStepSize));
     }
 
-    private double getCurrentStepSize() {
-        return PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getFloat(getString(R.string.adjustment_step_key), (float) DEFAULT_STEP);
+    private float getCurrentStepSize() {
+        return PlaybackParameterPreferences.getAdjustmentStep(requireContext());
     }
 
     // -- Additional options --
 
     private void setAndUpdateSkipSilence(final boolean newSkipSilence) {
-        this.skipSilence = newSkipSilence;
-        binding.skipSilenceCheckbox.setChecked(newSkipSilence);
+        this.skipSilence = newSkipSilence && skipSilenceAvailable;
+        binding.skipSilenceCheckbox.setChecked(this.skipSilence);
     }
 
     @SuppressWarnings("SameParameterValue") // this method was written to be reusable
@@ -488,19 +496,14 @@ public class PlaybackParameterDialog extends DialogFragment {
     // Sliders
     //////////////////////////////////////////////////////////////////////////*/
 
-    private SeekBar.OnSeekBarChangeListener getTempoOrPitchSeekbarChangeListener(
+    private Slider.OnChangeListener getTempoOrPitchSeekbarChangeListener(
             final SliderStrategy sliderStrategy,
             final DoubleConsumer newValueConsumer
     ) {
-        return new SimpleOnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(@NonNull final SeekBar seekBar,
-                                          final int progress,
-                                          final boolean fromUser) {
-                if (fromUser) { // ensure that the user triggered the change
-                    newValueConsumer.accept(sliderStrategy.valueOf(progress));
-                    updateCallback();
-                }
+        return (slider, value, fromUser) -> {
+            if (fromUser) {
+                newValueConsumer.accept(sliderStrategy.valueOf(Math.round(value)));
+                updateCallback();
             }
         };
     }
@@ -529,15 +532,16 @@ public class PlaybackParameterDialog extends DialogFragment {
     private void setAndUpdateTempo(final double newTempo) {
         this.tempo = MathUtils.clamp(newTempo, MIN_PITCH_OR_SPEED, MAX_PITCH_OR_SPEED);
 
-        binding.tempoSeekbar.setProgress(QUADRATIC_STRATEGY.progressOf(tempo));
+        binding.tempoSeekbar.setValue(QUADRATIC_STRATEGY.progressOf(tempo));
         setText(binding.tempoCurrentText, PlayerHelper::formatSpeed, tempo);
     }
 
     private void setAndUpdatePitch(final double newPitch) {
         this.pitchPercent = calcValidPitch(newPitch);
 
-        binding.pitchPercentSeekbar.setProgress(QUADRATIC_STRATEGY.progressOf(pitchPercent));
-        binding.pitchSemitoneSeekbar.setProgress(SEMITONE_STRATEGY.progressOf(pitchPercent));
+        binding.pitchPercentSeekbar.setValue(QUADRATIC_STRATEGY.progressOf(pitchPercent));
+        binding.pitchSemitoneSeekbar.setValue(
+                MathUtils.clamp(SEMITONE_STRATEGY.progressOf(pitchPercent), 0, 24));
         setText(binding.pitchPercentCurrentText,
                 PlayerHelper::formatPitch,
                 pitchPercent);

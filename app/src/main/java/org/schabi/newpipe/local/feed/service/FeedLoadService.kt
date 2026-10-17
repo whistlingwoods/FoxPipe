@@ -29,40 +29,66 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.PendingIntentCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.functions.Function
+import java.util.concurrent.TimeUnit
 import org.schabi.newpipe.App
 import org.schabi.newpipe.MainActivity.DEBUG
 import org.schabi.newpipe.R
 import org.schabi.newpipe.database.feed.model.FeedGroupEntity
-import org.schabi.newpipe.extractor.ListInfo
-import org.schabi.newpipe.extractor.stream.StreamInfoItem
+import org.schabi.newpipe.local.feed.FeedScope
 import org.schabi.newpipe.local.feed.service.FeedEventManager.Event.ErrorResultEvent
-import org.schabi.newpipe.local.feed.service.FeedEventManager.postEvent
-import org.schabi.newpipe.util.PendingIntentCompat
-import java.util.concurrent.TimeUnit
 
 class FeedLoadService : Service() {
     companion object {
         private val TAG = FeedLoadService::class.java.simpleName
         const val NOTIFICATION_ID = 7293450
-        private const val ACTION_CANCEL = App.PACKAGE_NAME + ".local.feed.service.FeedLoadService.CANCEL"
+        private const val ACTION_CANCEL =
+            App.PACKAGE_NAME + ".local.feed.service.FeedLoadService.CANCEL"
+
+        @JvmStatic
+        fun cancel(context: Context) {
+            context.sendBroadcast(cancelIntent(context))
+        }
+
+        private fun cancelIntent(context: Context): Intent {
+            return Intent(ACTION_CANCEL).setPackage(context.packageName)
+        }
 
         /**
          * How often the notification will be updated.
          */
         private const val NOTIFICATION_SAMPLING_PERIOD = 1500
 
+        fun createLoadIntent(
+            context: Context,
+            groupId: Long,
+            scope: FeedScope,
+            ignoreOutdatedThreshold: Boolean = false
+        ): Intent = Intent(context, FeedLoadService::class.java).apply {
+            putExtra(EXTRA_GROUP_ID, groupId)
+            putExtra(EXTRA_SERVICE_ID, scope.serviceId)
+            putExtra(EXTRA_YOUTUBE_MODE_MASK, scope.youtubeModeMask)
+            putExtra(EXTRA_IGNORE_OUTDATED_THRESHOLD, ignoreOutdatedThreshold)
+        }
+
+        const val EXTRA_IGNORE_OUTDATED_THRESHOLD = "FeedLoadService.EXTRA_IGNORE_OUTDATED_THRESHOLD"
         const val EXTRA_GROUP_ID: String = "FeedLoadService.EXTRA_GROUP_ID"
+        const val EXTRA_SERVICE_ID: String = "FeedLoadService.EXTRA_SERVICE_ID"
+        const val EXTRA_YOUTUBE_MODE_MASK: String =
+            "FeedLoadService.EXTRA_YOUTUBE_MODE_MASK"
     }
 
     private var loadingDisposable: Disposable? = null
     private var notificationDisposable: Disposable? = null
 
     private lateinit var feedLoadManager: FeedLoadManager
+    private lateinit var feedScope: FeedScope
 
     // /////////////////////////////////////////////////////////////////////////
     // Lifecycle
@@ -90,18 +116,25 @@ class FeedLoadService : Service() {
         setupBroadcastReceiver()
 
         val groupId = intent.getLongExtra(EXTRA_GROUP_ID, FeedGroupEntity.GROUP_ALL_ID)
-        loadingDisposable = feedLoadManager.startLoading(groupId)
+        val selectedScope = FeedScope.forFeeds(this)
+        feedScope = FeedScope(
+            intent.getIntExtra(EXTRA_SERVICE_ID, selectedScope.serviceId),
+            intent.getIntExtra(
+                EXTRA_YOUTUBE_MODE_MASK,
+                selectedScope.youtubeModeMask
+            )
+        )
+        loadingDisposable = feedLoadManager.startLoading(
+            groupId,
+            ignoreOutdatedThreshold = intent.getBooleanExtra(EXTRA_IGNORE_OUTDATED_THRESHOLD, false),
+            scope = feedScope
+        )
             .observeOn(AndroidSchedulers.mainThread())
             .doOnSubscribe {
                 startForeground(NOTIFICATION_ID, notificationBuilder.build())
             }
-            .subscribe { _, error ->
-                // There seems to be a bug in the kotlin plugin as it tells you when
-                // building that this can't be null:
-                // "Condition 'error != null' is always 'true'"
-                // However it can indeed be null
-                // The suppression may be removed in further versions
-                @Suppress("SENSELESS_COMPARISON")
+            .subscribe { _, error: Throwable? ->
+                // explicitly mark error as nullable
                 if (error != null) {
                     Log.e(TAG, "Error while storing result", error)
                     handleError(error)
@@ -113,9 +146,23 @@ class FeedLoadService : Service() {
     }
 
     private fun disposeAll() {
-        unregisterReceiver(broadcastReceiver)
+        broadcastReceiver?.let {
+            unregisterReceiver(it)
+            broadcastReceiver = null
+        }
         loadingDisposable?.dispose()
+        loadingDisposable = null
         notificationDisposable?.dispose()
+        notificationDisposable = null
+    }
+
+    private fun cancelLoading() {
+        feedLoadManager.cancel()
+        loadingDisposable?.dispose()
+        if (::feedScope.isInitialized) {
+            FeedEventManager.reset(feedScope)
+        }
+        stopService()
     }
 
     private fun stopService() {
@@ -132,17 +179,7 @@ class FeedLoadService : Service() {
     // Loading & Handling
     // /////////////////////////////////////////////////////////////////////////
 
-    class RequestException(val subscriptionId: Long, message: String, cause: Throwable) : Exception(message, cause) {
-        companion object {
-            fun wrapList(subscriptionId: Long, info: ListInfo<StreamInfoItem>): List<Throwable> {
-                val toReturn = ArrayList<Throwable>(info.errors.size)
-                info.errors.mapTo(toReturn) {
-                    RequestException(subscriptionId, info.serviceId.toString() + ":" + info.url, it)
-                }
-                return toReturn
-            }
-        }
-    }
+    class RequestException(val subscriptionId: Long, message: String, cause: Throwable) : Exception(message, cause)
 
     // /////////////////////////////////////////////////////////////////////////
     // Notification
@@ -152,13 +189,13 @@ class FeedLoadService : Service() {
     private lateinit var notificationBuilder: NotificationCompat.Builder
 
     private fun createNotification(): NotificationCompat.Builder {
-        val cancelActionIntent =
-            PendingIntentCompat.getBroadcast(this, NOTIFICATION_ID, Intent(ACTION_CANCEL), 0)
+        val cancelActionIntent = PendingIntentCompat
+            .getBroadcast(this, NOTIFICATION_ID, cancelIntent(this), 0, false)
 
         return NotificationCompat.Builder(this, getString(R.string.notification_channel_id))
             .setOngoing(true)
             .setProgress(-1, -1, true)
-            .setSmallIcon(R.drawable.ic_newpipe_triangle_white)
+            .setSmallIcon(R.drawable.ic_wizestream_triangle_white)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(0, getString(R.string.cancel), cancelActionIntent)
             .setContentTitle(getString(R.string.feed_notification_loading))
@@ -201,24 +238,32 @@ class FeedLoadService : Service() {
             }
         }
 
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+        if (notificationManager.areNotificationsEnabled()) {
+            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
+        }
     }
 
     // /////////////////////////////////////////////////////////////////////////
     // Notification Actions
     // /////////////////////////////////////////////////////////////////////////
 
-    private lateinit var broadcastReceiver: BroadcastReceiver
+    private var broadcastReceiver: BroadcastReceiver? = null
 
     private fun setupBroadcastReceiver() {
-        broadcastReceiver = object : BroadcastReceiver() {
+        val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == ACTION_CANCEL) {
-                    feedLoadManager.cancel()
+                    cancelLoading()
                 }
             }
         }
-        registerReceiver(broadcastReceiver, IntentFilter(ACTION_CANCEL))
+        broadcastReceiver = receiver
+        ContextCompat.registerReceiver(
+            this,
+            receiver,
+            IntentFilter(ACTION_CANCEL),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
     }
 
     // /////////////////////////////////////////////////////////////////////////
@@ -226,7 +271,7 @@ class FeedLoadService : Service() {
     // /////////////////////////////////////////////////////////////////////////
 
     private fun handleError(error: Throwable) {
-        postEvent(ErrorResultEvent(error))
+        FeedEventManager.postEvent(feedScope, ErrorResultEvent(error))
         stopService()
     }
 }

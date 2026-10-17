@@ -23,6 +23,7 @@
 
     <SwitchPreferenceCompat
         android:defaultValue="true"
+        android:dependency="@string/enable_watch_history_key"
         android:key="@string/enable_playback_state_lists_key"
         android:summary="@string/enable_playback_state_lists_summary"
         android:title="@string/enable_playback_state_lists_title"
@@ -35,6 +36,12 @@
         android:summary="@string/enable_search_history_summary"
         android:title="@string/enable_search_history_title"
         app:singleLineTitle="false"
+        app:iconSpaceReserved="false" />
+
+    <Preference
+        android:key="history_portability"
+        android:fragment="org.schabi.newpipe.settings.HistoryPortabilitySettingsFragment"
+        android:title="@string/history_portability_title"
         app:iconSpaceReserved="false" />
 
     <PreferenceCategory

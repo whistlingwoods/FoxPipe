@@ -22,7 +22,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SearchView;
+import androidx.core.view.MenuHost;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -31,6 +35,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.nononsenseapps.filepicker.Utils;
 
 import org.schabi.newpipe.R;
+import org.schabi.newpipe.download.DownloadActivity;
+import org.schabi.newpipe.local.search.ContextualSearchHelper;
 import org.schabi.newpipe.settings.NewPipeSettings;
 import org.schabi.newpipe.streams.io.NoFileManagerSafeGuard;
 import org.schabi.newpipe.streams.io.StoredFileHelper;
@@ -49,13 +55,18 @@ public class MissionsFragment extends Fragment {
 
     private static final String TAG = "MissionsFragment";
     private static final int SPAN_SIZE = 2;
+    private static final String STATE_SEARCH_QUERY = "search_query";
+    private static final String STATE_STANDALONE_SEARCH_EXPANDED =
+            "standalone_search_expanded";
 
     private SharedPreferences mPrefs;
     private boolean mLinear;
+    private MenuItem mSearch = null;
     private MenuItem mSwitch;
     private MenuItem mClear = null;
     private MenuItem mStart = null;
     private MenuItem mPause = null;
+    private SearchView mSearchView;
 
     private RecyclerView mList;
     private View mEmpty;
@@ -65,7 +76,11 @@ public class MissionsFragment extends Fragment {
     private Context mContext;
 
     private DownloadManagerBinder mBinder;
+    private boolean bindingRegistered;
+    private boolean serviceConnected;
     private boolean mForceUpdate;
+    private String mSearchQuery = "";
+    private boolean mStandaloneSearchExpanded;
 
     private DownloadMission unsafeMissionTarget = null;
     private final ActivityResultLauncher<Intent> requestDownloadSaveAsLauncher =
@@ -75,15 +90,23 @@ public class MissionsFragment extends Fragment {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             mBinder = (DownloadManagerBinder) binder;
+            serviceConnected = true;
             mBinder.clearDownloadNotifications();
 
+            if (getView() == null) {
+                return;
+            }
+
             mAdapter = new MissionAdapter(mContext, mBinder.getDownloadManager(), mEmpty, getView());
+            mAdapter.setSearchQuery(mSearchQuery);
 
             mAdapter.setRecover(MissionsFragment.this::recoverMission);
 
             setAdapterButtons();
 
-            mBinder.addMissionEventListener(mAdapter);
+            if (mBinder != null) {
+                mBinder.addMissionEventListener(mAdapter);
+            }
             mBinder.enableNotifications(false);
 
             updateList();
@@ -91,10 +114,21 @@ public class MissionsFragment extends Fragment {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            // What to do?
+            mBinder = null;
+            serviceConnected = false;
         }
 
+        @Override
+        public void onBindingDied(final ComponentName name) {
+            mBinder = null;
+            serviceConnected = false;
+        }
 
+        @Override
+        public void onNullBinding(final ComponentName name) {
+            mBinder = null;
+            serviceConnected = false;
+        }
     };
 
     @Override
@@ -105,7 +139,8 @@ public class MissionsFragment extends Fragment {
         mLinear = mPrefs.getBoolean("linear", false);
 
         // Bind the service
-        mContext.bindService(new Intent(mContext, DownloadManagerService.class), mConnection, Context.BIND_AUTO_CREATE);
+        bindingRegistered = mContext.bindService(new Intent(mContext, DownloadManagerService.class),
+                mConnection, Context.BIND_AUTO_CREATE);
 
         // Views
         mEmpty = v.findViewById(R.id.list_empty_view);
@@ -127,9 +162,29 @@ public class MissionsFragment extends Fragment {
         });
         mLinearManager = new LinearLayoutManager(getActivity());
 
-        setHasOptionsMenu(true);
-
         return v;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull final View view, final Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (savedInstanceState != null && requireActivity() instanceof DownloadActivity) {
+            mSearchQuery = ContextualSearchHelper.normalizeQuery(
+                    savedInstanceState.getString(STATE_SEARCH_QUERY));
+            mStandaloneSearchExpanded = savedInstanceState.getBoolean(
+                    STATE_STANDALONE_SEARCH_EXPANDED);
+        }
+        final MenuHost menuHost = requireActivity();
+        menuHost.addMenuProvider(getMenuProvider(), getViewLifecycleOwner(),
+                Lifecycle.State.RESUMED);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull final Bundle outState) {
+        outState.putString(STATE_SEARCH_QUERY, mSearchQuery);
+        outState.putBoolean(STATE_STANDALONE_SEARCH_EXPANDED,
+                mStandaloneSearchExpanded);
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -159,50 +214,175 @@ public class MissionsFragment extends Fragment {
 
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mBinder == null || mAdapter == null) return;
+    public void onDestroyView() {
+        cleanupServiceBinding();
+        super.onDestroyView();
+    }
 
-        mBinder.removeMissionEventListener(mAdapter);
-        mBinder.enableNotifications(true);
-        mContext.unbindService(mConnection);
-        mAdapter.onDestroy();
+    @Override
+    public void onDestroy() {
+        cleanupServiceBinding();
+        super.onDestroy();
+    }
+
+    private void cleanupServiceBinding() {
+        if (mBinder != null) {
+            if (mAdapter != null) {
+                mBinder.removeMissionEventListener(mAdapter);
+            }
+            mBinder.enableNotifications(true);
+        }
+
+        if (bindingRegistered) {
+            mContext.unbindService(mConnection);
+            bindingRegistered = false;
+        }
+        serviceConnected = false;
+
+        if (mAdapter != null) {
+            mAdapter.onDestroy();
+        }
 
         mBinder = null;
         mAdapter = null;
+        mSearch = null;
+        mSwitch = null;
+        mClear = null;
+        mStart = null;
+        mPause = null;
+        mSearchView = null;
+        mList = null;
+        mEmpty = null;
+        mGridManager = null;
+        mLinearManager = null;
     }
 
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        mSwitch = menu.findItem(R.id.switch_mode);
-        mClear = menu.findItem(R.id.clear_list);
-        mStart = menu.findItem(R.id.start_downloads);
-        mPause = menu.findItem(R.id.pause_downloads);
+    private MenuProvider getMenuProvider() {
+        return new MenuProvider() {
+            @Override
+            public void onCreateMenu(@NonNull final Menu menu,
+                                     @NonNull final android.view.MenuInflater menuInflater) {
+                menuInflater.inflate(R.menu.download_menu, menu);
+                configureStandaloneSearch(menu);
+            }
 
-        if (mAdapter != null) setAdapterButtons();
+            @Override
+            public void onPrepareMenu(@NonNull final Menu menu) {
+                mSearch = menu.findItem(R.id.search_downloads);
+                mSwitch = menu.findItem(R.id.switch_mode);
+                mClear = menu.findItem(R.id.clear_list);
+                mStart = menu.findItem(R.id.start_downloads);
+                mPause = menu.findItem(R.id.pause_downloads);
 
-        super.onPrepareOptionsMenu(menu);
+                if (mAdapter != null) {
+                    setAdapterButtons();
+                }
+                updateStandaloneSearchMenuItems();
+            }
+
+            @Override
+            public boolean onMenuItemSelected(@NonNull final MenuItem item) {
+                return handleMenuItemSelected(item);
+            }
+        };
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.switch_mode:
-                mLinear = !mLinear;
-                updateList();
-                return true;
-            case R.id.clear_list:
-                showClearDownloadHistoryPrompt();
-                return true;
-            case R.id.start_downloads:
-                mBinder.getDownloadManager().startAllMissions();
-                return true;
-            case R.id.pause_downloads:
-                mBinder.getDownloadManager().pauseAllMissions(false);
-                mAdapter.refreshMissionItems();// update items view
-            default:
-                return super.onOptionsItemSelected(item);
+    private void configureStandaloneSearch(@NonNull final Menu menu) {
+        mSearch = menu.findItem(R.id.search_downloads);
+        final boolean isStandalone = requireActivity() instanceof DownloadActivity;
+        mSearch.setVisible(isStandalone);
+        if (!isStandalone) {
+            return;
         }
+
+        mSearchView = (SearchView) mSearch.getActionView();
+        mSearchView.setMaxWidth(Integer.MAX_VALUE);
+        mSearchView.setQueryHint(getString(R.string.search));
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String query) {
+                setSearchQuery(query);
+                updateStandaloneSearchMenuItems();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String newText) {
+                setSearchQuery(newText);
+                updateStandaloneSearchMenuItems();
+                return true;
+            }
+        });
+        mSearch.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(@NonNull final MenuItem item) {
+                mStandaloneSearchExpanded = true;
+                updateStandaloneSearchMenuItems();
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(@NonNull final MenuItem item) {
+                mStandaloneSearchExpanded = false;
+                setSearchQuery("");
+                updateStandaloneSearchMenuItems();
+                return true;
+            }
+        });
+
+        if (mStandaloneSearchExpanded) {
+            mSearch.expandActionView();
+            mSearchView.setQuery(mSearchQuery, false);
+        }
+    }
+
+    private void updateStandaloneSearchMenuItems() {
+        if (!(requireActivity() instanceof DownloadActivity)) {
+            return;
+        }
+
+        if (mSwitch != null) {
+            mSwitch.setVisible(!mStandaloneSearchExpanded);
+        }
+        if (mAdapter != null) {
+            mAdapter.setMenuActionsSuppressed(mStandaloneSearchExpanded);
+        } else if (mStandaloneSearchExpanded) {
+            setMenuItemVisible(mClear, false);
+            setMenuItemVisible(mStart, false);
+            setMenuItemVisible(mPause, false);
+        }
+    }
+
+    private static void setMenuItemVisible(final MenuItem item, final boolean visible) {
+        if (item != null) {
+            item.setVisible(visible);
+        }
+    }
+
+    private boolean handleMenuItemSelected(final MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.switch_mode) {
+            mLinear = !mLinear;
+            updateList();
+            return true;
+        } else if (itemId == R.id.clear_list) {
+            showClearDownloadHistoryPrompt();
+            return true;
+        } else if (itemId == R.id.start_downloads) {
+            if (mBinder != null) {
+                mBinder.getDownloadManager().startAllMissions();
+            }
+            return true;
+        } else if (itemId == R.id.pause_downloads) {
+            if (mBinder != null) {
+                mBinder.getDownloadManager().pauseAllMissions(false);
+            }
+            if (mAdapter != null) {
+                mAdapter.refreshMissionItems(); // update items view
+            }
+            return true;
+        }
+        return false;
     }
 
     public void showClearDownloadHistoryPrompt() {
@@ -211,12 +391,11 @@ public class MissionsFragment extends Fragment {
                 .setTitle(R.string.clear_download_history)
                 .setMessage(R.string.confirm_prompt)
                 // Intentionally misusing buttons' purpose in order to achieve good order
-                .setNegativeButton(R.string.clear_download_history,
-                        (dialog, which) -> mAdapter.clearFinishedDownloads(false))
+                .setNegativeButton(R.string.clear_download_history, (dialog, which) ->
+                        mAdapter.clearFinishedDownloads(false))
                 .setNeutralButton(R.string.cancel, null)
-                .setPositiveButton(R.string.delete_downloaded_files,
-                        (dialog, which) -> showDeleteDownloadedFilesConfirmationPrompt())
-                .create()
+                .setPositiveButton(R.string.delete_downloaded_files, (dialog, which) ->
+                        showDeleteDownloadedFilesConfirmationPrompt())
                 .show();
     }
 
@@ -225,13 +404,16 @@ public class MissionsFragment extends Fragment {
         new AlertDialog.Builder(mContext)
                 .setTitle(R.string.delete_downloaded_files_confirm)
                 .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.ok,
-                        (dialog, which) -> mAdapter.clearFinishedDownloads(true))
-                .create()
+                .setPositiveButton(R.string.ok, (dialog, which) ->
+                        mAdapter.clearFinishedDownloads(true))
                 .show();
     }
 
     private void updateList() {
+        if (mList == null || mAdapter == null) {
+            return;
+        }
+
         if (mLinear) {
             mList.setLayoutManager(mLinearManager);
         } else {
@@ -256,10 +438,20 @@ public class MissionsFragment extends Fragment {
     }
 
     private void setAdapterButtons() {
-        if (mClear == null || mStart == null || mPause == null) return;
+        if (mClear == null || mStart == null || mPause == null || mAdapter == null) {
+            return;
+        }
 
         mAdapter.setClearButton(mClear);
         mAdapter.setMasterButtons(mStart, mPause);
+        mAdapter.setMenuActionsSuppressed(mStandaloneSearchExpanded);
+    }
+
+    public void setSearchQuery(@NonNull final String query) {
+        mSearchQuery = ContextualSearchHelper.normalizeQuery(query);
+        if (mAdapter != null) {
+            mAdapter.setSearchQuery(mSearchQuery);
+        }
     }
 
     private void recoverMission(@NonNull DownloadMission mission) {
@@ -299,8 +491,12 @@ public class MissionsFragment extends Fragment {
                 mAdapter.forceUpdate();
             }
 
-            mBinder.addMissionEventListener(mAdapter);
-            mAdapter.checkMasterButtonsVisibility();
+            if (mBinder != null) {
+                mBinder.addMissionEventListener(mAdapter);
+            }
+            if (mStart != null && mPause != null) {
+                mAdapter.checkMasterButtonsVisibility();
+            }
         }
         if (mBinder != null) mBinder.enableNotifications(false);
     }
@@ -311,7 +507,9 @@ public class MissionsFragment extends Fragment {
 
         if (mAdapter != null) {
             mForceUpdate = true;
-            mBinder.removeMissionEventListener(mAdapter);
+            if (mBinder != null) {
+                mBinder.removeMissionEventListener(mAdapter);
+            }
             mAdapter.onPaused();
         }
 

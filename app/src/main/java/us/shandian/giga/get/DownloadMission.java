@@ -8,7 +8,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.schabi.newpipe.extractor.services.youtube.invidious.InvidiousBackend;
 import org.schabi.newpipe.DownloaderImpl;
+import org.schabi.newpipe.network.AppProxySelector;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -86,6 +88,7 @@ public class DownloadMission extends Mission {
      * 3: hold
      */
     public volatile int psState;
+    public boolean requiresUnmeteredNetwork;
 
     /**
      * the post-processing algorithm instance
@@ -219,25 +222,55 @@ public class DownloadMission extends Mission {
     }
 
     HttpURLConnection openConnection(String url, boolean headRequest, long rangeStart, long rangeEnd) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setInstanceFollowRedirects(true);
-        conn.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT);
-        conn.setRequestProperty("Accept", "*/*");
-        conn.setRequestProperty("Accept-Encoding", "*");
+        final URL source = new URL(url);
+        URL target = source;
+        final boolean invidiousDownload = InvidiousBackend.isEnabled() && this.source != null
+                && InvidiousBackend.isYoutubeHost(java.net.URI.create(this.source).getHost());
+        for (int redirects = 0; redirects <= 20; redirects++) {
+            if (invidiousDownload) {
+                try {
+                    InvidiousBackend.checkInstanceRequest(target.toURI());
+                } catch (java.net.URISyntaxException e) {
+                    throw new IOException("Invalid Invidious download URL", e);
+                }
+            }
+            HttpURLConnection conn = AppProxySelector.openConnection(target);
+            conn.setInstanceFollowRedirects(!InvidiousBackend.isEnabled());
+            conn.setRequestProperty("User-Agent", DownloaderImpl.USER_AGENT);
+            conn.setRequestProperty("Accept", "*/*");
+            conn.setRequestProperty("Accept-Encoding", "*");
 
-        if (headRequest) conn.setRequestMethod("HEAD");
+            if (headRequest) conn.setRequestMethod("HEAD");
 
-        // BUG workaround: switching between networks can freeze the download forever
-        conn.setConnectTimeout(30000);
+            // BUG workaround: switching between networks can freeze the download forever
+            conn.setConnectTimeout(30000);
+            if (InvidiousBackend.isEnabled()) conn.setReadTimeout(30000);
 
-        if (rangeStart >= 0) {
-            String req = "bytes=" + rangeStart + "-";
-            if (rangeEnd > 0) req += rangeEnd;
+            if (rangeStart >= 0) {
+                String req = "bytes=" + rangeStart + "-";
+                if (rangeEnd > 0) req += rangeEnd;
 
-            conn.setRequestProperty("Range", req);
+                conn.setRequestProperty("Range", req);
+            }
+
+            if (!InvidiousBackend.isEnabled()) {
+                return conn;
+            }
+            final int code = conn.getResponseCode();
+            final String location = conn.getHeaderField("Location");
+            if (location == null || !(code == 301 || code == 302 || code == 303 || code == 307 || code == 308)) {
+                return conn;
+            }
+            conn.disconnect();
+            target = new URL(target, location);
+            try {
+                InvidiousBackend.checkRedirect(
+                        source.toURI(), target.toURI());
+            } catch (java.net.URISyntaxException e) {
+                throw new IOException("Invalid download redirect", e);
+            }
         }
-
-        return conn;
+        throw new IOException("Too many download redirects");
     }
 
     /**
@@ -273,11 +306,19 @@ public class DownloadMission extends Mission {
     }
 
 
-    private void notify(int what) {
-        mHandler.obtainMessage(what, this).sendToTarget();
+    private void notify(final int what) {
+        if (deleted && what != DownloadManagerService.MESSAGE_DELETED) {
+            return;
+        }
+        if (mHandler != null) {
+            mHandler.obtainMessage(what, this).sendToTarget();
+        }
     }
 
-    synchronized void notifyProgress(long deltaLen) {
+    synchronized void notifyProgress(final long deltaLen) {
+        if (deleted) {
+            return;
+        }
         if (unknownLength) {
             length += deltaLen;// Update length before proceeding
         }
@@ -314,6 +355,9 @@ public class DownloadMission extends Mission {
     }
 
     public synchronized void notifyError(int code, Exception err) {
+        if (deleted) {
+            return;
+        }
         Log.e(TAG, "notifyError() code = " + code, err);
         if (err != null && err.getCause() instanceof ErrnoException) {
             int errno = ((ErrnoException) err.getCause()).errno;
@@ -361,6 +405,9 @@ public class DownloadMission extends Mission {
     }
 
     synchronized void notifyFinished() {
+        if (deleted) {
+            return;
+        }
         if (current < urls.length) {
             if (++finishCount < threads.length) return;
 
@@ -427,7 +474,7 @@ public class DownloadMission extends Mission {
      * Start downloading with multiple threads.
      */
     public void start() {
-        if (running || isFinished() || urls.length < 1) return;
+        if (deleted || running || isFinished() || urls.length < 1) return;
 
         // ensure that the previous state is completely paused.
         joinForThreads(10000);
@@ -520,18 +567,46 @@ public class DownloadMission extends Mission {
     }
 
     /**
-     * Removes the downloaded file and the meta file
+     * Stops this mission and removes its metadata, optionally deleting the partial file.
+     *
+     * @param alsoDeleteFile whether the partially downloaded output should also be removed
+     * @return whether all requested cleanup operations succeeded
      */
-    @Override
-    public boolean delete() {
-        if (psAlgorithm != null) psAlgorithm.cleanupTemporalDir();
+    public boolean cancel(final boolean alsoDeleteFile) {
+        if (deleted) {
+            return true;
+        }
+
+        final boolean postprocessingWasRunning = isPsRunning();
+        deleted = true;
+        running = false;
+        enqueued = false;
+
+        if (init != null) {
+            init.interrupt();
+        }
+        for (final Thread thread : threads) {
+            thread.interrupt();
+        }
+        if (psAlgorithm != null && !postprocessingWasRunning) {
+            psAlgorithm.cleanupTemporalDir();
+        }
 
         notify(DownloadManagerService.MESSAGE_DELETED);
 
-        boolean res = deleteThisFromFile();
+        boolean result = deleteThisFromFile();
+        if (alsoDeleteFile && !super.delete()) {
+            result = false;
+        }
+        return result;
+    }
 
-        if (!super.delete()) return false;
-        return res;
+    /**
+     * Removes the downloaded file and the meta file.
+     */
+    @Override
+    public boolean delete() {
+        return cancel(true);
     }
 
 
@@ -609,6 +684,17 @@ public class DownloadMission extends Mission {
     }
 
     /**
+     * Indicates whether workers should stop without publishing more output.
+     */
+    public boolean isCancellationRequested() {
+        return deleted || Thread.currentThread().isInterrupted();
+    }
+
+    public boolean isConvertingToMp3() {
+        return isPsRunning() && psAlgorithm.isMp3Conversion();
+    }
+
+    /**
      * Indicated if the mission is ready
      *
      * @return true, otherwise, false
@@ -661,7 +747,8 @@ public class DownloadMission extends Mission {
      * @return {@code true}, if storage is invalid and cannot be used
      */
     public boolean hasInvalidStorage() {
-        return errCode == ERROR_PROGRESS_LOST || storage == null || !storage.existsAsFile();
+        // Don't consider ERROR_PROGRESS_LOST as invalid storage - it can be recovered
+        return storage == null || !storage.existsAsFile();
     }
 
     /**
@@ -684,6 +771,10 @@ public class DownloadMission extends Mission {
     }
 
     private void doPostprocessing() {
+        if (deleted) {
+            return;
+        }
+
         errCode = ERROR_NOTHING;
         errObject = null;
         Thread thread = Thread.currentThread();
@@ -701,8 +792,11 @@ public class DownloadMission extends Mission {
         } catch (Exception err) {
             Log.e(TAG, "Post-processing failed. " + psAlgorithm.toString(), err);
 
-            if (err instanceof InterruptedIOException || err instanceof ClosedByInterruptException || thread.isInterrupted()) {
-                notifyError(DownloadMission.ERROR_POSTPROCESSING_STOPPED, null);
+            if (deleted || err instanceof InterruptedIOException
+                    || err instanceof ClosedByInterruptException || thread.isInterrupted()) {
+                if (!deleted) {
+                    notifyError(DownloadMission.ERROR_POSTPROCESSING_STOPPED, null);
+                }
                 return;
             }
 
@@ -710,7 +804,17 @@ public class DownloadMission extends Mission {
 
             exception = err;
         } finally {
-            notifyPostProcessing(errCode == ERROR_NOTHING ? 2 : 0);
+            final int finalState = resolvePostprocessingFinalState(deleted, errCode);
+            if (deleted) {
+                psState = finalState;
+                psAlgorithm.cleanupTemporalDir();
+            } else {
+                notifyPostProcessing(finalState);
+            }
+        }
+
+        if (deleted) {
+            return;
         }
 
         if (errCode != ERROR_NOTHING) {
@@ -720,6 +824,11 @@ public class DownloadMission extends Mission {
         }
 
         notifyFinished();
+    }
+
+    static int resolvePostprocessingFinalState(final boolean deleted,
+                                               final int errorCode) {
+        return !deleted && errorCode == ERROR_NOTHING ? 2 : 0;
     }
 
     /**
@@ -745,9 +854,12 @@ public class DownloadMission extends Mission {
 
     private boolean deleteThisFromFile() {
         synchronized (LOCK) {
-            boolean res = metadata.delete();
+            if (metadata == null) {
+                return true;
+            }
+            final boolean result = metadata.delete();
             metadata = null;
-            return res;
+            return result;
         }
     }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="controls_add_to_playlist_title">Rnu ɣer</string>
     <string name="tab_choose">Sty aseksel</string>
@@ -20,7 +20,7 @@
     <string name="search_showing_result_for">Asmal n tyufa i: %s</string>
     <string name="upload_date_text">ittufser g %1$s</string>
     <string name="no_comments">Walu ixfawalen</string>
-    <string name="notification_channel_name">Tineɣmisin n NewPipe</string>
+    <string name="notification_channel_name">Tineɣmisin n WizeStream</string>
     <string name="download_path_title">Asedaw n ividyuten yugem</string>
     <string name="delete_downloaded_files">Kkes ifuyla yugmen</string>
     <string name="downloads_storage_use_saf_title">Semres SAF</string>
@@ -39,7 +39,7 @@
         <item quantity="one">%d wass</item>
         <item quantity="other">%d wussan</item>
     </plurals>
-    <string name="remove_watched_popup_title">Kkes ividyuten ittwannayen\?</string>
+    <string name="remove_watched_popup_title">Kkes ividyuten ittwannayen?</string>
     <string name="more_than_100_videos">100+ ividyuten</string>
     <string name="no_videos">walu ividyuten</string>
     <string name="video_detail_by">Sɣur %s</string>
@@ -87,7 +87,7 @@
     <string name="delete_search_history_alert">Kkes amzruy n urezzu maṛṛa\?</string>
     <string name="clear_search_history_title">Sfeḍ amzruy n urezzu</string>
     <string name="delete_view_history_alert">Kkes amzruy n wannay maṛṛa\?</string>
-    <string name="app_update_notification_channel_description">Tineɣmisin i tleqqimt tamaynut n NewPipe</string>
+    <string name="app_update_notification_channel_description">Tineɣmisin i tleqqimt tamaynut n WizeStream</string>
     <string name="play_all">Γer maṛṛa</string>
     <string name="file_deleted">Ittwakkes ufaylu</string>
     <string name="content">Akettur</string>
@@ -113,7 +113,6 @@
     <string name="delete">Kkes</string>
     <string name="create">Senulfu</string>
     <string name="start">Senti</string>
-    <string name="short_thousand">ifḍ</string>
     <string name="retry">Als-arem</string>
     <string name="audio">Imesli</string>
     <string name="video">Avidyu</string>
@@ -149,7 +148,7 @@
     <string name="fragment_feed_title">Matta n umaynu</string>
     <string name="always_ask_open_action">ttseqsa abda</string>
     <string name="blank_page_summary">Tasna ixwan</string>
-    <string name="title_activity_about">Ɣef NewPipe</string>
+    <string name="title_activity_about">Ɣef WizeStream</string>
     <string name="msg_wait">Ṛaja…</string>
     <plurals name="listening">
         <item quantity="one">%s umsflid</item>
@@ -179,3 +178,4 @@
     <string name="playlists">Tilgamin n tɣuri</string>
     <string name="autoplay_title">Taɣuri tawurmant</string>
 </resources>
+

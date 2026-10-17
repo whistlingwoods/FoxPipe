@@ -1,80 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/items_list"
+    <!-- since ToolbarTheme sets the tint to icons, it would make images all white,
+    therefore app:tint="@null" is used to undo that setting -->
+    <org.schabi.newpipe.views.ChannelAppBarLayout
+        android:id="@+id/app_bar_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ToolbarTheme"
+        app:elevation="0dp">
+
+        <FrameLayout
+            android:id="@+id/channel_banner_container"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:visibility="gone"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            tools:visibility="visible">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/channel_banner_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder_channel_banner"
+                android:tint="@null"
+                app:tint="@null"
+                tools:ignore="ContentDescription" />
+        </FrameLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/channel_metadata_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="86dp">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/channel_avatar_view"
+                        android:layout_width="@dimen/channel_avatar_size"
+                        android:layout_height="@dimen/channel_avatar_size"
+                        android:layout_marginVertical="8dp"
+                        android:layout_marginStart="8dp"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/placeholder_person"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:shapeAppearance="@style/CircularImageView"
+                        app:strokeColor="@color/thumbnail_avatar_stroke_color"
+                        app:strokeWidth="2dp"
+                        app:tint="@null" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/sub_channel_avatar_view"
+                        android:layout_width="@dimen/sub_channel_avatar_size"
+                        android:layout_height="@dimen/sub_channel_avatar_size"
+                        android:padding="1dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/placeholder_person"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="@id/channel_avatar_view"
+                        app:layout_constraintEnd_toEndOf="@id/channel_avatar_view"
+                        app:shapeAppearance="@style/CircularImageView"
+                        app:strokeColor="@color/thumbnail_avatar_stroke_color"
+                        app:strokeWidth="2dp"
+                        app:tint="@null"
+                        tools:visibility="visible" />
+
+                    <org.schabi.newpipe.views.MediaTextView
+                        android:id="@+id/channel_title_view"
+                        app:mediaTextRole="channelName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:ellipsize="end"
+                        android:lines="1"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="16sp"
+                        app:layout_constraintBottom_toTopOf="@+id/sub_channel_title_view"
+                        app:layout_constraintEnd_toStartOf="@+id/channel_subscription_actions"
+                        app:layout_constraintStart_toEndOf="@+id/channel_avatar_view"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="@tools:sample/lorem[10]" />
+
+                    <org.schabi.newpipe.views.NewPipeTextView
+                        android:id="@+id/sub_channel_title_view"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:ellipsize="end"
+                        android:lines="1"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toTopOf="@+id/channel_subscriber_view"
+                        app:layout_constraintEnd_toStartOf="@+id/channel_subscription_actions"
+                        app:layout_constraintStart_toEndOf="@+id/channel_avatar_view"
+                        app:layout_constraintTop_toBottomOf="@+id/channel_title_view"
+                        tools:text="@tools:sample/lorem[10]"
+                        tools:visibility="visible" />
+
+                    <org.schabi.newpipe.views.NewPipeTextView
+                        android:id="@+id/channel_subscriber_view"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_marginBottom="8dp"
+                        android:textSize="12sp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/channel_subscription_actions"
+                        app:layout_constraintStart_toEndOf="@+id/channel_avatar_view"
+                        app:layout_constraintTop_toBottomOf="@+id/sub_channel_title_view"
+                        tools:text="123,141,411 subscribers" />
+
+                    <org.schabi.newpipe.views.SubscriptionSplitButton
+                        android:id="@+id/channel_subscription_actions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/channel_subscribe_button"
+                            style="@style/Widget.WizeStream.SubscribeButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:text="@string/subscribe_button_title"
+                            android:textSize="@dimen/channel_rss_title_size" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/channel_group_button"
+                            style="@style/Widget.WizeStream.SubscribeButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="2dp"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:padding="12dp"
+                            android:contentDescription="@string/channel_manage_groups"
+                            android:visibility="gone"
+                            app:icon="@drawable/ic_expand_more"
+                            app:iconPadding="0dp"
+                            app:iconSize="24dp"
+                            app:iconTint="@color/channel_subscribe_text"
+                            tools:visibility="visible" />
+                    </org.schabi.newpipe.views.SubscriptionSplitButton>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </org.schabi.newpipe.views.ChannelAppBarLayout>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        tools:listitem="@layout/list_stream_item" />
-
-    <ProgressBar
-        android:id="@+id/loading_progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:indeterminate="true"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <LinearLayout
-        android:id="@+id/empty_state_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:layout_below="@id/app_bar_layout"
         android:orientation="vertical"
-        android:paddingTop="90dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:id="@+id/channel_kaomoji"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabIndicatorFullWidth="false"
+            app:tabIndicatorHeight="3dp"
+            app:tabMode="scrollable"
+            app:tabRippleColor="?attr/colorControlHighlight"
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabTextColor="@color/tab_layout_material_item_color" />
+
+        <org.schabi.newpipe.views.SwipeControllableViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tab_layout" />
+
+        <ProgressBar
+            android:id="@+id/loading_progress_bar"
+            style="@style/MaterialStateProgressIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="monospace"
-            android:text="(╯°-°)╯"
-            android:textSize="35sp"
-            tools:ignore="HardcodedText,UnusedAttribute" />
+            android:layout_centerInParent="true"
+            android:indeterminate="true"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:id="@+id/channel_no_videos"
+        <LinearLayout
+            android:id="@+id/empty_state_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/empty_view_no_videos"
-            android:textSize="24sp" />
+            android:layout_centerInParent="true"
+            android:orientation="vertical"
+            android:paddingTop="90dp"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-        <org.schabi.newpipe.views.NewPipeTextView
-            android:id="@+id/error_content_not_supported"
+            <org.schabi.newpipe.views.NewPipeTextView
+                style="@style/EmptyStateKaomoji"
+                android:id="@+id/channel_kaomoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="monospace"
+                android:text="(︶︹︺)"
+                android:textSize="35sp"
+                tools:ignore="HardcodedText" />
+
+            <org.schabi.newpipe.views.NewPipeTextView
+                android:id="@+id/error_content_not_supported"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/content_not_supported"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!--ERROR PANEL-->
+        <include
+            android:id="@+id/error_panel"
+            layout="@layout/error_panel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/content_not_supported"
-            android:textSize="15sp"
-            android:visibility="gone" />
-
-    </LinearLayout>
-
-    <!--ERROR PANEL-->
-    <include
-        android:id="@+id/error_panel"
-        layout="@layout/error_panel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_marginTop="50dp"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_alignParentTop="true"
-        android:background="?attr/toolbar_shadow" />
-
-</RelativeLayout>
+            android:layout_centerInParent="true"
+            android:layout_marginTop="50dp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+    </RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

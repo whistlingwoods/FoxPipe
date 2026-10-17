@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_filter_presets">Saved filters</string>
+    <string name="search_preset_add">+ Save current filters</string>
+    <string name="search_preset_name">Preset name</string>
+    <string name="search_preset_load">Use these filters</string>
+    <string name="search_preset_update">Replace with current filters</string>
+    <string name="search_custom_dates">Custom upload dates</string>
+    <string name="search_after_date">After: date or relative time</string>
+    <string name="search_before_date">Before: date or relative time</string>
+    <string name="search_date_help">Enter YYYY-MM-DD or a relative time such as 1 day, 2 weeks, or 6 months. Relative dates update when you search. YouTube receives after: and before: query terms.</string>
+    <string name="search_date_invalid">Enter valid dates or relative times, with After earlier than Before.</string>
+    <string name="search_duration_order">Duration and result order</string>
+    <string name="search_duration_help">Order the results collected so far by duration. Unknown durations and live streams appear last and are excluded by duration ranges. Fetch more pages to find additional matches.</string>
+    <string name="search_service_order">Service order</string>
+    <string name="search_longest_first">Longest first</string>
+    <string name="search_shortest_first">Shortest first</string>
+    <string name="search_minimum_hours">Minimum hours (optional)</string>
+    <string name="search_maximum_hours">Maximum hours (optional)</string>
+    <string name="search_duration_invalid">Enter valid hours, with Minimum no greater than Maximum.</string>
+    <string name="search_fetch_more">Fetch more results</string>
+    <string name="search_deep_help">Collect additional search pages and keep updating the results. You can cancel at any time and keep collected results. The service may not return every matching video. Collection stops at the selected page and result limits, or when no new pages remain. The default result limit is 5,000; you can choose up to 20,000. Fetching again continues with new pages. Requests wait 2 seconds between pages by default. You can change the page count, result limit, and delay, or search a YouTube year month by month.</string>
+    <string name="search_deep_choose">Additional pages</string>
+    <string name="search_deep_progress">%1$d/%2$d pages · %3$d collected · %4$d shown</string>
+    <string name="search_collected_count">%1$d collected · %2$d shown</string>
+    <string name="search_after_label">After (%1$s)</string>
+    <string name="search_before_label">Before (%1$s)</string>
+    <string name="search_deep_custom">Custom…</string>
+    <string name="search_deep_custom_pages">Page limit (1–250)</string>
+    <string name="search_deep_delay_seconds">Delay between pages in seconds (0.3–10)</string>
+    <string name="search_deep_pages_invalid">Enter a whole number from 1 to 250</string>
+    <string name="search_deep_delay_invalid">Enter a delay from 0.3 to 10 seconds</string>
+    <string name="search_deep_result_limit">Maximum collected results (1–20,000)</string>
+    <string name="search_deep_results_invalid">Enter a whole number from 1 to 20,000</string>
+    <string name="search_deep_monthly">Search a year month by month (YouTube)</string>
+    <string name="search_deep_year">Year</string>
+    <string name="search_deep_year_invalid">Enter a year from 1900 to 9998</string>
+    <string name="search_deep_monthly_help">Monthly collection starts a new result set for the selected year and replaces upload-date filters. The page and result limits apply across all months. You can stop at any time and keep collected results. YouTube may not return every matching video.</string>
+</resources>

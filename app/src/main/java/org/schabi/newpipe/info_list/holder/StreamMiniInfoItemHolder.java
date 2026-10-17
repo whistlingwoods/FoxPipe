@@ -1,5 +1,6 @@
 package org.schabi.newpipe.info_list.holder;
 
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -9,24 +10,42 @@ import androidx.core.content.ContextCompat;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.database.stream.model.StreamStateEntity;
+import org.schabi.newpipe.extractor.Image;
 import org.schabi.newpipe.extractor.InfoItem;
+import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.info_list.InfoItemBuilder;
+import org.schabi.newpipe.info_list.StreamUploaderNavigation;
 import org.schabi.newpipe.ktx.ViewUtils;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
+import org.schabi.newpipe.util.AiSListContentHelper;
+import org.schabi.newpipe.util.DependentPreferenceHelper;
 import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.PicassoHelper;
+import org.schabi.newpipe.util.ShortsThumbnailPolicy;
+import org.schabi.newpipe.util.MembersOnlyContentHelper;
+import org.schabi.newpipe.util.OnClickGesture;
 import org.schabi.newpipe.util.StreamTypeUtil;
+import org.schabi.newpipe.util.image.CoilHelper;
+import org.schabi.newpipe.util.image.ExtractorImageCompat;
 import org.schabi.newpipe.views.AnimatedProgressBar;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 public class StreamMiniInfoItemHolder extends InfoItemHolder {
     public final ImageView itemThumbnailView;
     public final TextView itemVideoTitleView;
     public final TextView itemUploaderView;
     public final TextView itemDurationView;
+    public final TextView itemMembersOnlyView;
+    private final View itemUploaderRoot;
+    private final ImageView itemUploaderAvatarView;
     private final AnimatedProgressBar itemProgressView;
+    private Disposable progressLoad;
+    private int progressGeneration;
 
     StreamMiniInfoItemHolder(final InfoItemBuilder infoItemBuilder, final int layoutId,
                              final ViewGroup parent) {
@@ -36,6 +55,9 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         itemVideoTitleView = itemView.findViewById(R.id.itemVideoTitleView);
         itemUploaderView = itemView.findViewById(R.id.itemUploaderView);
         itemDurationView = itemView.findViewById(R.id.itemDurationView);
+        itemMembersOnlyView = itemView.findViewById(R.id.itemMembersOnlyView);
+        itemUploaderRoot = itemView.findViewById(R.id.itemUploaderRoot);
+        itemUploaderAvatarView = itemView.findViewById(R.id.itemUploaderAvatarView);
         itemProgressView = itemView.findViewById(R.id.itemProgressView);
     }
 
@@ -43,9 +65,41 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         this(infoItemBuilder, R.layout.list_stream_mini_item, parent);
     }
 
+    private void updateDurationMarginForProgress() {
+        updateDurationMarginForProgress(itemProgressView.getProgress());
+    }
+
+    private void updateDurationMarginForProgress(final int progress) {
+        if (itemDurationView == null || itemProgressView == null) {
+            return;
+        }
+
+        final ViewGroup.LayoutParams layoutParams = itemDurationView.getLayoutParams();
+        if (!(layoutParams instanceof ViewGroup.MarginLayoutParams)) {
+            return;
+        }
+
+        final boolean shouldRaiseDuration = itemProgressView.getVisibility() == View.VISIBLE
+                && progress > 0;
+        final int bottomMargin = itemDurationView.getResources().getDimensionPixelSize(
+                shouldRaiseDuration
+                        ? R.dimen.stream_thumbnail_duration_margin_with_progress
+                        : R.dimen.video_item_search_duration_margin);
+        final ViewGroup.MarginLayoutParams marginLayoutParams =
+                (ViewGroup.MarginLayoutParams) layoutParams;
+        if (marginLayoutParams.bottomMargin != bottomMargin) {
+            marginLayoutParams.bottomMargin = bottomMargin;
+            itemDurationView.setLayoutParams(marginLayoutParams);
+            itemDurationView.requestLayout();
+        }
+    }
+
     @Override
     public void updateFromItem(final InfoItem infoItem,
                                final HistoryRecordManager historyRecordManager) {
+        cancelProgressLoad();
+        itemProgressView.setVisibility(View.GONE);
+        itemProgressView.setProgress(0);
         if (!(infoItem instanceof StreamInfoItem)) {
             return;
         }
@@ -53,6 +107,27 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
 
         itemVideoTitleView.setText(item.getName());
         itemUploaderView.setText(item.getUploaderName());
+        final boolean possibleAi = AiSListContentHelper.shouldLabel(
+                itemBuilder.getContext(),
+                item.getServiceId(),
+                item.getUploaderUrl(),
+                item.getUploaderName());
+        if (item.requiresMembership() && possibleAi) {
+            itemMembersOnlyView.setText(Localization.concatenateStrings(
+                    itemBuilder.getContext().getString(R.string.members_only),
+                    itemBuilder.getContext().getString(R.string.aislist_possible_ai_badge)));
+            itemMembersOnlyView.setVisibility(View.VISIBLE);
+        } else if (item.requiresMembership()) {
+            itemMembersOnlyView.setText(R.string.members_only);
+            itemMembersOnlyView.setVisibility(View.VISIBLE);
+        } else if (possibleAi) {
+            itemMembersOnlyView.setText(R.string.aislist_possible_ai_badge);
+            itemMembersOnlyView.setVisibility(View.VISIBLE);
+        } else {
+            itemMembersOnlyView.setVisibility(View.GONE);
+        }
+
+        bindUploader(item);
 
         if (item.getDuration() > 0) {
             itemDurationView.setText(Localization.getDurationString(item.getDuration()));
@@ -60,16 +135,7 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
                     R.color.duration_background_color));
             itemDurationView.setVisibility(View.VISIBLE);
 
-            final StreamStateEntity state2 = historyRecordManager.loadStreamState(infoItem)
-                    .blockingGet()[0];
-            if (state2 != null) {
-                itemProgressView.setVisibility(View.VISIBLE);
-                itemProgressView.setMax((int) item.getDuration());
-                itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
-                        .toSeconds(state2.getProgressMillis()));
-            } else {
-                itemProgressView.setVisibility(View.GONE);
-            }
+            loadProgress(item, historyRecordManager, false);
         } else if (StreamTypeUtil.isLiveStream(item.getStreamType())) {
             itemDurationView.setText(R.string.duration_live);
             itemDurationView.setBackgroundColor(ContextCompat.getColor(itemBuilder.getContext(),
@@ -80,12 +146,17 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
             itemDurationView.setVisibility(View.GONE);
             itemProgressView.setVisibility(View.GONE);
         }
+        updateDurationMarginForProgress();
 
         // Default thumbnail is shown on error, while loading and if the url is empty
-        PicassoHelper.loadThumbnail(item.getThumbnailUrl()).into(itemThumbnailView);
+        itemThumbnailView.setScaleType(ShortsThumbnailPolicy.scaleType(item));
+        CoilHelper.INSTANCE.loadThumbnail(itemThumbnailView,
+                ExtractorImageCompat.thumbnailImages(item));
 
         itemView.setOnClickListener(view -> {
-            if (itemBuilder.getOnStreamSelectedListener() != null) {
+            if (item.requiresMembership()) {
+                MembersOnlyContentHelper.showExplanation(itemBuilder.getContext());
+            } else if (itemBuilder.getOnStreamSelectedListener() != null) {
                 itemBuilder.getOnStreamSelectedListener().selected(item);
             }
         });
@@ -106,28 +177,113 @@ public class StreamMiniInfoItemHolder extends InfoItemHolder {
         }
     }
 
+    private void bindUploader(final StreamInfoItem item) {
+        // The mini layout deliberately keeps its existing compact text-only presentation.
+        if (itemUploaderRoot == null || itemUploaderAvatarView == null) {
+            return;
+        }
+
+        final List<Image> uploaderAvatars = ExtractorImageCompat.uploaderAvatarImages(item);
+        if (uploaderAvatars.isEmpty()) {
+            CoilHelper.INSTANCE.clearAvatar(itemUploaderAvatarView);
+            itemUploaderAvatarView.setVisibility(View.GONE);
+        } else {
+            itemUploaderAvatarView.setVisibility(View.VISIBLE);
+            CoilHelper.INSTANCE.loadAvatar(itemUploaderAvatarView, uploaderAvatars);
+        }
+
+        final ChannelInfoItem channel = StreamUploaderNavigation.fromStream(item);
+        final OnClickGesture<ChannelInfoItem> listener =
+                itemBuilder.getOnChannelSelectedListener();
+        if (channel != null && listener != null) {
+            itemUploaderRoot.setClickable(true);
+            itemUploaderRoot.setFocusable(true);
+            itemUploaderRoot.setContentDescription(itemBuilder.getContext().getString(
+                    R.string.open_channel, item.getUploaderName()));
+            itemUploaderRoot.setOnClickListener(view -> listener.selected(channel));
+        } else {
+            // Clear every interactive property because holders are recycled between items.
+            itemUploaderRoot.setOnClickListener(null);
+            itemUploaderRoot.setClickable(false);
+            itemUploaderRoot.setFocusable(false);
+            itemUploaderRoot.setContentDescription(null);
+        }
+    }
+
     @Override
     public void updateState(final InfoItem infoItem,
                             final HistoryRecordManager historyRecordManager) {
-        final StreamInfoItem item = (StreamInfoItem) infoItem;
-
-        final StreamStateEntity state = historyRecordManager
-                .loadStreamState(infoItem)
-                .blockingGet()[0];
-        if (state != null && item.getDuration() > 0
-                && !StreamTypeUtil.isLiveStream(item.getStreamType())) {
-            itemProgressView.setMax((int) item.getDuration());
-            if (itemProgressView.getVisibility() == View.VISIBLE) {
-                itemProgressView.setProgressAnimated((int) TimeUnit.MILLISECONDS
-                        .toSeconds(state.getProgressMillis()));
-            } else {
-                itemProgressView.setProgress((int) TimeUnit.MILLISECONDS
-                        .toSeconds(state.getProgressMillis()));
-                ViewUtils.animate(itemProgressView, true, 500);
-            }
-        } else if (itemProgressView.getVisibility() == View.VISIBLE) {
-            ViewUtils.animate(itemProgressView, false, 500);
+        if (infoItem instanceof StreamInfoItem) {
+            loadProgress((StreamInfoItem) infoItem, historyRecordManager, true);
         }
+    }
+
+    private void loadProgress(final StreamInfoItem item,
+                              final HistoryRecordManager historyRecordManager,
+                              final boolean animate) {
+        cancelProgressLoad();
+        if (item.getDuration() <= 0 || StreamTypeUtil.isLiveStream(item.getStreamType())
+                || !DependentPreferenceHelper
+                        .getPositionsInListsEnabled(itemProgressView.getContext())) {
+            applyProgress(item, null, animate);
+            return;
+        }
+        final int generation = progressGeneration;
+        progressLoad = historyRecordManager.loadStreamState(item)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(states -> {
+                    if (generation == progressGeneration) {
+                        applyProgress(item, states.length == 0 ? null : states[0], animate);
+                    }
+                }, error -> {
+                    if (generation == progressGeneration) {
+                        applyProgress(item, null, false);
+                        Log.w("StreamMiniInfoHolder", "Unable to load watch progress", error);
+                    }
+                });
+    }
+
+    private void applyProgress(final StreamInfoItem item, final StreamStateEntity state,
+                               final boolean animate) {
+        if (state != null) {
+            final int progress = (int) TimeUnit.MILLISECONDS
+                    .toSeconds(state.getProgressMillis());
+            itemProgressView.setMax((int) item.getDuration());
+            if (animate && itemProgressView.getVisibility() == View.VISIBLE) {
+                itemProgressView.setProgressAnimated(progress);
+            } else {
+                itemProgressView.setProgress(progress);
+                if (animate) {
+                    ViewUtils.animate(itemProgressView, true, 500);
+                } else {
+                    itemProgressView.setVisibility(View.VISIBLE);
+                }
+            }
+            updateDurationMarginForProgress(progress);
+        } else {
+            itemProgressView.setVisibility(View.GONE);
+            itemProgressView.setProgress(0);
+            updateDurationMarginForProgress(0);
+        }
+    }
+
+    private void cancelProgressLoad() {
+        progressGeneration++;
+        itemProgressView.animate().setListener(null).cancel();
+        itemProgressView.clearAnimation();
+        itemProgressView.setAlpha(1.0f);
+        if (progressLoad != null) {
+            progressLoad.dispose();
+            progressLoad = null;
+        }
+    }
+
+    @Override
+    public void recycle() {
+        cancelProgressLoad();
+        itemProgressView.setVisibility(View.GONE);
+        itemProgressView.setProgress(0);
+        super.recycle();
     }
 
     private void enableLongClick(final StreamInfoItem item) {

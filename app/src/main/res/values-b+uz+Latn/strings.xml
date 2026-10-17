@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="use_external_video_player_title">Tashqi video pleerdan foydalanish</string>
     <string name="share_dialog_title">Bilan baham ko\'rish</string>
@@ -17,10 +17,6 @@
     <string name="no_player_found">Hech qanday translatsiya pleyeri topilmadi. VLC o\'rnatilsinmi\?</string>
     <string name="upload_date_text">%1$s tomonidan e‘lon qilingan</string>
     <string name="main_bg_subtitle">Boshlash uchun \"Izlash\" tugmasini bosing</string>
-    <string name="volume_gesture_control_summary">Player tovushini boshqarish uchun imo-ishoralardan foydalanish</string>
-    <string name="brightness_gesture_control_summary">Player yorqinligini boshqarish uchun imo-ishoralardan foydalaning</string>
-    <string name="brightness_gesture_control_title">Yorqinlik ishoralarini boshqarish</string>
-    <string name="volume_gesture_control_title">Ovoz balandligini ishoralarni boshqarish</string>
     <string name="auto_queue_toggle">Avto-navbat</string>
     <string name="auto_queue_summary">Tegishli stream qo\'shib, ijro etish navbatini tugatishni (takrorlanmaydigan) davom ettirish</string>
     <string name="auto_queue_title">avtomatik navbat next stream</string>
@@ -28,10 +24,8 @@
     <string name="metadata_cache_wipe_summary">Barcha keshlangan veb-sahifa ma\'lumotlarini olib tashlash</string>
     <string name="metadata_cache_wipe_title">Keshlangan metadatalarni o\'chirish</string>
     <string name="thumbnail_cache_wipe_complete_notice">Rasm keshi o\'chirildi</string>
-    <string name="download_thumbnail_summary">Eskizlarni yuklash, ma\'lumotlarni tejash va xotiradan foydalanishni oldini olish uchun o\'chirib qo\'ying. O\'zgarishlar xotiradagi va diskdagi rasm keshini tozalaydi.</string>
     <string name="show_comments_summary">sharhlarni yashirishni o\'chirish</string>
     <string name="show_comments_title">Izohlarni ko\'rsatish</string>
-    <string name="download_thumbnail_title">Eskizlarni yuklang</string>
     <string name="clear_queue_confirmation_description">Aktiv ijro etish navbati almashtiriladi</string>
     <string name="clear_queue_confirmation_summary">Bir ijro etishdan boshqasiga o\'tish sizning navbatingizni almashtirishi mumkin</string>
     <string name="clear_queue_confirmation_title">Navbatni tozalashdan oldin tasdiqlashni so\'rash</string>
@@ -64,7 +58,7 @@
     <string name="play_with_kodi_title">Kodi bilan ijro etish</string>
     <string name="show_higher_resolutions_summary">Faqat ba\'zi qurilmalar 2K / 4K videolarni ijro etishi mumkin</string>
     <string name="show_higher_resolutions_title">Yuqori o\'lchamlarni ko\'rsatish</string>
-    <string name="default_popup_resolution_title">"Standart  pop-up o\'lchamlari"</string>
+    <string name="default_popup_resolution_title">Standart pop-up o\'lchamlari</string>
     <string name="default_resolution_title">Standart o\'lchamlari</string>
     <string name="download_path_audio_dialog_title">Audio fayllar uchun yuklab olish papkasini tanlash</string>
     <string name="download_path_summary">Yuklab olingan videofayllar shu yerda saqlanadi</string>
@@ -88,7 +82,7 @@
     <string name="use_external_audio_player_title">Tashqi audio pleerdan foydalanish</string>
     <string name="use_external_video_player_summary">Ba\'zi piksellarda ovozni o\'chirish</string>
     <string name="clear_views_history_title">Tomosha tarixini tozalash</string>
-    <string name="clear_cookie_summary">ReCAPTCHA-ni hal qilganingizda NewPipe-da saqlanadigan cookie-fayllarni o\'chirib tashlang</string>
+    <string name="clear_cookie_summary">ReCAPTCHA-ni hal qilganingizda WizeStream-da saqlanadigan cookie-fayllarni o\'chirib tashlang</string>
     <string name="export_data_summary">Eksport tarixi, obunalari va pleylistlari</string>
     <string name="import_data_summary">Joriy tarixingiz va obunalaringizni bekor qiladi</string>
     <string name="recaptcha_cookies_cleared">reCAPTCHA cookies fayllari o\'chirildi</string>
@@ -99,10 +93,10 @@
     <string name="switch_to_popup">Pop-upga o\'tish</string>
     <string name="switch_to_background">Orqa fonga o\'tish</string>
     <string name="unknown_content">[Noma\'lum]</string>
-    <string name="app_update_notification_channel_description">NewPipe yangi versiyasi haqida bildirishnomalar</string>
+    <string name="app_update_notification_channel_description">WizeStream yangi versiyasi haqida bildirishnomalar</string>
     <string name="app_update_notification_channel_name">Ilovani yangilash bildirishnomasi</string>
-    <string name="notification_channel_description">NewPipe fon va popup pleyerlari uchun bildirishnomalar</string>
-    <string name="notification_channel_name">NewPipe bildirishnomasi</string>
+    <string name="notification_channel_description">WizeStream fon va popup pleyerlari uchun bildirishnomalar</string>
+    <string name="notification_channel_name">WizeStream bildirishnomasi</string>
     <string name="file">Fayl</string>
     <string name="just_once">Faqat bittasi</string>
     <string name="always">Har doim</string>
@@ -194,17 +188,14 @@
     <string name="action_history">Tarix</string>
     <string name="title_activity_history">Tarix</string>
     <string name="read_full_license">Litsenziyani o\'qish</string>
-    <string name="app_license">NewPipe - bu nusxa ko\'chirish dasturiy ta\'minotidir: Siz foydalanishingiz, baham ko\'rishingiz va o\'zingizning xohishingiz bilan yaxshilashingiz mumkin. Xususan, siz uni bepul dasturiy ta\'minot fondi tomonidan e\'lon qilingan GNU umumiy jamoat litsenziyasi shartlari asosida qayta tarqatishingiz va / yoki o\'zgartirishingiz mumkin, Litsenziyaning 3-versiyasi yoki (sizning xohishingizga ko\'ra) har qanday keyingi versiyada.</string>
-    <string name="app_license_title">NewPipe litsenziyasi</string>
+    <string name="app_license">WizeStream - bu nusxa ko\'chirish dasturiy ta\'minotidir: Siz foydalanishingiz, baham ko\'rishingiz va o\'zingizning xohishingiz bilan yaxshilashingiz mumkin. Xususan, siz uni bepul dasturiy ta\'minot fondi tomonidan e\'lon qilingan GNU umumiy jamoat litsenziyasi shartlari asosida qayta tarqatishingiz va / yoki o\'zgartirishingiz mumkin, Litsenziyaning 3-versiyasi yoki (sizning xohishingizga ko\'ra) har qanday keyingi versiyada.</string>
+    <string name="app_license_title">WizeStream litsenziyasi</string>
     <string name="read_privacy_policy">Maxfiylik siyosatini o\'qish</string>
-    <string name="privacy_policy_encouragement">NewPipe loyihasi sizning shaxsiy hayotingizga jiddiy e\'tibor beradi. Shuning uchun ilova sizning roziligingizsiz biron bir ma\'lumot to\'plamaydi.
-\nNewPipe-ning maxfiylik siyosati halokat to\'g\'risidagi hisobotni yuborganingizda qanday ma\'lumotlar yuborilishi va saqlanishi haqida batafsil ma\'lumot beradi.</string>
-    <string name="privacy_policy_title">NewPipe-ning maxfiylik siyosati</string>
-    <string name="website_encouragement">Qo\'shimcha ma\'lumot va yangiliklar uchun NewPipe veb-saytiga tashrif buyuring.</string>
+    <string name="privacy_policy_encouragement">WizeStream loyihasi sizning shaxsiy hayotingizga jiddiy e\'tibor beradi. Shuning uchun ilova sizning roziligingizsiz biron bir ma\'lumot to\'plamaydi.
+\nWizeStream-ning maxfiylik siyosati halokat to\'g\'risidagi hisobotni yuborganingizda qanday ma\'lumotlar yuborilishi va saqlanishi haqida batafsil ma\'lumot beradi.</string>
+    <string name="privacy_policy_title">WizeStream-ning maxfiylik siyosati</string>
+    <string name="website_encouragement">Qo\'shimcha ma\'lumot va yangiliklar uchun WizeStream veb-saytiga tashrif buyuring.</string>
     <string name="website_title">Websayt</string>
-    <string name="give_back">Qaytarib berish</string>
-    <string name="donation_title">Hadya etish</string>
-    <string name="donation_encouragement">NewPipe ko\'ngillilar tomonidan bo\'sh vaqtlarini sarflash orqali sizga eng yaxshi foydalanuvchi tajribasini taqdim etadi. Ishlab chiquvchilarga bir chashka qahvadan zavqlanib, NewPipe-ni yanada yaxshiroq qilishlariga yordam berish.</string>
     <string name="view_on_github">GitHubda ko\'rish</string>
     <string name="contribution_encouragement">Sizda g\'oyalar bormi; tarjima, dizayndagi o\'zgarishlar, kodni tozalash yoki haqiqiy og\'ir kodni o\'zgartirish - yordam har doim mamnuniyat bilan qabul qilinadi. Qancha ko\'p ish qilinsa, shuncha yaxshi bo\'ladi!</string>
     <string name="contribution_title">Hissa qo\'shish</string>
@@ -213,15 +204,14 @@
     <string name="tab_about">Haqida</string>
     <string name="copyright">© %1$s tomonidan %2$s gacha %3$s</string>
     <string name="title_licenses">Uchinchi tomon litsenziyalari</string>
-    <string name="title_activity_about">NewPipe haqida</string>
-    <string name="toast_no_player">Ushbu faylni ijro etish uchun dastur o\'rnatilmagan</string>
+    <string name="title_activity_about">WizeStream haqida</string>
     <string name="charset_most_special_characters">Ko\'pchilik maxsus belgilar</string>
     <string name="charset_letters_and_digits">Yozuvlar va raqamlar</string>
     <string name="settings_file_replacement_character_title">O\'zgartirish belgisi</string>
     <string name="settings_file_replacement_character_summary">Noto\'g\'ri belgilar ushbu qiymat bilan almashtiriladi</string>
     <string name="settings_file_charset_title">Fayl nomidagi ruxsat berilgan belgilar</string>
     <string name="settings_category_downloads_title">Yuklab olish</string>
-    <string name="recaptcha_done_button">Bajarildi</string>
+    <string name="done">Bajarildi</string>
     <string name="recaptcha_request_toast">reCAPTCHA muammosi so\'raldi</string>
     <string name="subtitle_activity_recaptcha">Hal etilganda \"Bajarildi\" tugmasini bosing</string>
     <string name="title_activity_recaptcha">reCAPTCHA muammosi</string>
@@ -232,7 +222,7 @@
     <string name="msg_copied">Buferga nusxa olindi</string>
     <string name="msg_wait">Iltimos kuting…</string>
     <string name="msg_running_detail">Tafsilotlar uchun bosing</string>
-    <string name="msg_running">NePipe yuklab olinmoqda</string>
+    <string name="msg_running">WizeStream yuklab olinmoqda</string>
     <string name="msg_error">Xato</string>
     <string name="msg_threads">Iplar</string>
     <string name="msg_name">Faylnomi</string>
@@ -274,9 +264,6 @@
     </plurals>
     <string name="no_subscribers">Obunachilar yo\'q</string>
     <string name="drawer_header_description">Hozirda tanlangan xizmatni yoqish:</string>
-    <string name="short_billion">B</string>
-    <string name="short_million">M</string>
-    <string name="short_thousand">k</string>
     <string name="retry">Qayta</string>
     <string name="audio">Audio</string>
     <string name="video">Video</string>
@@ -289,7 +276,7 @@
     <string name="detail_thumbnail_view_description">Videoni ijro etish muddati, davomiyligi:</string>
     <string name="error_details_headline">Detallar:</string>
     <string name="your_comment">Sizning sharhingiz (ingliz tilida):</string>
-    <string name="info_labels">Nima: \\n So\'rov: \\nTarkib tili: \\nTarkib mamlakati: \\nIlova tili: \\ nXizmat: \\ nGMT vaqti: \\ nPaket: \\ nVersion: \\ nOS versiyasi:</string>
+    <string name="info_labels">Nima: \n So\'rov: \nTarkib tili: \nTarkib mamlakati: \nIlova tili: \\ nXizmat: \\ nGMT vaqti: \\ nPaket: \\ nVersion: \\ nOS versiyasi:</string>
     <string name="what_happened_headline">Nima sodir bo\'ldi:</string>
     <string name="what_device_headline">Info:</string>
     <string name="error_snackbar_action">Hisobot</string>
@@ -319,7 +306,6 @@
     <string name="could_not_setup_download_menu">Yuklab olish menyusi sozlanmadi</string>
     <string name="content_not_available">Tarkib mavjud emas</string>
     <string name="parsing_error">Veb-saytni tahlil qilib bo\'lmadi</string>
-    <string name="youtube_signature_deobfuscation_error">Videoning URL manzilini o\'chirib bo\'lmadi</string>
     <string name="could_not_load_thumbnails">Barcha eskizlarni yuklab bo\'lmadi</string>
     <string name="network_error">Tarmoqda xato</string>
     <string name="download_to_sdcard_error_message">Tashqi SD-kartaga yuklab olishning iloji yo\'q. Yuklash papkasining joylashuvi tiklansinmi\?</string>
@@ -340,12 +326,12 @@
     <string name="video_detail_by">%s tomonidan</string>
     <string name="channel_created_by">%s tomonidan yaratilgan</string>
     <string name="detail_sub_channel_thumbnail_view_description">Kanal avatari eskizi</string>
-    <string name="content_not_supported">Ushbu tarkib hali NewPipe tomonidan qo\'llab-quvvatlanmaydi.
+    <string name="content_not_supported">Ushbu tarkib hali WizeStream tomonidan qo\'llab-quvvatlanmaydi.
 \n
 \nUmid qilamanki, kelgusi versiyada qo\'llab-quvvatlanadi.</string>
     <string name="feed_use_dedicated_fetch_method_help_text">Sizningcha, ta\'minotni yuklash juda sekinmi\? Agar shunday bo\'lsa, tez yuklashni yoqib ko\'ring (uni sozlamalardan yoki quyidagi tugmani bosib o\'zgartirishingiz mumkin).
 \n
-\nNewPipe ikkita lentani yuklash strategiyasini taklif qiladi:
+\nWizeStream ikkita lentani yuklash strategiyasini taklif qiladi:
 \n• Sekin, lekin to\'liq bo\'lgan obuna kanalini to\'liq olish.
 \n• Tez, lekin odatda to\'liq bo\'lmagan maxsus xizmatning so\'nggi nuqtasidan foydalanish.
 \n
@@ -395,10 +381,9 @@
         <item quantity="other">%d sekondlar</item>
     </plurals>
     <string name="new_seek_duration_toast">ExoPlayer cheklovlari tufayli qidiruv davomiyligi %d soniya qilib belgilandi</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">Ha, va qisman videolarni tomosha qildim</string>
-    <string name="remove_watched_popup_warning">Pleylistga qo\'shilishdan oldin va keyin ko\'rilgan videolar o\'chiriladi.
-\nIshonchingiz komilmi\? Buni qaytarib bo\'lmaydi!</string>
-    <string name="remove_watched_popup_title">Ko\'rilgan videolar olib tashlansinmi\?</string>
+    <string name="remove_watched_popup_partially_watched_streams">Ha, va qisman videolarni tomosha qildim</string>
+    <string name="remove_watched_popup_warning">Pleylistga qo\'shilishdan oldin va keyin ko\'rilgan videolar o\'chiriladi. \nIshonchingiz komilmi? Buni qaytarib bo\'lmaydi!</string>
+    <string name="remove_watched_popup_title">Ko\'rilgan videolar olib tashlansinmi?</string>
     <string name="remove_watched">Ko\'rilganlarni olib tashlash</string>
     <string name="systems_language">Tizimning standart qiymati</string>
     <string name="app_language_title">Ilova tili</string>
@@ -424,8 +409,8 @@
     <string name="error_download_resource_gone">Ushbu yuklab olishni tiklab bo\'lmaydi</string>
     <string name="error_timeout">Ulanish vaqti tugadi</string>
     <string name="error_progress_lost">Siljish yo\'qoldi, chunki fayl o\'chirildi</string>
-    <string name="error_insufficient_storage">Qurilmada bo\'sh joy qolmadi</string>
-    <string name="error_postprocessing_stopped">NewPipe fayl ustida ishlash paytida yopilgan</string>
+    <string name="error_insufficient_storage_left">Qurilmada bo\'sh joy qolmadi</string>
+    <string name="error_postprocessing_stopped">WizeStream fayl ustida ishlash paytida yopilgan</string>
     <string name="error_postprocessing_failed">Keyingi ishlov berilmadi</string>
     <string name="error_http_not_found">Topilmadi</string>
     <string name="error_http_unsupported_range">Server ko\'p tarmoqli yuklamalarni qabul qilmaydi, @ string / msg_threads = 1 bilan qayta urinib ko\'ring</string>
@@ -452,7 +437,7 @@
     <string name="paused">to\'xtatildi</string>
     <string name="missions_header_pending">Kutilmoqda</string>
     <string name="missions_header_finished">Tugatildi</string>
-    <string name="app_update_available_notification_title">NewPipe yangilanishi mavjud!</string>
+    <string name="app_update_available_notification_title">WizeStream yangilanishi mavjud!</string>
     <string name="auto">Avto</string>
     <string name="grid">Tarmoq</string>
     <string name="list">Ro\'yxat</string>
@@ -471,7 +456,7 @@
     <string name="limit_data_usage_none_description">Limitsiz</string>
     <string name="decline">Rad etish</string>
     <string name="accept">Qabul qilmoq</string>
-    <string name="start_accept_privacy_policy">Ma\'lumotlarni himoya qilish bo\'yicha Evropa umumiy qoidalariga (GDPR) rioya qilish uchun biz sizning e\'tiboringizni NewPipe-ning maxfiylik siyosatiga qaratamiz. Iltimos, uni diqqat bilan o\'qing.
+    <string name="start_accept_privacy_policy">Ma\'lumotlarni himoya qilish bo\'yicha Evropa umumiy qoidalariga (GDPR) rioya qilish uchun biz sizning e\'tiboringizni WizeStream-ning maxfiylik siyosatiga qaratamiz. Iltimos, uni diqqat bilan o\'qing.
 \nXatolar haqidagi hisobotni bizga yuborish uchun uni qabul qilishingiz kerak.</string>
     <string name="playback_reset">Qayta o\'rnatish</string>
     <string name="playback_step">Qadam</string>
@@ -559,8 +544,8 @@
     <string name="new_and_hot">Yangi va qaynoqlari</string>
     <string name="top_50">Top 50</string>
     <string name="trending">Ommabop</string>
-    <string name="localization_changes_requires_app_restart">Ilova qayta ishga tushirilgandan so\'ng til o\'zgaradi.</string>
     <string name="error_unable_to_load_comments">Fikrlarni yuklab bo‘lmadi</string>
     <string name="import_settings">Sozlamalarni ham import qilmoqchimisiz\?</string>
     <string name="override_current_data">Bu sizning joriy sozlamangizni bekor qiladi.</string>
 </resources>
+

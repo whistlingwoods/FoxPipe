@@ -22,15 +22,17 @@
         app:shapeAppearance="@style/CircularImageView"
         tools:ignore="RtlHardcoded" />
 
-    <TextView
+    <org.schabi.newpipe.views.MediaTextView
         android:id="@+id/itemTitleView"
+        app:mediaTextRole="channelName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/itemThumbnailView"
         android:layout_centerHorizontal="true"
         android:ellipsize="end"
         android:lines="1"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+        android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/video_item_search_title_text_size"
         tools:ignore="RtlHardcoded"
         tools:text="Channel Title, Lorem ipsum" />
@@ -39,12 +41,26 @@
         android:id="@+id/itemAdditionalDetails"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/itemTitleView"
+        android:layout_below="@id/itemTitleView"
         android:layout_centerHorizontal="true"
         android:lines="1"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/video_item_search_upload_date_text_size"
         tools:ignore="RtlHardcoded"
-        tools:text="10M subscribers" />
+        tools:text="10M subscribers • 100 videos" />
+
+    <TextView
+        android:id="@+id/itemChannelDescriptionView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/itemAdditionalDetails"
+        android:layout_centerHorizontal="true"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/video_item_search_upload_date_text_size"
+        android:gravity="center"
+        tools:ignore="RtlHardcoded"
+        tools:text="@tools:sample/lorem/random" />
 
 </RelativeLayout>

@@ -5,37 +5,56 @@ import static org.schabi.newpipe.ktx.ViewUtils.animateHideRecyclerViewAllowingSc
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.preference.PreferenceManager;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.error.ErrorUtil;
 import org.schabi.newpipe.extractor.InfoItem;
+import org.schabi.newpipe.extractor.ServiceList;
+import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
 import org.schabi.newpipe.extractor.stream.StreamInfoItem;
 import org.schabi.newpipe.fragments.BaseStateFragment;
 import org.schabi.newpipe.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipe.info_list.InfoListAdapter;
+import org.schabi.newpipe.info_list.StreamSelectionController;
+import org.schabi.newpipe.info_list.dialog.StreamDialogEntry;
+import org.schabi.newpipe.info_list.ItemViewMode;
+import org.schabi.newpipe.local.feed.FeedDatabaseManager;
+import org.schabi.newpipe.local.subscription.ChannelSubscriptionActions;
+import org.schabi.newpipe.profiles.ProfileManager;
+import org.schabi.newpipe.profiles.ProfileRecord;
 import org.schabi.newpipe.info_list.dialog.InfoItemDialog;
+import org.schabi.newpipe.player.playqueue.SinglePlayQueue;
+import org.schabi.newpipe.player.playqueue.PlayQueue;
+import org.schabi.newpipe.util.ContentBlockingHelper;
+import org.schabi.newpipe.util.GridLayoutManagerHelper;
 import org.schabi.newpipe.util.NavigationHelper;
 import org.schabi.newpipe.util.OnClickGesture;
+import org.schabi.newpipe.util.ServiceHelper;
 import org.schabi.newpipe.util.StateSaver;
 import org.schabi.newpipe.util.ThemeHelper;
 import org.schabi.newpipe.views.SuperScrollLayoutManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Supplier;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         implements ListViewContract<I, N>, StateSaver.WriteRead,
@@ -44,6 +63,7 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     protected org.schabi.newpipe.util.SavedState savedState;
 
     private boolean useDefaultStateSaving = true;
+    private boolean commentTextSizeUpdatePending = false;
     private int updateFlags = 0;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -63,9 +83,12 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
         super.onAttach(context);
 
         if (infoListAdapter == null) {
-            infoListAdapter = new InfoListAdapter(activity);
+            infoListAdapter = new InfoListAdapter(activity, getContentBlockingTarget());
         }
     }
+
+    @NonNull
+    protected abstract ContentBlockingHelper.Target getContentBlockingTarget();
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -86,18 +109,25 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     }
 
     @Override
+    public void onConfigurationChanged(@NonNull final Configuration configuration) {
+        super.onConfigurationChanged(configuration);
+        if (itemsList != null) {
+            GridLayoutManagerHelper.preserveScrollPosition(itemsList, this::refreshItemViewMode);
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
         if (updateFlags != 0) {
             if ((updateFlags & LIST_MODE_UPDATE_FLAG) != 0) {
-                final boolean useGrid = isGridLayout();
-                itemsList.setLayoutManager(useGrid
-                        ? getGridLayoutManager() : getListLayoutManager());
-                infoListAdapter.setUseGridVariant(useGrid);
-                infoListAdapter.notifyDataSetChanged();
+                refreshItemViewMode();
             }
             updateFlags = 0;
+        }
+        if (commentTextSizeUpdatePending) {
+            applyPendingCommentTextSizeUpdate();
         }
     }
 
@@ -212,24 +242,31 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     }
 
     protected RecyclerView.LayoutManager getGridLayoutManager() {
-        final Resources resources = activity.getResources();
+        final var resources = activity.getResources();
         int width = resources.getDimensionPixelSize(R.dimen.video_item_grid_thumbnail_image_width);
         width += (24 * resources.getDisplayMetrics().density);
-        final int spanCount = Math.floorDiv(resources.getDisplayMetrics().widthPixels, width);
-        final GridLayoutManager lm = new GridLayoutManager(activity, spanCount);
-        lm.setSpanSizeLookup(infoListAdapter.getSpanSizeLookup(spanCount));
-        return lm;
+        return GridLayoutManagerHelper.create(itemsList, width,
+                GridLayoutManagerHelper.getPreferredSpanCount(activity),
+                infoListAdapter::getSpanSizeLookup);
+    }
+
+    /**
+     * Updates the item view mode based on user preference.
+     */
+    private void refreshItemViewMode() {
+        final ItemViewMode itemViewMode = getItemViewMode();
+        itemsList.setLayoutManager((itemViewMode == ItemViewMode.GRID)
+                ? getGridLayoutManager() : getListLayoutManager());
+        infoListAdapter.setItemViewMode(itemViewMode);
+        infoListAdapter.notifyDataSetChanged();
     }
 
     @Override
     protected void initViews(final View rootView, final Bundle savedInstanceState) {
         super.initViews(rootView, savedInstanceState);
 
-        final boolean useGrid = isGridLayout();
         itemsList = rootView.findViewById(R.id.items_list);
-        itemsList.setLayoutManager(useGrid ? getGridLayoutManager() : getListLayoutManager());
-
-        infoListAdapter.setUseGridVariant(useGrid);
+        refreshItemViewMode();
 
         final Supplier<View> listHeaderSupplier = getListHeaderSupplier();
         if (listHeaderSupplier != null) {
@@ -248,6 +285,12 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     protected void initListeners() {
         super.initListeners();
+        streamSelection = new StreamSelectionController(this, itemsList,
+                () -> infoListAdapter.getItemsList().stream()
+                        .filter(StreamInfoItem.class::isInstance)
+                        .map(StreamInfoItem.class::cast)
+                        .collect(java.util.stream.Collectors.toList()),
+                infoListAdapter::getStreamAtPosition);
         infoListAdapter.setOnStreamSelectedListener(new OnClickGesture<>() {
             @Override
             public void selected(final StreamInfoItem selectedItem) {
@@ -256,17 +299,28 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
 
             @Override
             public void held(final StreamInfoItem selectedItem) {
-                showInfoItemDialog(selectedItem);
+                if (!streamSelection.toggleIfActive(selectedItem)) {
+                    showInfoItemDialog(selectedItem);
+                }
             }
         });
 
-        infoListAdapter.setOnChannelSelectedListener(selectedItem -> {
-            try {
-                onItemSelected(selectedItem);
-                NavigationHelper.openChannelFragment(getFM(), selectedItem.getServiceId(),
-                        selectedItem.getUrl(), selectedItem.getName());
-            } catch (final Exception e) {
-                ErrorUtil.showUiErrorSnackbar(this, "Opening channel fragment", e);
+        infoListAdapter.setOnChannelSelectedListener(new OnClickGesture<>() {
+            @Override
+            public void selected(final ChannelInfoItem selectedItem) {
+                try {
+                    onItemSelected(selectedItem);
+                    NavigationHelper.openChannelFragment(getFM(), selectedItem.getServiceId(),
+                            selectedItem.getUrl(), selectedItem.getName());
+                } catch (final Exception e) {
+                    ErrorUtil.showUiErrorSnackbar(BaseListFragment.this,
+                            "Opening channel fragment", e);
+                }
+            }
+
+            @Override
+            public void held(final ChannelInfoItem selectedItem) {
+                showChannelActions(selectedItem);
             }
         });
 
@@ -284,6 +338,123 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
 
         // Ensure that there is always a scroll listener (e.g. when rotating the device)
         useNormalItemListScrollListener();
+    }
+
+    private void showChannelActions(@NonNull final ChannelInfoItem selectedItem) {
+        final List<String> labels = new ArrayList<>();
+        final List<Runnable> actions = new ArrayList<>();
+
+        labels.add(getString(R.string.subscribe_button_title));
+        actions.add(() -> ChannelSubscriptionActions.subscribe(requireContext(), selectedItem)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        ignored -> Toast.makeText(requireContext(),
+                                R.string.you_successfully_subscribed,
+                                Toast.LENGTH_SHORT).show(),
+                        error -> ErrorUtil.showUiErrorSnackbar(this,
+                                "Subscribing to channel", error)));
+
+        final List<ProfileRecord> otherProfiles =
+                ChannelSubscriptionActions.otherProfiles(requireContext());
+        if (!otherProfiles.isEmpty()) {
+            labels.add(getString(R.string.channel_subscribe_to_profile));
+            actions.add(() -> showSubscribeToProfileDialog(selectedItem, otherProfiles));
+        }
+
+        labels.add(getString(R.string.feed_groups_header_title));
+        actions.add(() -> showAddToGroupDialog(selectedItem));
+
+        labels.add(getString(R.string.block_channel));
+        actions.add(() -> {
+            ContentBlockingHelper.blockChannel(requireContext(),
+                    selectedItem.getUrl(), selectedItem.getName());
+            Toast.makeText(requireContext(), R.string.channel_blocked,
+                    Toast.LENGTH_SHORT).show();
+        });
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(selectedItem.getName())
+                .setItems(labels.toArray(new String[0]),
+                        (dialog, which) -> actions.get(which).run())
+                .show();
+    }
+
+    private void showAddToGroupDialog(@NonNull final ChannelInfoItem selectedItem) {
+        final FeedDatabaseManager feedManager = new FeedDatabaseManager(requireContext());
+        feedManager.groups().firstOrError()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(groups -> {
+                    if (groups.isEmpty()) {
+                        Toast.makeText(requireContext(), R.string.no_feed_group_created_yet,
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    final String[] labels = groups.stream()
+                            .map(group -> group.getName())
+                            .toArray(String[]::new);
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.feed_groups_header_title)
+                            .setMultiChoiceItems(labels, null, null)
+                            .setPositiveButton(R.string.done, (dialog, which) -> {
+                                final AlertDialog groupDialog = (AlertDialog) dialog;
+                                final List<Long> selectedGroupIds = new ArrayList<>();
+                                for (int index = 0; index < groups.size(); index++) {
+                                    if (groupDialog.getListView().isItemChecked(index)) {
+                                        selectedGroupIds.add(groups.get(index).getUid());
+                                    }
+                                }
+                                if (selectedGroupIds.isEmpty()) {
+                                    return;
+                                }
+                                ChannelSubscriptionActions.addToGroups(
+                                                requireContext(),
+                                                selectedItem,
+                                                selectedGroupIds)
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(
+                                                () -> Toast.makeText(
+                                                        requireContext(),
+                                                        R.string.you_successfully_subscribed,
+                                                        Toast.LENGTH_SHORT).show(),
+                                                error -> ErrorUtil.showUiErrorSnackbar(
+                                                        this,
+                                                        "Adding channel to feed group",
+                                                        error));
+                            })
+                            .setNegativeButton(R.string.cancel, null)
+                            .show();
+                }, error -> ErrorUtil.showUiErrorSnackbar(
+                        this, "Loading feed groups", error));
+    }
+
+    private void showSubscribeToProfileDialog(
+            @NonNull final ChannelInfoItem selectedItem,
+            @NonNull final List<ProfileRecord> profiles) {
+        final String[] labels = profiles.stream()
+                .map(profile -> ProfileManager.getDisplayName(requireContext(), profile))
+                .toArray(String[]::new);
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.channel_subscribe_to_profile_title)
+                .setItems(labels, (dialog, which) -> {
+                    final ProfileRecord profile = profiles.get(which);
+                    ChannelSubscriptionActions.subscribeToProfile(
+                                    requireContext(), selectedItem, profile)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    ignored -> Toast.makeText(
+                                            requireContext(),
+                                            getString(R.string.channel_subscribed_to_profile,
+                                                    ProfileManager.getDisplayName(
+                                                            requireContext(), profile)),
+                                            Toast.LENGTH_LONG).show(),
+                                    error -> ErrorUtil.showUiErrorSnackbar(
+                                            this, "Subscribing channel to profile", error));
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     /**
@@ -369,10 +540,30 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     }
 
     private void onStreamSelected(final StreamInfoItem selectedItem) {
+        if (streamSelection.toggleIfActive(selectedItem)) {
+            return;
+        }
         onItemSelected(selectedItem);
+        final PlayQueue selectionQueue = getPlayQueueForSelection(selectedItem);
+        if (shouldPlayOnBackground(selectedItem)) {
+            NavigationHelper.playOnBackgroundPlayer(requireContext(),
+                    selectionQueue == null ? new SinglePlayQueue(selectedItem) : selectionQueue,
+                    true);
+            return;
+        }
         NavigationHelper.openVideoDetailFragment(requireContext(), getFM(),
                 selectedItem.getServiceId(), selectedItem.getUrl(), selectedItem.getName(),
-                null, false);
+                selectionQueue, false);
+    }
+
+    @Nullable
+    protected PlayQueue getPlayQueueForSelection(final StreamInfoItem item) {
+        return null;
+    }
+
+    protected boolean shouldPlayOnBackground(@NonNull final StreamInfoItem item) {
+        return ServiceHelper.isYoutubeMusicMode(requireContext())
+                && item.getServiceId() == ServiceList.YouTube.getServiceId();
     }
 
     protected void onScrollToBottom() {
@@ -383,7 +574,10 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
 
     protected void showInfoItemDialog(final StreamInfoItem item) {
         try {
-            new InfoItemDialog.Builder(getActivity(), getContext(), this, item).create().show();
+            new InfoItemDialog.Builder(getActivity(), getContext(), this, item)
+                    .addEntry(new StreamDialogEntry(R.string.stream_select,
+                            (fragment, selected) -> streamSelection.start(selected)))
+                    .create().show();
         } catch (final IllegalArgumentException e) {
             InfoItemDialog.Builder.reportErrorDuringInitialization(e, item);
         }
@@ -414,8 +608,22 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
 
     @Override
     protected void startLoading(final boolean forceLoad) {
+        if (streamSelection != null) {
+            streamSelection.finish();
+        }
         useInitialItemListLoadScrollListener();
         super.startLoading(forceLoad);
+    }
+
+    private StreamSelectionController streamSelection;
+
+    @Override
+    public void onDestroyView() {
+        if (streamSelection != null) {
+            streamSelection.destroy();
+            streamSelection = null;
+        }
+        super.onDestroyView();
     }
 
     protected abstract void loadMoreItems();
@@ -469,12 +677,29 @@ public abstract class BaseListFragment<I, N> extends BaseStateFragment<I>
     @Override
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences,
                                           final String key) {
-        if (key.equals(getString(R.string.list_view_mode_key))) {
+        if (org.schabi.newpipe.util.ThemeHelper.isListLayoutPreference(requireContext(), key)) {
             updateFlags |= LIST_MODE_UPDATE_FLAG;
+        } else if (getString(R.string.comment_text_size_key).equals(key)) {
+            commentTextSizeUpdatePending = true;
+            if (isResumed()) {
+                applyPendingCommentTextSizeUpdate();
+            }
+        } else if (ContentBlockingHelper.shouldReloadForPreference(
+                requireContext(), key, getContentBlockingTarget())) {
+            reloadContent();
         }
     }
 
-    protected boolean isGridLayout() {
-        return ThemeHelper.shouldUseGridLayout(activity);
+    private void applyPendingCommentTextSizeUpdate() {
+        infoListAdapter.notifyDataSetChanged();
+        commentTextSizeUpdatePending = false;
+    }
+
+    /**
+     * Returns preferred item view mode.
+     * @return ItemViewMode
+     */
+    protected ItemViewMode getItemViewMode() {
+        return ThemeHelper.getItemViewMode(requireContext());
     }
 }

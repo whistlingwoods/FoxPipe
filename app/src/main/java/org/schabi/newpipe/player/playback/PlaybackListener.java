@@ -3,7 +3,7 @@ package org.schabi.newpipe.player.playback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.source.MediaSource;
+import androidx.media3.exoplayer.source.MediaSource;
 
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
@@ -68,6 +68,25 @@ public interface PlaybackListener {
      */
     @Nullable
     MediaSource sourceOf(PlayQueueItem item, StreamInfo info);
+
+    /**
+     * Resolves a device-local queue item without using an online extractor.
+     *
+     * @param item the device-local queue item to resolve
+     * @return a playable media source, or {@code null} if it cannot be resolved
+     */
+    @Nullable
+    MediaSource sourceOfLocal(PlayQueueItem item);
+
+    /**
+     * Finds a completed download for a remote item before invoking its online extractor.
+     * @param item the requested stream
+     * @return a playable local copy, or {@code null} to use the network
+     */
+    @Nullable
+    default MediaSource sourceOfDownloaded(final PlayQueueItem item) {
+        return null;
+    }
 
     /**
      * Called when the play queue can no longer be played or used.

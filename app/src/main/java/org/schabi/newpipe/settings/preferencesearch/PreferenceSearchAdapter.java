@@ -69,11 +69,13 @@ class PreferenceSearchAdapter
         }
     }
 
-    private static class PreferenceCallback extends DiffUtil.ItemCallback<PreferenceSearchItem> {
+    private static final class PreferenceCallback
+            extends DiffUtil.ItemCallback<PreferenceSearchItem> {
         @Override
         public boolean areItemsTheSame(@NonNull final PreferenceSearchItem oldItem,
                                        @NonNull final PreferenceSearchItem newItem) {
-            return oldItem.getKey().equals(newItem.getKey());
+            return oldItem.getKey().equals(newItem.getKey())
+                    && oldItem.getSearchIndexItemResId() == newItem.getSearchIndexItemResId();
         }
 
         @Override

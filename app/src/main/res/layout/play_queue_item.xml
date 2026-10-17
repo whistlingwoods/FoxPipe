@@ -5,25 +5,29 @@
     android:id="@+id/itemRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selector"
+    android:background="@drawable/play_queue_row_background"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    android:minHeight="80dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground">
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/itemThumbnailView"
         android:layout_width="@dimen/play_queue_thumbnail_width"
         android:layout_height="@dimen/play_queue_thumbnail_height"
         android:layout_marginStart="@dimen/video_item_search_image_right_margin"
         android:layout_marginTop="@dimen/video_item_search_image_right_margin"
         android:layout_marginBottom="@dimen/video_item_search_image_right_margin"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.WizeStream.QueueThumbnail"
         android:src="@drawable/placeholder_thumbnail_video"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <org.schabi.newpipe.views.NewPipeTextView
+    <org.schabi.newpipe.views.MediaTextView
         android:id="@+id/itemDurationView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,16 +40,19 @@
         android:paddingTop="@dimen/video_item_search_duration_vertical_padding"
         android:paddingEnd="@dimen/video_item_search_duration_horizontal_padding"
         android:paddingBottom="@dimen/video_item_search_duration_vertical_padding"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
         android:textColor="@color/duration_text_color"
         android:textSize="@dimen/video_item_search_duration_text_size"
+        android:contentDescription="@string/duration"
         app:layout_constraintBottom_toBottomOf="@+id/itemThumbnailView"
         app:layout_constraintEnd_toEndOf="@+id/itemThumbnailView"
+        app:mediaTextRole="videoMetadata"
         tools:text="1:09:10" />
 
 
-    <org.schabi.newpipe.views.NewPipeTextView
+    <org.schabi.newpipe.views.MediaTextView
         android:id="@+id/itemVideoTitleView"
+        app:mediaTextRole="videoTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -53,8 +60,9 @@
         android:layout_toStartOf="@id/itemHandle"
         android:layout_toEndOf="@id/itemThumbnailView"
         android:ellipsize="end"
-        android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:maxLines="2"
+        android:textColor="?attr/colorOnSurface"
+        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
         android:textSize="@dimen/video_item_search_title_text_size"
         app:layout_constraintBottom_toTopOf="@+id/itemAdditionalDetails"
         app:layout_constraintEnd_toStartOf="@+id/itemHandle"
@@ -73,7 +81,8 @@
         android:layout_toEndOf="@id/itemThumbnailView"
         android:ellipsize="end"
         android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
         android:textSize="@dimen/video_item_search_upload_date_text_size"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/itemHandle"
@@ -83,13 +92,14 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/itemHandle"
-        android:layout_width="wrap_content"
+        android:layout_width="48dp"
         android:layout_height="0dp"
         android:layout_alignParentRight="true"
         android:layout_gravity="center_vertical"
         android:paddingHorizontal="@dimen/video_item_search_image_right_margin"
         android:scaleType="center"
         android:src="@drawable/ic_drag_handle"
+        app:tint="?attr/colorOnSurfaceVariant"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

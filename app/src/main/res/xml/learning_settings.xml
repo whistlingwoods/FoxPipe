@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:title="@string/settings_category_learning_title">
+
+    <SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="@string/learning_mode_key"
+        android:summary="@string/learning_mode_summary"
+        android:title="@string/learning_mode_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/learning_notes_key"
+        android:summary="@string/learning_notes_summary"
+        android:title="@string/learning_notes_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/learning_profile_included_key"
+        android:persistent="false"
+        android:title="@string/learning_profile_included_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:key="@string/learning_reminders_key"
+        android:persistent="false"
+        android:title="@string/learning_reminders_title"
+        android:summary="@string/learning_reminders_summary"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <Preference
+        android:key="@string/learning_reminder_time_key"
+        android:title="@string/learning_reminder_time_title"
+        app:iconSpaceReserved="false" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/learning_playlist_progress_key"
+        android:summary="@string/learning_playlist_progress_summary"
+        android:title="@string/learning_playlist_progress_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/learning_playlist_navigation_key"
+        android:summary="@string/learning_playlist_navigation_summary"
+        android:title="@string/learning_playlist_navigation_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/learning_count_background_key"
+        android:summary="@string/learning_count_background_summary"
+        android:title="@string/learning_count_background_title"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
+    <ListPreference
+        android:defaultValue="off"
+        android:key="learning_difficulty_mode"
+        android:title="@string/learning_difficulty_title"
+        android:entries="@array/learning_difficulty_modes"
+        android:entryValues="@array/learning_difficulty_mode_values"
+        android:summary="@string/learning_difficulty_storage_summary"
+        app:iconSpaceReserved="false" />
+</PreferenceScreen>

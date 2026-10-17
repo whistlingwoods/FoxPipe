@@ -1,22 +1,34 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:background="?attr/colorSurface">
 
     <include
         android:id="@+id/toolbar_layout"
         layout="@layout/toolbar_layout" />
 
+    <org.schabi.newpipe.views.MaxHeightScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/toolbar_layout"
+        android:fillViewport="false">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/file_name_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/toolbar_layout"
+        android:layout_alignParentTop="true"
         android:layout_marginLeft="24dp"
         android:layout_marginTop="12dp"
         android:layout_marginRight="24dp"
         android:layout_marginBottom="6dp"
-        android:text="@string/msg_name" />
+        android:text="@string/msg_name"
+        android:textColor="?attr/colorOnSurfaceVariant" />
 
     <org.schabi.newpipe.views.NewPipeEditText
         android:id="@+id/file_name"
@@ -27,6 +39,9 @@
         android:layout_marginRight="20dp"
         android:layout_marginBottom="6dp"
         android:inputType="text"
+        android:textColor="?attr/colorOnSurface"
+        android:textColorHint="?attr/colorOnSurfaceVariant"
+        android:backgroundTint="?attr/colorPrimary"
         android:maxLines="1" />
 
     <RadioGroup
@@ -44,6 +59,8 @@
             android:id="@+id/video_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:buttonTint="@color/download_control_tint"
+            android:textColor="@color/download_option_text_color"
             android:checked="true"
             android:text="@string/video" />
 
@@ -51,12 +68,16 @@
             android:id="@+id/audio_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:buttonTint="@color/download_control_tint"
+            android:textColor="@color/download_option_text_color"
             android:text="@string/audio" />
 
         <RadioButton
             android:id="@+id/subtitle_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:buttonTint="@color/download_control_tint"
+            android:textColor="@color/download_option_text_color"
             android:text="@string/caption_setting_title" />
     </RadioGroup>
 
@@ -71,15 +92,104 @@
         android:minWidth="150dp"
         tools:listitem="@layout/stream_quality_item" />
 
+    <Spinner
+        android:id="@+id/audio_track_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/quality_spinner"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="12dp"
+        android:minWidth="150dp"
+        tools:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/audio_stream_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/audio_track_spinner"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="12dp"
+        android:minWidth="150dp"
+        tools:visibility="gone" />
+
+    <org.schabi.newpipe.views.NewPipeTextView
+        android:id="@+id/audio_output_format_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/audio_stream_spinner"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:text="@string/audio_output_format"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/audio_output_format_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/audio_output_format_label"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="12dp"
+        android:minWidth="150dp"
+        tools:visibility="gone" />
+
+    <org.schabi.newpipe.views.NewPipeTextView
+        android:id="@+id/mp3_bitrate_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/audio_output_format_spinner"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:text="@string/mp3_quality"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        tools:visibility="gone" />
+
+    <Spinner
+        android:id="@+id/mp3_bitrate_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mp3_bitrate_label"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="12dp"
+        android:minWidth="150dp"
+        tools:visibility="gone" />
+
+    <org.schabi.newpipe.views.NewPipeTextView
+        android:id="@+id/audio_track_present_in_video_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/mp3_bitrate_spinner"
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:text="@string/audio_track_present_in_video"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="12sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/download_segments"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/audio_track_present_in_video_text"
+        android:layout_marginHorizontal="20dp"
+        android:text="@string/download_segments" />
+
     <org.schabi.newpipe.views.NewPipeTextView
         android:id="@+id/threads_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/quality_spinner"
+        android:layout_below="@id/download_segments"
         android:layout_marginLeft="24dp"
         android:layout_marginRight="24dp"
         android:layout_marginBottom="6dp"
-        android:text="@string/msg_threads" />
+        android:text="@string/msg_threads"
+        android:textColor="?attr/colorOnSurfaceVariant" />
 
     <LinearLayout
         android:id="@+id/threads_layout"
@@ -97,6 +207,7 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:paddingLeft="2dp"
+            android:textColor="?attr/colorOnSurface"
             tools:ignore="RtlHardcoded,RtlSymmetry"
             tools:text="3" />
 
@@ -105,7 +216,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="31"
-            android:progress="3" />
+            android:progress="3"
+            android:progressTint="?attr/colorPrimary"
+            android:progressBackgroundTint="?attr/colorSurfaceVariant"
+            android:secondaryProgressTint="?attr/colorSurfaceVariant"
+            android:thumbTint="?attr/colorPrimary" />
     </LinearLayout>
 
     <org.schabi.newpipe.views.NewPipeTextView
@@ -117,6 +232,10 @@
         android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="@string/streams_not_yet_supported_removed"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp" />
+
+        </RelativeLayout>
+    </org.schabi.newpipe.views.MaxHeightScrollView>
 
 </RelativeLayout>

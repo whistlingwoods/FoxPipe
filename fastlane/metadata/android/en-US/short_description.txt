@@ -1,1 +1,1 @@
-A free lightweight YouTube frontend for Android.
+Independent, privacy-friendly NewPipe-based streaming client.

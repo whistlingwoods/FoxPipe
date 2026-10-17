@@ -7,15 +7,19 @@
 
 package org.schabi.newpipe.player.datasource;
 
-import static com.google.android.exoplayer2.upstream.DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS;
-import static com.google.android.exoplayer2.upstream.DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
-import static com.google.android.exoplayer2.upstream.HttpUtil.buildRangeRequestHeader;
-import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
-import static com.google.android.exoplayer2.util.Util.castNonNull;
+import static androidx.media3.datasource.DefaultHttpDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS;
+import static androidx.media3.datasource.DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
+import static androidx.media3.datasource.HttpUtil.buildRangeRequestHeader;
+import static androidx.media3.common.util.Assertions.checkNotNull;
+import static androidx.media3.common.util.Util.castNonNull;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getAndroidUserAgent;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getIosUserAgent;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getSafariUserAgent;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.getVisionOsUserAgent;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isAndroidStreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isIosStreamingUrl;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isSafariStreamingUrl;
+import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isVisionOsStreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isWebStreamingUrl;
 import static org.schabi.newpipe.extractor.services.youtube.YoutubeParsingHelper.isTvHtml5SimplyEmbeddedPlayerStreamingUrl;
 import static java.lang.Math.min;
@@ -25,26 +29,28 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.upstream.BaseDataSource;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DataSourceException;
-import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.DataSpec.HttpMethod;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-import com.google.android.exoplayer2.upstream.HttpDataSource;
-import com.google.android.exoplayer2.upstream.HttpUtil;
-import com.google.android.exoplayer2.upstream.TransferListener;
-import com.google.android.exoplayer2.util.Log;
-import com.google.android.exoplayer2.util.Util;
+import androidx.media3.common.C;
+import androidx.media3.common.PlaybackException;
+import androidx.media3.datasource.BaseDataSource;
+import androidx.media3.datasource.DataSource;
+import androidx.media3.datasource.DataSourceException;
+import androidx.media3.datasource.DataSpec;
+import androidx.media3.datasource.DataSpec.HttpMethod;
+import androidx.media3.datasource.DefaultHttpDataSource;
+import androidx.media3.datasource.HttpDataSource;
+import androidx.media3.datasource.HttpUtil;
+import androidx.media3.datasource.TransferListener;
+import androidx.media3.common.util.Log;
+import androidx.media3.common.util.Util;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.common.net.HttpHeaders;
 
+import org.schabi.newpipe.extractor.services.youtube.invidious.InvidiousBackend;
 import org.schabi.newpipe.DownloaderImpl;
+import org.schabi.newpipe.network.AppProxySelector;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +70,7 @@ import java.util.zip.GZIPInputStream;
 
 /**
  * An {@link HttpDataSource} that uses Android's {@link HttpURLConnection}, based on
- * {@link com.google.android.exoplayer2.upstream.DefaultHttpDataSource}, for YouTube streams.
+ * {@link androidx.media3.datasource.DefaultHttpDataSource}, for YouTube streams.
  *
  * <p>
  * It adds more headers to {@code videoplayback} URLs, such as {@code Origin}, {@code Referer}
@@ -73,7 +79,7 @@ import java.util.zip.GZIPInputStream;
  * </p>
  *
  * There are many unused methods in this class because everything was copied from {@link
- * com.google.android.exoplayer2.upstream.DefaultHttpDataSource} with as little changes as possible.
+ * androidx.media3.datasource.DefaultHttpDataSource} with as little changes as possible.
  * SonarQube warnings were also suppressed for the same reason.
  */
 @SuppressWarnings({"squid:S3011", "squid:S4738"})
@@ -163,7 +169,7 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
          *
          * <p>
          * Note that it must be not enabled on streams which are using a {@link
-         * com.google.android.exoplayer2.source.ProgressiveMediaSource}, as it will break playback
+         * androidx.media3.exoplayer.source.ProgressiveMediaSource}, as it will break playback
          * for them (some exceptions may be thrown).
          * </p>
          *
@@ -270,6 +276,7 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
 
     private static final String RN_PARAMETER = "&rn=";
     private static final String YOUTUBE_BASE_URL = "https://www.youtube.com";
+    private static final byte[] POST_BODY = new byte[] {0x78, 0};
 
     private final boolean allowCrossProtocolRedirects;
     private final boolean rangeParameterEnabled;
@@ -415,16 +422,29 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
                 errorResponseBody = Util.EMPTY_BYTE_ARRAY;
             }
 
+            final String requestDiagnostic = buildSafeRequestDiagnostic(
+                    httpURLConnection.getURL().toString());
+            Log.w(TAG, "YouTube media request rejected: " + requestDiagnostic);
             closeConnectionQuietly();
             final IOException cause = responseCode == 416 ? new DataSourceException(
                     PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE)
-                    : null;
+                    : new IOException("YouTube media request diagnostic: " + requestDiagnostic);
             throw new InvalidResponseCodeException(responseCode, responseMessage, cause, headers,
                     dataSpec, errorResponseBody);
         }
 
         // Check for a valid content type.
         final String contentType = httpURLConnection.getContentType();
+        final boolean invidiousResponse = InvidiousBackend.isEnabled()
+                && InvidiousBackend.isInstanceOrigin(java.net.URI.create(dataSpec.uri.toString()));
+        if (invidiousResponse) {
+            try {
+                InvidiousMediaResponse.checkContentType(contentType, dataSpecParameter);
+            } catch (final InvidiousMediaResponse.InvalidResponseException e) {
+                closeConnectionQuietly();
+                throw e;
+            }
+        }
         if (contentTypePredicate != null && !contentTypePredicate.apply(contentType)) {
             closeConnectionQuietly();
             throw new InvalidContentTypeException(contentType, dataSpecParameter);
@@ -475,6 +495,10 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
                     HttpDataSourceException.TYPE_OPEN);
         }
 
+        if (invidiousResponse) {
+            checkInvidiousResponseBody(dataSpecParameter);
+        }
+
         opened = true;
         transferStarted(dataSpecParameter);
 
@@ -491,6 +515,24 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
         }
 
         return bytesToRead;
+    }
+
+    private void checkInvidiousResponseBody(final DataSpec requestedSpec)
+            throws HttpDataSourceException {
+        try {
+            inputStream = InvidiousMediaResponse.checkBody(inputStream, requestedSpec);
+        } catch (final InvidiousMediaResponse.InvalidResponseException e) {
+            Util.closeQuietly(inputStream);
+            inputStream = null;
+            closeConnectionQuietly();
+            throw e;
+        } catch (final IOException e) {
+            Util.closeQuietly(inputStream);
+            inputStream = null;
+            closeConnectionQuietly();
+            throw HttpDataSourceException.createForIOException(e, requestedSpec,
+                    HttpDataSourceException.TYPE_OPEN);
+        }
     }
 
     @Override
@@ -542,7 +584,8 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
         final long length = dataSpecToUse.length;
         final boolean allowGzip = dataSpecToUse.isFlagSet(DataSpec.FLAG_ALLOW_GZIP);
 
-        if (!allowCrossProtocolRedirects && !keepPostFor302Redirects) {
+        if (!InvidiousBackend.isEnabled()
+                && !allowCrossProtocolRedirects && !keepPostFor302Redirects) {
             // HttpURLConnection disallows cross-protocol redirects, but otherwise performs
             // redirection automatically. This is the behavior we want, so use it.
             return makeConnection(url, httpMethod, httpBody, position, length, allowGzip, true,
@@ -565,7 +608,14 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
                     || httpURLConnectionResponseCode == HTTP_STATUS_TEMPORARY_REDIRECT
                     || httpURLConnectionResponseCode == HTTP_STATUS_PERMANENT_REDIRECT)) {
                 httpURLConnection.disconnect();
-                url = handleRedirect(url, location, dataSpecToUse);
+                final URL target = handleRedirect(url, location, dataSpecToUse);
+                try {
+                    InvidiousBackend.checkRedirect(
+                            url.toURI(), target.toURI());
+                } catch (final java.net.URISyntaxException e) {
+                    throw new IOException("Invalid redirect URL", e);
+                }
+                url = target;
             } else if (httpMethod == DataSpec.HTTP_METHOD_POST
                     && (httpURLConnectionResponseCode == HttpURLConnection.HTTP_MULT_CHOICE
                     || httpURLConnectionResponseCode == HttpURLConnection.HTTP_MOVED_PERM
@@ -579,7 +629,14 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
                     httpMethod = DataSpec.HTTP_METHOD_GET;
                     httpBody = null;
                 }
-                url = handleRedirect(url, location, dataSpecToUse);
+                final URL target = handleRedirect(url, location, dataSpecToUse);
+                try {
+                    InvidiousBackend.checkRedirect(
+                            url.toURI(), target.toURI());
+                } catch (final java.net.URISyntaxException e) {
+                    throw new IOException("Invalid redirect URL", e);
+                }
+                url = target;
             } else {
                 return httpURLConnection;
             }
@@ -658,8 +715,9 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
             }
         }
 
-        if (isWebStreamingUrl(requestUrl)
-                || isTvHtml5SimplyEmbeddedPlayerStreamingUrl(requestUrl)) {
+        if (!InvidiousBackend.isEnabled()
+                && (isWebStreamingUrl(requestUrl)
+                || isTvHtml5SimplyEmbeddedPlayerStreamingUrl(requestUrl))) {
             httpURLConnection.setRequestProperty(HttpHeaders.ORIGIN, YOUTUBE_BASE_URL);
             httpURLConnection.setRequestProperty(HttpHeaders.REFERER, YOUTUBE_BASE_URL);
             httpURLConnection.setRequestProperty(HttpHeaders.SEC_FETCH_DEST, "empty");
@@ -669,41 +727,121 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
 
         httpURLConnection.setRequestProperty(HttpHeaders.TE, "trailers");
 
-        final boolean isAndroidStreamingUrl = isAndroidStreamingUrl(requestUrl);
-        final boolean isIosStreamingUrl = isIosStreamingUrl(requestUrl);
-        if (isAndroidStreamingUrl) {
-            // Improvement which may be done: find the content country used to request YouTube
-            // contents to add it in the user agent instead of using the default
-            httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT,
-                    getAndroidUserAgent(null));
-        } else if (isIosStreamingUrl) {
-            httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT,
-                    getIosUserAgent(null));
-        } else {
-            // non-mobile user agent
-            httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT, DownloaderImpl.USER_AGENT);
-        }
+        httpURLConnection.setRequestProperty(HttpHeaders.USER_AGENT,
+                resolveUserAgent(requestUrl));
 
         httpURLConnection.setRequestProperty(HttpHeaders.ACCEPT_ENCODING,
                 allowGzip ? "gzip" : "identity");
         httpURLConnection.setInstanceFollowRedirects(followRedirects);
-        httpURLConnection.setDoOutput(httpBody != null);
-
-        // Mobile clients uses POST requests to fetch contents
-        httpURLConnection.setRequestMethod(isAndroidStreamingUrl || isIosStreamingUrl
-                ? "POST"
-                : DataSpec.getStringForHttpMethod(httpMethod));
-
-        if (httpBody != null) {
-            httpURLConnection.setFixedLengthStreamingMode(httpBody.length);
+        if (InvidiousBackend.isEnabled()) {
+            httpURLConnection.setRequestMethod(DataSpec.getStringForHttpMethod(httpMethod));
+            if (httpBody != null) {
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setFixedLengthStreamingMode(httpBody.length);
+            }
             httpURLConnection.connect();
-            final OutputStream os = httpURLConnection.getOutputStream();
-            os.write(httpBody);
-            os.close();
-        } else {
-            httpURLConnection.connect();
+            if (httpBody != null) {
+                try (OutputStream body = httpURLConnection.getOutputStream()) {
+                    body.write(httpBody);
+                }
+            }
+            return httpURLConnection;
         }
+        // Most clients use POST requests to fetch contents
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setFixedLengthStreamingMode(POST_BODY.length);
+        httpURLConnection.connect();
+
+        final OutputStream os = httpURLConnection.getOutputStream();
+        os.write(POST_BODY);
+        os.close();
+
         return httpURLConnection;
+    }
+
+    @NonNull
+    static String resolveUserAgent(@NonNull final String requestUrl) {
+        // Safari fallback URLs still identify as c=WEB. Check their client version first so they
+        // are not replayed with WizeStream's default Firefox user agent, which YouTube may reject.
+        if (isSafariStreamingUrl(requestUrl)) {
+            return getSafariUserAgent();
+        }
+        if (isAndroidStreamingUrl(requestUrl)) {
+            // Improvement which may be done: find the content country used to request YouTube
+            // contents to add it in the user agent instead of using the default
+            return getAndroidUserAgent(null);
+        }
+        if (isIosStreamingUrl(requestUrl)) {
+            return getIosUserAgent(null);
+        }
+        if (isVisionOsStreamingUrl(requestUrl)) {
+            return getVisionOsUserAgent(null);
+        }
+        return DownloaderImpl.USER_AGENT;
+    }
+
+    @NonNull
+    static String buildSafeRequestDiagnostic(@NonNull final String requestUrl) {
+        return "client=" + safeDiagnosticValue(getUrlParameter(requestUrl, "c"))
+                + ", cver=" + safeDiagnosticValue(getUrlParameter(requestUrl, "cver"))
+                + ", itag=" + safeDiagnosticValue(getUrlParameter(requestUrl, "itag"))
+                + ", userAgent=" + resolveUserAgentFamily(requestUrl);
+    }
+
+    @Nullable
+    private static String getUrlParameter(@NonNull final String requestUrl,
+                                          @NonNull final String name) {
+        try {
+            final URL url = new URL(requestUrl);
+            final String query = url.getQuery();
+            if (query != null) {
+                for (final String parameter : query.split("&")) {
+                    final int separator = parameter.indexOf('=');
+                    final String parameterName = separator < 0
+                            ? parameter : parameter.substring(0, separator);
+                    if (name.equals(parameterName)) {
+                        return separator < 0 ? "" : parameter.substring(separator + 1);
+                    }
+                }
+            }
+
+            final String[] pathSegments = url.getPath().split("/");
+            for (int i = 0; i + 1 < pathSegments.length; i++) {
+                if (name.equals(pathSegments[i])) {
+                    return pathSegments[i + 1];
+                }
+            }
+        } catch (final MalformedURLException ignored) {
+            // Diagnostics must never interfere with playback error handling.
+        }
+        return null;
+    }
+
+    @NonNull
+    private static String resolveUserAgentFamily(@NonNull final String requestUrl) {
+        if (isSafariStreamingUrl(requestUrl)) {
+            return "SAFARI";
+        }
+        if (isAndroidStreamingUrl(requestUrl)) {
+            return "ANDROID";
+        }
+        if (isIosStreamingUrl(requestUrl)) {
+            return "IOS";
+        }
+        if (isVisionOsStreamingUrl(requestUrl)) {
+            return "VISIONOS";
+        }
+        return "DEFAULT";
+    }
+
+    @NonNull
+    private static String safeDiagnosticValue(@Nullable final String value) {
+        if (value == null || value.isEmpty()) {
+            return "unknown";
+        }
+        final String sanitized = value.replaceAll("[^A-Za-z0-9._-]", "?");
+        return sanitized.length() <= 32 ? sanitized : sanitized.substring(0, 32);
     }
 
     /**
@@ -713,7 +851,7 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
      * @return an {@link HttpURLConnection} created with the {@code url}
      */
     private HttpURLConnection openConnection(@NonNull final URL url) throws IOException {
-        return (HttpURLConnection) url.openConnection();
+        return AppProxySelector.openConnection(url);
     }
 
     /**
@@ -1011,4 +1149,3 @@ public final class YoutubeHttpDataSource extends BaseDataSource implements HttpD
         }
     }
 }
-

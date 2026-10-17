@@ -1,4 +1,4 @@
-<!-- Hey there. Thank you so much for improving NewPipe, and filling out the details. Having roughly the same layout helps everyone considerably :)-->
+<!-- Hey there. Thank you so much for improving WizeStream, and filling out the details. Having roughly the same layout helps everyone considerably :)-->
 
 #### What is it?
 - [ ] Bugfix (user facing)
@@ -26,9 +26,10 @@
 - 
 
 #### APK testing
-<!-- Use a new, meaningfully named branch. The name is used as a suffix for the app ID to allow installing and testing multiple versions of NewPipe, e.g. "commentfix", if your PR implements a bugfix for comments. (No names like "patch-0" and "feature-1".)  -->
+<!-- Use a new, meaningfully named branch. The name is used as a suffix for the app ID to allow installing and testing multiple versions of WizeStream, e.g. "commentfix", if your PR implements a bugfix for comments. (No names like "patch-0" and "feature-1".)  -->
 <!-- Remove the following line if you directly link the APK created by the CI pipeline. Directly linking is preferred if you need to let users test.-->
 The APK can be found by going to the "Checks" tab below the title. On the left pane, click on "CI", scroll down to "artifacts" and click "app" to download the zip file which contains the debug APK of this PR.
 
 #### Due diligence
-- [ ] I read the [contribution guidelines](https://github.com/TeamNewPipe/NewPipe/blob/HEAD/.github/CONTRIBUTING.md).
+- [ ] I read the [contribution guidelines](https://github.com/wizdom13/WizeStream/blob/pipe/.github/CONTRIBUTING.md).
+- [ ] I tested the changes using an emulator or a physical device.

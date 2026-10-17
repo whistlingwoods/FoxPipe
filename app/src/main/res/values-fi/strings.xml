@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="main_bg_subtitle">Aloita napauttamalla suurennuslasia.</string>
     <string name="upload_date_text">Julkaistu %1$s</string>
@@ -77,18 +77,17 @@
     <string name="clear">Pyyhi</string>
     <string name="best_resolution">Paras resoluutio</string>
     <string name="undo">Peru</string>
-    <string name="notification_channel_name">NewPipe ilmoitus</string>
-    <string name="notification_channel_description">Ilmoitukset NewPipen soittimille</string>
+    <string name="notification_channel_name">WizeStream ilmoitus</string>
+    <string name="notification_channel_description">Ilmoitukset WizeStreamn soittimille</string>
     <string name="general_error">Virhe</string>
     <string name="network_error">Verkkovirhe</string>
     <string name="could_not_load_thumbnails">Kaikkia esikatselukuvia ei voitu ladata</string>
-    <string name="youtube_signature_deobfuscation_error">Videon URL-allekirjoituksen salausta ei voitu purkaa</string>
     <string name="parsing_error">Verkkosivua ei voitu jäsentää</string>
     <string name="content_not_available">Sisältö ei ole saatavilla</string>
     <string name="could_not_setup_download_menu">Latausvalikkoa ei voitu asettaa</string>
     <string name="app_ui_crash">Sovellus/UI kaatui</string>
     <string name="sorry_string">Pahoittelut, noin ei olisi pitänyt käydä.</string>
-    <string name="error_report_button_text">Raportoi tämä virhe sähköpostin kautta</string>
+    <string name="error_report_button_text">Raportoi sähköpostin kautta</string>
     <string name="error_snackbar_message">Pahoittelut, jokin meni vikaan.</string>
     <string name="error_snackbar_action">Raportti</string>
     <string name="what_happened_headline">Mitä tapahtui:</string>
@@ -103,9 +102,6 @@
     <string name="video">Video</string>
     <string name="audio">Ääni</string>
     <string name="retry">Toista uudelleen</string>
-    <string name="short_thousand">t.</string>
-    <string name="short_million">milj.</string>
-    <string name="short_billion">bilj.</string>
     <string name="no_subscribers">Ei tilaajia</string>
     <plurals name="subscribers">
         <item quantity="one">%s tilaaja</item>
@@ -129,7 +125,7 @@
     <string name="msg_name">Tiedostonimi</string>
     <string name="msg_threads">Säikeet</string>
     <string name="msg_error">Virhe</string>
-    <string name="msg_running">NewPipe Lataus käynnissä</string>
+    <string name="msg_running">WizeStream Lataus käynnissä</string>
     <string name="msg_running_detail">Napauta nähdäksesi lisää</string>
     <string name="msg_wait">Odota…</string>
     <string name="msg_copied">Kopioitu leikepöydälle</string>
@@ -144,13 +140,13 @@
     <string name="settings_file_replacement_character_title">Korvaava merkki</string>
     <string name="charset_letters_and_digits">Kirjaimet ja numerot</string>
     <string name="charset_most_special_characters">Suurin osa erikoismerkeistä</string>
-    <string name="title_activity_about">Tietoja NewPipe</string>
+    <string name="title_activity_about">Tietoja WizeStream</string>
     <string name="title_licenses">Kolmannen osapuolen Lisenssit</string>
-    <string name="tab_about">Tietoja</string>
+    <string name="tab_about">Tietoja &amp; UKK</string>
     <string name="tab_licenses">Lisenssit</string>
     <string name="app_description">Vapaata ja kevyttä suoratoistoa Androidilla.</string>
     <string name="view_on_github">Näytä GitHub:ssa</string>
-    <string name="app_license_title">NewPipe:n Lisenssi</string>
+    <string name="app_license_title">WizeStream:n Lisenssi</string>
     <string name="contribution_encouragement">Olkoon sinulla ideoita; käännöksistä, designmuutoksista, koodin siivoamisesta tai raskaista koodimuutoksista—apu on aina tervetullutta. Mitä enemmän saadaan tehtyä, sen paremmaksi sovellus tulee!</string>
     <string name="read_full_license">Lue lisenssi</string>
     <string name="contribution_title">Osallistu</string>
@@ -159,7 +155,7 @@
     <string name="delete_item_search_history">Haluatko poistaa tämän hakuhistoriasta?</string>
     <string name="resume_on_audio_focus_gain_title">Jatka toistoa</string>
     <string name="what_device_headline">Info:</string>
-    <string name="info_labels">Mikä:\\nPyyntö:\\nSisällön kieli:\\nSisällön maa:\\n:Sovelluksen kieli:\\nPalvelu:\\nGMT Aika:\\nPaketti:\\nVersio:\\nOS versio:</string>
+    <string name="info_labels">Mikä:\nPyyntö:\nSisällön kieli:\nSisällön maa:\n:Sovelluksen kieli:\nPalvelu:\nGMT Aika:\nPaketti:\nVersio:\nOS versio:</string>
     <string name="copyright" formatted="true">© %1$s %2$s %3$s alla</string>
     <string name="main_page_content">Pääsivun sisältö</string>
     <string name="blank_page_summary">Tyhjä sivu</string>
@@ -184,11 +180,8 @@
     <string name="unknown_content">[Tuntematon]</string>
     <string name="start_here_on_background">Aloita toisto taustalla</string>
     <string name="start_here_on_popup">Aloita toisto ponnahdusikkunassa</string>
-    <string name="donation_title">Lahjoita</string>
-    <string name="donation_encouragement">NewPipe on vapaaehtoisten vapaa-ajallaan kehittämä tuoden sinulle parhaan mahdollisen käyttäjäkokemuksen. Nyt on aika auttaa kehittäjiä tekemään NewPipesta vielä parempi heidän nauttiessaan kupin kahvia.</string>
-    <string name="give_back">Anna takaisin</string>
     <string name="website_title">Websivu</string>
-    <string name="website_encouragement">Käy verkkosivuillamme saadaksesi lisää tietoa ja uusimmat uutiset NewPipe:stä.</string>
+    <string name="website_encouragement">Käy verkkosivuillamme saadaksesi lisää tietoa ja uusimmat uutiset WizeStream:stä.</string>
     <string name="no_player_found_toast">Suoratoistosoitinta ei löytynyt (voit asentaa VLC:n toistaaksesi).</string>
     <string name="controls_download_desc">Lataa suoratoistotiedosto</string>
     <string name="show_info">Näytä lisätietoja</string>
@@ -196,8 +189,6 @@
     <string name="controls_add_to_playlist_title">Lisää soittolistaan</string>
     <string name="use_inexact_seek_title">Käytä nopeampaa epätarkkaa pikakelausta</string>
     <string name="use_inexact_seek_summary">Epätarkka kelaus mahdollistaa videon kelauksen nopeammin huonommalla tarkkuudella. Kelaaminen 5, 15 tai 25 sekunnin hyppäyksin ei toimi tämän kanssa</string>
-    <string name="download_thumbnail_title">Lataa esikatselukuvat</string>
-    <string name="download_thumbnail_summary">Poista käytöstä estääksesi esikatselukuvien lataus. Tämä säästää dataa ja vähentää muistin käyttöä. Asetuksen muuttaminen poistaa muistissa ja levyllä olevan kuvavälimuistin</string>
     <string name="thumbnail_cache_wipe_complete_notice">Kuvavälimuisti tyhjennetty</string>
     <string name="metadata_cache_wipe_title">Poista tallennettu metatieto</string>
     <string name="metadata_cache_wipe_summary">Poista kaikki tallennettu sivutieto</string>
@@ -240,14 +231,13 @@
     <string name="dismiss">Hylkää</string>
     <string name="rename">Nimeä uudelleen</string>
     <string name="one_item_deleted">1 poistettu.</string>
-    <string name="toast_no_player">Ohjelmaa tämän toistamiseen ei ole asennettu</string>
-    <string name="privacy_policy_title">NewPipen tietosuojakäytäntö</string>
-    <string name="privacy_policy_encouragement">NewPipe ottaa yksityisyytesi tosissaan. Siksi se ei kerää sinulta mitään tietoja ilman lupaasi.
-\nNewPipen tietosuojakäytännössä selitetään tarkasti mitä tietoja lähetetään tai tallennetaan virheraportin yhteydessä.</string>
+    <string name="privacy_policy_title">WizeStreamn tietosuojakäytäntö</string>
+    <string name="privacy_policy_encouragement">WizeStream ottaa yksityisyytesi tosissaan. Siksi se ei kerää sinulta mitään tietoja ilman lupaasi.
+\nWizeStreamn tietosuojakäytännössä selitetään tarkasti mitä tietoja lähetetään tai tallennetaan virheraportin yhteydessä.</string>
     <string name="read_privacy_policy">Lue tietosuojakäytäntö</string>
     <string name="auto_queue_title">Lisää ehdotettu suoratoistosisältö automaattisesti soittolistaan</string>
     <string name="no_streams_available_download">Suoratoistosisältöä ei saatavilla ladattavaksi</string>
-    <string name="app_license">NewPipe on vapaata ohjelmistoa. Voit käyttää, opiskella, jakaa ja parantaa sitä mielesi mukaan. Tarkemmin sanottuna voit jakaa sitä edelleen ja/tai muokata sitä Free Software Foundationin julkaiseman GNU General Public Licensen, version 3 tai uudemman, ehdoilla.</string>
+    <string name="app_license">WizeStream on vapaata ohjelmistoa. Voit käyttää, opiskella, jakaa ja parantaa sitä mielesi mukaan. Tarkemmin sanottuna voit jakaa sitä edelleen ja/tai muokata sitä Free Software Foundationin julkaiseman GNU General Public Licensen, version 3 tai uudemman, ehdoilla.</string>
     <string name="title_last_played">Viimeksi toistettu</string>
     <string name="title_most_played">Eniten toistetut</string>
     <string name="export_complete_toast">Vienti valmis</string>
@@ -312,7 +302,7 @@
 \n3. Kirjaudu sisään kysyttäessä.
 \n4. Kopioi se nettiosoite johon sinut ohjattiin.</string>
     <string name="import_soundcloud_instructions_hint">sinun käyttäjänimesi, soundcloud.com/&lt;sinun käyttäjänimesi&gt;</string>
-    <string name="import_network_expensive_warning">Ota huomioon että tämä operaatio voi käyttää paljon dataa. 
+    <string name="import_network_expensive_warning">Ota huomioon että tämä operaatio voi käyttää paljon dataa.
 \n
 \nHaluatko jatkaa\?</string>
     <string name="playback_speed_control">Toistonopeuden säätimet</string>
@@ -322,7 +312,7 @@
     <string name="skip_silence_checkbox">Kelaa eteenpäin hiljaisissa kohdissa</string>
     <string name="playback_step">Askel</string>
     <string name="playback_reset">Nollaa</string>
-    <string name="start_accept_privacy_policy">Noudattaaksemme EU:n yleistä tietosuoja-asetusta (GDPR), meidän pitää muistuttaa sinua lukemaan NewPipen tietosuojakäytäntö. Lue se tarkkaan.
+    <string name="start_accept_privacy_policy">Noudattaaksemme EU:n yleistä tietosuoja-asetusta (GDPR), meidän pitää muistuttaa sinua lukemaan WizeStreamn tietosuojakäytäntö. Lue se tarkkaan.
 \nSinun pitää myös hyväksyä se, jotta voit lähettää virheraportin.</string>
     <string name="accept">Hyväksy</string>
     <string name="decline">Hylkää</string>
@@ -341,10 +331,9 @@
     <string name="recently_added">Hiljattain lisätyt</string>
     <string name="local">Paikalliset</string>
     <string name="most_liked">Pidetyimmät</string>
-    <string name="localization_changes_requires_app_restart">Kieli vaihtuu, kun sovellus uudelleenkäynnistetään</string>
     <string name="error_unable_to_load_comments">Kommentteja ei voitu ladata</string>
     <string name="main_page_content_summary">Mitkä välilehdet näytetään pääsivulla</string>
-    <string name="recaptcha_done_button">Valmis</string>
+    <string name="done">Valmis</string>
     <string name="subtitle_activity_recaptcha">Paina ”Valmis”, kun ratkaistu</string>
     <string name="infinite_videos">∞ videota</string>
     <string name="more_than_100_videos">100+ videota</string>
@@ -367,7 +356,7 @@
     <string name="missing_file">Tiedosto siirretty tai poistettu</string>
     <string name="download_to_sdcard_error_message">Lataaminen ulkoiselle SD-kortille ei ole mahdollista. Nollataanko latauskansion sijainti\?</string>
     <string name="download_to_sdcard_error_title">Ulkoinen tallennustila ei käytettävissä</string>
-    <string name="app_update_notification_channel_description">Ilmoitukset uusista NewPipe-versioista</string>
+    <string name="app_update_notification_channel_description">Ilmoitukset uusista WizeStream-versioista</string>
     <string name="app_update_notification_channel_name">Sovelluspäivitysilmoitus</string>
     <string name="file_deleted">Tiedosto poistettu</string>
     <string name="artists">Esittäjät</string>
@@ -392,10 +381,6 @@
     <string name="settings_category_clear_data_title">Tietojen tyhjennys</string>
     <string name="enable_playback_resume_title">Jatka toistoa</string>
     <string name="show_original_time_ago_summary">Palvelujen alkuperäiset tekstit näkyvät suoratoistettavassa sisällössä</string>
-    <string name="brightness_gesture_control_summary">Käytä eleitä ohjataksesi soittimen kirkkautta</string>
-    <string name="brightness_gesture_control_title">Kirkkauden eleohjaus</string>
-    <string name="volume_gesture_control_summary">Käytä eleitä ohjataksesi soittimen äänenvoimakkuutta</string>
-    <string name="volume_gesture_control_title">Äänenvoimakkuuden eleohjaus</string>
     <string name="show_comments_summary">Poista käytöstä piilottaaksesi kommentit</string>
     <string name="watch_history_states_deleted">Toistokohdat poistettu</string>
     <string name="delete_playback_states_alert">Poistetaanko kaikki toistokohdat\?</string>
@@ -404,10 +389,9 @@
     <string name="enable_playback_state_lists_summary">Näytä toistokohtien osoittimet listoissa</string>
     <string name="enable_playback_state_lists_title">Kohdat listoissa</string>
     <string name="enable_playback_resume_summary">Palauta edellinen toistokohta</string>
-    <string name="remove_watched_popup_warning">Aiemmin katsotut ja soittolistaan lisätyt videot poistetaan.
-\nOletko varma\? Tätä ei voi peruuttaa!</string>
-    <string name="remove_watched_popup_title">Poistetaanko katsotut videot\?</string>
-    <string name="remove_watched_popup_yes_and_partially_watched_videos">Kyllä ja osittain katsotut videot</string>
+    <string name="remove_watched_popup_warning">Aiemmin katsotut ja soittolistaan lisätyt videot poistetaan. \nOletko varma? Tätä ei voi peruuttaa!</string>
+    <string name="remove_watched_popup_title">Poistetaanko katsotut videot?</string>
+    <string name="remove_watched_popup_partially_watched_streams">Kyllä ja osittain katsotut videot</string>
     <string name="stop">Pysäytä</string>
     <string name="clear_download_history">Tyhjennä lataushistoria</string>
     <string name="close">Sulje</string>
@@ -419,7 +403,7 @@
     <string name="video_detail_by">Kenen toimesta: %s</string>
     <string name="feed_use_dedicated_fetch_method_help_text">Onko syötteen lataaminen mielestäsi liian hidas\? Voit koittaa ottaa käyttöön nopean lataamisen (voit vaihtaa sen asetuksista tai painamalla alla olevaa painiketta).
 \n
-\nNewPipe tarjoaa kaksi tapaa ladata syöte:
+\nWizeStream tarjoaa kaksi tapaa ladata syöte:
 \n• Koko tilatun kanavan lataaminen, mikä on hidasta, mutta lataa syötteen kokonaisuudessaan.
 \n• Erityisen palvelu-endpointin käyttö, mikä on nopeaa, mutta yleensä ei lataa syötettä kokonaisuudessaan.
 \n
@@ -430,7 +414,7 @@
 \nValinta riippuu siitä, mitä halutaan: nopeutta vai tarkkoja tietoja.</string>
     <string name="default_kiosk_page_summary">Oletuskioski</string>
     <string name="channel_created_by">%s:n luoma</string>
-    <string name="content_not_supported">NewPipe ei vielä tue tätä sisältöä.
+    <string name="content_not_supported">WizeStream ei vielä tue tätä sisältöä.
 \n
 \nToivottavasti sitä tuetaan myöhemmässä versiossa.</string>
     <string name="feed_use_dedicated_fetch_method_disable_button">Poista nopea tila käytöstä</string>
@@ -489,8 +473,8 @@
     <string name="error_download_resource_gone">Tätä latausta ei voi palauttaa</string>
     <string name="error_timeout">Yhteys aikakatkaistiin</string>
     <string name="error_progress_lost">Eteneminen menetettiin, koska tiedosto poistettiin</string>
-    <string name="error_insufficient_storage">Laitteella ei ole tilaa</string>
-    <string name="error_postprocessing_stopped">NewPipe suljettiin, kun se käsitteli tiedostoa</string>
+    <string name="error_insufficient_storage_left">Laitteella ei ole tilaa</string>
+    <string name="error_postprocessing_stopped">WizeStream suljettiin, kun se käsitteli tiedostoa</string>
     <string name="error_postprocessing_failed">Jälkikäsittely epäonnistui</string>
     <string name="error_http_not_found">Ei löytynyt</string>
     <string name="error_http_unsupported_range">Palvelin ei hyväksy monisäikeisiä latauksia, yritä uudelleen asetuksella @string/msg_threads = 1</string>
@@ -519,7 +503,7 @@
     <string name="pause_downloads_on_mobile_desc">Hyödyllinen vaihdettaessa mobiilidataan, vaikka joitakin latauksia ei voi pysäyttää</string>
     <string name="pause_downloads_on_mobile">Keskeytä, kun yhteys on käytön mukaan laskutettava</string>
     <string name="paused">tauotettu</string>
-    <string name="app_update_available_notification_title">NewPipe-päivitys on saatavilla!</string>
+    <string name="app_update_available_notification_title">WizeStream-päivitys on saatavilla!</string>
     <string name="list_view_mode">Listanäkymän ulkoasu</string>
     <string name="auto">Automaattinen</string>
     <string name="grid">Ruudukko</string>
@@ -552,18 +536,18 @@
     <string name="notification_action_shuffle">Sekoita</string>
     <string name="notification_action_repeat">Toista uudelleen</string>
     <string name="notification_actions_at_most_three">Voit valita enintään kolme toimintoa ilmoituksessa näytettäväksi!</string>
-    <string name="notification_actions_summary">Muokkaa ilmoitustoimintoja näpäyttämällä niitä. Valitse ilmoituksessa näytettäväksi enintään kolme käyttämällä oikealla olevia valintaruutuja</string>
+    <string name="notification_actions_summary">Muokkaa ilmoitustoimintoja näpäyttämällä niitä. Valitse ilmoituksessa näytettäväksi enintään kolme käyttämällä oikealla olevia valintaruutuja.</string>
     <string name="notification_action_4_title">Viides toimintopainike</string>
     <string name="notification_action_3_title">Neljäs toimintopainike</string>
     <string name="notification_action_2_title">Kolmas toimintopainike</string>
     <string name="notification_action_1_title">Toinen toimintopainike</string>
     <string name="notification_action_0_title">Ensimmäinen toimintopainike</string>
-    <string name="notification_scale_to_square_image_summary">Skaalaa ilmoituksessa näytettävä videon esikatselukuva kuvasuhteesta 16:9 kuvasuhteeseen 1:1 (saattaa aiheuttaa vääristymiä)</string>
-    <string name="notification_scale_to_square_image_title">Skaalaa esikatselukuva 1:1-kuvasuhteeseen</string>
+    <string name="notification_scale_to_square_image_summary">Rajaa ilmoituksessa näytettävä videon esikatselukuva kuvasuhteesta 16:9 kuvasuhteeseen 1:1</string>
+    <string name="notification_scale_to_square_image_title">Rajaa esikatselukuva 1:1-kuvasuhteeseen</string>
     <string name="show_memory_leaks">Näytä muistivuodot</string>
     <string name="enqueued">Lisätty jonoon</string>
     <string name="enqueue_stream">Lisää jonoon</string>
-    <string name="clear_cookie_summary">Poista evästeet, jotka NewPipe tallentaa, kun ratkaiset reCAPTCHA:n</string>
+    <string name="clear_cookie_summary">Poista evästeet, jotka WizeStream tallentaa, kun ratkaiset reCAPTCHA:n</string>
     <string name="recaptcha_cookies_cleared">reCAPTCHA-evästeet on poistettu</string>
     <string name="clear_cookie_title">Poista reCAPTCHA-evästeet</string>
     <string name="youtube_restricted_mode_enabled_summary">YouTube tarjoaa ”Rajoitetun tilan”, joka piilottaa aikuisviihdesisällön</string>
@@ -590,24 +574,22 @@
     <string name="auto_device_theme_title">Automaattinen (laitteen teema)</string>
     <string name="radio">Radio</string>
     <string name="featured">Esitellyt</string>
-    <string name="paid_content">Tämä sisältö on saatavilla vain maksaneille käyttäjillä, joten NewPipe ei voi suoratoistaa tai ladata sitä.</string>
-    <string name="youtube_music_premium_content">Tämä video on saatavilla vain YouTube Music Premium -jäsenille, joten NewPipe ei voi suoratoistaa tai ladata sitä.</string>
-    <string name="private_content">Tämä sisältö on yksityinen, joten NewPipe ei voi suoratoistaa tai ladata sitä.</string>
-    <string name="soundcloud_go_plus_content">Tämä on SoundCloud Go+ -raita maassasi, joten NewPipe ei voi suoratoistaa tai ladata sitä.</string>
+    <string name="paid_content">Tämä sisältö on saatavilla vain maksaneille käyttäjillä, joten WizeStream ei voi suoratoistaa tai ladata sitä.</string>
+    <string name="youtube_music_premium_content">Tämä video on saatavilla vain YouTube Music Premium -jäsenille, joten WizeStream ei voi suoratoistaa tai ladata sitä.</string>
+    <string name="private_content">Tämä sisältö on yksityinen, joten WizeStream ei voi suoratoistaa tai ladata sitä.</string>
+    <string name="soundcloud_go_plus_content">Tämä on SoundCloud Go+ -raita maassasi, joten WizeStream ei voi suoratoistaa tai ladata sitä.</string>
     <string name="georestricted_content">Tämä sisältö ei ole saatavilla maassasi.</string>
     <string name="crash_the_app">Kaada sovellus</string>
     <string name="recaptcha_solve">Ratkaise</string>
     <string name="hash_channel_description">Ilmoitukset videon hajautuksen etenemisestä</string>
     <string name="hash_channel_name">Videon hajautusilmoitus</string>
     <string name="restricted_video_no_stream">Tämä video on ikärajoitettu.
-\nYouTuben uusien ikärajoitusperiaatteiden mukaisesti NewPipella ei ole pääsyä videoon eikä sitä voida toistaa.</string>
+\nYouTuben uusien ikärajoitusperiaatteiden mukaisesti WizeStreamlla ei ole pääsyä videoon eikä sitä voida toistaa.</string>
     <string name="night_theme_title">Yöteema</string>
-    <string name="metadata_thumbnail_url">Pienoiskuvakkeen osoite</string>
     <string name="description_select_disable">Poista käytöstä tekstinvalinta kuvauskentän sisältä</string>
     <string name="description_select_note">Voit nyt valita tekstin kuvauskentän sisältä. Huomioithan, että valintatilan aikana sivu voi vilkkua ja linkit eivät ehkä ole klikattavia.</string>
-    <string name="service_provides_reason">%s tuo tämän syyn:</string>
     <string name="seekbar_preview_thumbnail_title">Säätövivun kuvakkeen esikatselu</string>
-    <string name="disable_media_tunneling_summary">Poista median tunnelointi käytöstä, jos havaitset mustan näyttöruudun tai änkytystä videon toistossa</string>
+    <string name="disable_media_tunneling_summary">Poista median tunnelointi käytöstä, jos havaitset mustan näyttöruudun tai änkytystä videon toistossa.</string>
     <string name="disable_media_tunneling_title">Poista median tunnelointi käytöstä</string>
     <string name="feed_load_error_fast_unknown">Nopea syötetila ei tarjoa enempää tietoa tästä.</string>
     <string name="downloads_storage_use_saf_summary_api_29">\'Storage Access Framework\' on tuettu vain Android 10:stä alkaen</string>
@@ -630,9 +612,8 @@
     <string name="metadata_category">Kategoria</string>
     <string name="description_select_enable">Salli tekstin valinta kuvauksessa</string>
     <string name="account_terminated">Tili suljettu</string>
-    <string name="feed_toggle_show_played_items">Näytä katsotut kohteet</string>
     <string name="feed_load_error_terminated">Tekijän käyttäjätili on suljettu.
-\nNewPipe ei pysty lataamaan tätä syötettä tulevaisuudessa.
+\nWizeStream ei pysty lataamaan tätä syötettä tulevaisuudessa.
 \nHaluatko poistaa kanavan tilauksesta\?</string>
     <string name="feed_load_error_account_info">Ei voitu ladata syötettä hakusanalle \'%s\'.</string>
     <string name="feed_load_error">Virhe syötteen lataamisessa</string>
@@ -644,8 +625,6 @@
     <string name="no_dir_yet">Latauskansiota ei vielä asetettu, valitse ensin oletuslatauskansio</string>
     <string name="comments_are_disabled">Kommentit poistettu käytöstä</string>
     <string name="mark_as_watched">Merkitse katsotuksi</string>
-    <string name="show_image_indicators_summary">Näytä Picasso-värjätyt nauhat kuvien päällä osoittaakseen lähteen: punainen tarkoittaa verkkoa, sininen tarkoittaa levytilaa ja vihreä tarkoittaa muistia</string>
-    <string name="show_image_indicators_title">Näytä kuvailmaisimet</string>
     <string name="remote_search_suggestions">Etähakuehdotukset</string>
     <string name="local_search_suggestions">Paikalliset hakuehdotukset</string>
     <string name="enqueue_next_stream">Lisää seuraavaksi</string>
@@ -662,13 +641,13 @@
         <item quantity="other">Poistettu %1$s latausta</item>
     </plurals>
     <string name="processing_may_take_a_moment">Käsitellään… Voi kestää hetken</string>
-    <string name="manual_update_title">Tarkista päivitykset</string>
+    <string name="check_for_updates">Tarkista päivitykset</string>
     <string name="manual_update_description">Tarkista manuaalisesti onko uusia versioita saatavilla</string>
     <string name="checking_updates_toast">Tarkistetaan päivityksiä…</string>
     <string name="error_report_channel_description">Ilmoitukset, joilla raportoidaan virheistä</string>
     <string name="detail_pinned_comment_view_description">Kiinnitetty kommentti</string>
     <string name="error_report_channel_name">Virheraportti-ilmoitus</string>
-    <string name="error_report_notification_title">NewPipe kohtasi virheen, näpäytä raportoidaksesi</string>
+    <string name="error_report_notification_title">WizeStream kohtasi virheen, näpäytä raportoidaksesi</string>
     <string name="error_report_notification_toast">Tapahtui virhe, katso ilmoitus</string>
     <string name="create_error_notification">Luo virheilmoitus</string>
     <string name="leak_canary_not_available">LeakCanary ei ole saatavilla</string>
@@ -677,9 +656,152 @@
     <string name="no_appropriate_file_manager_message_android_10">Toiminnolle ei löytynyt sopivaa tiedostonhallintaohjelmaa.
 \nAsenna tiedostonhallintaohjelma, joka on yhteensopiva Storage Access Frameworkin kanssa.</string>
     <string name="no_appropriate_file_manager_message">Toiminnolle ei löytynyt sopivaa tiedostonhallintaohjelmaa.
-\nAsenna tiedostonhallintaohjelma tai kokeile asettaa \'%s\' pois käytöstä latausasetuksista.</string>
+\nAsenna tiedostonhallintaohjelma tai kokeile asettaa \'%s\' pois käytöstä latausasetuksista</string>
     <string name="show_crash_the_player_summary">Näytä soitinta käytettäessä soittimen kaatamisen vaihtoehto</string>
     <string name="show_error_snackbar">Näytä virheen ponnahdusilmoitus</string>
     <string name="feed_new_items">Uudet syötteet</string>
     <string name="notifications">Ilmoitukset</string>
+    <string name="always_use_exoplayer_set_output_surface_workaround_title">Käytä aina ExoPlayerin videolähtöpinnan asetusta</string>
+    <string name="audio_track_type_descriptive">kuvaileva</string>
+    <string name="audio_track_type_dubbed">dubattu</string>
+    <string name="audio_track_name">%1$s %2$s</string>
+    <string name="audio_track_type_original">alkuperäinen</string>
+    <string name="settings_category_player_notification_title">Soittimen ilmoitus</string>
+    <string name="settings_category_player_notification_summary">Määritä toistettavan lähetysvirran ilmoitus</string>
+    <string name="left_gesture_control_title">Vasemman eleen toiminto</string>
+    <string name="right_gesture_control_summary">Valitse soitinnäytön oikean puoliskon ele</string>
+    <string name="right_gesture_control_title">Oikean eleen toiminto</string>
+    <string name="brightness">Kirkkaus</string>
+    <string name="volume">Äänenvoimakkuus</string>
+    <string name="none">Ei mitään</string>
+    <string name="progressive_load_interval_title">Toiston latausvälin koko</string>
+    <string name="ignore_hardware_media_buttons_title">Ohita laitteiston mediapainikkeiden tapahtumat</string>
+    <string name="prefer_original_audio_title">Suosi alkuperäistä ääntä</string>
+    <string name="prefer_original_audio_summary">Valitse alkuperäinen ääniraita kielestä riippumatta</string>
+    <string name="prefer_descriptive_audio_title">Suosi kuvailutulkkausta</string>
+    <string name="prefer_descriptive_audio_summary">Valitse näkövammaisille tarkoitetun kuvailutulkkauksen sisältävä ääniraita, mikäli saatavilla</string>
+    <string name="left_gesture_control_summary">Valitse soitinnäytön vasemman puoliskon ele</string>
+    <string name="streams_notification_channel_name">Uusia lähetysvirtoja</string>
+    <string name="progressive_load_interval_summary">Muuta progressiivisen sisällön latausvälin kokoa (tällä hetkellä %s). Pienempi arvo saattaa nopeuttaa ensimmäistä latausta.</string>
+    <string name="ignore_hardware_media_buttons_summary">Tästä on hyötyä esim. silloin, jos käyttämiesi kuulokkeiden fyysiset painikkeet eivät toimi.</string>
+    <string name="image_quality_title">Kuvanlaatu</string>
+    <string name="no_video_streams_available_for_external_players">Ulkoisille soittimille ei ole saatavilla videostriimiä</string>
+    <string name="channel_tab_videos">Videot</string>
+    <string name="import_subscriptions_hint">Tuo tai vie tilauksia kolmen pisteen valikosta</string>
+    <string name="metadata_subscribers">Tilaajat</string>
+    <string name="feed_show_partially_watched">Osittain katsottu</string>
+    <string name="fast_mode">Nopea tila</string>
+    <string name="feed_hide_streams_title">Näytä seuraavat streamit</string>
+    <string name="unknown_audio_track">Tuntematon</string>
+    <string name="enable_streams_notifications_title">Ilmoitukset uusista streameista</string>
+    <string name="show_channel_tabs_summary">Mitä välilehtiä kanavasivuilla näytetään</string>
+    <string name="remove_duplicates_title">Poistetaanko kaksoiskappaleet\?</string>
+    <string name="feed_show_hide_streams">Näytä/piilota streamit</string>
+    <string name="share_playlist_with_list">Jaa URL-luettelo</string>
+    <plurals name="new_streams">
+        <item quantity="one">%s uusi streami</item>
+        <item quantity="other">%s uudet streamit</item>
+    </plurals>
+    <string name="share_playlist_with_titles">Jaa otsikoiden kanssa</string>
+    <string name="remove_duplicates">Poista kaksoiskappaleet</string>
+    <string name="channel_tab_shorts">Shortsit</string>
+    <string name="duplicate_in_playlist">Harmaana näkyvät soittolistat sisältävät jo tämän kohteen.</string>
+    <string name="use_exoplayer_decoder_fallback_title">Käytä ExoPlayerin dekooderin varatoimintoa</string>
+    <string name="notifications_disabled">Ilmoitukset on poistettu käytöstä</string>
+    <string name="feed_show_upcoming">Tuleva</string>
+    <string name="loading_metadata_title">Ladataan Metadata…</string>
+    <string name="app_update_available_notification_text">Lataa %s napauttamalla</string>
+    <string name="enumeration_comma">,</string>
+    <string name="toggle_screen_orientation">Vaihda näytön suuntaa</string>
+    <string name="settings_category_exoplayer_summary">Hallitse joitain ExoPlayer-asetuksia. Nämä muutokset edellyttävät soittimen uudelleenkäynnistystä tullakseen voimaan</string>
+    <string name="playlist_add_stream_success_duplicate">Kopio lisätty %d kertaa</string>
+    <string name="image_quality_low">Heikkolaatu</string>
+    <string name="main_tabs_position_title">Päävälilehtien sijainti</string>
+    <string name="faq_description">Jos sinulla on ongelmia sovelluksen käytössä, muista katsoa nämä vastaukset yleisiin kysymyksiin!</string>
+    <string name="toggle_fullscreen">Koko näyttö päälle/pois</string>
+    <string name="unknown_quality">Tuntematon laatu</string>
+    <string name="streams_notifications_network_title">Vaadittu verkkoyhteys</string>
+    <string name="check_new_streams">Suorita uusien streamien tarkistaminen</string>
+    <string name="feed_fetch_channel_tabs">Hae kanavavälilehdet</string>
+    <string name="faq_title">Usein Kysytyt Kysymykset</string>
+    <string name="app_update_unavailable_toast">Käytät uusinta WizeStreamn versiota</string>
+    <string name="metadata_avatars">Avatarit</string>
+    <string name="use_exoplayer_decoder_fallback_summary">Ota tämä vaihtoehto käyttöön, jos sinulla on dekooderin alustusongelmia, jotka liittyvät alemman prioriteetin dekooderiin, jos ensisijaisen dekooderin alustus epäonnistuu. Tämä voi heikentää toiston suorituskykyä kuin käytettäessä ensisijaisia dekoodeja</string>
+    <string name="next_stream">Seuraava stream</string>
+    <string name="disable_media_tunneling_automatic_info">Mediatunnelointi oli oletuksena poistettu käytöstä laitteessasi, koska laitemallisi ei tue sitä.</string>
+    <string name="metadata_subchannel_avatars">Alikanavan avatarit</string>
+    <string name="faq">Katso verkkosivuilla</string>
+    <string name="night_theme_available">Tämä vaihtoehto on käytettävissä vain, jos %s on valittu teemaksi</string>
+    <string name="audio_track_present_in_video">Tässä streamissa pitäisi jo olla ääniraita</string>
+    <string name="open_play_queue">Avaa soittojono</string>
+    <string name="image_quality_none">Älä lataa kuvia</string>
+    <string name="enable_streams_notifications_summary">Ilmoita tilausten uusista streameista</string>
+    <string name="image_quality_high">Korkealaatu</string>
+    <string name="select_quality_external_players">Valitse laatu ulkoisille soittimille</string>
+    <string name="channel_tab_about">Tietoja</string>
+    <string name="share_playlist">Jaa soittolista</string>
+    <string name="forward">Eteenpäin</string>
+    <string name="select_audio_track_external_players">Valitse ääniraita ulkoisille soittimille</string>
+    <string name="unknown_format">Tuntematon muoto</string>
+    <string name="channel_tab_albums">Albumit</string>
+    <string name="no_audio_streams_available_for_external_players">Ulkoisille soittimille ei ole saatavilla äänistreameja</string>
+    <string name="rewind">Kelaa taaksepäin</string>
+    <string name="feed_fetch_channel_tabs_summary">Noudettavat välilehdet syötettä päivitettäessä. Tällä valinnalla ei ole vaikutusta, jos kanava päivitetään käyttämällä nopeaa tilaa.</string>
+    <string name="delete_downloaded_files_confirm">Poistetaanko kaikki ladatut tiedostot levyltä\?</string>
+    <string name="image_quality_medium">Keskilaatu</string>
+    <string name="metadata_uploader_avatars">Lataajan avatarit</string>
+    <string name="percent">Prosentti</string>
+    <string name="play_queue_audio_track">Audio: %s</string>
+    <string name="selected_stream_external_player_not_supported">Ulkoiset soittimet eivät tue valittua suoratoistoa</string>
+    <string name="streams_notification_channel_description">Ilmoitukset uusista tilausten striimeistä</string>
+    <string name="metadata_banners">Bannerit</string>
+    <string name="channel_tab_playlists">Soittolistat</string>
+    <string name="sort">Järjestä</string>
+    <string name="main_tabs_position_summary">Siirrä päävälilehden valitsin alas</string>
+    <string name="any_network">Mikä tahansa verkko</string>
+    <string name="progressive_load_interval_exoplayer_default">ExoPlayer oletusarvo</string>
+    <string name="audio_track">Ääniraita</string>
+    <string name="card">Kortti</string>
+    <string name="no_live_streams">Ei live streamejä</string>
+    <string name="msg_failed_to_copy">Kopioiminen leikepöydälle epäonnistui</string>
+    <string name="unset_playlist_thumbnail">Poista pysyvä pikkukuva</string>
+    <string name="image_quality_summary">Valitse kuvien laatu ja lataako kuvia ollenkaan, jotta tiedon- ja muistin käyttö vähenee. Muutokset tyhjentävät sekä muistin että levyn kuvavälimuistin – %s</string>
+    <string name="play">Toista</string>
+    <string name="more_options">Lisää vaihtoehtoja</string>
+    <string name="metadata_thumbnails">Pikkukuvat</string>
+    <string name="loading_stream_details">Ladataan streamin tietoja…</string>
+    <string name="settings_category_exoplayer_title">ExoPlayerin asetukset</string>
+    <string name="feed_show_watched">Täysin katsottu</string>
+    <string name="duration">Kesto</string>
+    <string name="no_streams">Ei streamejä</string>
+    <string name="channel_tab_channels">Kanavat</string>
+    <string name="you_successfully_subscribed">Olet nyt tilannut tämän kanavan</string>
+    <string name="previous_stream">Edellinen stream</string>
+    <string name="channel_tab_livestreams">Live</string>
+    <string name="remove_duplicates_message">Haluatko poistaa kaikki ylimääräiset identtiset suoratoistot tästä soittolistasta\?</string>
+    <string name="streams_not_yet_supported_removed">Suoratoistot, joita lataaja ei vielä tue, ei näytetä</string>
+    <plurals name="replies">
+        <item quantity="one">%s vastaus</item>
+        <item quantity="other">%s vastausta</item>
+    </plurals>
+    <string name="show_more">Näytä lisää</string>
+    <string name="show_less">Näytä vähemmän</string>
+    <string name="show_channel_tabs">Kanavan välilehdet</string>
+    <string name="yes">Kyllä</string>
+    <string name="no">Ei</string>
+    <string name="reset_all_settings">Kaikkien asetusten nollaaminen hävittää kaikki valitsemasi asetukset ja käynnistää sovelluksen uudelleen.
+\n
+\nOletko varma, että haluat jatkaa?</string>
+    <string name="settings_category_backup_restore_title">Varmuuskopiointi ja palauttaminen</string>
+    <string name="reset_settings_title">Nollaa asetukset</string>
+    <string name="reset_settings_summary">Palauta kaikki asetukset oletusarvoihin</string>
+    <string name="auto_update_check_description">WizeStream voi automaattisesti tarkistaa päivitysten saatavuuden silloin tällöin ja ilmoittaa kun niitä on saatavilla.
+\nHaluatko ottaa tämän käyttöön?</string>
+    <string name="error_insufficient_storage">Laitteella ei ole riittävästi vapaata tilaa</string>
+    <string name="share_playlist_as_youtube_temporary_playlist">Jaa tilapäisenä YouTube-soittolistana</string>
+    <string name="channel_tab_tracks">Raidat</string>
+    <string name="question_mark">\?</string>
+    <string name="audio_track_type_secondary">toissijainen</string>
+    <string name="tab_bookmarks_short">Soittolistat</string>
 </resources>
+

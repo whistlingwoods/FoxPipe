@@ -7,14 +7,19 @@ import android.graphics.Bitmap;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.PlaybackParameters;
-import com.google.android.exoplayer2.Player.RepeatMode;
-import com.google.android.exoplayer2.Tracks;
-import com.google.android.exoplayer2.text.Cue;
-import com.google.android.exoplayer2.video.VideoSize;
+import androidx.media3.common.PlaybackParameters;
+import androidx.media3.common.Player.RepeatMode;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.text.Cue;
+import androidx.media3.common.VideoSize;
 
+import org.schabi.newpipe.extractor.sponsorblock.SponsorBlockSegment;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.player.Player;
+import org.schabi.newpipe.player.PlaybackPresentationMode;
+import org.schabi.newpipe.player.equalizer.EqualizerState;
+import org.schabi.newpipe.player.helper.SleepTimer;
+import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 
 import java.util.List;
 
@@ -70,6 +75,13 @@ public abstract class PlayerUi {
     }
 
     /**
+     * @param mode the new video, listening, background, or car presentation mode
+     */
+    public void onPlaybackPresentationModeChanged(
+            @NonNull final PlaybackPresentationMode mode) {
+    }
+
+    /**
      * Called when the exoplayer instance is about to be destroyed. Note that the exoplayer instance
      * could be built and destroyed multiple times during the lifetime of the player, so this method
      * might be called multiple times. Be sure to unset any video surface view or play queue
@@ -117,17 +129,54 @@ public abstract class PlayerUi {
      * @param currentProgress the current progress in milliseconds
      * @param duration        the duration of the stream being played
      * @param bufferPercent   the percentage of stream already buffered, see {@link
-     *                        com.google.android.exoplayer2.BasePlayer#getBufferedPercentage()}
+     *                        androidx.media3.common.BasePlayer#getBufferedPercentage()}
      */
     public void onUpdateProgress(final int currentProgress,
                                  final int duration,
                                  final int bufferPercent) {
     }
 
+    /**
+     * Shows a SponsorBlock skip affordance in UIs that can safely display one.
+     *
+     * @param label the text to display inside the skip affordance
+     * @param onClick the action to run when the skip affordance is clicked
+     */
+    public void showSponsorBlockSkipButton(@NonNull final String label,
+                                           @NonNull final Runnable onClick) {
+    }
+
+    /**
+     * Hides the SponsorBlock skip affordance if it is currently visible.
+     */
+    public void hideSponsorBlockSkipButton() {
+    }
+
+    /**
+     * Updates SponsorBlock segment markers in UIs that have a video seek bar.
+     *
+     * @param segments the eligible SponsorBlock segments to draw
+     * @param durationMillis the video duration in milliseconds
+     */
+    public void updateSponsorBlockSeekBarMarkers(
+            @NonNull final List<SponsorBlockSegment> segments,
+            final long durationMillis) {
+    }
+
+    /**
+     * Clears SponsorBlock segment markers from UIs that have a video seek bar.
+     */
+    public void clearSponsorBlockSeekBarMarkers() {
+    }
+
+
     public void onPrepared() {
     }
 
     public void onBlocked() {
+    }
+
+    public void onMediaItemTransition() {
     }
 
     public void onPlaying() {
@@ -154,28 +203,45 @@ public abstract class PlayerUi {
     public void onMuteUnmuteChanged(final boolean isMuted) {
     }
 
+    public void onEqualizerStateChanged(@NonNull final EqualizerState state,
+                                        final boolean operational) {
+    }
+
     /**
-     * @see com.google.android.exoplayer2.Player.Listener#onTracksChanged(Tracks)
+     * Called when sleep timer state or its displayed countdown changes.
+     *
+     * @param mode the active timer mode, or {@link SleepTimer.Mode#NONE}
+     * @param remainingMillis estimated wall-clock time remaining, or
+     *                        {@link SleepTimer#REMAINING_TIME_UNSET}
+     * @param fadeOutEnabled whether final fade-out is enabled
+     */
+    public void onSleepTimerChanged(@NonNull final SleepTimer.Mode mode,
+                                    final long remainingMillis,
+                                    final boolean fadeOutEnabled) {
+    }
+
+    /**
+     * @see androidx.media3.common.Player.Listener#onTracksChanged(Tracks)
      * @param currentTracks the available tracks information
      */
     public void onTextTracksChanged(@NonNull final Tracks currentTracks) {
     }
 
     /**
-     * @see com.google.android.exoplayer2.Player.Listener#onPlaybackParametersChanged
+     * @see androidx.media3.common.Player.Listener#onPlaybackParametersChanged
      * @param playbackParameters the new playback parameters
      */
     public void onPlaybackParametersChanged(@NonNull final PlaybackParameters playbackParameters) {
     }
 
     /**
-     * @see com.google.android.exoplayer2.Player.Listener#onRenderedFirstFrame
+     * @see androidx.media3.common.Player.Listener#onRenderedFirstFrame
      */
     public void onRenderedFirstFrame() {
     }
 
     /**
-     * @see com.google.android.exoplayer2.text.TextOutput#onCues
+     * @see androidx.media3.exoplayer.text.TextOutput#onCues
      * @param cues the cues to pass to the subtitle view
      */
     public void onCues(@NonNull final List<Cue> cues) {
@@ -187,6 +253,14 @@ public abstract class PlayerUi {
      *             available video streams (to be used to build the resolution menus, for example)
      */
     public void onMetadataChanged(@NonNull final StreamInfo info) {
+    }
+
+    /**
+     * Called for metadata that does not originate from an online extractor.
+     *
+     * @param tag the metadata for the current non-extractor media item
+     */
+    public void onMetadataChanged(@NonNull final MediaItemTag tag) {
     }
 
     /**
@@ -205,7 +279,7 @@ public abstract class PlayerUi {
 
     /**
      * @param videoSize the new video size, useful to set the surface aspect ratio
-     * @see com.google.android.exoplayer2.Player.Listener#onVideoSizeChanged
+     * @see androidx.media3.common.Player.Listener#onVideoSizeChanged
      */
     public void onVideoSizeChanged(@NonNull final VideoSize videoSize) {
     }

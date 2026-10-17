@@ -2,9 +2,9 @@ package org.schabi.newpipe.player.mediasource;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.WrappingMediaSource;
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.source.MediaSource;
+import androidx.media3.exoplayer.source.WrappingMediaSource;
 
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.playqueue.PlayQueueItem;
@@ -15,7 +15,7 @@ public class LoadedMediaSource extends WrappingMediaSource implements ManagedMed
     private final long expireTimestamp;
 
     /**
-     * Uses a {@link WrappingMediaSource} to wrap one child {@link MediaSource}
+     * Uses a {@link WrappingMediaSource} to wrap one child {@link MediaSource}s
      * containing actual media. This wrapper {@link LoadedMediaSource} holds the expiration
      * timestamp as a {@link ManagedMediaSource} to allow explicit playlist management under
      * {@link ManagedMediaSourcePlaylist}.

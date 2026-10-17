@@ -3,10 +3,15 @@ package org.schabi.newpipe.util;
 import org.junit.Test;
 import org.schabi.newpipe.extractor.MediaFormat;
 import org.schabi.newpipe.extractor.stream.AudioStream;
+import org.schabi.newpipe.extractor.stream.AudioTrackType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -28,6 +33,15 @@ public class ListHelperTest {
             generateAudioStream("m4a-320", MediaFormat.M4A, 320),
             generateAudioStream("mp3-192", MediaFormat.MP3, 192),
             generateAudioStream("webma-320", MediaFormat.WEBMA, 320));
+
+    private static final List<AudioStream> AUDIO_TRACKS_TEST_LIST = List.of(
+            generateAudioTrack("en.or", "en.or", "English original", Locale.ENGLISH),
+            generateAudioTrack("en.du", "en.du", "English dubbed", Locale.ENGLISH),
+            generateAudioTrack("en.ds", "en.ds", "English descriptive", Locale.ENGLISH),
+            generateAudioTrack("unknown", null, null, null),
+            generateAudioTrack("de.du", "de.du", "German dubbed", Locale.GERMAN),
+            generateAudioTrack("de.ds", "de.ds", "German descriptive", Locale.GERMAN)
+    );
 
     private static final List<VideoStream> VIDEO_STREAMS_TEST_LIST = List.of(
             generateVideoStream("mpeg_4-720", MediaFormat.MPEG_4, "720p", false),
@@ -190,7 +204,7 @@ public class ListHelperTest {
         assertEquals("480p", result.getResolution());
         assertEquals(MediaFormat.WEBM, result.getFormat());
 
-        // Doesn't have the resolution, will return the best one
+        // Requested quality is above every available stream, so use the closest lower one.
         result = testList.get(ListHelper.getDefaultResolutionIndex(
                 "2160p60", BEST_RESOLUTION_KEY, MediaFormat.WEBM, testList));
         assertEquals("720p", result.getResolution());
@@ -198,25 +212,86 @@ public class ListHelperTest {
     }
 
     @Test
+    public void crossServiceResolutionLabelsUseActualVideoHeight() {
+        final List<VideoStream> decoratedStreams = new ArrayList<>(List.of(
+                generateVideoStream("rumble-720", MediaFormat.MPEG_4,
+                        "720p@1500k", false),
+                generateVideoStream("rumble-480", MediaFormat.MPEG_4,
+                        "480p@1000k", false),
+                generateVideoStream("rumble-240", MediaFormat.MPEG_4,
+                        "240p@500k", false)));
+
+        VideoStream result = decoratedStreams.get(ListHelper.getDefaultResolutionIndex(
+                "360p", BEST_RESOLUTION_KEY, MediaFormat.MPEG_4, decoratedStreams));
+        assertEquals("240p@500k", result.getResolution());
+
+        result = decoratedStreams.get(ListHelper.getDefaultResolutionIndex(
+                "144p", BEST_RESOLUTION_KEY, MediaFormat.MPEG_4, decoratedStreams));
+        assertEquals("240p@500k", result.getResolution());
+
+        result = decoratedStreams.get(ListHelper.getDefaultResolutionIndex(
+                "480p", BEST_RESOLUTION_KEY, MediaFormat.MPEG_4, decoratedStreams));
+        assertEquals("480p@1000k", result.getResolution());
+
+        final List<VideoStream> sorted = ListHelper.getSortedStreamVideosList(
+                MediaFormat.MPEG_4, true, decoratedStreams, null, false, false);
+        assertEquals(List.of("720p@1500k", "480p@1000k", "240p@500k"),
+                sorted.stream().map(VideoStream::getResolution).toList());
+    }
+
+    @Test
+    public void adaptiveResolutionLimitIncludesOnlyAllowedQualities() {
+        final VideoStream stream720 = generateVideoStream(
+                "720", MediaFormat.MPEG_4, "720p", true);
+        final VideoStream stream720HighFrameRate = generateVideoStream(
+                "720-60", MediaFormat.MPEG_4, "720p60", true);
+        final VideoStream stream1080 = generateVideoStream(
+                "1080", MediaFormat.MPEG_4, "1080p", true);
+
+        assertTrue(ListHelper.isVideoStreamWithinResolutionLimit(stream720, "720p"));
+        assertFalse(ListHelper.isVideoStreamWithinResolutionLimit(
+                stream720HighFrameRate, "720p"));
+        assertFalse(ListHelper.isVideoStreamWithinResolutionLimit(stream1080, "720p"));
+        assertTrue(ListHelper.isVideoStreamWithinResolutionLimit(stream1080, null));
+    }
+
+    @Test
+    public void targetBelowAllAvailableQualitiesUsesNearestHigherQuality() {
+        final List<VideoStream> sparseStreams = new ArrayList<>(List.of(
+                generateVideoStream("1080", MediaFormat.MPEG_4, "1080p", false),
+                generateVideoStream("720", MediaFormat.MPEG_4, "720p", false),
+                generateVideoStream("480", MediaFormat.MPEG_4, "480p", false)));
+
+        final VideoStream result = sparseStreams.get(ListHelper.getDefaultResolutionIndex(
+                "144p", BEST_RESOLUTION_KEY, MediaFormat.MPEG_4, sparseStreams));
+        assertEquals("480p", result.getResolution());
+    }
+
+    @Test
     public void getHighestQualityAudioFormatTest() {
-        AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
-                MediaFormat.M4A, AUDIO_STREAMS_TEST_LIST));
+        Comparator<AudioStream> cmp = ListHelper.getAudioFormatComparator(MediaFormat.M4A, false);
+        AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                        AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(320, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
-        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
-                MediaFormat.WEBMA, AUDIO_STREAMS_TEST_LIST));
+        cmp = ListHelper.getAudioFormatComparator(MediaFormat.WEBMA, false);
+        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(320, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
-        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getHighestQualityAudioIndex(
-                MediaFormat.MP3, AUDIO_STREAMS_TEST_LIST));
+        cmp = ListHelper.getAudioFormatComparator(MediaFormat.MP3, false);
+        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.MP3, stream.getFormat());
     }
 
     @Test
     public void getHighestQualityAudioFormatPreferredAbsent() {
+        final Comparator<AudioStream> cmp =
+                ListHelper.getAudioFormatComparator(MediaFormat.MP3, false);
 
         //////////////////////////////////////////
         // Doesn't contain the preferred format //
@@ -227,8 +302,7 @@ public class ListHelperTest {
                 generateAudioStream("webma-192", MediaFormat.WEBMA, 192));
         // List doesn't contains this format
         // It should fallback to the highest bitrate audio no matter what format it is
-        AudioStream stream = testList.get(ListHelper.getHighestQualityAudioIndex(
-                MediaFormat.MP3, testList));
+        AudioStream stream = testList.get(ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
@@ -246,44 +320,51 @@ public class ListHelperTest {
                 generateAudioStream("webma-192-4", MediaFormat.WEBMA, 192)));
         // List doesn't contains this format, it should fallback to the highest bitrate audio and
         // the highest quality format.
-        stream = testList.get(ListHelper.getHighestQualityAudioIndex(MediaFormat.MP3, testList));
+        stream =
+                testList.get(ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         // Adding a new format and bitrate. Adding another stream will have no impact since
         // it's not a preferred format.
         testList.add(generateAudioStream("webma-192-5", MediaFormat.WEBMA, 192));
-        stream = testList.get(ListHelper.getHighestQualityAudioIndex(MediaFormat.MP3, testList));
+        stream =
+                testList.get(ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
     }
 
     @Test
     public void getHighestQualityAudioNull() {
-        assertEquals(-1, ListHelper.getHighestQualityAudioIndex(null, null));
-        assertEquals(-1, ListHelper.getHighestQualityAudioIndex(null, new ArrayList<>()));
+        final Comparator<AudioStream> cmp = ListHelper.getAudioFormatComparator(null, false);
+        assertEquals(-1, ListHelper.getAudioIndexByHighestRank(null, cmp));
+        assertEquals(-1, ListHelper.getAudioIndexByHighestRank(new ArrayList<>(), cmp));
     }
 
     @Test
     public void getLowestQualityAudioFormatTest() {
-        AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
-                MediaFormat.M4A, AUDIO_STREAMS_TEST_LIST));
+        Comparator<AudioStream> cmp = ListHelper.getAudioFormatComparator(MediaFormat.M4A, true);
+        AudioStream stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
-        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
-                MediaFormat.WEBMA, AUDIO_STREAMS_TEST_LIST));
+        cmp = ListHelper.getAudioFormatComparator(MediaFormat.WEBMA, true);
+        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(64, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
-        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getMostCompactAudioIndex(
-                MediaFormat.MP3, AUDIO_STREAMS_TEST_LIST));
+        cmp = ListHelper.getAudioFormatComparator(MediaFormat.MP3, true);
+        stream = AUDIO_STREAMS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_STREAMS_TEST_LIST, cmp));
         assertEquals(64, stream.getAverageBitrate());
         assertEquals(MediaFormat.MP3, stream.getFormat());
     }
 
     @Test
     public void getLowestQualityAudioFormatPreferredAbsent() {
+        Comparator<AudioStream> cmp = ListHelper.getAudioFormatComparator(MediaFormat.MP3, true);
 
         //////////////////////////////////////////
         // Doesn't contain the preferred format //
@@ -294,14 +375,13 @@ public class ListHelperTest {
                 generateAudioStream("webma-192-1", MediaFormat.WEBMA, 192)));
         // List doesn't contains this format
         // It should fallback to the most compact audio no matter what format it is.
-        AudioStream stream = testList.get(ListHelper.getMostCompactAudioIndex(
-                MediaFormat.MP3, testList));
+        AudioStream stream = testList.get(ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.M4A, stream.getFormat());
 
         // WEBMA is more compact than M4A
         testList.add(generateAudioStream("webma-192-2", MediaFormat.WEBMA, 128));
-        stream = testList.get(ListHelper.getMostCompactAudioIndex(MediaFormat.MP3, testList));
+        stream = testList.get(ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(128, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
@@ -318,20 +398,79 @@ public class ListHelperTest {
                 generateAudioStream("m4a-192-3", MediaFormat.M4A, 192)));
         // List doesn't contain this format
         // It should fallback to the most compact audio no matter what format it is.
-        stream = testList.get(ListHelper.getMostCompactAudioIndex(MediaFormat.MP3, testList));
+        stream = testList.get(
+                ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
 
         // Should be same as above
-        stream = testList.get(ListHelper.getMostCompactAudioIndex(null, testList));
+        cmp = ListHelper.getAudioFormatComparator(null, true);
+        stream = testList.get(
+                ListHelper.getAudioIndexByHighestRank(testList, cmp));
         assertEquals(192, stream.getAverageBitrate());
         assertEquals(MediaFormat.WEBMA, stream.getFormat());
     }
 
     @Test
     public void getLowestQualityAudioNull() {
-        assertEquals(-1, ListHelper.getMostCompactAudioIndex(null, null));
-        assertEquals(-1, ListHelper.getMostCompactAudioIndex(null, new ArrayList<>()));
+        final Comparator<AudioStream> cmp = ListHelper.getAudioFormatComparator(null, false);
+        assertEquals(-1, ListHelper.getAudioIndexByHighestRank(null, cmp));
+        assertEquals(-1, ListHelper.getAudioIndexByHighestRank(new ArrayList<>(), cmp));
+    }
+
+    @Test
+    public void getAudioTrack() {
+        // English language
+        Comparator<AudioStream> cmp =
+                ListHelper.getAudioTrackComparator(Locale.ENGLISH, false, false);
+        AudioStream stream = AUDIO_TRACKS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_TRACKS_TEST_LIST, cmp));
+        assertEquals("en.or", stream.getId());
+
+        // German language
+        cmp = ListHelper.getAudioTrackComparator(Locale.GERMAN, false, false);
+        stream = AUDIO_TRACKS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_TRACKS_TEST_LIST, cmp));
+        assertEquals("de.du", stream.getId());
+
+        // German language, but prefer original
+        cmp = ListHelper.getAudioTrackComparator(Locale.GERMAN, true, false);
+        stream = AUDIO_TRACKS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_TRACKS_TEST_LIST, cmp));
+        assertEquals("en.or", stream.getId());
+
+        // Prefer descriptive audio
+        cmp = ListHelper.getAudioTrackComparator(Locale.ENGLISH, false, true);
+        stream = AUDIO_TRACKS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_TRACKS_TEST_LIST, cmp));
+        assertEquals("en.ds", stream.getId());
+
+        // Japanese language, fall back to original
+        cmp = ListHelper.getAudioTrackComparator(Locale.JAPANESE, true, false);
+        stream = AUDIO_TRACKS_TEST_LIST.get(ListHelper.getAudioIndexByHighestRank(
+                AUDIO_TRACKS_TEST_LIST, cmp));
+        assertEquals("en.or", stream.getId());
+    }
+
+    @Test
+    public void getAudioTrackUsesStructuredTrackType() {
+        final List<AudioStream> tracks = List.of(
+                generateAudioTrack("original", "track-0", "English", Locale.ENGLISH,
+                        AudioTrackType.ORIGINAL),
+                generateAudioTrack("dubbed", "track-1", "German", Locale.GERMAN,
+                        AudioTrackType.DUBBED),
+                generateAudioTrack("descriptive", "track-2", "English", Locale.ENGLISH,
+                        AudioTrackType.DESCRIPTIVE)
+        );
+
+        Comparator<AudioStream> cmp =
+                ListHelper.getAudioTrackComparator(Locale.GERMAN, true, false);
+        AudioStream stream = tracks.get(ListHelper.getAudioIndexByHighestRank(tracks, cmp));
+        assertEquals("original", stream.getId());
+
+        cmp = ListHelper.getAudioTrackComparator(Locale.ENGLISH, false, true);
+        stream = tracks.get(ListHelper.getAudioIndexByHighestRank(tracks, cmp));
+        assertEquals("descriptive", stream.getId());
     }
 
     @Test
@@ -374,8 +513,8 @@ public class ListHelperTest {
         assertEquals(7, ListHelper.getVideoStreamIndex("200p", null, testList));
         assertEquals(7, ListHelper.getVideoStreamIndex("200p60", null, testList));
 
-        // Can't find a match
-        assertEquals(-1, ListHelper.getVideoStreamIndex("100p", null, testList));
+        // If every available quality is higher, use the nearest higher quality.
+        assertEquals(7, ListHelper.getVideoStreamIndex("100p", null, testList));
     }
 
     @NonNull
@@ -388,6 +527,56 @@ public class ListHelperTest {
                 .setMediaFormat(mediaFormat)
                 .setAverageBitrate(averageBitrate)
                 .build();
+    }
+
+    private static AudioStream generateAudioTrack(
+            @NonNull final String id,
+            @Nullable final String trackId,
+            @Nullable final String trackName,
+            @Nullable final Locale audioLocale) {
+        return generateAudioTrack(id, trackId, trackName, audioLocale, null);
+    }
+
+    private static AudioStream generateAudioTrack(
+            @NonNull final String id,
+            @Nullable final String trackId,
+            @Nullable final String trackName,
+            @Nullable final Locale audioLocale,
+            @Nullable final AudioTrackType audioTrackType) {
+        final AudioStream.Builder builder = new AudioStream.Builder()
+                .setId(id)
+                .setContent("", true)
+                .setMediaFormat(MediaFormat.M4A)
+                .setAverageBitrate(128)
+                .setAudioTrackId(trackId)
+                .setAudioTrackName(trackName)
+                .setAudioTrackType(audioTrackType);
+        setAudioLocale(builder, audioLocale == null ? null : audioLocale.toLanguageTag());
+        return builder.build();
+    }
+
+    private static void setAudioLocale(@NonNull final AudioStream.Builder builder,
+                                       @Nullable final String audioLocale) {
+        try {
+            final Method method = AudioStream.Builder.class.getMethod("setAudioLocale",
+                    String.class);
+            method.invoke(builder, audioLocale);
+        } catch (final NoSuchMethodException ignored) {
+            setLegacyAudioLocale(builder, audioLocale);
+        } catch (final IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Unable to set audio locale", e);
+        }
+    }
+
+    private static void setLegacyAudioLocale(@NonNull final AudioStream.Builder builder,
+                                             @Nullable final String audioLocale) {
+        try {
+            final Method method = AudioStream.Builder.class.getMethod("setAudioLocale",
+                    Locale.class);
+            method.invoke(builder, Localization.audioLocaleFromString(audioLocale));
+        } catch (final ReflectiveOperationException e) {
+            throw new IllegalStateException("Unable to set legacy audio locale", e);
+        }
     }
 
     @NonNull

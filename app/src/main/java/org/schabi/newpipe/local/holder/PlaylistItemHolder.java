@@ -1,5 +1,6 @@
 package org.schabi.newpipe.local.holder;
 
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,14 +36,35 @@ public abstract class PlaylistItemHolder extends LocalItemHolder {
     public void updateFromItem(final LocalItem localItem,
                                final HistoryRecordManager historyRecordManager,
                                final DateTimeFormatter dateTimeFormatter) {
-        itemView.setOnClickListener(view -> {
+        bindClickTarget(itemView, localItem);
+        bindClickTarget(itemThumbnailView, localItem);
+        bindClickTarget(itemTitleView, localItem);
+        final View thumbnailContainer = itemView.findViewById(R.id.itemThumbnailContainer);
+        if (thumbnailContainer != null) {
+            bindClickTarget(thumbnailContainer, localItem);
+        }
+
+        bindLongPressTarget(itemView, localItem);
+        if (thumbnailContainer != null) {
+            bindLongPressTarget(thumbnailContainer, localItem);
+        }
+        final View titleView = itemView.findViewById(R.id.itemTitleView);
+        if (titleView != null) {
+            bindLongPressTarget(titleView, localItem);
+        }
+    }
+
+    private void bindClickTarget(final View target, final LocalItem localItem) {
+        target.setOnClickListener(view -> {
             if (itemBuilder.getOnItemSelectedListener() != null) {
                 itemBuilder.getOnItemSelectedListener().selected(localItem);
             }
         });
+    }
 
-        itemView.setLongClickable(true);
-        itemView.setOnLongClickListener(view -> {
+    private void bindLongPressTarget(final View target, final LocalItem localItem) {
+        target.setLongClickable(true);
+        target.setOnLongClickListener(view -> {
             if (itemBuilder.getOnItemSelectedListener() != null) {
                 itemBuilder.getOnItemSelectedListener().held(localItem);
             }

@@ -10,6 +10,14 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/menu_item_search_content"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
         android:id="@+id/menu_item_bookmark"
         android:icon="@drawable/ic_playlist_add"
         android:title="@string/bookmark_playlist"
@@ -34,4 +42,24 @@
         android:orderInCategory="3"
         android:title="@string/add_to_playlist"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_download_playlist"
+        android:icon="@drawable/ic_file_download"
+        android:orderInCategory="4"
+        android:title="@string/download_playlist"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_item_learning_content"
+        android:orderInCategory="5"
+        android:title="@string/learning_mark_content"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_item_learning_review"
+        android:title="@string/learning_review_title" android:visible="false"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_item_learning_notes"
+        android:title="@string/learning_playlist_notes"
+        android:visible="false" app:showAsAction="never" />
 </menu>
