@@ -6,10 +6,12 @@
 package org.schabi.newpipe
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.schabi.newpipe.util.InfoCache
 import org.schabi.newpipe.util.image.PicassoHelper
+import java.io.IOException
 
 /**
  * Invisible activity that clears NewPipe's caches (metadata + image caches) and
@@ -27,17 +29,22 @@ class ClearCacheActivity : AppCompatActivity() {
         // Metadata cache (video info, streams metadata, ...)
         InfoCache.getInstance().clearCache()
 
-        try {
+        // Picasso image caches (memory + disk)
+        val imageCacheCleared = try {
             PicassoHelper.clearCache(this)
-        } catch (e: Exception) {
-            e.printStackTrace()
+            true
+        } catch (e: IOException) {
+            Log.e("ClearCacheActivity", "Unable to clear Picasso cache", e)
+            false
         }
 
-        Toast.makeText(applicationContext, R.string.clear_cache_complete_notice, Toast.LENGTH_SHORT)
-            .show()
-
-        // Do not open the app: the user just asked for the cache to be cleared from
-        // the home screen, so go straight back to whatever was shown before us.
+        if (imageCacheCleared) {
+            Toast.makeText(
+                applicationContext,
+                R.string.clear_cache_complete_notice,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
         finish()
     }
 }
