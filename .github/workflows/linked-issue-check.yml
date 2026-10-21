@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 NewPipe e.V. <https://newpipe-ev.de>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Check linked issue
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  check-linked-issue:
+    name: Check linked issue and assignee
+    if: >-
+      github.event.pull_request.author_association != 'MEMBER' &&
+      github.event.pull_request.author_association != 'OWNER'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check linked issues
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const script = require('.github/workflows/linked-issue-check.js');
+            await script({github, context});
