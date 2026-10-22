@@ -8,8 +8,8 @@ package org.schabi.newpipe
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.schabi.newpipe.util.image.PicassoHelper
 import org.schabi.newpipe.util.InfoCache
+import org.schabi.newpipe.util.image.PicassoHelper
 
 /**
  * Invisible activity that clears NewPipe's caches (metadata + image caches) and
