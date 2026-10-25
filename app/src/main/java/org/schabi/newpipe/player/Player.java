@@ -104,6 +104,7 @@ import org.schabi.newpipe.player.event.PlayerEventListener;
 import org.schabi.newpipe.player.event.PlayerServiceEventListener;
 import org.schabi.newpipe.player.helper.AudioReactor;
 import org.schabi.newpipe.player.helper.CustomRenderersFactory;
+import org.schabi.newpipe.player.helper.DisplayAwareContextWrapper;
 import org.schabi.newpipe.player.helper.LoadController;
 import org.schabi.newpipe.player.helper.PlayerDataSource;
 import org.schabi.newpipe.player.helper.PlayerHelper;
@@ -586,7 +587,12 @@ public final class Player implements PlaybackListener, Listener {
                     if (playerType == PlayerType.AUDIO) {
                         return null;
                     } else {
-                        return PlayerBinding.inflate(LayoutInflater.from(context));
+                        final DisplayAwareContextWrapper viewContext =
+                                new DisplayAwareContextWrapper(context);
+                        final PlayerBinding newBinding = PlayerBinding.inflate(
+                                LayoutInflater.from(context).cloneInContext(viewContext));
+                        viewContext.setAnchor(newBinding.getRoot());
+                        return newBinding;
                     }
                 });
 
