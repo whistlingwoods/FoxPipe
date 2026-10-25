@@ -179,6 +179,9 @@ dependencies {
     implementation "frankiesardo:icepick:${icepickVersion}"
     kapt "frankiesardo:icepick-processor:${icepickVersion}"
 
+    // Conscrypt libraries
+    implementation "org.conscrypt:conscrypt-android:2.5.2"
+
     // HTML parser
     implementation "org.jsoup:jsoup:1.15.3" // Update jsoup to 1.15.3 This fixes a vulnerability issue related to Cross Site Scripting
 
