@@ -3,13 +3,17 @@
 /local.properties
 .DS_Store
 /build
+**/build/
+!src/**/build/
 /captures
 /app/app.iml
 /.idea
 /*.iml
 *~
 .weblate
+.kotlin
 *.class
+/app/debug/
 /app/release
 
 # vscode / eclipse files
