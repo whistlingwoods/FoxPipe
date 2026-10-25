@@ -13,6 +13,7 @@ import androidx.preference.ListPreference;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import org.schabi.newpipe.App;
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.util.PermissionHelper;
 
@@ -55,6 +56,8 @@ public class VideoAudioSettingsFragment extends BasePreferenceFragment {
                 }
             } else if (s.equals(getString(R.string.use_inexact_seek_key))) {
                 updateSeekOptions();
+            } else if (s.equals(getString(R.string.fetch_adaptive_formats_key))) {
+                App.applyAdaptiveFormatsSetting(getContext());
             }
 
             //check if "show higher resolutions" was changed

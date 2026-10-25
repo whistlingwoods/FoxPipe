@@ -467,7 +467,15 @@ public abstract class Tab {
         @DrawableRes
         @Override
         public int getTabIconRes(final Context context) {
-            return KioskTranslator.getKioskIcon(getDefaultKioskId(context), context);
+            final int kioskIcon = KioskTranslator.getKioskIcon(getDefaultKioskId(context), context);
+
+            // A service is free to make any kiosk its default, including one this build has no
+            // icon for. Handing 0 to TabLayout.Tab#setIcon() would take the whole activity down.
+            if (kioskIcon <= 0) {
+                return ThemeHelper.resolveResourceIdFromAttr(context, R.attr.ic_kiosk_hot);
+            }
+
+            return kioskIcon;
         }
 
         @Override

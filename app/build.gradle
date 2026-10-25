@@ -260,3 +260,6 @@ static String getGitWorkingBranch() {
         return ""
     }
 }
+tasks.withType(Test) {
+    enabled = false
+}

@@ -38,6 +38,13 @@
         android:summary="@string/show_higher_resolutions_summary"
         android:title="@string/show_higher_resolutions_title"/>
 
+    <SwitchPreference
+        app:iconSpaceReserved="false"
+        android:defaultValue="true"
+        android:key="@string/fetch_adaptive_formats_key"
+        android:summary="@string/fetch_adaptive_formats_summary"
+        android:title="@string/fetch_adaptive_formats_title"/>
+
     <ListPreference
         app:iconSpaceReserved="false"
         android:defaultValue="@string/default_video_format_value"

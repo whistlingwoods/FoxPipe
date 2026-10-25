@@ -2,19 +2,73 @@ package org.schabi.newpipe.player.resolver;
 
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.dash.manifest.DashManifestParser;
 import com.google.android.exoplayer2.util.Util;
 
+import org.schabi.newpipe.extractor.MediaFormat;
+import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.player.helper.PlayerDataSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+
 public interface PlaybackResolver extends Resolver<StreamInfo, MediaSource> {
+
+    String TAG = "PlaybackResolver";
+
+    /**
+     * Build the media source of a single stream, whether it is addressed by URL or described by a
+     * DASH manifest.
+     *
+     * <p>
+     * YouTube serves its adaptive formats in bounded byte ranges only -- a plain GET is answered
+     * HTTP 403 -- so the extractor hands those over as generated DASH manifests instead of URLs.
+     * Those have to go through {@link com.google.android.exoplayer2.source.dash.DashMediaSource},
+     * which requests exactly the ranges the manifest describes.
+     * </p>
+     *
+     * @return the media source, or null if the stream cannot be played
+     */
+    @Nullable
+    default MediaSource buildStreamMediaSource(@NonNull final PlayerDataSource dataSource,
+                                               @NonNull final Stream stream,
+                                               @NonNull final String cacheKey,
+                                               @NonNull final MediaSourceTag metadata) {
+        final String content = stream.getContent();
+        if (TextUtils.isEmpty(content)) {
+            Log.e(TAG, "Stream " + stream.getFormatId() + " carries no content");
+            return null;
+        }
+
+        if (stream.isUrl()) {
+            return buildMediaSource(dataSource, content, cacheKey,
+                    MediaFormat.getSuffixById(stream.getFormatId()), metadata);
+        }
+
+        try {
+            // The generated manifest carries an absolute <BaseURL>, so the URI passed here is only
+            // a base for resolving relative ones and is never used
+            return dataSource.getDashMediaSourceFactory().setTag(metadata).createMediaSource(
+                    new DashManifestParser().parse(Uri.parse("https://www.youtube.com"),
+                            new ByteArrayInputStream(content.getBytes(Charset.forName("UTF-8")))));
+        } catch (final IOException e) {
+            // Returning null here means the player waits forever with nothing to report, so say
+            // which stream was dropped and why
+            Log.e(TAG, "Could not parse the generated DASH manifest of stream "
+                    + stream.getFormatId(), e);
+            return null;
+        }
+    }
 
     @Nullable
     default MediaSource maybeBuildLiveMediaSource(@NonNull final PlayerDataSource dataSource,

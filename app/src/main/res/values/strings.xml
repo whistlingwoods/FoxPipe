@@ -54,6 +54,8 @@
     <string name="default_popup_resolution_title">Default popup resolution</string>
     <string name="show_higher_resolutions_title">Show higher resolutions</string>
     <string name="show_higher_resolutions_summary">Only some devices can play 2K/4K videos</string>
+    <string name="fetch_adaptive_formats_title">Offer resolutions above 360p</string>
+    <string name="fetch_adaptive_formats_summary">Fetches adaptive video and audio separately. Turn this off to use only the single 360p stream, which needs one connection instead of two.</string>
     <string name="play_with_kodi_title">Play with Kodi</string>
     <string name="kore_not_found">Install missing Kore app?</string>
     <string name="kore_package" translatable="false">org.xbmc.kore</string>

@@ -69,10 +69,11 @@ public class VideoPlaybackResolver implements PlaybackResolver {
         @Nullable final VideoStream video = tag.getSelectedVideoStream();
 
         if (video != null) {
-            final MediaSource streamSource = buildMediaSource(dataSource, video.getUrl(),
-                    PlayerHelper.cacheKeyOf(info, video),
-                    MediaFormat.getSuffixById(video.getFormatId()), tag);
-            mediaSources.add(streamSource);
+            final MediaSource streamSource = buildStreamMediaSource(dataSource, video,
+                    PlayerHelper.cacheKeyOf(info, video), tag);
+            if (streamSource != null) {
+                mediaSources.add(streamSource);
+            }
         }
 
         // Create optional audio stream source
@@ -82,10 +83,11 @@ public class VideoPlaybackResolver implements PlaybackResolver {
         // Use the audio stream if there is no video stream, or
         // Merge with audio stream in case if video does not contain audio
         if (audio != null && (video == null || video.isVideoOnly)) {
-            final MediaSource audioSource = buildMediaSource(dataSource, audio.getUrl(),
-                    PlayerHelper.cacheKeyOf(info, audio),
-                    MediaFormat.getSuffixById(audio.getFormatId()), tag);
-            mediaSources.add(audioSource);
+            final MediaSource audioSource = buildStreamMediaSource(dataSource, audio,
+                    PlayerHelper.cacheKeyOf(info, audio), tag);
+            if (audioSource != null) {
+                mediaSources.add(audioSource);
+            }
         }
 
         // If there is no audio or video sources, then this media source cannot be played back

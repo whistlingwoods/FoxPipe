@@ -4,9 +4,16 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import androidx.preference.PreferenceManager;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+
+import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.mediacodec.MediaCodecInfo;
+import com.google.android.exoplayer2.mediacodec.MediaCodecUtil;
+import com.google.android.exoplayer2.util.MimeTypes;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.extractor.MediaFormat;
@@ -20,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class ListHelper {
+    private static final String TAG = "ListHelper";
+
     // Video format in order of quality. 0=lowest quality, n=highest quality
     private static final List<MediaFormat> VIDEO_FORMAT_QUALITY_RANKING =
             Arrays.asList(MediaFormat.v3GPP, MediaFormat.WEBM, MediaFormat.MPEG_4);
@@ -124,8 +133,69 @@ public final class ListHelper {
         MediaFormat defaultFormat = getDefaultFormat(context, R.string.default_video_format_key,
                 R.string.default_video_format_value);
 
-        return getSortedStreamVideosList(defaultFormat, showHigherResolutions, videoStreams,
-                videoOnlyStreams, ascendingOrder);
+        return getSortedStreamVideosList(defaultFormat, showHigherResolutions,
+                keepDecodableStreams(videoStreams), keepDecodableStreams(videoOnlyStreams),
+                ascendingOrder);
+    }
+
+    /**
+     * Drop the streams this device has no decoder for.
+     *
+     * <p>
+     * YouTube offers VP9 and AV1 alongside H.264, and even within H.264 it offers profiles and
+     * levels beyond what an old chip will take. Choosing one of those gives sound and a black
+     * picture, so they are better left out of the quality list than presented as choices that
+     * silently fail.
+     * </p>
+     *
+     * <p>
+     * A stream whose codec cannot be read is kept: the codec string is what YouTube happens to
+     * report, and dropping a playable stream is worse than offering one that might not be.
+     * </p>
+     */
+    @NonNull
+    private static List<VideoStream> keepDecodableStreams(
+            @Nullable final List<VideoStream> streams) {
+        if (streams == null) {
+            return Collections.emptyList();
+        }
+
+        final List<VideoStream> decodable = new ArrayList<>();
+        for (final VideoStream stream : streams) {
+            if (isDecodable(stream)) {
+                decodable.add(stream);
+            }
+        }
+        return decodable;
+    }
+
+    private static boolean isDecodable(final VideoStream stream) {
+        final String codec = stream.getCodec();
+        if (codec == null || codec.isEmpty()) {
+            return true;
+        }
+
+        final String mimeType = MimeTypes.getMediaMimeType(codec);
+        if (mimeType == null) {
+            return true;
+        }
+
+        try {
+            final MediaCodecInfo decoderInfo = MediaCodecUtil.getDecoderInfo(mimeType, false, false);
+            if (decoderInfo == null) {
+                // No decoder for this codec at all, which is how AV1 arrives: YouTube labels it
+                // video/mp4, so the container preference lets it through
+                return false;
+            }
+            // Rules out an H.264 profile or level the decoder will not take, which is how 1080p60
+            // ends up playing as sound over a black screen
+            return decoderInfo.isCodecSupported(Format.createVideoSampleFormat(
+                    null, mimeType, codec, Format.NO_VALUE, Format.NO_VALUE,
+                    stream.getWidth(), stream.getHeight(), stream.getFps(), null, null));
+        } catch (final MediaCodecUtil.DecoderQueryException e) {
+            Log.w(TAG, "Could not ask about a decoder for " + codec, e);
+            return true;
+        }
     }
 
     /*//////////////////////////////////////////////////////////////////////////

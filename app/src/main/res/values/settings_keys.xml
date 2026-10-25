@@ -88,6 +88,7 @@
     <string name="default_resolution_key" translatable="false">default_resolution</string>
     <string name="default_resolution_value" translatable="false">360p</string>
     <string name="show_higher_resolutions_key" translatable="false">show_higher_resolutions</string>
+    <string name="fetch_adaptive_formats_key" translatable="false">fetch_adaptive_formats</string>
     <string name="default_popup_resolution_key" translatable="false">default_popup_resolution</string>
     <string name="default_popup_resolution_value" translatable="false">360p</string>
     <string name="best_resolution_key" translatable="false">best_resolution</string>
