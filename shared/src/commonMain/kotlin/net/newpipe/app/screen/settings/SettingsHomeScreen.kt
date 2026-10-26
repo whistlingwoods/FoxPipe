@@ -60,6 +60,14 @@ fun SettingsHomeScreen(
                             Destination.VideoAudioSettings
                         )
 
+                        SettingsCategoryType.DEBUG -> navigator.navigateTo(
+                            Destination.DebugSettings
+                        )
+
+                        SettingsCategoryType.DOWNLOADS -> navigator.navigateTo(
+                            Destination.DownloadSettings
+                        )
+
                         // TODO: wire remaining sub-screens as they are migrated
                         else -> Unit
                     }

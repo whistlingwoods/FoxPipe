@@ -165,5 +165,56 @@
     <string name="always_use_exoplayer_set_output_surface_workaround_title">Always use ExoPlayer's video output surface setting workaround</string>
     <string name="always_use_exoplayer_set_output_surface_workaround_summary">This workaround releases and re-instantiates video codecs when a surface change occurs, instead of setting the surface to the codec directly. Already used by ExoPlayer on some devices with this issue, this setting has only an effect on Android 6 and higher\n\nEnabling this option may prevent playback errors when switching the current video player or switching to fullscreen</string>
 
+    <!-- Debug Settings -->
+    <string name="leakcanary">LeakCanary</string>
+    <string name="enable_leak_canary_summary">Memory leak monitoring may cause the app to become unresponsive when heap dumping</string>
+    <string name="leak_canary_not_available">LeakCanary is not available</string>
+    <string name="show_memory_leaks">Show memory leaks</string>
+    <string name="enable_disposed_exceptions_title">Report out-of-lifecycle errors</string>
+    <string name="enable_disposed_exceptions_summary">Force reporting of undeliverable Rx exceptions outside of fragment or activity lifecycle after disposal</string>
+    <string name="show_original_time_ago_title">Show original time ago on items</string>
+    <string name="show_original_time_ago_summary">Original texts from services will be visible in stream items</string>
+    <string name="show_crash_the_player_title">Show "Crash the player"</string>
+    <string name="show_crash_the_player_summary">Shows a crash option when using the player</string>
+    <string name="check_new_streams">Run check for new streams</string>
+    <string name="crash_the_app">Crash the app</string>
+    <string name="show_error_snackbar">Show an error snackbar</string>
+    <string name="create_error_notification">Create an error notification</string>
+    <string name="error_snackbar_message">Sorry, something went wrong.</string>
+    <string name="error_snackbar_action">Report</string>
+
+    <!-- Download Settings -->
+    <string name="ok">OK</string>
+    <string name="downloads_storage_ask_title">Ask where to download</string>
+    <string name="downloads_storage_ask_summary">You will be asked where to save each download.\nEnable the system folder picker (SAF) if you want to download to an external SD card</string>
+    <string name="downloads_storage_ask_summary_no_saf_notice">You will be asked where to save each download</string>
+    <string name="downloads_storage_use_saf_title">Use system folder picker (SAF)</string>
+    <string name="downloads_storage_use_saf_summary">The 'Storage Access Framework' allows downloads to an external SD card</string>
+    <string name="downloads_storage_use_saf_summary_api_29">Starting from Android 10 only 'Storage Access Framework' is supported</string>
+    <string name="download_path_title">Video download folder</string>
+    <string name="download_path_summary">Downloaded video files are stored here</string>
+    <string name="download_path_audio_title">Audio download folder</string>
+    <string name="download_path_audio_summary">Downloaded audio files are stored here</string>
+    <string name="settings_file_charset_title">Allowed characters in filenames</string>
+    <string name="charset_letters_and_digits">Letters and digits</string>
+    <string name="charset_most_special_characters">Most special characters</string>
+    <string name="settings_file_replacement_character_title">Replacement character</string>
+    <string name="settings_file_replacement_character_summary">Invalid characters are replaced with this value</string>
+    <string name="max_retry_msg">Maximum retries</string>
+    <string name="max_retry_desc">Maximum number of attempts before canceling the download</string>
+    <string name="pause_downloads_on_mobile">Interrupt on metered networks</string>
+    <string name="pause_downloads_on_mobile_desc">Useful when switching to mobile data, although some downloads cannot be suspended</string>
+    <string name="enable_queue_limit">Limit download queue</string>
+    <string name="enable_queue_limit_desc">One download will run at the same time</string>
+
+    <!-- Download Settings: folder picker errors -->
+    <string name="general_error">Error</string>
+    <string name="invalid_directory">No such folder</string>
+    <string name="no_available_dir">Please define a download folder later in settings</string>
+    <string name="download_to_sdcard_error_title">External storage unavailable</string>
+    <string name="download_to_sdcard_error_message">Downloading to external SD card not possible. Reset download folder location?</string>
+    <string name="no_app_to_open_intent">No app on your device can open this</string>
+    <string name="no_appropriate_file_manager_message">No appropriate file manager was found for this action.\nPlease install a file manager or try to disable '%1$s' in the download settings</string>
+    <string name="no_appropriate_file_manager_message_android_10">No appropriate file manager was found for this action.\nPlease install a Storage Access Framework compatible file manager</string>
 
 </resources>
