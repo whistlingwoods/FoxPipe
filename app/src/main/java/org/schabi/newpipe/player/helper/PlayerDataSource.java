@@ -38,12 +38,12 @@ public class PlayerDataSource {
     public static final int LIVE_STREAM_EDGE_GAP_MILLIS = 10000;
 
     /**
-     * An approximately 7 times greater value than the
+     * An approximately 4.3 times greater value than the
      * {@link DefaultHlsPlaylistTracker#DEFAULT_PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT default}
-     * to ensure that (very) low latency livestreams or temporary YouTube CDN ingest stalls
-     * which got stuck for a moment don't crash too early.
+     * to ensure that (very) low latency livestreams which got stuck for a moment don't crash too
+     * early.
      */
-    private static final double PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT = 25.0;
+    private static final double PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT = 15;
 
     /**
      * The maximum number of generated manifests per cache, in
@@ -71,9 +71,8 @@ public class PlayerDataSource {
     private final DataSource.Factory cachelessDataSourceFactory;
     private final CacheFactory cacheDataSourceFactory;
 
-    // YouTube-specific Data Source Factories (with cache or live)
+    // YouTube-specific Data Source Factories (with cache)
     // They use YoutubeHttpDataSource.Factory, with different parameters each
-    private final DataSource.Factory ytLiveHlsDataSourceFactory;
     private final CacheFactory ytHlsCacheDataSourceFactory;
     private final CacheFactory ytDashCacheDataSourceFactory;
     private final CacheFactory ytProgressiveDashCacheDataSourceFactory;
@@ -95,9 +94,6 @@ public class PlayerDataSource {
                 new DefaultHttpDataSource.Factory().setUserAgent(DownloaderImpl.USER_AGENT));
 
         // YouTube-specific data source factories use getYoutubeHttpDataSourceFactory()
-        ytLiveHlsDataSourceFactory = new DefaultDataSource.Factory(context,
-                getYoutubeHttpDataSourceFactory(false, false))
-                .setTransferListener(transferListener);
         ytHlsCacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
                 getYoutubeHttpDataSourceFactory(false, false));
         ytDashCacheDataSourceFactory = new CacheFactory(context, transferListener, cache,
@@ -120,16 +116,6 @@ public class PlayerDataSource {
 
     public HlsMediaSource.Factory getLiveHlsMediaSourceFactory() {
         return new HlsMediaSource.Factory(cachelessDataSourceFactory)
-                .setAllowChunklessPreparation(true)
-                .setPlaylistTrackerFactory((dataSourceFactory, loadErrorHandlingPolicy,
-                                            playlistParserFactory) ->
-                        new DefaultHlsPlaylistTracker(dataSourceFactory, loadErrorHandlingPolicy,
-                                playlistParserFactory,
-                                PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT));
-    }
-
-    public HlsMediaSource.Factory getLiveYoutubeHlsMediaSourceFactory() {
-        return new HlsMediaSource.Factory(ytLiveHlsDataSourceFactory)
                 .setAllowChunklessPreparation(true)
                 .setPlaylistTrackerFactory((dataSourceFactory, loadErrorHandlingPolicy,
                                             playlistParserFactory) ->
@@ -189,13 +175,7 @@ public class PlayerDataSource {
 
     //region YouTube media source factories
     public HlsMediaSource.Factory getYoutubeHlsMediaSourceFactory() {
-        return new HlsMediaSource.Factory(ytHlsCacheDataSourceFactory)
-                .setAllowChunklessPreparation(true)
-                .setPlaylistTrackerFactory((dataSourceFactory, loadErrorHandlingPolicy,
-                                            playlistParserFactory) ->
-                        new DefaultHlsPlaylistTracker(dataSourceFactory, loadErrorHandlingPolicy,
-                                playlistParserFactory,
-                                PLAYLIST_STUCK_TARGET_DURATION_COEFFICIENT));
+        return new HlsMediaSource.Factory(ytHlsCacheDataSourceFactory);
     }
 
     public DashMediaSource.Factory getYoutubeDashMediaSourceFactory() {

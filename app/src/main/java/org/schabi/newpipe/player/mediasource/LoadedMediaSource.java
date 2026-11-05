@@ -51,20 +51,10 @@ public class LoadedMediaSource extends WrappingMediaSource implements ManagedMed
         return mediaItem;
     }
 
-    private volatile boolean invalidated = false;
-
-    public void invalidate() {
-        this.invalidated = true;
-    }
-
-    public boolean isInvalidated() {
-        return invalidated;
-    }
-
     @Override
     public boolean shouldBeReplacedWith(@NonNull final PlayQueueItem newIdentity,
                                         final boolean isInterruptable) {
-        return invalidated || newIdentity != stream || (isInterruptable && isExpired());
+        return newIdentity != stream || (isInterruptable && isExpired());
     }
 
     @Override
