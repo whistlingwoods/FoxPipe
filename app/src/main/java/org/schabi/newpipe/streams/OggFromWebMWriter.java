@@ -295,13 +295,10 @@ public class OggFromWebMWriter implements Closeable {
                 metadata.add(Pair.create("GENRE", streamInfo.getCategory()));
                 metadata.add(Pair.create("ARTIST", streamInfo.getUploaderName()));
                 metadata.add(Pair.create("TITLE", streamInfo.getName()));
-                // the upload date is optional and null when the service does not provide it
-                if (streamInfo.getUploadDate() != null) {
-                    metadata.add(Pair.create("DATE", streamInfo
-                            .getUploadDate()
-                            .getLocalDateTime()
-                            .format(DateTimeFormatter.ISO_DATE)));
-                }
+                metadata.add(Pair.create("DATE", streamInfo
+                        .getUploadDate()
+                        .getLocalDateTime()
+                        .format(DateTimeFormatter.ISO_DATE)));
             }
 
             if (DEBUG) {
@@ -357,7 +354,7 @@ public class OggFromWebMWriter implements Closeable {
     private static byte[] makeOpusTagsHeader(final List<Pair<String, String>> keyValueLines) {
         final var tags = keyValueLines
                 .stream()
-                .filter(p -> p.second != null && !p.second.isBlank())
+                .filter(p -> !p.second.isBlank())
                 .map(OggFromWebMWriter::makeOpusMetadataTag)
                 .collect(Collectors.toUnmodifiableList());
 
