@@ -137,24 +137,9 @@ public class PlayQueueItem implements Serializable {
         return error;
     }
 
-    private volatile boolean forceReload = false;
-
-    public void setForceReload(final boolean forceReload) {
-        this.forceReload = forceReload;
-        if (forceReload) {
-            this.error = null;
-        }
-    }
-
-    public boolean isForceReload() {
-        return forceReload;
-    }
-
     @NonNull
     public Single<StreamInfo> getStream() {
-        final boolean force = this.forceReload;
-        this.forceReload = false;
-        return ExtractorHelper.getStreamInfo(this.serviceId, this.url, force)
+        return ExtractorHelper.getStreamInfo(this.serviceId, this.url, false)
                 .subscribeOn(Schedulers.io())
                 .doOnError(throwable -> error = throwable);
     }

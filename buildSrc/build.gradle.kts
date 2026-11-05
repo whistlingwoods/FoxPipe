@@ -9,5 +9,4 @@ plugins {
 
 repositories {
     gradlePluginPortal()
-    mavenCentral()
 }
