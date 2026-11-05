@@ -301,7 +301,6 @@
             tools:ignore="HardcodedText"
             tools:text="1:23:49" />
 
-        <!-- Play queue progress / total duration -->
         <org.schabi.newpipe.views.NewPipeTextView
             android:id="@+id/queue_total_duration"
             android:layout_width="wrap_content"
