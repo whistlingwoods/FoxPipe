@@ -18,6 +18,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,8 @@ import android.view.animation.AnticipateInterpolator;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
 import androidx.core.math.MathUtils;
 
@@ -44,6 +47,8 @@ import org.schabi.newpipe.util.DeviceUtils;
 
 public final class PopupPlayerUi extends VideoPlayerUi {
     private static final String TAG = PopupPlayerUi.class.getSimpleName();
+    private static final int VOLUME_BOOST_MENU_GROUP = 1;
+    private static final float[] VOLUME_BOOSTS = {1.0f, 1.25f, 1.5f, 2.0f, 2.5f, 3.0f};
 
     /**
      * Maximum opacity allowed for Android 12 and higher to allow touches on other apps when using
@@ -169,7 +174,6 @@ public final class PopupPlayerUi extends VideoPlayerUi {
         binding.share.setVisibility(View.GONE);
         binding.playWithKodi.setVisibility(View.GONE);
         binding.openInBrowser.setVisibility(View.GONE);
-        binding.switchMute.setVisibility(View.GONE);
         binding.playerCloseButton.setVisibility(View.GONE);
         binding.topControls.bringToFront();
         binding.topControls.setClickable(false);
@@ -439,9 +443,36 @@ public final class PopupPlayerUi extends VideoPlayerUi {
 
     @Override
     protected void onVolumeBoostClicked() {
-        // the popup player has no activity to show a dialog on, so use a menu instead
-        buildVolumeBoostMenu();
-        volumeBoostPopupMenu.show();
+        final PopupMenu popup = new PopupMenu(new ContextThemeWrapper(context,
+                R.style.DarkPopupMenu), binding.volumeBoostButton);
+        final Menu menu = popup.getMenu();
+        menu.add(player.isMuted() ? R.string.unmute : R.string.mute)
+                .setOnMenuItemClickListener(item -> {
+                    if (!player.exoPlayerIsNull()) {
+                        player.toggleMute();
+                    }
+                    return true;
+                });
+        for (final float boost : VOLUME_BOOSTS) {
+            menu.add(VOLUME_BOOST_MENU_GROUP, Menu.NONE, Menu.NONE, PlayerHelper.formatPitch(boost))
+                    .setCheckable(true)
+                    .setChecked(!player.isAutoVolumeBoostEnabled()
+                            && player.getVolumeBoost() == boost)
+                    .setOnMenuItemClickListener(item -> {
+                        player.setVolumeBoost(boost, false);
+                        return true;
+                    });
+        }
+        menu.add(VOLUME_BOOST_MENU_GROUP, Menu.NONE, Menu.NONE, R.string.volume_boost_auto)
+                .setCheckable(true)
+                .setChecked(player.isAutoVolumeBoostEnabled())
+                .setOnMenuItemClickListener(item -> {
+                    player.setVolumeBoost(player.getVolumeBoost(), true);
+                    return true;
+                });
+        menu.setGroupCheckable(VOLUME_BOOST_MENU_GROUP, true, true);
+        popup.setOnDismissListener(this);
+        popup.show();
         isSomePopupMenuVisible = true;
     }
     //endregion

@@ -126,6 +126,9 @@ public class VolumeBoostAudioProcessorTest {
         processor.setVolumeBoost(100.0f);
         assertEquals(MAXIMUM_VOLUME_BOOST, processor.getVolumeBoost(), FLOAT_TOLERANCE);
 
+        processor.setVolumeBoost(Float.NaN);
+        assertEquals(MINIMUM_VOLUME_BOOST, processor.getVolumeBoost(), FLOAT_TOLERANCE);
+
         processor.setVolumeBoost(0.0f);
         assertEquals(MINIMUM_VOLUME_BOOST, processor.getVolumeBoost(), FLOAT_TOLERANCE);
     }
@@ -162,38 +165,50 @@ public class VolumeBoostAudioProcessorTest {
     }
 
     @Test
-    public void pcm16BitSamplesAreAmplifiedAndClipped() throws UnhandledAudioFormatException {
+    public void manualGainAmplifiesQuietPcm16AndLimitsLoudPeaks()
+            throws UnhandledAudioFormatException {
         final VolumeBoostAudioProcessor processor = processorFor(PCM_16_BIT);
         processor.setVolumeBoost(2.0f);
 
-        processor.queueInput(bufferOf((short) 0, (short) 100, (short) -100, (short) 20000,
-                (short) -20000));
+        processor.queueInput(bufferOf((short) 500, (short) -1000));
+        assertArrayEquals(new short[] {1000, -2000}, shortsOf(processor.getOutput()));
 
-        assertArrayEquals(new short[] {0, 200, -200, Short.MAX_VALUE, Short.MIN_VALUE},
-                shortsOf(processor.getOutput()));
+        // The peak limits the whole stereo image, preserving the ratio of the channels.
+        processor.queueInput(bufferOf((short) 12000, (short) -24000));
+        assertArrayEquals(new short[] {16056, -32113}, shortsOf(processor.getOutput()));
     }
 
     @Test
-    public void pcmFloatSamplesAreAmplifiedAndClipped() throws UnhandledAudioFormatException {
+    public void manualGainAmplifiesQuietFloatPcmAndLimitsLoudPeaks()
+            throws UnhandledAudioFormatException {
         final VolumeBoostAudioProcessor processor = processorFor(PCM_FLOAT);
         processor.setVolumeBoost(2.0f);
 
-        processor.queueInput(bufferOf(0.0f, 0.1f, -0.1f, 0.6f, -0.6f));
+        processor.queueInput(bufferOf(0.1f, -0.1f));
+        assertArrayEquals(new float[] {0.2f, -0.2f},
+                floatsOf(processor.getOutput()), FLOAT_TOLERANCE);
 
-        assertArrayEquals(new float[] {0.0f, 0.2f, -0.2f, 1.0f, -1.0f},
+        processor.queueInput(bufferOf(0.6f, -0.3f, 0.3f, 0.6f));
+        assertArrayEquals(new float[] {0.98f, -0.49f, 0.49f, 0.98f},
                 floatsOf(processor.getOutput()), FLOAT_TOLERANCE);
     }
 
     @Test
-    public void theWholeInputBufferIsConsumed() throws UnhandledAudioFormatException {
+    public void boostCanBeChangedAndDisabledMidStream() throws UnhandledAudioFormatException {
         final VolumeBoostAudioProcessor processor = processorFor(PCM_16_BIT);
         processor.setVolumeBoost(2.0f);
 
-        final ByteBuffer inputBuffer = bufferOf((short) 1, (short) 2, (short) 3);
+        final ByteBuffer inputBuffer = bufferOf(Short.MIN_VALUE, Short.MAX_VALUE,
+                (short) 500, (short) -500);
+        inputBuffer.position(2 * Short.BYTES);
         processor.queueInput(inputBuffer);
+        assertFalse(inputBuffer.hasRemaining());
+        assertArrayEquals(new short[] {1000, -1000}, shortsOf(processor.getOutput()));
 
-        assertFalse("the pipeline would keep feeding the same buffer forever",
-                inputBuffer.hasRemaining());
+        processor.setVolumeBoost(MINIMUM_VOLUME_BOOST);
+        processor.queueInput(bufferOf(Short.MIN_VALUE, Short.MAX_VALUE));
+        assertArrayEquals(new short[] {Short.MIN_VALUE, Short.MAX_VALUE},
+                shortsOf(processor.getOutput()));
     }
 
     @Test
@@ -221,6 +236,18 @@ public class VolumeBoostAudioProcessorTest {
 
         assertEquals("audio which is already loud should not have been amplified",
                 amplitude, peak, FLOAT_TOLERANCE);
+    }
+
+    @Test
+    public void suddenPeakAfterQuietAudioIsLimitedOnBothChannels()
+            throws UnhandledAudioFormatException {
+        final VolumeBoostAudioProcessor processor = processorFor(PCM_FLOAT);
+        processor.setAutomaticVolumeBoost(true);
+        assertTrue(feedSquareWave(processor, 0.02f, 3.0f) > 0.04f);
+
+        processor.queueInput(bufferOf(1.0f, -0.5f, -1.0f, 0.5f));
+        assertArrayEquals(new float[] {1.0f, -0.5f, -1.0f, 0.5f},
+                floatsOf(processor.getOutput()), FLOAT_TOLERANCE);
     }
 
     @Test

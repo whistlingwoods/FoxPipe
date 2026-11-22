@@ -22,7 +22,7 @@ import com.google.android.exoplayer2.audio.DefaultAudioSink;
 public class VolumeBoostRenderersFactory extends DefaultRenderersFactory {
 
     private float volumeBoost = VolumeBoostAudioProcessor.MINIMUM_VOLUME_BOOST;
-    private boolean automaticVolumeBoost = false;
+    private boolean automaticVolumeBoost;
 
     @Nullable
     private VolumeBoostAudioProcessor volumeBoostAudioProcessor;
@@ -42,9 +42,9 @@ public class VolumeBoostRenderersFactory extends DefaultRenderersFactory {
      * @param newVolumeBoost the gain to apply to the decoded audio samples
      */
     public void setVolumeBoost(final float newVolumeBoost) {
-        volumeBoost = newVolumeBoost;
+        volumeBoost = VolumeBoostAudioProcessor.clampGain(newVolumeBoost);
         if (volumeBoostAudioProcessor != null) {
-            volumeBoostAudioProcessor.setVolumeBoost(newVolumeBoost);
+            volumeBoostAudioProcessor.setVolumeBoost(volumeBoost);
         }
     }
 

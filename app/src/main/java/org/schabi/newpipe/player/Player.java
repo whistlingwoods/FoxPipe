@@ -30,12 +30,9 @@ import static com.google.android.exoplayer2.Player.RepeatMode;
 import static org.schabi.newpipe.extractor.ServiceList.YouTube;
 import static org.schabi.newpipe.extractor.utils.Utils.isNullOrEmpty;
 import static org.schabi.newpipe.player.helper.PlayerHelper.nextRepeatMode;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveAutoVolumeBoostFromPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrievePlaybackParametersFromPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveSeekDurationFromPreferences;
-import static org.schabi.newpipe.player.helper.PlayerHelper.retrieveVolumeBoostFromPrefs;
 import static org.schabi.newpipe.player.helper.PlayerHelper.savePlaybackParametersToPrefs;
-import static org.schabi.newpipe.player.helper.PlayerHelper.saveVolumeBoostToPrefs;
 import static org.schabi.newpipe.player.notification.NotificationConstants.ACTION_CLOSE;
 import static org.schabi.newpipe.player.notification.NotificationConstants.ACTION_FAST_FORWARD;
 import static org.schabi.newpipe.player.notification.NotificationConstants.ACTION_FAST_REWIND;
@@ -102,6 +99,7 @@ import org.schabi.newpipe.player.helper.CustomRenderersFactory;
 import org.schabi.newpipe.player.helper.LoadController;
 import org.schabi.newpipe.player.helper.PlayerDataSource;
 import org.schabi.newpipe.player.helper.PlayerHelper;
+import org.schabi.newpipe.player.helper.VolumeBoostAudioProcessor;
 import org.schabi.newpipe.player.helper.VolumeBoostRenderersFactory;
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.mediasession.MediaSessionPlayerUi;
@@ -288,8 +286,12 @@ public final class Player implements PlaybackListener, Listener {
         renderFactory = prefs.getBoolean(
                 context.getString(
                         R.string.always_use_exoplayer_set_output_surface_workaround_key), false)
-                ? new CustomRenderersFactory(context)
-                : new VolumeBoostRenderersFactory(context);
+                ? new CustomRenderersFactory(context) : new VolumeBoostRenderersFactory(context);
+        renderFactory.setVolumeBoost(prefs.getFloat(
+                context.getString(R.string.playback_volume_boost_key),
+                VolumeBoostAudioProcessor.MINIMUM_VOLUME_BOOST));
+        renderFactory.setAutomaticVolumeBoost(prefs.getBoolean(context.getString(
+                R.string.playback_auto_volume_boost_key), false));
 
         renderFactory.setEnableDecoderFallback(
                 prefs.getBoolean(
@@ -516,8 +518,6 @@ public final class Player implements PlaybackListener, Listener {
         initPlayer(playOnReady);
         setRepeatMode(repeatMode);
         setPlaybackParameters(playbackSpeed, playbackPitch, playbackSkipSilence);
-        setVolumeBoost(retrieveVolumeBoostFromPrefs(this),
-                retrieveAutoVolumeBoostFromPrefs(this));
 
         playQueue = queue;
         playQueue.init();
@@ -889,21 +889,13 @@ public final class Player implements PlaybackListener, Listener {
         return renderFactory.isAutomaticVolumeBoost();
     }
 
-    /**
-     * Sets how much the decoded audio should be amplified, and also saves it to shared
-     * preferences. The gain is rounded up to 2 decimal places before being used or saved.
-     *
-     * @param volumeBoost     the gain to apply when {@code autoVolumeBoost} is disabled, where 1
-     *                        means no amplification at all
-     * @param autoVolumeBoost whether the gain should instead be computed in real time from the
-     *                        loudness of the stream being played
-     */
-    public void setVolumeBoost(final float volumeBoost, final boolean autoVolumeBoost) {
-        final float roundedVolumeBoost = Math.round(volumeBoost * 100.0f) / 100.0f;
-
-        saveVolumeBoostToPrefs(this, roundedVolumeBoost, autoVolumeBoost);
-        renderFactory.setVolumeBoost(roundedVolumeBoost);
-        renderFactory.setAutomaticVolumeBoost(autoVolumeBoost);
+    public void setVolumeBoost(final float gain, final boolean automatic) {
+        renderFactory.setVolumeBoost(gain);
+        renderFactory.setAutomaticVolumeBoost(automatic);
+        prefs.edit()
+                .putFloat(context.getString(R.string.playback_volume_boost_key), getVolumeBoost())
+                .putBoolean(context.getString(R.string.playback_auto_volume_boost_key), automatic)
+                .apply();
         UIs.call(PlayerUi::onVolumeBoostChanged);
     }
 
