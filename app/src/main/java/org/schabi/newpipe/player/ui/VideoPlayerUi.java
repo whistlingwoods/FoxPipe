@@ -41,7 +41,6 @@ import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
@@ -111,7 +110,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
     // other constants (TODO remove playback speeds and use normal menu for popup, too)
     private static final float[] PLAYBACK_SPEEDS = {0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f};
-    private static final float[] VOLUME_BOOSTS = {1.0f, 1.25f, 1.5f, 2.0f, 2.5f, 3.0f};
 
     private enum PlayButtonAction {
         PLAY, PAUSE, REPLAY
@@ -136,13 +134,11 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     private static final int POPUP_MENU_ID_AUDIO_TRACK = 70;
     private static final int POPUP_MENU_ID_PLAYBACK_SPEED = 79;
     private static final int POPUP_MENU_ID_CAPTION = 89;
-    private static final int POPUP_MENU_ID_VOLUME_BOOST = 99;
 
     protected boolean isSomePopupMenuVisible = false;
     private PopupMenu qualityPopupMenu;
     private PopupMenu audioTrackPopupMenu;
     protected PopupMenu playbackSpeedPopupMenu;
-    protected PopupMenu volumeBoostPopupMenu;
     private PopupMenu captionPopupMenu;
 
 
@@ -203,7 +199,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         qualityPopupMenu = new PopupMenu(themeWrapper, binding.qualityTextView);
         audioTrackPopupMenu = new PopupMenu(themeWrapper, binding.audioTrackTextView);
         playbackSpeedPopupMenu = new PopupMenu(viewContext, binding.playbackSpeed);
-        volumeBoostPopupMenu = new PopupMenu(themeWrapper, binding.volumeBoostButton);
         captionPopupMenu = new PopupMenu(themeWrapper, binding.captionTextView);
 
         binding.progressBarLoadingPanel.getIndeterminateDrawable()
@@ -267,7 +262,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
                 context.sendBroadcast(new Intent(VideoDetailFragment.ACTION_HIDE_MAIN_PLAYER)
                         .setPackage(App.PACKAGE_NAME))
         ));
-        binding.switchMute.setOnClickListener(makeOnClickListener(player::toggleMute));
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.itemsListPanel, (view, windowInsets) -> {
             final Insets cutout = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
@@ -328,7 +322,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.playWithKodi.setOnClickListener(null);
         binding.openInBrowser.setOnClickListener(null);
         binding.playerCloseButton.setOnClickListener(null);
-        binding.switchMute.setOnClickListener(null);
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.itemsListPanel, null);
 
@@ -446,7 +439,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     }
 
     protected void setupElementsVisibility() {
-        setMuteButton(player.isMuted());
+        updateVolumeBoostButton();
         animateRotation(binding.moreOptionsButton, DEFAULT_CONTROLS_DURATION, 0);
     }
 
@@ -462,6 +455,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         binding.audioTrackTextView.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
         binding.playbackSpeed.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
         binding.playbackSpeed.setMinimumWidth(buttonsMinWidth);
+        binding.volumeBoostButton.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
         binding.captionTextView.setPadding(buttonsPad, buttonsPad, buttonsPad, buttonsPad);
     }
     //endregion
@@ -1054,12 +1048,7 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
     @Override
     public void onMuteUnmuteChanged(final boolean isMuted) {
         super.onMuteUnmuteChanged(isMuted);
-        setMuteButton(isMuted);
-    }
-
-    private void setMuteButton(final boolean isMuted) {
-        binding.switchMute.setImageDrawable(AppCompatResources.getDrawable(context, isMuted
-                ? R.drawable.ic_volume_off : R.drawable.ic_volume_up));
+        updateVolumeBoostButton();
     }
 
     private void setShuffleButton(final boolean shuffled) {
@@ -1263,38 +1252,6 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         playbackSpeedPopupMenu.setOnDismissListener(this);
     }
 
-    /**
-     * Builds the volume boost menu shown by the players which can't show a dialog. The last entry
-     * is the automatic mode, all the others are fixed gains.
-     */
-    protected void buildVolumeBoostMenu() {
-        if (volumeBoostPopupMenu == null) {
-            return;
-        }
-        volumeBoostPopupMenu.getMenu().removeGroup(POPUP_MENU_ID_VOLUME_BOOST);
-
-        for (int i = 0; i < VOLUME_BOOSTS.length; i++) {
-            final CharSequence title = VOLUME_BOOSTS[i] == VolumeBoostAudioProcessor
-                    .MINIMUM_VOLUME_BOOST
-                    ? context.getString(R.string.volume_boost_off)
-                    : PlayerHelper.formatPitch(VOLUME_BOOSTS[i]);
-            volumeBoostPopupMenu.getMenu()
-                    .add(POPUP_MENU_ID_VOLUME_BOOST, i, Menu.NONE, title)
-                    .setCheckable(true)
-                    .setChecked(!player.isAutoVolumeBoostEnabled()
-                            && player.getVolumeBoost() == VOLUME_BOOSTS[i]);
-        }
-
-        volumeBoostPopupMenu.getMenu()
-                .add(POPUP_MENU_ID_VOLUME_BOOST, VOLUME_BOOSTS.length, Menu.NONE,
-                        R.string.volume_boost_auto)
-                .setCheckable(true)
-                .setChecked(player.isAutoVolumeBoostEnabled());
-
-        volumeBoostPopupMenu.setOnMenuItemClickListener(this);
-        volumeBoostPopupMenu.setOnDismissListener(this);
-    }
-
     private void buildCaptionMenu(@NonNull final List<String> availableLanguages) {
         if (captionPopupMenu == null) {
             return;
@@ -1387,17 +1344,25 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
         updateVolumeBoostButton();
     }
 
-    /**
-     * Highlights the volume boost button whenever the audio is being amplified, so that the user
-     * can tell at a glance that the stream is not being played back as it is.
-     */
     private void updateVolumeBoostButton() {
+        final boolean muted = player.isMuted();
         final boolean boosting = player.isAutoVolumeBoostEnabled()
                 || player.getVolumeBoost() > VolumeBoostAudioProcessor.MINIMUM_VOLUME_BOOST;
+        binding.volumeBoostButton.setImageResource(muted
+                ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
         ImageViewCompat.setImageTintList(binding.volumeBoostButton, ColorStateList.valueOf(
-                boosting
+                boosting && !muted
                         ? ContextCompat.getColor(context, R.color.dark_settings_accent_color)
                         : Color.WHITE));
+        final String state;
+        if (muted) {
+            state = context.getString(R.string.volume_muted);
+        } else if (player.isAutoVolumeBoostEnabled()) {
+            state = context.getString(R.string.volume_boost_auto);
+        } else {
+            state = PlayerHelper.formatPitch(player.getVolumeBoost());
+        }
+        ViewCompat.setStateDescription(binding.volumeBoostButton, state);
     }
 
     private void onQualityClicked() {
@@ -1437,23 +1402,9 @@ public abstract class VideoPlayerUi extends PlayerUi implements SeekBar.OnSeekBa
 
             player.setPlaybackSpeed(speed);
             binding.playbackSpeed.setText(formatSpeed(speed));
-        } else if (menuItem.getGroupId() == POPUP_MENU_ID_VOLUME_BOOST) {
-            onVolumeBoostItemClick(menuItem);
-            return true;
         }
 
         return false;
-    }
-
-    private void onVolumeBoostItemClick(@NonNull final MenuItem menuItem) {
-        final int menuItemIndex = menuItem.getItemId();
-        if (menuItemIndex == VOLUME_BOOSTS.length) {
-            // the last entry is the automatic mode, which keeps the last gain the user picked
-            player.setVolumeBoost(player.getVolumeBoost(), true);
-        } else {
-            player.setVolumeBoost(VOLUME_BOOSTS[menuItemIndex], false);
-        }
-        buildVolumeBoostMenu();
     }
 
     private void onQualityItemClick(@NonNull final MenuItem menuItem) {

@@ -4,182 +4,150 @@ import static org.schabi.newpipe.player.helper.VolumeBoostAudioProcessor.MAXIMUM
 import static org.schabi.newpipe.player.helper.VolumeBoostAudioProcessor.MINIMUM_VOLUME_BOOST;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.SeekBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.math.MathUtils;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.DialogFragment;
-
-import com.evernote.android.state.State;
-import com.livefront.bridge.Bridge;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 import org.schabi.newpipe.R;
 import org.schabi.newpipe.databinding.DialogVolumeBoostBinding;
+import org.schabi.newpipe.player.Player;
 import org.schabi.newpipe.util.SimpleOnSeekBarChangeListener;
-import org.schabi.newpipe.util.SliderStrategy;
 
-/**
- * Dialog letting the user amplify the audio of the stream being played, either by picking a gain
- * themselves or by letting the player adjust it in real time based on how loud the stream is.
- */
-public class VolumeBoostDialog extends DialogFragment {
+public final class VolumeBoostDialog extends DialogFragment {
+    private static final int MIN_PERCENT = Math.round(MINIMUM_VOLUME_BOOST * 100);
+    private static final int MAX_PERCENT = Math.round(MAXIMUM_VOLUME_BOOST * 100);
+    private static final int STEP_PERCENT = 25;
 
-    private static final double MIN_VOLUME_BOOST = MINIMUM_VOLUME_BOOST;
-    private static final double MAX_VOLUME_BOOST = MAXIMUM_VOLUME_BOOST;
-    private static final double VOLUME_BOOST_STEP = 0.25f;
-
-    private static final SliderStrategy STRATEGY = new SliderStrategy.Linear(
-            MIN_VOLUME_BOOST,
-            MAX_VOLUME_BOOST,
-            10_000);
-
-    @Nullable
-    private Callback callback;
-
-    @State
-    double initialVolumeBoost = MIN_VOLUME_BOOST;
-    @State
-    boolean initialAutoVolumeBoost = false;
-
-    @State
-    double volumeBoost = MIN_VOLUME_BOOST;
-    @State
-    boolean autoVolumeBoost = false;
-
-    private DialogVolumeBoostBinding binding;
-
-    public static VolumeBoostDialog newInstance(final double playbackVolumeBoost,
-                                                final boolean playbackAutoVolumeBoost,
-                                                final Callback callback) {
-        final VolumeBoostDialog dialog = new VolumeBoostDialog();
-        dialog.callback = callback;
-
-        dialog.initialVolumeBoost = playbackVolumeBoost;
-        dialog.initialAutoVolumeBoost = playbackAutoVolumeBoost;
-
-        dialog.volumeBoost = dialog.initialVolumeBoost;
-        dialog.autoVolumeBoost = dialog.initialAutoVolumeBoost;
-
-        return dialog;
+    // The player belongs to the service and can outlive a rotation of the dialog's activity.
+    public static final class Session extends ViewModel {
+        @Nullable private Player player;
+        private float initialGain;
+        private boolean initialAutomatic;
+        private boolean initialMuted;
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull final Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Bridge.saveInstanceState(this, outState);
+    @Nullable private Player initialPlayer;
+    private Session session;
+
+    public static VolumeBoostDialog newInstance(@NonNull final Player player) {
+        final VolumeBoostDialog dialog = new VolumeBoostDialog();
+        dialog.initialPlayer = player;
+        return dialog;
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
-        Bridge.restoreInstanceState(this, savedInstanceState);
+        session = new ViewModelProvider(this).get(Session.class);
+        if (initialPlayer != null) {
+            session.player = initialPlayer;
+            session.initialGain = initialPlayer.getVolumeBoost();
+            session.initialAutomatic = initialPlayer.isAutoVolumeBoostEnabled();
+            session.initialMuted = initialPlayer.isMuted();
+            initialPlayer = null;
+        }
 
-        binding = DialogVolumeBoostBinding.inflate(getLayoutInflater());
-        initUI();
+        final AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity())
+                .setTitle(R.string.volume_boost);
+        final Player player = session.player;
+        if (player == null || player.exoPlayerIsNull()) {
+            // Android may restore the dialog after the playback service's process has died.
+            dismiss();
+            return builder.create();
+        }
 
-        return new AlertDialog.Builder(requireActivity())
-                .setTitle(R.string.volume_boost)
-                .setView(binding.getRoot())
-                .setCancelable(true)
-                .setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
-                    setVolumeBoost(initialVolumeBoost);
-                    setAutoVolumeBoost(initialAutoVolumeBoost);
-                    updateCallback();
+        final DialogVolumeBoostBinding binding = DialogVolumeBoostBinding.inflate(
+                getLayoutInflater());
+        binding.volumeBoostMinimumText.setText(PlayerHelper.formatPitch(MINIMUM_VOLUME_BOOST));
+        binding.volumeBoostMaximumText.setText(PlayerHelper.formatPitch(MAXIMUM_VOLUME_BOOST));
+        final String step = PlayerHelper.formatPitch(STEP_PERCENT / 100.0);
+        binding.volumeBoostStepDown.setText("−" + step);
+        binding.volumeBoostStepUp.setText("+" + step);
+        final SeekBar slider = binding.volumeBoostSeekbar;
+        slider.setMax(MAX_PERCENT - MIN_PERCENT);
+        slider.setProgress(Math.round(player.getVolumeBoost() * 100) - MIN_PERCENT);
+        slider.setKeyProgressIncrement(1);
+        updateGainLabel(binding, player.getVolumeBoost());
+        binding.autoVolumeBoostSwitch.setChecked(player.isAutoVolumeBoostEnabled());
+        enableManualControls(binding, !player.isAutoVolumeBoostEnabled());
+        binding.muteSwitch.setChecked(player.isMuted());
+
+        slider.setOnSeekBarChangeListener(new SimpleOnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(@NonNull final SeekBar seekBar, final int progress,
+                                          final boolean fromUser) {
+                if (fromUser) {
+                    applyGain(binding, player, progress);
+                }
+            }
+        });
+        binding.volumeBoostStepDown.setOnClickListener(view ->
+                applyGain(binding, player, slider.getProgress() - STEP_PERCENT));
+        binding.volumeBoostStepUp.setOnClickListener(view ->
+                applyGain(binding, player, slider.getProgress() + STEP_PERCENT));
+        binding.autoVolumeBoostSwitch.setOnCheckedChangeListener((view, checked) -> {
+            enableManualControls(binding, !checked);
+            player.setVolumeBoost(player.getVolumeBoost(), checked);
+        });
+        binding.muteSwitch.setOnCheckedChangeListener((view, checked) -> setMuted(player, checked));
+
+        return builder.setView(binding.getRoot())
+                .setNegativeButton(R.string.cancel, (dialog, which) -> restoreInitialSettings())
+                .setNeutralButton(R.string.playback_reset, (dialog, which) -> {
+                    player.setVolumeBoost(MINIMUM_VOLUME_BOOST, false);
+                    setMuted(player, false);
                 })
-                .setNeutralButton(R.string.playback_reset, (dialogInterface, i) -> {
-                    setVolumeBoost(MIN_VOLUME_BOOST);
-                    setAutoVolumeBoost(false);
-                    updateCallback();
-                })
-                .setPositiveButton(R.string.ok, (dialogInterface, i) -> updateCallback())
+                .setPositiveButton(R.string.ok, null)
                 .create();
     }
 
-    private void initUI() {
-        binding.volumeBoostMinimumText.setText(PlayerHelper.formatPitch(MIN_VOLUME_BOOST));
-        binding.volumeBoostMaximumText.setText(PlayerHelper.formatPitch(MAX_VOLUME_BOOST));
-        binding.volumeBoostStepDown.setText(getStepString(-VOLUME_BOOST_STEP));
-        binding.volumeBoostStepUp.setText(getStepString(VOLUME_BOOST_STEP));
-
-        binding.volumeBoostSeekbar.setMax(STRATEGY.progressOf(MAX_VOLUME_BOOST));
-        binding.volumeBoostSeekbar.setOnSeekBarChangeListener(
-                new SimpleOnSeekBarChangeListener() {
-                    @Override
-                    public void onProgressChanged(@NonNull final SeekBar seekBar,
-                                                  final int progress,
-                                                  final boolean fromUser) {
-                        if (fromUser) { // ensure that the user triggered the change
-                            setVolumeBoost(STRATEGY.valueOf(progress));
-                            updateCallback();
-                        }
-                    }
-                });
-
-        binding.volumeBoostStepDown.setOnClickListener(view -> {
-            setVolumeBoost(volumeBoost - VOLUME_BOOST_STEP);
-            updateCallback();
-        });
-        binding.volumeBoostStepUp.setOnClickListener(view -> {
-            setVolumeBoost(volumeBoost + VOLUME_BOOST_STEP);
-            updateCallback();
-        });
-
-        binding.autoVolumeBoostSwitch.setOnCheckedChangeListener((view, isChecked) -> {
-            setAutoVolumeBoost(isChecked);
-            updateCallback();
-        });
-
-        setVolumeBoost(volumeBoost);
-        setAutoVolumeBoost(autoVolumeBoost);
+    private static void applyGain(final DialogVolumeBoostBinding binding, final Player player,
+                                  final int progress) {
+        binding.volumeBoostSeekbar.setProgress(progress);
+        final float gain = (binding.volumeBoostSeekbar.getProgress() + MIN_PERCENT) / 100f;
+        updateGainLabel(binding, gain);
+        player.setVolumeBoost(gain, false);
     }
 
-    private void setVolumeBoost(final double newVolumeBoost) {
-        volumeBoost = MathUtils.clamp(newVolumeBoost, MIN_VOLUME_BOOST, MAX_VOLUME_BOOST);
-
-        binding.volumeBoostSeekbar.setProgress(STRATEGY.progressOf(volumeBoost));
-        binding.volumeBoostCurrentText.setText(PlayerHelper.formatPitch(volumeBoost));
+    private static void updateGainLabel(final DialogVolumeBoostBinding binding, final float gain) {
+        final String label = PlayerHelper.formatPitch(gain);
+        binding.volumeBoostCurrentText.setText(label);
+        ViewCompat.setStateDescription(binding.volumeBoostSeekbar, label);
     }
 
-    private void setAutoVolumeBoost(final boolean newAutoVolumeBoost) {
-        autoVolumeBoost = newAutoVolumeBoost;
-
-        binding.autoVolumeBoostSwitch.setChecked(newAutoVolumeBoost);
-        // the gain is chosen by the player itself in automatic mode, so the slider does not apply
-        binding.volumeBoostSeekbar.setEnabled(!newAutoVolumeBoost);
-        binding.volumeBoostStepDown.setEnabled(!newAutoVolumeBoost);
-        binding.volumeBoostStepUp.setEnabled(!newAutoVolumeBoost);
-        setChildrenAlpha(newAutoVolumeBoost ? 0.4f : 1.0f);
+    private static void enableManualControls(final DialogVolumeBoostBinding binding,
+                                            final boolean enabled) {
+        binding.volumeBoostSeekbar.setEnabled(enabled);
+        binding.volumeBoostStepDown.setEnabled(enabled);
+        binding.volumeBoostStepUp.setEnabled(enabled);
+        binding.manualControls.setAlpha(enabled ? 1f : 0.4f);
     }
 
-    private void setChildrenAlpha(final float alpha) {
-        for (final View view : new View[] {
-                binding.volumeBoostSeekbar,
-                binding.volumeBoostStepDown,
-                binding.volumeBoostStepUp,
-                binding.volumeBoostMinimumText,
-                binding.volumeBoostCurrentText,
-                binding.volumeBoostMaximumText
-        }) {
-            view.setAlpha(alpha);
+    private static void setMuted(final Player player, final boolean muted) {
+        if (!player.exoPlayerIsNull() && player.isMuted() != muted) {
+            player.toggleMute();
         }
     }
 
-    private void updateCallback() {
-        if (callback != null) {
-            callback.onVolumeBoostChanged((float) volumeBoost, autoVolumeBoost);
+    private void restoreInitialSettings() {
+        final Player player = session.player;
+        if (player != null) {
+            player.setVolumeBoost(session.initialGain, session.initialAutomatic);
+            setMuted(player, session.initialMuted);
         }
     }
 
-    @NonNull
-    private static String getStepString(final double step) {
-        return (step > 0 ? "+" : "-") + PlayerHelper.formatPitch(Math.abs(step));
-    }
-
-    public interface Callback {
-        void onVolumeBoostChanged(float volumeBoost, boolean autoVolumeBoost);
+    @Override
+    public void onCancel(@NonNull final DialogInterface dialog) {
+        super.onCancel(dialog);
+        restoreInitialSettings();
     }
 }

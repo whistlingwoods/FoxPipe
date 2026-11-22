@@ -35,6 +35,7 @@ import org.schabi.newpipe.fragments.OnScrollBelowItemsListener;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.player.event.PlayerEventListener;
 import org.schabi.newpipe.player.helper.PlaybackParameterDialog;
+import org.schabi.newpipe.player.helper.VolumeBoostDialog;
 import org.schabi.newpipe.player.mediaitem.MediaItemTag;
 import org.schabi.newpipe.player.playqueue.PlayQueue;
 import org.schabi.newpipe.player.playqueue.PlayQueueAdapter;
@@ -113,7 +114,7 @@ public final class PlayQueueActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.menu_play_queue, m);
         getMenuInflater().inflate(R.menu.menu_play_queue_bg, m);
         buildAudioTrackMenu();
-        onMaybeMuteChanged();
+        updateVolumeIcon();
         // to avoid null reference
         if (player != null) {
             onPlaybackParameterChanged(player.getPlaybackParameters());
@@ -148,8 +149,10 @@ public final class PlayQueueActivity extends AppCompatActivity
         } else if (itemId == R.id.action_playback_speed) {
             openPlaybackParameterDialog();
             return true;
-        } else if (itemId == R.id.action_mute) {
-            player.toggleMute();
+        } else if (itemId == R.id.action_volume_boost) {
+            if (player != null && !player.exoPlayerIsNull()) {
+                VolumeBoostDialog.newInstance(player).show(getSupportFragmentManager(), null);
+            }
             return true;
         } else if (itemId == R.id.action_system_audio) {
             startActivity(new Intent(Settings.ACTION_SOUND_SETTINGS));
@@ -533,7 +536,7 @@ public final class PlayQueueActivity extends AppCompatActivity
         onStateChanged(state);
         onPlayModeChanged(repeatMode, shuffled);
         onPlaybackParameterChanged(parameters);
-        onMaybeMuteChanged();
+        updateVolumeIcon();
     }
 
     @Override
@@ -668,17 +671,10 @@ public final class PlayQueueActivity extends AppCompatActivity
         }
     }
 
-    private void onMaybeMuteChanged() {
+    private void updateVolumeIcon() {
         if (menu != null && player != null) {
-            final MenuItem item = menu.findItem(R.id.action_mute);
-
-            //Change the mute-button item in ActionBar
-            //1) Text change:
-            item.setTitle(player.isMuted() ? R.string.unmute : R.string.mute);
-
-            //2) Icon change accordingly to current App Theme
-            // using rootView.getContext() because getApplicationContext() didn't work
-            item.setIcon(player.isMuted() ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
+            menu.findItem(R.id.action_volume_boost)
+                    .setIcon(player.isMuted() ? R.drawable.ic_volume_off : R.drawable.ic_volume_up);
         }
     }
 

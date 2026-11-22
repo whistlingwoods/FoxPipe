@@ -20,6 +20,7 @@
             android:textSize="14sp" />
 
         <RelativeLayout
+            android:id="@+id/manualControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp">
@@ -30,16 +31,17 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="-25%"
+                tools:text="-25%"
                 android:textColor="?attr/colorAccent"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                android:textStyle="bold" />
 
             <org.schabi.newpipe.views.NewPipeTextView
                 android:id="@+id/volumeBoostStepUp"
@@ -47,16 +49,17 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
+                android:minHeight="48dp"
+                android:minWidth="48dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:paddingStart="8dp"
                 android:paddingEnd="8dp"
-                android:text="+25%"
+                tools:text="+25%"
                 android:textColor="?attr/colorAccent"
-                android:textStyle="bold"
-                tools:ignore="HardcodedText" />
+                android:textStyle="bold" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -70,9 +73,8 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:gravity="center"
-                    android:text="100%"
-                    android:textColor="?attr/colorAccent"
-                    tools:ignore="HardcodedText" />
+                    tools:text="100%"
+                    android:textColor="?attr/colorAccent" />
 
                 <org.schabi.newpipe.views.NewPipeTextView
                     android:id="@+id/volumeBoostCurrentText"
@@ -80,11 +82,10 @@
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:gravity="center"
-                    android:text="100%"
+                    tools:text="100%"
                     android:textColor="?attr/colorAccent"
                     android:textSize="18sp"
-                    android:textStyle="bold"
-                    tools:ignore="HardcodedText" />
+                    android:textStyle="bold" />
 
                 <org.schabi.newpipe.views.NewPipeTextView
                     android:id="@+id/volumeBoostMaximumText"
@@ -92,9 +93,8 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:gravity="center"
-                    android:text="300%"
-                    android:textColor="?attr/colorAccent"
-                    tools:ignore="HardcodedText" />
+                    tools:text="300%"
+                    android:textColor="?attr/colorAccent" />
 
                 <androidx.appcompat.widget.AppCompatSeekBar
                     android:id="@+id/volumeBoostSeekbar"
@@ -102,6 +102,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/volumeBoostCurrentText"
+                    android:contentDescription="@string/volume_boost"
                     tools:progress="0" />
             </RelativeLayout>
         </RelativeLayout>
@@ -112,6 +113,14 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:background="?attr/separator_color" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/muteSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="@string/mute"
+            android:textStyle="bold" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/autoVolumeBoostSwitch"
